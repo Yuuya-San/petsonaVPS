@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+
+<div class="auth-card fade-in">
+  <h2 class="title">Create Account</h2>
+  <p class="subtitle">Join our pet community</p>
+
+  <form method="post" novalidate class="auth-form">
+    {{ form.hidden_tag() }}
+
+    <div class="input-group">
+      <span class="icon"><i class="fas fa-envelope"></i></span>
+      {{ form.email(class_='input-field', placeholder="Email Address", required=true, id="email") }}
+      <span class="input-status" id="email-status"></span>
+    </div>
+
+    <div class="input-group password-group">
+      <span class="icon"><i class="fas fa-lock"></i></span>
+      {{ form.password(class_='input-field', placeholder="Password", required=true, id="password") }}
+      <button type="button" class="toggle-password" id="toggle-password" aria-label="Toggle password visibility">
+        <i class="fas fa-eye"></i>
+      </button>
+      <span class="input-status" id="password-status"></span>
+    </div>
+
+    <div class="password-requirements" id="password-requirements">
+      <div class="requirement" id="req-length">
+        <i class="fas fa-times-circle"></i>
+        <span>At least 8 characters</span>
+      </div>
+      <div class="requirement" id="req-uppercase">
+        <i class="fas fa-times-circle"></i>
+        <span>One uppercase letter (A-Z)</span>
+      </div>
+      <div class="requirement" id="req-lowercase">
+        <i class="fas fa-times-circle"></i>
+        <span>One lowercase letter (a-z)</span>
+      </div>
+      <div class="requirement" id="req-number">
+        <i class="fas fa-times-circle"></i>
+        <span>One number (0-9)</span>
+      </div>
+      <div class="requirement" id="req-special">
+        <i class="fas fa-times-circle"></i>
+        <span>One special character (!@#$%^&*)</span>
+      </div>
+    </div>
+
+    <div class="password-strength-meter" id="password-strength-meter">
+      <div class="strength-bar" id="strength-bar"></div>
+      <span class="strength-text" id="strength-text"></span>
+    </div>
+
+    <div class="input-group password-group">
+      <span class="icon"><i class="fas fa-shield-alt"></i></span>
+      {{ form.password2(class_='input-field', placeholder="Confirm Password", required=true, id="password2") }}
+      <button type="button" class="toggle-password" id="toggle-password2" aria-label="Toggle password visibility">
+        <i class="fas fa-eye"></i>
+      </button>
+      <span class="input-status" id="password2-status"></span>
+    </div>
+
+    <button class="btn-primary loading-btn" type="submit" aria-label="Register button" disabled>
+      <span class="btn-text">Create Account</span>
+      <span class="loader"></span>
+    </button>
+  </form>
+
+  <div class="links">
+    <p>Already have an account?</p>
+    <a href="{{ url_for('auth.login') }}">Login here</a>
+  </div>
+</div>
+
+{% endblock %}
+

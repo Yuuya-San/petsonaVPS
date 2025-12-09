@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>{% block title %}Auth{% endblock %}</title>
+
+  <!-- Google Fonts with font-display swap for better performance -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+
+  <!-- FontAwesome Icons (working version without integrity attribute) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+
+  <style>
+    /* System font stack for immediate readability */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-white-lavender">
+
+  <div class="flash-wrapper">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="flash flash-{{ category }}" role="alert">
+            <span>{{ msg }}</span>
+            <button class="close-flash" type="button" aria-label="Close notification">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  {% block content %}{% endblock %}
+
+  <script>
+    // Ensure fonts are loaded
+    if (document.fonts) {
+      document.fonts.ready.then(() => {
+        document.documentElement.style.fontFamily = '"Poppins", sans-serif';
+      });
+    }
+  </script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+Flask>=2.3
+Flask-Login
+Flask-Mail
+Flask-WTF
+Flask-Migrate
+Flask-Limiter
+Flask-Talisman
+Flask-Bcrypt
+Flask-SQLAlchemy
+python-dotenv
+itsdangerous
+pymysql
+email-validator
+pyotp
+qrcode

@@ -7,12 +7,23 @@ from app.utils.db_init import ensure_database_exists, create_tables
 
 # Import User model for login manager
 from .models import User
+from .config import DevelopmentConfig, ProductionConfig
+import os
 
 def create_app(config_class: type = Config):
     app = Flask(__name__, static_folder="static", template_folder="templates")
+    # Always load base config first
     app.config.from_object(config_class)
+    # Then override with environment-specific config
+    env = os.getenv("FLASK_ENV", "development")
+    if env == "production":
+        app.config.from_object(ProductionConfig)
+        ProductionConfig.init_app(app)
+    else:
+        app.config.from_object(DevelopmentConfig)
+        DevelopmentConfig.init_app(app)
 
-    # Initialize extensions
+    # Initialize extensions after config is finalized
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
@@ -28,6 +39,12 @@ def create_app(config_class: type = Config):
         Flask-Login callback to load a user from the session.
         """
         return User.query.get(int(user_id))
+
+    # Set session.permanent = True on every request to ensure session lifetime is respected
+    @app.before_request
+    def make_session_permanent():
+        from flask import session
+        session.permanent = True
 
     # Auto-create database and tables
     with app.app_context():

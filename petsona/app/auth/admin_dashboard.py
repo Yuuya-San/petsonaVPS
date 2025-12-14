@@ -8,4 +8,4 @@ def admin_dashboard():
     if current_user.role != 'admin':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
-    return render_template('admin_dashboard/admin_dashboard.html')
+    return render_template('admin/dashboard.html')

@@ -1,16 +1,27 @@
-
 import pyotp
 """Authentication routes + audit logging on critical paths."""
-from flask import render_template, redirect, url_for, flash, request, current_app
+from flask import render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from . import bp
 from .forms import RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
 from ..models import User, AuditLog
 from ..extensions import db
 from itsdangerous import URLSafeTimedSerializer
+import random
 from datetime import datetime, timedelta
 from ..extensions import limiter
 from .emails import send_password_reset_email
+
+DEFAULT_AVATARS = [
+    "images/avatar/cat.png",
+    "images/avatar/dog.png",
+    "images/avatar/frog-.png",
+    "images/avatar/hamster.png",
+    "images/avatar/penguin.png",
+    "images/avatar/puffer-fish.png",
+    "images/avatar/rabbit.png",
+    "images/avatar/snake.png"
+]
 
 
 def log_audit(event: str, actor=None, request=None, metadata: dict = None):
@@ -47,23 +58,89 @@ def get_serializer():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        user = User(email=form.email.data.lower(), role='user')
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-
-        # Audit: record registration (actor = new user)
-        log_audit('user.register', actor=user, request=request, metadata={'action': 'register'})
-
-        flash('Registration successful. You can now log in.', 'success')
-        return redirect(url_for('auth.login'))
-    
+        # Store registration data in session
+        session['registration'] = {
+            'first_name': form.first_name.data,
+            'last_name': form.last_name.data,
+            'email': form.email.data.lower(),
+            'password': form.password.data,
+            'photo_url': random.choice(DEFAULT_AVATARS)
+        }
+        # Generate OTP
+        otp = str(random.randint(100000, 999999))
+        session['registration_otp'] = otp
+        # Send OTP email
+        from .emails import send_email
+        html = f"""
+        <p>Your OTP code for registration is: <b>{otp}</b></p>
+        <p>This code will expire in 10 minutes.</p>
+        """
+        send_email('Your Registration OTP', [form.email.data], html)
+        return redirect(url_for('auth.verify_otp'))
     # Flash form validation errors
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'danger')
-    
     return render_template('auth/register.html', form=form)
+
+# OTP Verification Form
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired, Length
+
+class OTPForm(FlaskForm):
+    otp = StringField('OTP', validators=[DataRequired(), Length(min=6, max=6)])
+    submit = SubmitField('Verify')
+
+@bp.route('/verify-otp', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
+def verify_otp():
+    form = OTPForm()
+    if 'registration' not in session or 'registration_otp' not in session:
+        flash('Session expired or invalid. Please register again.', 'danger')
+        return redirect(url_for('auth.register'))
+    if form.validate_on_submit():
+        if form.otp.data == session.get('registration_otp'):
+            reg = session['registration']
+            # Save user to DB
+            user = User(
+                email=reg['email'],
+                first_name=reg['first_name'],
+                last_name=reg['last_name'],
+                photo_url=reg.get('photo_url'),
+                role='user'
+            )
+            user.set_password(reg['password'])
+            db.session.add(user)
+            db.session.commit()
+            log_audit('user.register', actor=user, request=request, metadata={'action': 'register'})
+            # Clear session
+            session.pop('registration', None)
+            session.pop('registration_otp', None)
+            flash('Registration successful. You can now log in.', 'success')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Invalid OTP. Please try again.', 'danger')
+    return render_template('auth/verify_otp.html', form=form)
+
+# Resend OTP route for registration
+@bp.route('/resend-otp', methods=['GET'])
+@limiter.limit("5 per minute")
+def resend_otp():
+    reg = session.get('registration')
+    if not reg:
+        flash('Session expired or invalid. Please register again.', 'danger')
+        return redirect(url_for('auth.register'))
+    otp = str(random.randint(100000, 999999))
+    session['registration_otp'] = otp
+    from .emails import send_email
+    html = f"""
+    <p>Your OTP code for registration is: <b>{otp}</b></p>
+    <p>This code will expire in 10 minutes.</p>
+    """
+    send_email('Your Registration OTP', [reg['email']], html)
+    flash('A new OTP has been sent to your email.', 'info')
+    return redirect(url_for('auth.verify_otp'))
 
 @bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")

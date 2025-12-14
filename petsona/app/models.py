@@ -1,12 +1,16 @@
 # Utility function to create an admin user (call from shell or script)
-def create_admin(email: str, password: str):
-    """Create an admin user directly in the database."""
-    admin = User(email=email.lower(), role='admin')
+def create_admin(email: str, password: str, photo_url: str = None):
+    """Create an admin user directly in the database with optional photo."""
+    admin = User(
+        email=email.lower(),
+        role='admin',
+        photo_url=photo_url  # set default avatar if provided
+    )
     admin.set_password(password)
     db.session.add(admin)
     db.session.commit()
     return admin
-# app/models.py
+
 """Database models for the app: User and AuditLog.
 AuditLog is used for storing an immutable (append-only) log of important events.
 """
@@ -19,6 +23,9 @@ class User(db.Model, UserMixin):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    first_name = db.Column(db.String(64), nullable=True)      
+    last_name = db.Column(db.String(64), nullable=True)       
+    photo_url = db.Column(db.String(255), nullable=True)
     password_hash = db.Column(db.String(128), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

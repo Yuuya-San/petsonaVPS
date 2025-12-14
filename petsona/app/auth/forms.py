@@ -3,7 +3,16 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 import re
 
+
 class RegisterForm(FlaskForm):
+    first_name = StringField(
+        'First Name',
+        validators=[DataRequired(), Length(max=50)]
+    )
+    last_name = StringField(
+        'Last Name',
+        validators=[DataRequired(), Length(max=50)]
+    )
     email = StringField(
         'Email',
         validators=[DataRequired(), Email(), Length(max=255)]
@@ -17,6 +26,14 @@ class RegisterForm(FlaskForm):
         validators=[DataRequired(), EqualTo('password', message='Passwords must match')]
     )
     submit = SubmitField('Register')
+
+    def validate_first_name(self, field):
+        if not re.match(r'^[A-Za-z]+$', field.data):
+            raise ValidationError('First name must contain only letters.')
+
+    def validate_last_name(self, field):
+        if not re.match(r'^[A-Za-z]+$', field.data):
+            raise ValidationError('Last name must contain only letters.')
 
     def validate_password(self, field):
         """

@@ -8,4 +8,4 @@ def merchant_dashboard():
     if current_user.role != 'merchant':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
-    return render_template('merchant_dashboard/merchant_dashboard.html')
+    return render_template('merchant/dashboard.html')

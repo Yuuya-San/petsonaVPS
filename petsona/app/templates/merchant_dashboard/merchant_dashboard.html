@@ -1,8 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mt-5">
-    <h2>Merchant Dashboard</h2>
-    <p>Welcome, {{ current_user.email }} (Merchant)</p>
-    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger mt-3">Logout</a>
-</div>
-{% endblock %}

@@ -6,66 +6,148 @@
   <h2 class="title">Create Account</h2>
   <p class="subtitle">Join our pet community</p>
 
-  <form method="post" novalidate class="auth-form">
+
+  <form method="post" novalidate class="auth-form" id="register-form">
     {{ form.hidden_tag() }}
 
-    <div class="input-group">
-      <span class="icon"><i class="fas fa-envelope"></i></span>
-      {{ form.email(class_='input-field', placeholder="Email Address", required=true, id="email") }}
-      <span class="input-status" id="email-status"></span>
+    <div class="form-section personal-info-section" id="personal-info-section">
+      <h3 class="section-title themed-title">Personal Info</h3>
+      <div class="input-group">
+        <span class="icon"><i class="fas fa-user"></i></span>
+        {{ form.first_name(class_='input-field', placeholder="First Name", required=true, id="first_name", pattern="[A-Za-z]+", maxlength="50", inputmode="text", autocomplete="given-name", title="First name: letters only", oninput="this.value=this.value.replace(/[^A-Za-z]/g,'')") }}
+        <span class="input-status" id="first-name-status"></span>
+      </div>
+      <div class="input-group">
+        <span class="icon"><i class="fas fa-user"></i></span>
+        {{ form.last_name(class_='input-field', placeholder="Last Name", required=true, id="last_name", pattern="[A-Za-z]+", maxlength="50", inputmode="text", autocomplete="family-name", title="Last name: letters only", oninput="this.value=this.value.replace(/[^A-Za-z]/g,'')") }}
+        <span class="input-status" id="last-name-status"></span>
+      </div>
+      <div class="input-group">
+        <span class="icon"><i class="fas fa-envelope"></i></span>
+        {{ form.email(class_='input-field', placeholder="Email Address", required=true, id="email") }}
+        <span class="input-status" id="email-status"></span>
+      </div>
+      <button class="themed-btn next-btn" type="button" id="to-password-section">Next</button>
     </div>
 
-    <div class="input-group password-group">
-      <span class="icon"><i class="fas fa-lock"></i></span>
-      {{ form.password(class_='input-field', placeholder="Password", required=true, id="password") }}
-      <button type="button" class="toggle-password" id="toggle-password" aria-label="Toggle password visibility">
-        <i class="fas fa-eye"></i>
-      </button>
-      <span class="input-status" id="password-status"></span>
-    </div>
+    <div class="form-section password-section" id="password-section" style="display:none;">
+      <h3 class="section-title themed-title">Password</h3>
+      <div class="input-group password-group">
+        <span class="icon"><i class="fas fa-lock"></i></span>
+        {{ form.password(class_='input-field', placeholder="Password", required=true, id="password") }}
+        <button type="button" class="toggle-password" id="toggle-password" aria-label="Toggle password visibility">
+          <i class="fas fa-eye"></i>
+        </button>
+        <span class="input-status" id="password-status"></span>
+      </div>
 
-    <div class="password-requirements" id="password-requirements">
-      <div class="requirement" id="req-length">
-        <i class="fas fa-times-circle"></i>
-        <span>At least 8 characters</span>
+      <div class="password-requirements" id="password-requirements">
+        <div class="requirement" id="req-length">
+          <i class="fas fa-times-circle"></i>
+          <span>At least 8 characters</span>
+        </div>
+        <div class="requirement" id="req-uppercase">
+          <i class="fas fa-times-circle"></i>
+          <span>One uppercase letter (A-Z)</span>
+        </div>
+        <div class="requirement" id="req-lowercase">
+          <i class="fas fa-times-circle"></i>
+          <span>One lowercase letter (a-z)</span>
+        </div>
+        <div class="requirement" id="req-number">
+          <i class="fas fa-times-circle"></i>
+          <span>One number (0-9)</span>
+        </div>
+        <div class="requirement" id="req-special">
+          <i class="fas fa-times-circle"></i>
+          <span>One special character (!@#$%^&*)</span>
+        </div>
       </div>
-      <div class="requirement" id="req-uppercase">
-        <i class="fas fa-times-circle"></i>
-        <span>One uppercase letter (A-Z)</span>
-      </div>
-      <div class="requirement" id="req-lowercase">
-        <i class="fas fa-times-circle"></i>
-        <span>One lowercase letter (a-z)</span>
-      </div>
-      <div class="requirement" id="req-number">
-        <i class="fas fa-times-circle"></i>
-        <span>One number (0-9)</span>
-      </div>
-      <div class="requirement" id="req-special">
-        <i class="fas fa-times-circle"></i>
-        <span>One special character (!@#$%^&*)</span>
-      </div>
-    </div>
 
-    <div class="password-strength-meter" id="password-strength-meter">
-      <div class="strength-bar" id="strength-bar"></div>
-      <span class="strength-text" id="strength-text"></span>
-    </div>
+      <div class="password-strength-meter" id="password-strength-meter">
+        <div class="strength-bar" id="strength-bar"></div>
+        <span class="strength-text" id="strength-text"></span>
+      </div>
 
-    <div class="input-group password-group">
-      <span class="icon"><i class="fas fa-shield-alt"></i></span>
-      {{ form.password2(class_='input-field', placeholder="Confirm Password", required=true, id="password2") }}
-      <button type="button" class="toggle-password" id="toggle-password2" aria-label="Toggle password visibility">
-        <i class="fas fa-eye"></i>
-      </button>
-      <span class="input-status" id="password2-status"></span>
+      <div class="input-group password-group">
+        <span class="icon"><i class="fas fa-shield-alt"></i></span>
+        {{ form.password2(class_='input-field', placeholder="Confirm Password", required=true, id="password2") }}
+        <button type="button" class="toggle-password" id="toggle-password2" aria-label="Toggle password visibility">
+          <i class="fas fa-eye"></i>
+        </button>
+        <span class="input-status" id="password2-status"></span>
+      </div>
+      <div class="section-nav">
+        <button class="themed-btn prev-btn" type="button" id="back-to-personal-info">Back</button>
+        <button class="themed-btn loading-btn" type="submit" aria-label="Register button" disabled>
+          <span class="btn-text">Create Account</span>
+          <span class="loader"></span>
+        </button>
+      </div>
+      <style>
+        .themed-title {
+          color: #7c3aed;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+          margin-bottom: 18px;
+        }
+        .themed-btn {
+          background: #f5edff;
+          color: #7c3aed;
+          border: 1.5px solid #d1b3ff;
+          border-radius: 5px;
+          padding: 10px 0;
+          font-weight: 500;
+          font-size: 1rem;
+          width: 180px;
+          min-width: 140px;
+          box-shadow: 0 1px 3px rgba(124,58,237,0.06);
+          display: inline-block;
+          text-align: center;
+          transition: background 0.18s, color 0.18s, border 0.18s;
+          outline: none;
+          margin: 0;
+        }
+        .themed-btn:hover, .themed-btn:focus {
+          background: #ede9fe;
+          color: #5b21b6;
+          border: 1.5px solid #a78bfa;
+        }
+        .themed-btn.loading-btn[disabled] {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        .section-nav {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-top: 10px;
+          justify-content: flex-start;
+        }
+      </style>
     </div>
-
-    <button class="btn-primary loading-btn" type="submit" aria-label="Register button" disabled>
-      <span class="btn-text">Create Account</span>
-      <span class="loader"></span>
-    </button>
   </form>
+
+  <script>
+    // Section navigation logic
+    const personalSection = document.getElementById('personal-info-section');
+    const passwordSection = document.getElementById('password-section');
+    const nextBtn = document.getElementById('to-password-section');
+    const backBtn = document.getElementById('back-to-personal-info');
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function() {
+        personalSection.style.display = 'none';
+        passwordSection.style.display = '';
+      });
+    }
+    if (backBtn) {
+      backBtn.addEventListener('click', function() {
+        passwordSection.style.display = 'none';
+        personalSection.style.display = '';
+      });
+    }
+  </script>
 
   <div class="links">
     <p>Already have an account?</p>

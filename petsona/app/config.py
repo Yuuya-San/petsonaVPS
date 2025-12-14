@@ -6,6 +6,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    """Base config - safe defaults"""
+    SECRET_KEY = os.getenv("SECRET_KEY") or "fallback-very-strong-key"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ECHO = False
+
+    # Session & cookies - safest defaults
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
+
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
     DB_HOST = "localhost"
     DB_NAME = "petsona"
@@ -16,16 +26,35 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     
-
     # Mail
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False  # TLS is enough
     MAIL_USERNAME = "jeysalas05@gmail.com"
-    MAIL_PASSWORD = "whgtlvnqajqmipfc"  # your Gmail app password
+    MAIL_PASSWORD = "dvwj yvbl kqxu rbya"  # your Gmail app password
     MAIL_DEFAULT_SENDER = "jeysalas05@gmail.com"
 
+    @staticmethod
+    def init_app(app):
+        pass
+
+    
+class DevelopmentConfig(Config):
+    """Development config - allow insecure cookies on HTTP dev"""
+    DEBUG = True
+    SESSION_COOKIE_SECURE = False  # safe for localhost dev
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
+
+    # Password reset token expiry (seconds)
+    RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))
+
+
+class ProductionConfig(Config):
+    """Production config - secure defaults"""
+    DEBUG = False
+    SESSION_COOKIE_SECURE = True  # must use HTTPS
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
 
     # Session & cookies
     SESSION_COOKIE_SECURE = True

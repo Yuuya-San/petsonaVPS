@@ -1,0 +1,233 @@
+{% extends 'admin/base.html' %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body, .form-label, h2, .card, .btn, input, select, textarea {
+    font-family: 'Poppins', sans-serif !important;
+  }
+
+  body {
+    background-color: #F8F7FF; /* soft lavender background */
+  }
+
+  h2 {
+    color: #6B46C1 !important; /* lavender accent */
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    background-color: #FFFFFF !important;
+    border-radius: 12px !important;
+    border: 1px solid #EDE7F6 !important;
+    box-shadow: 0 4px 12px rgba(107, 70, 193, 0.1) !important;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .form-control, .form-select {
+    border-radius: 8px !important;
+    border: 1px solid #D9D6F0 !important;
+    padding: 0.5rem 0.75rem !important;
+    background-color: #FAFAFF !important;
+    color: #4B0082 !important;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #6B46C1 !important;
+    box-shadow: 0 0 0 0.2rem rgba(107, 70, 193, 0.2) !important;
+  }
+
+  .btn-primary {
+    background: linear-gradient(90deg, #CDB4DB 0%, #6B46C1 100%) !important;
+    color: #FFF !important;
+    font-weight: 500;
+    width: 100%;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(90deg, #B893D8 0%, #5A3ABF 100%) !important;
+  }
+
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .form-row .col-12 { flex: 1 1 100%; }
+  .form-row .col-md-6 { flex: 1 1 48%; }
+
+  @media (max-width: 767px) {
+    .form-row .col-md-6 { flex: 1 1 100%; }
+  }
+
+  .form-check-label { margin-left: 0.4rem; color: #4B0082 !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+
+      <!-- Section Title -->
+      {% if active_section %}
+        <h2 class="text-center text-md-start">
+          {% if active_section == 'general' %}General Settings{% endif %}
+          {% if active_section == 'security' %}Security Settings{% endif %}
+          {% if active_section == 'audit' %}Audit & Logging{% endif %}
+          {% if active_section == 'email' %}Email & Notifications{% endif %}
+          {% if active_section == 'api' %}API & Integrations{% endif %}
+          {% if active_section == 'backup' %}Backup & Maintenance{% endif %}
+          {% if active_section == 'compliance' %}Compliance & Legal{% endif %}
+          {% if active_section == 'appearance' %}Appearance Settings{% endif %}
+        </h2>
+      {% endif %}
+
+      <!-- GENERAL SETTINGS -->
+      {% if active_section == 'general' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+              {{ general_form.hidden_tag() }}
+              <div class="mb-3">{{ general_form.site_name.label(class="form-label") }} {{ general_form.site_name(class="form-control") }}</div>
+              <div class="mb-3">{{ general_form.logo.label(class="form-label") }} {{ general_form.logo(class="form-control") }}</div>
+              <div class="form-row">
+                <div class="col-12 col-md-6 mb-3">{{ general_form.timezone.label(class="form-label") }} {{ general_form.timezone(class="form-select") }}</div>
+                <div class="col-12 col-md-6 mb-3">{{ general_form.language.label(class="form-label") }} {{ general_form.language(class="form-select") }}</div>
+              </div>
+              {{ general_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- SECURITY SETTINGS -->
+      {% if active_section == 'security' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              {{ security_form.hidden_tag() }}
+              <div class="mb-3">{{ security_form.password_policy.label(class="form-label") }} {{ security_form.password_policy(class="form-control") }}</div>
+              <div class="form-check mb-3">
+                {{ security_form.enable_2fa(class="form-check-input") }}
+                {{ security_form.enable_2fa.label(class="form-check-label") }}
+              </div>
+              <div class="mb-3">{{ security_form.session_timeout.label(class="form-label") }} {{ security_form.session_timeout(class="form-control") }}</div>
+              {{ security_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- AUDIT SETTINGS -->
+      {% if active_section == 'audit' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              {{ audit_form.hidden_tag() }}
+              <div class="form-check mb-3">
+                {{ audit_form.enable_audit(class="form-check-input") }}
+                {{ audit_form.enable_audit.label(class="form-check-label") }}
+              </div>
+              <div class="mb-3">{{ audit_form.log_retention_days.label(class="form-label") }} {{ audit_form.log_retention_days(class="form-control") }}</div>
+              {{ audit_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- EMAIL SETTINGS -->
+      {% if active_section == 'email' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              {{ email_form.hidden_tag() }}
+              <div class="mb-3">{{ email_form.smtp_host.label(class="form-label") }} {{ email_form.smtp_host(class="form-control") }}</div>
+              <div class="mb-3">{{ email_form.smtp_port.label(class="form-label") }} {{ email_form.smtp_port(class="form-control") }}</div>
+              <div class="mb-3">{{ email_form.from_email.label(class="form-label") }} {{ email_form.from_email(class="form-control") }}</div>
+              {{ email_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- API SETTINGS -->
+      {% if active_section == 'api' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              {{ api_form.hidden_tag() }}
+              <div class="mb-3">{{ api_form.api_key.label(class="form-label") }} {{ api_form.api_key(class="form-control") }}</div>
+              <div class="mb-3">{{ api_form.rate_limit.label(class="form-label") }} {{ api_form.rate_limit(class="form-control") }}</div>
+              {{ api_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- BACKUP SETTINGS -->
+      {% if active_section == 'backup' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              {{ backup_form.hidden_tag() }}
+              <div class="form-check mb-3">
+                {{ backup_form.enable_auto_backup(class="form-check-input") }}
+                {{ backup_form.enable_auto_backup.label(class="form-check-label") }}
+              </div>
+              <div class="mb-3">{{ backup_form.backup_frequency.label(class="form-label") }} {{ backup_form.backup_frequency(class="form-select") }}</div>
+              {{ backup_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- COMPLIANCE SETTINGS -->
+      {% if active_section == 'compliance' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              {{ compliance_form.hidden_tag() }}
+              <div class="form-check mb-3">
+                {{ compliance_form.gdpr_enabled(class="form-check-input") }}
+                {{ compliance_form.gdpr_enabled.label(class="form-check-label") }}
+              </div>
+              <div class="mb-3">{{ compliance_form.privacy_policy_url.label(class="form-label") }} {{ compliance_form.privacy_policy_url(class="form-control") }}</div>
+              <div class="mb-3">{{ compliance_form.terms_url.label(class="form-label") }} {{ compliance_form.terms_url(class="form-control") }}</div>
+              {{ compliance_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- APPEARANCE SETTINGS -->
+      {% if active_section == 'appearance' %}
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              {{ appearance_form.hidden_tag() }}
+              <div class="form-row">
+                <div class="col-12 col-md-6 mb-3">{{ appearance_form.font_family.label(class="form-label") }} {{ appearance_form.font_family(class="form-select") }}</div>
+                <div class="col-12 col-md-6 mb-3">{{ appearance_form.font_size.label(class="form-label") }} {{ appearance_form.font_size(class="form-select") }}</div>
+              </div>
+              <div class="form-row">
+                <div class="col-12 col-md-6 mb-3">{{ appearance_form.primary_color.label(class="form-label") }} {{ appearance_form.primary_color(class="form-control") }}</div>
+                <div class="col-12 col-md-6 mb-3">{{ appearance_form.secondary_color.label(class="form-label") }} {{ appearance_form.secondary_color(class="form-control") }}</div>
+              </div>
+              <div class="form-check mb-3">
+                {{ appearance_form.dark_mode(class="form-check-input") }}
+                {{ appearance_form.dark_mode.label(class="form-check-label") }}
+              </div>
+              {{ appearance_form.submit(class="btn btn-primary w-100") }}
+            </form>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

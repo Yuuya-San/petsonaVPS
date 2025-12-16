@@ -10,10 +10,13 @@ from .models import User
 from .config import DevelopmentConfig, ProductionConfig
 import os
 
+
 def create_app(config_class: type = Config):
     app = Flask(__name__, static_folder="static", template_folder="templates")
+
     # Always load base config first
     app.config.from_object(config_class)
+
     # Then override with environment-specific config
     env = os.getenv("FLASK_ENV", "development")
     if env == "production":
@@ -23,7 +26,7 @@ def create_app(config_class: type = Config):
         app.config.from_object(DevelopmentConfig)
         DevelopmentConfig.init_app(app)
 
-    # Initialize extensions after config is finalized
+    # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
@@ -32,15 +35,12 @@ def create_app(config_class: type = Config):
     limiter.init_app(app)
     talisman.init_app(app, content_security_policy=app.config.get("CSP", {}))
 
-    # Add Flask-Login user loader
+    # Flask-Login user loader
     @login_manager.user_loader
     def load_user(user_id):
-        """
-        Flask-Login callback to load a user from the session.
-        """
         return User.query.get(int(user_id))
 
-    # Set session.permanent = True on every request to ensure session lifetime is respected
+    # Ensure session lifetime
     @app.before_request
     def make_session_permanent():
         from flask import session
@@ -48,20 +48,32 @@ def create_app(config_class: type = Config):
 
     # Auto-create database and tables
     with app.app_context():
-        ensure_database_exists()  # Creates DB if missing
-        create_tables(db)         # Creates tables if missing
+        ensure_database_exists()
+        create_tables(db)
 
-    # Register auth blueprint
+    # AUTH BLUEPRINT
     from .auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")
 
-    # Connect root to auth login
+    # USER BLUEPRINT
+    from .user import bp as user_bp
+    app.register_blueprint(user_bp, url_prefix="/user")
+
+    # ADMIN BLUEPRINT
+    from .admin import bp as admin_bp
+    app.register_blueprint(admin_bp, url_prefix="/admin")
+
+    # MERCHANT BLUEPRINT
+    from .merchant import bp as merchant_bp
+    app.register_blueprint(merchant_bp, url_prefix="/merchant")
+
+    # PETS BLUEPRINT
+    from .pets import bp as pets_bp
+    app.register_blueprint(pets_bp, url_prefix="/pets")
+
+    # Root route
     @app.route("/")
     def index():
-        """
-        Redirect users to the login page.
-        If you add a dashboard later, you can check if current_user.is_authenticated
-        """
         return redirect(url_for("auth.login"))
 
     return app

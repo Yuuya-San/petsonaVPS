@@ -12,21 +12,24 @@ with app.app_context():
     from app.utils.db_init import create_tables
     create_tables(db)
 
+    ADMIN_EMAIL = "jeysalas05@gmail.com"
+
     try:
-        admin_exists = User.query.filter_by(role='admin').first()
-    except Exception as e:
+        admin_exists = User.query.filter_by(email=ADMIN_EMAIL).first()
+    except Exception:
         # Table might not exist yet
         create_tables(db)
-        admin_exists = User.query.filter_by(role='admin').first()
+        admin_exists = User.query.filter_by(email=ADMIN_EMAIL).first()
 
     if not admin_exists:
-        # Create admin with default photo
         create_admin(
-            email="jeysalas05@gmail.com",
+            email=ADMIN_EMAIL,
             password="adminpassword#2025",
             photo_url=DEFAULT_ADMIN_PHOTO
         )
-        print("Default admin account created: jeysalas05@gmail.com / adminpassword#2025")
+        print(f"Default admin account created: {ADMIN_EMAIL} / adminpassword#2025")
+    else:
+        print(f"Admin account already exists: {ADMIN_EMAIL}")
 
 if __name__ == '__main__':
     # Dev server — in production, use Gunicorn/uWSGI behind Nginx

@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% block title %}Add Species{% endblock %}
+{% block content %}
+
+<h3>Add Pet Species</h3>
+
+<form method="POST" class="card card-lavender p-4">
+  <div class="mb-3">
+    <label class="form-label">Species Name *</label>
+    <input name="name" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Legal Status *</label>
+    <select name="legal_status" class="form-select" required>
+      <option value="Allowed">Allowed</option>
+      <option value="Restricted">Restricted</option>
+      <option value="Permit Required">Permit Required</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Description</label>
+    <textarea name="description" class="form-control"></textarea>
+  </div>
+
+  <button class="btn btn-primary">Save Species</button>
+</form>
+
+{% endblock %}

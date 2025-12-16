@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Verify OTP{% endblock %}
+{% block content %}
+<div class="auth-card fade-in">
+  <h2 class="title">Verify Your Email</h2>
+  <p class="subtitle">Enter the OTP sent to your email address to complete registration.</p>
+  <form method="post" novalidate class="auth-form">
+    {{ form.hidden_tag() }}
+    <div class="input-group">
+      <span class="icon"><i class="fas fa-key"></i></span>
+      {{ form.otp(class_='input-field', placeholder="Enter OTP", required=true, maxlength="6", id="otp") }}
+      <span class="input-status" id="otp-status"></span>
+    </div>
+    <button class="btn-primary loading-btn" type="submit" aria-label="Verify OTP">
+      <span class="btn-text">Verify</span>
+      <span class="loader"></span>
+    </button>
+  </form>
+  <div class="links">
+    <p>Didn't receive the code?</p>
+    <a href="{{ url_for('auth.resend_otp') }}">Resend OTP</a>
+  </div>
+</div>
+{% endblock %}

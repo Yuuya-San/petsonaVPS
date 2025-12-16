@@ -1,8 +1,10 @@
 from flask import Blueprint
 
-bp = Blueprint('auth', __name__, template_folder='templates')
+bp = Blueprint(
+    'auth',
+    __name__,
+    template_folder='templates',
+    url_prefix='/auth'
+)
 
-from . import routes  # noqa: F401
-from . import admin_dashboard  # noqa: F401
-from . import merchant_dashboard  # noqa: F401
-from . import user_dashboard  # noqa: F401
+from app.auth import routes  

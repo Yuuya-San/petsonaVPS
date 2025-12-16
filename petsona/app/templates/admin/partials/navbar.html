@@ -1,0 +1,59 @@
+<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+
+  <!-- Sidebar toggle button -->
+  <ul class="navbar-nav">
+    <li class="nav-item">
+      <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+        <i class="fas fa-bars"></i>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Right navbar -->
+  <ul class="navbar-nav ml-auto">
+
+    <!-- Notifications Dropdown -->
+    <li class="nav-item dropdown">
+      <a class="nav-link" data-toggle="dropdown" href="#" role="button">
+        <i class="far fa-bell"></i>
+        <span class="badge badge-warning navbar-badge">{{ notifications|length }}</span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+        <span class="dropdown-header">{{ notifications|length }} Notifications</span>
+        <div class="dropdown-divider"></div>
+        {% for notif in notifications %}
+          <a href="{{ notif.link if notif.link else '#' }}" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> {{ notif.message }}
+            <span class="float-right text-muted text-sm">{{ notif.time }}</span>
+          </a>
+          <div class="dropdown-divider"></div>
+        {% endfor %}
+        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+      </div>
+    </li>
+
+    <!-- User Dropdown (only photo, aligned better) -->
+    <li class="nav-item dropdown">
+      <a class="nav-link" data-toggle="dropdown" href="#" role="button">
+        <!-- User avatar with fallback to default -->
+        <img src="{{ url_for('static', filename=current_user.photo_url) if current_user.photo_url else url_for('static', filename='images/avatar/cat.png') }}"
+             class="img-circle elevation-2"
+             style="width:40px; height:40px; object-fit:cover; position: relative; top: -9px;"
+             alt="User Image">
+      </a>
+      <div class="dropdown-menu dropdown-menu-right">
+        <a href="#" class="dropdown-item">
+          <i class="fas fa-user mr-2"></i> Profile
+        </a>
+        <a href="#" class="dropdown-item">
+          <i class="fas fa-cog mr-2"></i> Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="{{ url_for('auth.logout') }}" class="dropdown-item">
+          <i class="fas fa-sign-out-alt mr-2"></i> Logout
+        </a>
+      </div>
+    </li>
+
+  </ul>
+</nav>

@@ -170,6 +170,7 @@ def login():
                     log_audit('user.login_failed_2fa', actor=user, request=request, metadata={'reason': '2fa_failed'})
                     flash('2FA code required or invalid.', 'danger')
                     return redirect(url_for('auth.login'))
+
             # Success: reset counters
             user.failed_login_attempts = 0
             user.lockout_until = None
@@ -177,19 +178,25 @@ def login():
 
             login_user(user)
             log_audit('user.login_success', actor=user, request=request, metadata={'ip': request.remote_addr})
+
             # Redirect based on role
             if user.role == 'user':
-                return redirect(url_for('auth.user_dashboard'))
+                return redirect(url_for('user.dashboard'))
             elif user.role == 'merchant':
-                return redirect(url_for('auth.merchant_dashboard'))
+                return redirect(url_for('merchant.dashboard'))
             else:
                 flash('You do not have the required permissions to access this page.', 'danger')
                 return redirect(url_for('auth.login'))
         else:
             # Failure: increment failed attempts and potentially lock account
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-            if user.failed_login_attempts >= current_app.config['MAX_FAILED_LOGIN']:
-                user.lockout_until = datetime.utcnow() + timedelta(seconds=current_app.config['LOCKOUT_TIME'])
+
+            # Use safe defaults in case config keys are missing
+            max_attempts = current_app.config.get('MAX_FAILED_LOGIN', 5)
+            lockout_time = current_app.config.get('LOCKOUT_TIME', 900)  # 15 minutes default
+
+            if user.failed_login_attempts >= max_attempts:
+                user.lockout_until = datetime.utcnow() + timedelta(seconds=lockout_time)
                 db.session.commit()
                 log_audit('user.account_locked', actor=user, request=request, metadata={'failed_attempts': user.failed_login_attempts})
                 flash('Account locked due to many failed attempts. Please try again later.', 'danger')
@@ -197,62 +204,128 @@ def login():
                 db.session.commit()
                 log_audit('user.login_failed', actor=user, request=request, metadata={'failed_attempts': user.failed_login_attempts})
                 flash('Invalid email or password.', 'danger')
+
             return redirect(url_for('auth.login'))
+
     # Always flash validation errors if present
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'danger')
+
     return render_template('auth/login.html', form=form)
+
         
 @bp.route('/admin-login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def admin_login():
-        from .forms import AdminLoginForm
-        form = AdminLoginForm()
-        if form.validate_on_submit():
-            email = form.email.data.lower()
-            user = User.query.filter_by(email=email, role='admin').first()
-            base_meta = {'email': email}
-            if not user:
-                log_audit('admin.login_failed', actor=None, request=request, metadata={**base_meta, 'reason': 'no_admin'})
-                flash('Invalid admin credentials.', 'danger')
-                return redirect(url_for('auth.admin_login'))
-            if user.lockout_until and user.lockout_until > datetime.utcnow():
-                log_audit('admin.login_locked', actor=user, request=request, metadata={'locked_until': user.lockout_until.isoformat()})
-                flash('Account temporarily locked. Try again later.', 'danger')
-                return redirect(url_for('auth.admin_login'))
-            if user.check_password(form.password.data):
-                # 2FA check (if enabled)
-                if user.is_2fa_enabled:
-                    code = form.two_factor_code.data or ''
-                    if not code or not user.totp_secret or not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
-                        log_audit('admin.login_failed_2fa', actor=user, request=request, metadata={'reason': '2fa_failed'})
-                        flash('2FA code required or invalid.', 'danger')
-                        return redirect(url_for('auth.admin_login'))
-                user.failed_login_attempts = 0
-                user.lockout_until = None
-                db.session.commit()
-                login_user(user)
-                log_audit('admin.login_success', actor=user, request=request, metadata={'ip': request.remote_addr})
-                flash('Admin login successful.', 'success')
-                return redirect(url_for('auth.admin_dashboard'))
-            else:
-                user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-                if user.failed_login_attempts >= current_app.config['MAX_FAILED_LOGIN']:
-                    user.lockout_until = datetime.utcnow() + timedelta(seconds=current_app.config['LOCKOUT_TIME'])
-                    db.session.commit()
-                    log_audit('admin.account_locked', actor=user, request=request, metadata={'failed_attempts': user.failed_login_attempts})
-                    flash('Account locked due to many failed attempts. Please try again later.', 'danger')
-                else:
-                    db.session.commit()
-                    log_audit('admin.login_failed', actor=user, request=request, metadata={'failed_attempts': user.failed_login_attempts})
-                    flash('Invalid admin credentials.', 'danger')
-                return redirect(url_for('auth.admin_login'))
-            
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(error, 'danger')
-        return render_template('auth/admin_login.html', form=form)
+    from .forms import AdminLoginForm
+
+    form = AdminLoginForm()
+
+    if form.validate_on_submit():
+        email = form.email.data.lower()
+        user = User.query.filter_by(email=email, role='admin').first()
+
+        base_meta = {'email': email}
+
+        # No admin found
+        if not user:
+            log_audit(
+                'admin.login_failed',
+                actor=None,
+                request=request,
+                metadata={**base_meta, 'reason': 'no_admin'}
+            )
+            flash('Invalid admin credentials.', 'danger')
+            return redirect(url_for('auth.admin_login'))
+
+        # Account locked
+        if user.lockout_until and user.lockout_until > datetime.utcnow():
+            log_audit(
+                'admin.login_locked',
+                actor=user,
+                request=request,
+                metadata={'locked_until': user.lockout_until.isoformat()}
+            )
+            flash('Account temporarily locked. Try again later.', 'danger')
+            return redirect(url_for('auth.admin_login'))
+
+        # Password correct
+        if user.check_password(form.password.data):
+
+            # 2FA check
+            if user.is_2fa_enabled:
+                code = (form.two_factor_code.data or '').strip()
+                if (
+                    not code
+                    or not user.totp_secret
+                    or not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1)
+                ):
+                    log_audit(
+                        'admin.login_failed_2fa',
+                        actor=user,
+                        request=request,
+                        metadata={'reason': '2fa_failed'}
+                    )
+                    flash('Invalid or missing 2FA code.', 'danger')
+                    return redirect(url_for('auth.admin_login'))
+
+            # Successful login
+            user.failed_login_attempts = 0
+            user.lockout_until = None
+            db.session.commit()
+
+            login_user(user)
+            log_audit(
+                'admin.login_success',
+                actor=user,
+                request=request,
+                metadata={'ip': request.remote_addr}
+            )
+
+            flash('Admin login successful.', 'success')
+            return redirect(url_for('admin.dashboard'))
+
+        # Wrong password
+        user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+
+        # Safe config access
+        max_attempts = current_app.config.get('MAX_FAILED_LOGIN', 5)
+        lockout_time = current_app.config.get('LOCKOUT_TIME', 900)
+
+        if user.failed_login_attempts >= max_attempts:
+            user.lockout_until = datetime.utcnow() + timedelta(seconds=lockout_time)
+            db.session.commit()
+
+            log_audit(
+                'admin.account_locked',
+                actor=user,
+                request=request,
+                metadata={'failed_attempts': user.failed_login_attempts}
+            )
+            flash(
+                'Account locked due to many failed attempts. Please try again later.',
+                'danger'
+            )
+        else:
+            db.session.commit()
+            log_audit(
+                'admin.login_failed',
+                actor=user,
+                request=request,
+                metadata={'failed_attempts': user.failed_login_attempts}
+            )
+            flash('Invalid admin credentials.', 'danger')
+
+        return redirect(url_for('auth.admin_login'))
+
+    # Form validation errors
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(error, 'danger')
+
+    return render_template('auth/admin_login.html', form=form)
+
 
 @bp.route('/logout')
 @login_required

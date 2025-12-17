@@ -71,6 +71,10 @@ def create_app(config_class: type = Config):
     from .pets import bp as pets_bp
     app.register_blueprint(pets_bp, url_prefix="/pets")
 
+    # PROFILE BLUEPRINT
+    from .profile import bp as profile_bp
+    app.register_blueprint(profile_bp, url_prefix="/profile")
+
     # Root route
     @app.route("/")
     def index():

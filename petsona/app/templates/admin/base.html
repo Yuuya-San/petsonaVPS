@@ -37,6 +37,38 @@
     <div class="content-wrapper">
         <section class="content pt-3">
             <div class="container-fluid">
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                                <div class="flash flash-{{ category }}">
+                                    <div class="flash-icon">
+                                        {% if category == 'success' %}
+                                            <i class="fas fa-check-circle"></i>
+                                        {% elif category == 'danger' %}
+                                            <i class="fas fa-times-circle"></i>
+                                        {% elif category == 'warning' %}
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle"></i>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="flash-message">
+                                        {{ message }}
+                                    </div>
+
+                                    <button class="flash-close" onclick="this.parentElement.remove()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
                 {% block content %}{% endblock %}
             </div>
         </section>
@@ -60,9 +92,19 @@
 <!-- Custom JS -->
 <script src="{{ url_for('static', filename='js/petLoader.js') }}"></script>
 
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.flash').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-5px)';
+            setTimeout(() => el.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+
 <!-- Allow child templates to add scripts -->
 {% block scripts %}{% endblock %}
-
 
 </body>
 </html>

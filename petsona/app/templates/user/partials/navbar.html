@@ -32,18 +32,22 @@
       </div>
     </li>
 
-    <!-- User Dropdown (only photo, aligned better) -->
+    <!-- User Dropdown (photo + name, aligned better) -->
     <li class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#" role="button">
+      <a class="nav-link d-flex align-items-center" data-toggle="dropdown" href="#" role="button">
+        <!-- User name on left side -->
+        <span class="mr-2 font-weight-bold" style="font-size: 14px;">
+          {{ current_user.first_name or 'User' }} {{ current_user.last_name or '' }}
+        </span>
         <!-- User avatar with fallback to default -->
         <img src="{{ url_for('static', filename=current_user.photo_url) if current_user.photo_url else url_for('static', filename='images/avatar/cat.png') }}"
              class="img-circle elevation-2"
-             style="width:40px; height:40px; object-fit:cover; position: relative; top: -9px;"
+             style="width:40px; height:40px; object-fit:cover;"
              alt="User Image">
       </a>
       <div class="dropdown-menu dropdown-menu-right">
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-user mr-2"></i> Profile
+        <a href="{{ url_for('profile.profile') }}" class="dropdown-item">
+          <i class="fas fa-user mr-2"></i> My Profile
         </a>
         <a href="#" class="dropdown-item">
           <i class="fas fa-cog mr-2"></i> Settings

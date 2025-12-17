@@ -237,3 +237,111 @@ textarea {
         font-size: 2.5rem;
     }
 }
+
+/* ===============================
+   FLASH MESSAGES
+================================ */
+
+/* Container */
+.flash-container {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Flash card */
+.flash {
+    display: flex;
+    align-items: center; /* PERFECT ALIGNMENT */
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    font-size: 14px;
+    animation: slideDown 0.35s ease;
+}
+
+/* Icon */
+.flash-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    line-height: 1;
+    width: 26px; /* keeps alignment even for long text */
+    flex-shrink: 0;
+}
+
+/* Message */
+.flash-message {
+    flex: 1;
+    font-weight: 500;
+    line-height: 1.6;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Close button */
+.flash-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px;
+    transition: opacity 0.2s ease;
+}
+
+.flash-close:hover {
+    opacity: 1;
+}
+
+/* Variants */
+.flash-success {
+    background: linear-gradient(135deg, #e6f9f0, #d1f2e5);
+    color: #0f5132;
+}
+
+.flash-danger {
+    background: linear-gradient(135deg, #fdecea, #f9d6d3);
+    color: #842029;
+}
+
+.flash-warning {
+    background: linear-gradient(135deg, #fff4e5, #ffe8c2);
+    color: #664d03;
+}
+
+.flash-info {
+    background: linear-gradient(135deg, #e7f1ff, #d6e4ff);
+    color: #084298;
+}
+
+/* Animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+    .flash {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .flash-icon {
+        font-size: 20px;
+    }
+}

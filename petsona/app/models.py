@@ -56,6 +56,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    deleted_at = db.Column(db.DateTime, nullable=True)
 
     # Lockout support
     failed_login_attempts = db.Column(db.Integer, default=0)
@@ -83,24 +84,22 @@ class AuditLog(db.Model):
     __tablename__ = "audit_logs"
 
     id = db.Column(db.Integer, primary_key=True)
-    event = db.Column(db.String(128), nullable=False)          # e.g. 'user.login_success'
-    actor_id = db.Column(db.Integer, nullable=True)            # user id if applicable
-    actor_email = db.Column(db.String(255), nullable=True)     # email if applicable
+    event = db.Column(db.String(128), nullable=False)
+    actor_id = db.Column(db.Integer, nullable=True)
+    actor_email = db.Column(db.String(255), nullable=True)
     ip_address = db.Column(db.String(100), nullable=True)
     user_agent = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    details = db.Column(db.Text, nullable=True)                # JSON blob for extra context
+    details = db.Column(db.Text, nullable=True)
+    deleted_at = db.Column(db.DateTime, nullable=True) 
 
-    # --- NEW METHOD ---
     def set_details(self, data: dict):
-        """Store extra information as JSON string."""
         try:
             self.details = json.dumps(data)
         except Exception:
             self.details = None
 
     def get_details(self) -> dict:
-        """Retrieve extra information as dictionary."""
         if not self.details:
             return {}
         try:
@@ -108,14 +107,12 @@ class AuditLog(db.Model):
         except Exception:
             return {}
 
-    # ---------- BACKWARD COMPATIBILITY ----------
     def set_metadata(self, data: dict):
-        """Alias for old code still using set_metadata()."""
         return self.set_details(data)
 
     def get_metadata(self) -> dict:
-        """Alias for old code using get_metadata()."""
         return self.get_details()
+
 
 
 # --------------------------

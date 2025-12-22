@@ -1,6 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FileField, SelectField, BooleanField, SubmitField, IntegerField
-from wtforms.validators import DataRequired, URL, NumberRange, Length
+from wtforms import StringField, FileField, SelectField, BooleanField, SubmitField, IntegerField, PasswordField, EmailField
+from wtforms.validators import DataRequired, URL, NumberRange, Length, Email, ValidationError
+import re
+from app.models import User
 
 class GeneralSettingsForm(FlaskForm):
     site_name = StringField("Site Name", validators=[DataRequired()])
@@ -69,3 +71,62 @@ class AppearanceSettingsForm(FlaskForm):
     dark_mode = BooleanField('Enable Dark Mode')
 
     submit = SubmitField('Save Appearance Settings')
+
+class AdminAddUserForm(FlaskForm):
+    first_name = StringField("First Name", validators=[DataRequired(), Length(max=64)])
+    last_name = StringField("Last Name", validators=[DataRequired(), Length(max=64)])
+    email = StringField("Email", validators=[DataRequired(), Email(), Length(max=255)])
+    role = SelectField("Role", choices=[("user", "User"), ("admin", "Admin")], validators=[DataRequired()])
+    password = PasswordField("Temporary Password", validators=[DataRequired(), Length(min=6)])
+    is_active = BooleanField("Active", default=True)
+    submit = SubmitField("Add User")
+
+    # ---------- VALIDATORS ----------
+    def validate_first_name(self, field):
+        if not re.match(r'^[A-Za-z]+$', field.data):
+            raise ValidationError("First name must contain letters only.")
+
+    def validate_last_name(self, field):
+        if not re.match(r'^[A-Za-z]+$', field.data):
+            raise ValidationError("Last name must contain letters only.")
+
+    def validate_email(self, field):
+        if User.query.filter_by(email=field.data.lower()).first():
+            raise ValidationError("Email already exists.")
+
+
+class AdminEditUserForm(FlaskForm):
+    first_name = StringField(
+        "First Name", validators=[DataRequired(), Length(max=64)]
+    )
+    last_name = StringField(
+        "Last Name", validators=[DataRequired(), Length(max=64)]
+    )
+    email = StringField(
+        "Email", validators=[DataRequired(), Email(), Length(max=255)]
+    )
+    role = SelectField(
+        "Role",
+        choices=[("user", "User"), ("merchant", "Merchant"), ("admin", "Admin")],
+        validators=[DataRequired()],
+    )
+    submit = SubmitField("Update User")
+
+    # ---------- VALIDATORS ----------
+    def __init__(self, original_email=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.original_email = original_email
+
+    def validate_first_name(self, field):
+        if not re.match(r'^[A-Za-z]+$', field.data):
+            raise ValidationError("First name must contain letters only.")
+
+    def validate_last_name(self, field):
+        if not re.match(r'^[A-Za-z]+$', field.data):
+            raise ValidationError("Last name must contain letters only.")
+
+    def validate_email(self, field):
+        # Allow the same email as the original user
+        if field.data.lower() != self.original_email:
+            if User.query.filter_by(email=field.data.lower()).first():
+                raise ValidationError("Email already exists.")

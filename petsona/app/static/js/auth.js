@@ -1,41 +1,11 @@
 // Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  createPetLoadingOverlay();
   initFlashMessages();
   initFormValidation();
   initPasswordToggles();
   initPasswordStrength();
   initButtonLoading();
 });
-
-// Create pet loading overlay element
-function createPetLoadingOverlay() {
-  const overlay = document.createElement("div");
-  overlay.className = "pet-loading-overlay";
-  overlay.innerHTML = `
-    <div class="pet-icon">🐕</div>
-    <div class="loading-text">
-      <span>L</span><span>o</span><span>a</span><span>d</span><span>i</span><span>n</span><span>g</span>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
-
-function showPetLoading() {
-  const overlay = document.querySelector(".pet-loading-overlay");
-  if (overlay) {
-    overlay.classList.add("active");
-    document.body.classList.add("loading-pet");
-  }
-}
-
-function hidePetLoading() {
-  const overlay = document.querySelector(".pet-loading-overlay");
-  if (overlay) {
-    overlay.classList.remove("active");
-    document.body.classList.remove("loading-pet");
-  }
-}
 
 // Flash message initialization and handling
 function initFlashMessages() {

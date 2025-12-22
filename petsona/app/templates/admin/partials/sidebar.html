@@ -15,14 +15,6 @@
           </a>
         </li>
 
-        <!-- Profile -->
-        <li class="nav-item">
-          <a href="{{ url_for('profile.profile') }}" class="nav-link">
-            <i class="nav-icon fas fa-user-edit"></i>
-            <p>My Profile</p>
-          </a>
-        </li>
-
         <!-- Users -->
         <li class="nav-item has-treeview">
           <a href="#" class="nav-link">
@@ -34,46 +26,21 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+              <a href="{{ url_for('admin.users') }}" class="nav-link">
+                <i class="far fa-user nav-icon"></i>
                 <p>All Users</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+              <a href="{{ url_for('admin.admin_add_user') }}" class="nav-link">
+                <i class="fas fa-user-plus nav-icon"></i>
                 <p>Add User</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Roles & Permissions</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <!-- Merchants -->
-        <li class="nav-item has-treeview">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-store"></i>
-            <p>
-              Merchants
-              <i class="right fas fa-angle-left"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>All Merchants</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Add Merchant</p>
+              <a href="{{ url_for('admin.archive_users') }}" class="nav-link">
+                <i class="fas fa-archive nav-icon"></i>
+                <p>Archive Users</p>
               </a>
             </li>
           </ul>
@@ -82,7 +49,7 @@
         <!-- Pets -->
         <li class="nav-item has-treeview">
           <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-dog"></i>
+            <i class="nav-icon fas fa-paw"></i>
             <p>
               Pets
               <i class="right fas fa-angle-left"></i>
@@ -91,19 +58,19 @@
           <ul class="nav nav-treeview">
             <li class="nav-item">
               <a href="{{ url_for('pets.all_pets') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-dog nav-icon"></i>
                 <p>All Pets</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('pets.add_breed') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-dna nav-icon"></i>
                 <p>Add Pet Breed</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('pets.add_species') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-paw nav-icon"></i>
                 <p>Add Pet Species</p>
               </a>
             </li>
@@ -113,7 +80,7 @@
         <!-- Orders -->
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-shopping-cart"></i>
+            <i class="nav-icon fas fa-receipt"></i>
             <p>Orders</p>
           </a>
         </li>
@@ -121,16 +88,24 @@
         <!-- Violations -->
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-exclamation-triangle"></i>
+            <i class="nav-icon fas fa-exclamation-circle"></i>
             <p>Violations</p>
           </a>
         </li>
 
         <!-- Audit Logs -->
         <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-clipboard-list"></i>
+          <a href="{{ url_for('admin.audit_logs') }}" class="nav-link">
+            <i class="nav-icon fas fa-file-alt"></i>
             <p>Audit Logs</p>
+          </a>
+        </li>
+
+        <!-- Archive Audit -->
+        <li class="nav-item">
+          <a href="{{ url_for('admin.archive_audit_logs') }}" class="nav-link">
+            <i class="nav-icon fas fa-archive"></i>
+            <p>Archive Audit</p>
           </a>
         </li>
 
@@ -146,49 +121,49 @@
           <ul class="nav nav-treeview">
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='general') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-sliders-h nav-icon"></i>
                 <p>General Settings</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='appearance') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-paint-brush nav-icon"></i>
                 <p>Appearance & Theme</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='security') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-shield-alt nav-icon"></i>
                 <p>Security</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='audit') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-file-signature nav-icon"></i>
                 <p>Audit & Logging</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='email') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-envelope nav-icon"></i>
                 <p>Email & Notifications</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='api') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-plug nav-icon"></i>
                 <p>API & Integrations</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='backup') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-database nav-icon"></i>
                 <p>Backup & Maintenance</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{ url_for('admin.system_settings', section='compliance') }}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-gavel nav-icon"></i>
                 <p>Compliance & Legal</p>
               </a>
             </li>

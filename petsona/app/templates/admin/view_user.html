@@ -1,0 +1,97 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<section class="content">
+  <div class="card shadow-sm" style="border-radius: 12px; border: 1px solid #E0D7F5;">
+    <!-- Header -->
+    <div class="card-header d-flex align-items-center" style="background-color: #DCCBF9; border-radius: 12px 12px 0 0; padding:0.75rem 1rem;">
+      <span class="h5 mb-0">View User</span>
+
+      <!-- Spacer -->
+      <div class="flex-grow-1"></div>
+
+      <!-- Back Button -->
+      <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-light text-dark" style="border:1px solid #C5A6F7; display:flex; align-items:center; gap:0.25rem;">
+        <i class="fas fa-arrow-left"></i> Back
+      </a>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <!-- User Photo -->
+        <div class="col-md-3 col-12 d-flex justify-content-center">
+          <div class="p-3" style="background: #F3F0FF; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <img src="{{ url_for('static', filename=user.photo_url|default('avatars/default.png')) }}" 
+                 alt="User Photo" 
+                 class="img-fluid rounded-circle shadow-sm" 
+                 style="max-height: 220px; width:auto; display:block; margin:auto;">
+          </div>
+        </div>
+
+        <!-- User Details -->
+        <div class="col-md-9 col-12 table-responsive">
+          <table class="table table-borderless table-striped" style="background-color:#F8F5FF; border-radius: 10px; padding:10px;">
+            <tbody>
+              <tr>
+                <th style="width:180px; color:#6F42C1;">Full Name</th>
+                <td>{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}</td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">Email</th>
+                <td>{{ user.email }}</td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">Role</th>
+                <td><span class="badge text-white" style="background-color:#A078F0;">{{ user.role | capitalize }}</span></td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">Status</th>
+                <td>
+                  {% if user.is_active %}
+                    <span class="badge text-white" style="background-color:#6FCF97;">Active</span>
+                  {% else %}
+                    <span class="badge text-white" style="background-color:#EB5757;">Inactive</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">Created At</th>
+                <td>{{ user.created_at.strftime("%Y-%m-%d %H:%M:%S") if user.created_at else 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">Failed Login Attempts</th>
+                <td>{{ user.failed_login_attempts }}</td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">Lockout Until</th>
+                <td>{{ user.lockout_until.strftime("%Y-%m-%d %H:%M:%S") if user.lockout_until else 'Never' }}</td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">2FA Enabled</th>
+                <td>{{ 'Yes' if user.is_2fa_enabled else 'No' }}</td>
+              </tr>
+              <tr>
+                <th style="color:#6F42C1;">TOTP Secret</th>
+                <td>{{ user.totp_secret or 'N/A' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="card-footer d-flex justify-content-end flex-wrap gap-2" style="background-color:#F3F0FF;">
+    <!-- Edit Button -->
+    <a href="{{ url_for('admin.edit_user', id=user.id) }}" class="btn btn-warning d-flex align-items-center gap-1" style="min-width:100px;">
+        <i class="fas fa-edit"></i> Edit
+    </a>
+
+    <!-- Delete Button -->
+    <a href="{{ url_for('admin.delete_user_page', id=user.id) }}" class="btn btn-danger d-flex align-items-center gap-1" style="min-width:100px;" title="Delete User">
+        <i class="fas fa-trash"></i> Delete
+    </a>
+    </div>
+
+{% endblock %}

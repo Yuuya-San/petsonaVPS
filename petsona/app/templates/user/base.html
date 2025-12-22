@@ -10,19 +10,16 @@
     <title>{{ title or "User Dashboard" }}</title>
 
     <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- AdminLTE & Bootstrap (Mobile-ready by default) -->
+    <!-- AdminLTE -->
     <link rel="stylesheet" href="{{ url_for('static', filename='admin/plugins/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='admin/dist/css/adminlte.min.css') }}">
 
-    <!-- Optional: Touch & mobile UX helpers -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
-
-    <!-- Custom styles -->
+    <!-- Custom -->
     <link rel="stylesheet" href="{{ url_for('static', filename='user/custom.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
 
-    <!-- Allow child templates to add styles -->
     {% block styles %}{% endblock %}
 </head>
 
@@ -32,13 +29,13 @@
 
     {% include 'user/partials/navbar.html' %}
     {% include 'user/partials/sidebar.html' %}
+    {% include 'shared/loader.html' %}
 
-    <!-- Content Wrapper -->
     <div class="content-wrapper">
         <section class="content pt-3">
             <div class="container-fluid">
 
-                <!-- Flash Messages -->
+                <!-- ================= FLASH ================= -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <div class="flash-container">
@@ -55,11 +52,7 @@
                                             <i class="fas fa-info-circle"></i>
                                         {% endif %}
                                     </div>
-
-                                    <div class="flash-message">
-                                        {{ message }}
-                                    </div>
-
+                                    <div>{{ message }}</div>
                                     <button class="flash-close" onclick="this.parentElement.remove()">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -76,35 +69,25 @@
 
 </div>
 
-<!-- Core JS -->
+<!-- JS -->
 <script src="{{ url_for('static', filename='admin/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='admin/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-<!-- AdminLTE -->
 <script src="{{ url_for('static', filename='admin/dist/js/adminlte.min.js') }}"></script>
-
-<!-- Mobile UX Enhancements -->
-<script src="{{ url_for('static', filename='admin/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
-
-<!-- Optional: fast tap response on mobile -->
-<script src="{{ url_for('static', filename='admin/plugins/fastclick/fastclick.js') }}"></script>
-
-<!-- Custom JS -->
-<script src="{{ url_for('static', filename='js/petLoader.js') }}"></script>
+<script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
 
 <script>
-    setTimeout(() => {
-        document.querySelectorAll('.flash').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(-5px)';
-            setTimeout(() => el.remove(), 300);
-        });
-    }, 5000);
+document.querySelectorAll('.flash').forEach(flash => {
+    const timeout = setTimeout(() => {
+        flash.remove();
+    }, 6400); // slightly longer than animation
+
+    flash.querySelector('.flash-close')?.addEventListener('click', () => {
+        clearTimeout(timeout);
+        flash.remove();
+    });
+});
 </script>
 
-<!-- Allow child templates to add scripts -->
 {% block scripts %}{% endblock %}
-
-
 </body>
 </html>

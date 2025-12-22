@@ -21,3 +21,18 @@ def send_password_reset_email(user, token: str):
 
     html = render_template('auth/reset_password_email.html', user=user, reset_url=reset_url)
     send_email('Password reset request', [user.email], html)
+
+def send_temp_credentials(email, password):
+    html = f"""
+    <p>Your account has been created by an administrator.</p>
+    <p><strong>Email:</strong> {email}</p>
+    <p><strong>Temporary Password:</strong> {password}</p>
+    <p>Please log in and change your password immediately.</p>
+    """
+
+    send_email(
+        "Your Temporary Account Credentials",
+        [email],
+        html
+    )
+

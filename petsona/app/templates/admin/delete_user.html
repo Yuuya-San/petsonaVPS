@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<section class="content">
+  <div class="card shadow-sm" style="border-radius:12px; border:1px solid #E0D7F5;">
+    <!-- Header -->
+    <div class="card-header d-flex justify-content-between align-items-center" style="background-color:#EB5757; color:white; border-radius:12px 12px 0 0;">
+      <h3 class="card-title mb-0">Confirm Delete</h3>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body text-center" style="background-color:#FDF2F2;">
+      <p class="fs-5">Are you sure you want to delete:</p>
+      <p class="fw-bold fs-4">{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}</p>
+      <p class="text-muted">{{ user.email }}</p>
+
+      <form method="POST" class="mt-4 d-flex justify-content-center gap-3">
+        <a href="{{ url_for('admin.users') }}" class="btn btn-light border">Cancel</a>
+        <button type="submit" class="btn btn-danger">Delete User</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

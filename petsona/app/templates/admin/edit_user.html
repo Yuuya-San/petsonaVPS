@@ -1,0 +1,73 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<section class="content py-4">
+  <div class="container">
+    <div class="card shadow-sm border-0" style="border-radius:12px;">
+      <!-- Header -->
+      <div class="card-header text-white" style="background-color:#A078F0; border-radius:12px 12px 0 0;">
+        <h3 class="card-title mb-0">Edit User</h3>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body" style="background-color:#F8F5FF;">
+        <form method="POST" class="needs-validation" novalidate>
+          {{ form.hidden_tag() }}
+
+          <!-- Names -->
+          <div class="row g-3">
+            <div class="col-md-6 col-12">
+              <label for="first_name" class="form-label">First Name</label>
+              {{ form.first_name(class="form-control", id="first_name", placeholder="Enter first name", required=True) }}
+              <div class="invalid-feedback">First name is required and letters only.</div>
+            </div>
+            <div class="col-md-6 col-12">
+              <label for="last_name" class="form-label">Last Name</label>
+              {{ form.last_name(class="form-control", id="last_name", placeholder="Enter last name", required=True) }}
+              <div class="invalid-feedback">Last name is required and letters only.</div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="mt-3">
+            <label for="email" class="form-label">Email</label>
+            {{ form.email(class="form-control", id="email", placeholder="Enter email", required=True) }}
+            <div class="invalid-feedback">Please enter a valid email that is not taken.</div>
+          </div>
+
+          <!-- Role -->
+          <div class="mt-3">
+            <label for="role" class="form-label">Role</label>
+            {{ form.role(class="form-select", id="role", required=True) }}
+            <div class="invalid-feedback">Please select a role.</div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="mt-4 d-flex justify-content-end gap-2">
+            <a href="{{ url_for('admin.users') }}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-warning">Update User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Bootstrap client-side validation -->
+<script>
+(function () {
+  'use strict'
+  var forms = document.querySelectorAll('.needs-validation')
+  Array.prototype.slice.call(forms).forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      form.classList.add('was-validated')
+    }, false)
+  })
+})();
+</script>
+
+{% endblock %}

@@ -15,6 +15,8 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
+
 
   <style>
     /* System font stack for immediate readability */
@@ -25,6 +27,8 @@
 </head>
 
 <body class="bg-white-lavender">
+
+  {% include 'shared/loader.html' %}
 
   <div class="flash-wrapper">
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -50,5 +54,6 @@
     }
   </script>
   <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
 </body>
 </html>

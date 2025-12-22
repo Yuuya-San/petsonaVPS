@@ -1,0 +1,83 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="card">
+  <!-- Card Header -->
+  <div class="card-header d-flex align-items-center" style="background-color:#DCCBF9; border-radius:12px 12px 0 0;">
+    <h3 class="card-title mb-0">Archived Users</h3>
+  </div>
+
+  <!-- Card Body: Table only is scrollable -->
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Deleted At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users.items %}
+          <tr>
+            <td>{{ user.first_name }} {{ user.last_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.deleted_at.strftime('%Y-%m-%d %H:%M') if user.deleted_at else '-' }}</td>
+            <td>
+              <form action="{{ url_for('admin.restore_user', id=user.id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-success">
+                  <i class="fas fa-undo"></i> Restore
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center">No archived users found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Card Footer -->
+  <div class="card-footer d-flex justify-content-center">
+    {% if users.pages > 1 %}
+      <nav>
+        <ul class="pagination mb-0">
+          {% if users.has_prev %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('admin.archive_users', page=users.prev_num) }}">Previous</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+
+          {% for page_num in users.iter_pages() %}
+            {% if page_num %}
+              <li class="page-item {% if page_num == users.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.archive_users', page=page_num) }}">{{ page_num }}</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if users.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('admin.archive_users', page=users.next_num) }}">Next</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

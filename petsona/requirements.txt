@@ -13,4 +13,3 @@ pymysql
 email-validator
 pyotp
 qrcode
-python-slugify

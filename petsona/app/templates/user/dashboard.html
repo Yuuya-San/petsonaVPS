@@ -1,6 +1,70 @@
 {% extends "user/base.html" %}
-
 {% block content %}
-<h1>User Dashboard Works!</h1>
-{% endblock %}
 
+<div class="max-w-7xl mx-auto p-6 space-y-8">
+
+  <!-- PAGE HEADER -->
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold tracking-tight">Pet Species</h1>
+  </div>
+
+  <!-- SPECIES GRID -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+
+    {% for species in species_list %}
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col h-full overflow-hidden">
+
+      <!-- IMAGE -->
+      <div class="relative h-48 w-full overflow-hidden rounded-t-3xl">
+        {% if species.image_url %}
+          <img src="{{ url_for('static', filename=species.image_url) }}" alt="{{ species.name }}" class="h-48 w-full object-cover">
+        {% else %}
+          <div class="h-48 w-full flex flex-col items-center justify-center bg-gray-100 text-gray-400 text-sm font-medium">
+            <i class="fa-solid fa-image text-lg mb-1"></i> No image attached
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- CONTENT -->
+      <div class="p-4 sm:p-5 flex flex-col flex-1">
+
+        <!-- TITLE -->
+        <div class="flex items-center gap-3 mb-3">
+          {% if species.icon %}
+          <span class="bg-lavender/30 rounded-full p-2">
+            <i class="{{ species.icon }} text-indigo-600"></i>
+          </span>
+          {% endif %}
+          <h3 class="text-lg sm:text-xl font-semibold">{{ species.name }}</h3>
+        </div>
+
+        <!-- BADGES -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs">
+            {{ species.active_breed_count or 0 }} Breeds
+          </span>
+        </div>
+
+        <!-- CTA -->
+        <a href="{{ url_for('user.view_species', id=species.id) }}"
+           class="mt-auto block text-center bg-indigo-600 hover:bg-indigo-700
+                  text-white py-2.5 rounded-xl text-sm font-medium transition">
+          Explore {{ species.name }}
+        </a>
+
+      </div>
+
+    </div>
+    {% endfor %}
+
+    {% if species_list|length == 0 %}
+      <div class="col-span-full text-center py-20 text-gray-500">
+        No species found.
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% endblock %}

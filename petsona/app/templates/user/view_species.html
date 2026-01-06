@@ -1,0 +1,216 @@
+{% extends "user/base.html" %}
+{% block content %}
+
+<div
+  x-data="{
+    viewModal: false,
+    matchModal: false,
+    selectedBreed: null
+  }"
+  class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10"
+>
+
+  <!-- 🔷 SPECIES HEADER -->
+  <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col md:flex-row">
+
+    <!-- IMAGE -->
+    <div class="w-full md:w-80 h-56 md:h-auto bg-gray-100">
+      <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
+           class="w-full h-full object-cover">
+    </div>
+
+    <!-- CONTENT -->
+    <div class="p-6 flex flex-col flex-1 justify-between">
+
+      <!-- Title + Icon -->
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="bg-lavender/30 rounded-full p-3 shrink-0">
+            <i class="{{ species.icon }} text-indigo-600 text-xl"></i>
+          </span>
+
+          <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">
+            {{ species.name }}
+          </h1>
+        </div>
+
+        <!-- Description -->
+        <p class="text-gray-600 text-sm sm:text-base leading-relaxed max-w-3xl whitespace-pre-line">
+          {{ species.description }}
+        </p>
+      </div>
+
+      <!-- Meta Info -->
+      <div class="flex flex-wrap gap-3 mt-6 text-sm">
+        <span class="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full">
+          {{ breeds|length }} Breeds
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔷 BREEDS GRID -->
+  <div>
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold">{{ species.name }} Breeds</h2>
+      <a href="{{ url_for('user.dashboard') }}"
+         class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-xl text-sm">
+        ← Back
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+      {% for breed in breeds %}
+      <div class="bg-white rounded-3xl border shadow-sm overflow-hidden flex flex-col">
+
+        <!-- IMAGE -->
+        <div class="h-40 bg-gray-100">
+          <img src="{{ url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') }}"
+               class="w-full h-full object-cover">
+        </div>
+
+        <!-- BODY -->
+        <div class="p-5 flex flex-col flex-1">
+
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-gray-900">{{ breed.name }}</h3>
+
+            <span class="px-3 py-1 rounded-full text-sm font-semibold
+              {% if breed.care_level == 'Beginner' %} bg-green-100
+              {% elif breed.care_level == 'Intermediate' %} bg-yellow-200
+              {% elif breed.care_level == 'Advanced' %} bg-red-200
+              {% else %} bg-gray-100 {% endif %}">
+              {{ breed.care_level or 'N/A' }}
+            </span>
+          </div>
+
+          <!-- VIEW BUTTON -->
+          <button
+            @click="
+              selectedBreed = JSON.parse($el.getAttribute('data-breed'));
+              viewModal = true;
+            "
+            data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
+            class="mt-auto bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-medium"
+          >
+            View {{ breed.name }}
+          </button>
+
+          <!-- MATCH NOW BUTTON -->
+          <button
+            @click="
+              selectedBreed = JSON.parse($el.getAttribute('data-breed'));
+              matchModal = true;
+            "
+            data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
+            class="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-medium"
+          >
+            Match Now
+          </button>
+
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <!-- 🔷 VIEW BREED MODAL (UNCHANGED) -->
+  <div x-show="viewModal" x-transition
+       class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+
+    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl w-full max-w-lg border border-lavender-200 flex flex-col max-h-[90vh]">
+
+      <!-- HEADER -->
+      <div class="px-6 py-4 border-b border-lavender-200 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <i class="{{ species.icon }} text-indigo-600 text-lg"></i>
+            <span x-text="selectedBreed?.name"></span>
+        </h3>
+        <button @click="viewModal=false" class="text-gray-500 hover:text-gray-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- BODY -->
+      <div class="px-6 py-6 overflow-y-auto space-y-6 flex-1">
+        <div class="flex flex-col items-center text-center space-y-4">
+          <img :src="selectedBreed?.image_url ? '{{ url_for('static', filename='') }}' + selectedBreed.image_url : '{{ url_for('static', filename='img/default_breed.png') }}'"
+               alt="" class="h-40 w-40 object-cover rounded-2xl shadow-md border border-lavender-100">
+          <p class="text-gray-600 text-sm sm:text-base max-w-md break-words" x-text="selectedBreed?.summary || 'No description available.'"></p>
+        </div>
+        <!-- INFO GRID -->
+        <div class="bg-lavender-50 rounded-2xl p-6 grid grid-cols-1 gap-3 divide-y divide-lavender-100">
+          <template x-for="(value, field) in {
+            'Temperament': selectedBreed?.temperament || 'N/A',
+            'Energy Level': selectedBreed?.energy_level || 'N/A',
+            'Exercise Needs': selectedBreed?.exercise_needs || 'N/A',
+            'Grooming Needs': selectedBreed?.grooming_needs || 'N/A',
+            'Space Needs': selectedBreed?.space_needs || 'N/A',
+            'Trainability': selectedBreed?.trainability || 'N/A',
+            'Size': selectedBreed?.size || 'N/A',
+            'Care Level': selectedBreed?.care_level || 'N/A',
+            'Lifespan': selectedBreed?.lifespan ? selectedBreed.lifespan + ' years' : 'N/A',
+            'Care Cost': selectedBreed?.care_cost ? '₱' + selectedBreed.care_cost.toFixed(2) : 'N/A',
+            'Allergy Friendly': selectedBreed?.allergy_friendly ? 'Yes' : 'No',
+          }" :key="field">
+            <div class="flex items-start gap-3 py-2">
+              <i :class="{
+                'Summary': 'fa-solid fa-align-left text-indigo-400',
+                'Temperament': 'fa-solid fa-face-smile text-indigo-500',
+                'Energy Level': 'fa-solid fa-bolt text-yellow-400',
+                'Exercise Needs': 'fa-solid fa-dumbbell text-green-400',
+                'Grooming Needs': 'fa-solid fa-scissors text-pink-400',
+                'Space Needs': 'fa-solid fa-house text-purple-400',
+                'Trainability': 'fa-solid fa-brain text-indigo-500',
+                'Size': 'fa-solid fa-ruler-combined text-gray-500',
+                'Care Level': 'fa-solid fa-heart-pulse text-red-400',
+                'Lifespan': 'fa-solid fa-hourglass-half text-orange-400',
+                'Care Cost': 'fa-solid fa-peso-sign text-green-600',
+                'Allergy Friendly': 'fa-solid fa-allergies text-blue-400',
+              }[field]" class="w-5 mt-1"></i>
+              <div class="flex-1 flex flex-col sm:flex-row sm:justify-between flex-wrap">
+                <span class="font-medium text-sm sm:text-base text-gray-700 mb-1 sm:mb-0" x-text="field"></span>
+                <span class="font-semibold text-gray-900 text-sm sm:text-base break-words" x-text="value"></span>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 🔷 MATCH MODAL -->
+  <div x-show="matchModal" x-transition
+       class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-3xl shadow-xl w-full max-w-md">
+
+      <div class="px-6 py-4 border-b flex justify-between items-center">
+        <h3 class="font-semibold text-lg">
+          Match with <span x-text="selectedBreed?.name"></span>
+        </h3>
+        <button @click="matchModal=false">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="px-6 py-6 text-gray-600 text-sm">
+        Matching question will go here.
+      </div>
+
+      <div class="px-6 py-4 border-t text-right">
+        <button @click="matchModal=false"
+                class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

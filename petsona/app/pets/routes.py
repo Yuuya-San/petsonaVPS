@@ -1,23 +1,25 @@
 import os
 from datetime import datetime
-from slugify import slugify
 from werkzeug.utils import secure_filename
 from flask import (
     render_template, request, redirect,
     url_for, flash, abort, current_app
 )
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 
 from app import db
 from app.models import Species, Breed
 from app.utils.audit import log_event
 from . import bp
 from app.utils.icons import get_species_icon
-from sqlalchemy import func
+from sqlalchemy import func # pyright: ignore[reportMissingImports]
+from app.decorators import admin_required, user_required, merchant_required
+
 
 
 @bp.route('/species')
 @login_required
+@admin_required
 def species_index():
     page = request.args.get('page', 1, type=int)
 
@@ -58,6 +60,7 @@ def species_index():
 
 @bp.route('/species/save', methods=['POST'])
 @login_required
+@admin_required
 def save_species():
     species_id = request.form.get('species_id')
 
@@ -101,6 +104,7 @@ def save_species():
 
 @bp.route('/species/<int:id>/delete', methods=['POST'])
 @login_required
+@admin_required
 def delete_species(id):
     species = Species.query.get_or_404(id)
     species.deleted_at = datetime.utcnow()
@@ -116,6 +120,7 @@ def delete_species(id):
 
 @bp.route('/species/<int:id>')
 @login_required
+@admin_required
 def view_species(id):
     species = Species.query.get_or_404(id)
 
@@ -137,6 +142,7 @@ def view_species(id):
 # -------------------
 @bp.route('/breed/save', methods=['POST'])
 @login_required
+@admin_required
 def save_breed():
     breed_id = request.form.get('breed_id')
     species_id = request.form.get('species_id')
@@ -193,6 +199,7 @@ def save_breed():
 # -------------------
 @bp.route('/breed/<int:id>/delete', methods=['POST'])
 @login_required
+@admin_required
 def delete_breed(id):
     breed = Breed.query.get_or_404(id)
     breed.soft_delete()
@@ -209,6 +216,7 @@ def delete_breed(id):
 # -----------------------------
 @bp.route('/archived')
 @login_required
+@admin_required
 def archived_items():
     # Fetch soft-deleted species and breeds
     archived_species = Species.query.filter(Species.deleted_at.isnot(None)).order_by(Species.name.asc()).all()
@@ -251,6 +259,7 @@ def archived_items():
 # -----------------------------
 @bp.route('/species/<int:id>/restore', methods=['POST'])
 @login_required
+@admin_required
 def restore_species(id):
     species = Species.query.get_or_404(id)
     species.deleted_at = None
@@ -265,6 +274,7 @@ def restore_species(id):
 # -----------------------------
 @bp.route('/breed/<int:id>/restore', methods=['POST'])
 @login_required
+@admin_required
 def restore_breed(id):
     breed = Breed.query.get_or_404(id)
     breed.deleted_at = None

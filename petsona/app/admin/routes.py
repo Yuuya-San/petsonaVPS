@@ -1,5 +1,5 @@
 from flask import render_template, flash, redirect, url_for, abort
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.admin import bp
 from flask import request
 from .forms import (
@@ -17,6 +17,8 @@ from datetime import datetime
 from app.utils.activity_formatter import format_activity
 from app.utils.activity_config import RECENT_ACTIVITY_EVENTS
 from app.utils.dashboard_stats import get_dashboard_stats
+from app.decorators import admin_required
+
 
 DEFAULT_AVATARS = [
     "images/avatar/cat.png",
@@ -33,6 +35,7 @@ DEFAULT_AVATARS = [
 
 @bp.route('/dashboard')
 @login_required
+@admin_required
 def dashboard():
     if current_user.role != 'admin':
         flash('Access denied.', 'danger')
@@ -60,6 +63,7 @@ def dashboard():
 
 @bp.route("/users")
 @login_required
+@admin_required
 def users():
     if current_user.role != "admin":
         abort(403)
@@ -89,6 +93,7 @@ def users():
 
 @bp.route("/users/archive")
 @login_required
+@admin_required
 def archive_users():
     if current_user.role != "admin":
         abort(403)
@@ -108,6 +113,7 @@ def archive_users():
 
 @bp.route("/users/restore/<int:id>", methods=["POST"])
 @login_required
+@admin_required
 def restore_user(id):
     if current_user.role != "admin":
         abort(403)
@@ -135,6 +141,7 @@ def restore_user(id):
 
 @bp.route("/users/<int:id>")
 @login_required
+@admin_required
 def view_user(id):
     if current_user.role != "admin":
         abort(403)
@@ -144,6 +151,7 @@ def view_user(id):
 
 @bp.route('/users/add', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def admin_add_user():
     if current_user.role != 'admin':
         abort(403)
@@ -189,6 +197,7 @@ def admin_add_user():
 # ------------------ EDIT USER ------------------
 @bp.route("/users/edit/<int:id>", methods=["GET", "POST"])
 @login_required
+@admin_required
 def edit_user(id):
     if current_user.role != "admin":
         abort(403)
@@ -221,6 +230,7 @@ def edit_user(id):
 # ------------------ DELETE USER ACTION ------------------
 @bp.route("/users/delete/<int:id>", methods=["POST"])
 @login_required
+@admin_required
 def delete_user(id):
     if current_user.role != "admin":
         abort(403)
@@ -241,7 +251,8 @@ def delete_user(id):
 
 
 @bp.route('/system-settings')
-@limiter.limit(lambda: "1/second" if not (current_user.is_authenticated and current_user.role == "admin") else None)
+@login_required
+@admin_required
 def system_settings():
     # Which section to show? Defaults to 'general'
     active_section = request.args.get('section', 'general')
@@ -284,6 +295,7 @@ def system_settings():
 
 @bp.route("/audit_logs")
 @login_required
+@admin_required
 def audit_logs():
     if current_user.role != "admin":
         flash("Access denied.", "danger")
@@ -309,6 +321,7 @@ def audit_logs():
 
 @bp.route("/audit_logs/delete/<int:log_id>", methods=["POST"])
 @login_required
+@admin_required
 def delete_audit_log(log_id):
     if current_user.role != "admin":
         flash("Access denied.", "danger")
@@ -326,6 +339,7 @@ def delete_audit_log(log_id):
 # Archive Audit Logs page
 @bp.route("/audit_logs/archive")
 @login_required
+@admin_required
 def archive_audit_logs():
     if current_user.role != "admin":
         flash("Access denied.", "danger")
@@ -348,6 +362,7 @@ def archive_audit_logs():
 # Restore soft-deleted audit log
 @bp.route("/audit_logs/restore/<int:log_id>", methods=["POST"])
 @login_required
+@admin_required
 def restore_audit_log(log_id):
     if current_user.role != "admin":
         flash("Access denied.", "danger")

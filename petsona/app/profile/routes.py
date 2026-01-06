@@ -1,6 +1,6 @@
 """Profile routes for user profile management."""
 from flask import render_template, redirect, url_for, flash, current_app, request
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from werkzeug.utils import secure_filename
 import os
 from . import bp

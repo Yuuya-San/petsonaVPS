@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from .extensions import db, bcrypt
 import json
-from slugify import slugify
 
 
 # Utility function to create an admin user (call from shell or script)
@@ -69,6 +68,18 @@ class User(db.Model, UserMixin):
     # 2FA support
     totp_secret = db.Column(db.String(32), nullable=True)
     is_2fa_enabled = db.Column(db.Boolean, default=False)
+
+    @property
+    def is_admin(self):
+        return self.role == 'admin'
+    
+    @property
+    def is_user(self):
+        return self.role == 'user'
+    
+    @property
+    def is_merchant(self):
+        return self.role == 'merchant'
 
     def set_password(self, password: str):
         """Hashes the password and stores it."""

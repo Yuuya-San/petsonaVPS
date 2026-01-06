@@ -1,6 +1,6 @@
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy # pyright: ignore[reportMissingImports]
+from flask_login import UserMixin # pyright: ignore[reportMissingImports]
 from .extensions import db, bcrypt
 import json
 

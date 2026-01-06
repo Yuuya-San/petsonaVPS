@@ -1,5 +1,5 @@
 from flask import request
-from flask_login import current_user
+from flask_login import current_user # pyright: ignore[reportMissingImports]
 from datetime import datetime
 from ..models import AuditLog, db
 import json

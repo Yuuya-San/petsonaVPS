@@ -114,7 +114,7 @@
       <ul>
         {% for act in recent_activities %}
           <li>
-            {{ act.icon }}
+            {{ act.icon | safe }}
             {{ act.message }}
             <small class="text-muted">
               by {{ act.actor }} ·

@@ -14,6 +14,7 @@ import random
 from app.auth.emails import send_temp_credentials
 from app.utils.audit import log_event, user_snapshot
 from datetime import datetime
+from pytz import timezone, UTC # pyright: ignore[reportMissingModuleSource]
 from app.utils.activity_formatter import format_activity
 from app.utils.activity_config import RECENT_ACTIVITY_EVENTS
 from app.utils.dashboard_stats import get_dashboard_stats
@@ -40,19 +41,41 @@ def dashboard():
     if current_user.role != 'admin':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
-    
+
+    # Get dashboard stats (function should return a dict with stats)
     stats = get_dashboard_stats()
-    
+
+    # Define which events to include in recent activities
+    RECENT_ACTIVITY_EVENTS = [
+        "species.created", "species.updated", "species.deleted", "species.restored",
+        "breed.created", "breed.updated", "breed.deleted", "breed.restored",
+        "user.registered", "user.updated",
+    ]
+
+    # Fetch recent audit logs (limit 5, newest first)
     logs = (
         AuditLog.query
         .filter(AuditLog.deleted_at.is_(None))
         .filter(AuditLog.event.in_(RECENT_ACTIVITY_EVENTS))
         .order_by(AuditLog.timestamp.desc())
         .limit(5)
+        .all()
     )
-       
 
-    recent_activities = [format_activity(log) for log in logs]
+    # Philippine timezone
+    ph_tz = timezone("Asia/Manila")
+
+    recent_activities = []
+    for log in logs:
+        act = format_activity(log)
+        if act["time"]:
+            # Make sure the timestamp is timezone-aware (assume it's UTC in DB)
+            utc_time = act["time"]
+            if utc_time.tzinfo is None:
+                utc_time = UTC.localize(utc_time)
+            # Convert to PH time
+            act["time"] = utc_time.astimezone(ph_tz)
+        recent_activities.append(act)
 
     return render_template(
         "admin/dashboard.html",
@@ -208,23 +231,53 @@ def edit_user(id):
     form = AdminEditUserForm(obj=user, original_email=user.email)
 
     if form.validate_on_submit():
-        before = user_snapshot(user)
+        # Track changes for audit log
+        changes = {}
 
-        user.first_name = form.first_name.data
-        user.last_name = form.last_name.data
-        user.email = form.email.data.lower()
-        user.role = form.role.data
+        def track_change(field_name, new_value):
+            old_value = getattr(user, field_name, None)
+            if old_value != new_value:
+                changes[field_name] = {"old": old_value, "new": new_value}
+                setattr(user, field_name, new_value)
 
-        db.session.commit()
-        log_event(event="user.updated", details={"before": before, "after": user_snapshot(user)})
+        # Track editable fields
+        track_change("first_name", form.first_name.data.strip())
+        track_change("last_name", form.last_name.data.strip())
+        track_change("email", form.email.data.lower())
+        track_change("role", form.role.data)
 
-        flash("User updated successfully.", "success")
+        # Commit only if there are changes
+        if changes:
+            db.session.commit()
+            # ---- AUDIT LOG ----
+            log_event(
+                event="user.updated",
+                details={
+                    "changes": changes,
+                    "user_id": user.id,
+                    "user_email": user.email
+                }
+            )
+            flash("User updated successfully.", "success")
+        else:
+            flash("No changes detected.", "info")
+
         return redirect(url_for("admin.users"))
 
-    return render_template("admin/edit_user.html",
-                            user=user, form=form,
-                            page_title="Edit User",
-                            button_text="Update User")
+    # Pre-populate form with current user data if not submitted
+    elif not form.is_submitted():
+        form.first_name.data = user.first_name or ""
+        form.last_name.data = user.last_name or ""
+        form.email.data = user.email or ""
+        form.role.data = user.role
+
+    return render_template(
+        "admin/edit_user.html",
+        user=user,
+        form=form,
+        page_title="Edit User",
+        button_text="Update User"
+    )
 
 
 # ------------------ DELETE USER ACTION ------------------

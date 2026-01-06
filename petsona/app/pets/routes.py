@@ -63,42 +63,63 @@ def species_index():
 @admin_required
 def save_species():
     species_id = request.form.get('species_id')
+    is_update = bool(species_id)  # Track if this is an edit or create
 
-    # ✅ IMPORTANT: distinguish EDIT vs CREATE
-    if species_id:
+    if is_update:
         species = Species.query.get_or_404(species_id)
     else:
         species = Species()
 
+    # Track changes for audit log
+    changes = {}
+
+    # Helper function to track individual field changes
+    def track_change(field_name, new_value):
+        old_value = getattr(species, field_name, None)
+        if old_value != new_value:
+            changes[field_name] = {"old": old_value, "new": new_value}
+            setattr(species, field_name, new_value)
+
     # ---- BASIC FIELDS ----
-    species.name = request.form.get('name', '').strip()
-    species.description = request.form.get('description', '').strip()
-    species.legal_status = request.form.get('legal_status')
+    track_change("name", request.form.get("name", "").strip())
+    track_change("description", request.form.get("description", "").strip())
+    track_change("legal_status", request.form.get("legal_status"))
 
     # ---- AUTO ICON (SYSTEM CONTROLLED) ----
-    species.icon = get_species_icon(species.name)
+    auto_icon = get_species_icon(species.name)
+    if species.icon != auto_icon:
+        changes["icon"] = {"old": species.icon, "new": auto_icon}
+        species.icon = auto_icon
 
     # ---- IMAGE HANDLING ----
-    file = request.files.get('image')
+    file = request.files.get("image")
     if file and file.filename:
         filename = secure_filename(file.filename)
         path = f"uploads/species/{filename}"
         file.save(os.path.join(current_app.static_folder, path))
-        species.image_url = path
+        if species.image_url != path:
+            changes["image_url"] = {"old": species.image_url, "new": path}
+            species.image_url = path
     elif not species.image_url:
-        species.image_url = 'uploads/no-image-attachment.jpg'
+        species.image_url = "uploads/no-image-attachment.jpg"
 
     # ---- SAVE ----
     db.session.add(species)
     db.session.commit()
 
-    log_event(
-        event='species.saved',
-        details={'species_id': species.id, 'name': species.name}
-    )
+    # ---- AUDIT LOG ----
+    if changes or not is_update:
+        log_event(
+            event=f"species.{ 'updated' if is_update else 'created' }",
+            details={
+                "changes": changes,
+                "species_id": species.id,
+                "name": species.name,
+            }
+        )
 
-    flash('Species saved successfully.', 'success')
-    return redirect(url_for('pets.species_index'))
+    flash(f"Species {'updated' if is_update else 'added'} successfully.", "success")
+    return redirect(url_for("pets.species_index"))
 
 
 
@@ -152,22 +173,33 @@ def save_breed():
         if not breed:
             flash("Breed not found.", "error")
             return redirect(url_for('pets.species_index'))
+        is_update = True
     else:
         breed = Breed(species_id=species_id)
+        is_update = False
 
-    # Basic fields
-    breed.name = request.form['name']
-    breed.summary = request.form['summary']
-    breed.temperament = request.form.get('temperament')
-    breed.exercise_needs = request.form.get('exercise_needs')
-    breed.energy_level = request.form.get('energy_level', 'Medium')
-    breed.grooming_needs = request.form.get('grooming_needs', 'Medium')
-    breed.space_needs = request.form.get('space_needs', 'Medium')
-    breed.trainability = request.form.get('trainability', 'Moderate')
-    breed.care_level = request.form.get('care_level', 'Beginner')
-    breed.lifespan = request.form.get('lifespan') or None
-    breed.care_cost = request.form.get('care_cost') or None
-    breed.allergy_friendly = request.form.get('allergy_friendly') == '1'
+    # Track changes for audit log
+    changes = {}
+
+    # Compare and update fields
+    def track_change(field_name, new_value):
+        old_value = getattr(breed, field_name, None)
+        if old_value != new_value:
+            changes[field_name] = {"old": old_value, "new": new_value}
+            setattr(breed, field_name, new_value)
+
+    track_change("name", request.form['name'])
+    track_change("summary", request.form['summary'])
+    track_change("temperament", request.form.get('temperament'))
+    track_change("exercise_needs", request.form.get('exercise_needs'))
+    track_change("energy_level", request.form.get('energy_level', 'Medium'))
+    track_change("grooming_needs", request.form.get('grooming_needs', 'Medium'))
+    track_change("space_needs", request.form.get('space_needs', 'Medium'))
+    track_change("trainability", request.form.get('trainability', 'Moderate'))
+    track_change("care_level", request.form.get('care_level', 'Beginner'))
+    track_change("lifespan", request.form.get('lifespan') or None)
+    track_change("care_cost", request.form.get('care_cost') or None)
+    track_change("allergy_friendly", request.form.get('allergy_friendly') == '1')
 
     # IMAGE UPLOAD
     file = request.files.get('image')
@@ -175,7 +207,9 @@ def save_breed():
         filename = secure_filename(file.filename)
         path = f"uploads/breeds/{filename}"
         file.save(os.path.join(current_app.static_folder, path))
-        breed.image_url = path
+        if breed.image_url != path:
+            changes['image_url'] = {"old": breed.image_url, "new": path}
+            breed.image_url = path
     elif not getattr(breed, 'image_url', None):
         breed.image_url = 'uploads/no-image-attachment.jpg'
 
@@ -188,8 +222,19 @@ def save_breed():
     db.session.add(breed.species)
     db.session.commit()
 
-    log_event('breed.saved', {'breed_id': breed.id, 'name': breed.name})
-    flash(f"Breed {'updated' if breed_id else 'added'} successfully.", 'success')
+    # ---- AUDIT LOG ----
+    if changes:
+        log_event(
+            event=f"breed.{ 'updated' if is_update else 'created' }",
+            details={
+                "changes": changes,
+                "species_id": breed.species_id,
+                "breed_id": breed.id,
+                "breed_name": breed.name
+            }
+        )
+
+    flash(f"Breed {'updated' if is_update else 'added'} successfully.", 'success')
     return redirect(url_for('pets.view_species', id=breed.species_id))
 
 

@@ -8,6 +8,7 @@ from .forms import ProfileForm
 from ..models import User, AuditLog
 from ..extensions import db
 from datetime import datetime
+from app.utils.audit import log_event
 
 # Allowed file extensions for uploads
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -159,11 +160,9 @@ def profile():
         
         # Log audit event only if there were changes
         if changes:
-            log_audit(
-                event='profile.update',
-                actor=current_user,
-                request_obj=request,
-                metadata={
+            log_event(
+                event=f"user.updated",
+                details={
                     'changes': changes,
                     'user_role': current_user.role
                 }

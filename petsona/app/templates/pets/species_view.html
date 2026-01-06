@@ -1,0 +1,216 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
+
+  <!-- 🔷 SPECIES HEADER CARD -->
+  <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden
+              flex flex-col md:flex-row">
+
+    <!-- IMAGE -->
+    <img src="{{ url_for('static', filename=species.image_url) }}"
+         alt="{{ species.name }}"
+         class="w-full md:w-80 h-56 md:h-auto object-cover">
+
+    <!-- CONTENT -->
+    <div class="p-6 flex flex-col flex-1 justify-between">
+
+      <!-- Title + Icon -->
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="bg-lavender/30 rounded-full p-3 shrink-0">
+            <i class="{{ species.icon }} text-indigo-600 text-xl"></i>
+          </span>
+
+          <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">
+            {{ species.name }}
+          </h1>
+        </div>
+
+        <!-- Description -->
+        <p class="text-gray-600 text-sm sm:text-base leading-relaxed max-w-3xl
+                  whitespace-pre-line">
+          {{ species.description }}
+        </p>
+      </div>
+
+      <!-- Meta Info -->
+      <div class="flex flex-wrap gap-3 mt-6 text-sm">
+        <span class="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full">
+          {{ breeds|length }} Breeds
+        </span>
+
+        <span class="px-4 py-1.5 rounded-full
+          {% if species.legal_status == 'Allowed' %} bg-green-50 text-green-700
+          {% else %} bg-red-50 text-red-700 {% endif %}">
+          {{ species.legal_status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔷 BREEDS SECTION -->
+  <div>
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <h2 class="text-xl sm:text-2xl font-semibold text-gray-900">
+        {{ species.name }} Breeds
+      </h2>
+
+      <div class="flex gap-3">
+        <!-- Add Breed Button -->
+        <a href="{{ url_for('pets.add_breed', species_id=species.id) }}"
+          class="inline-flex items-center justify-center bg-indigo-600
+                  hover:bg-indigo-700 text-white px-4 py-2 rounded-xl
+                  text-sm font-medium transition">
+          <i class="fa-solid fa-plus mr-2"></i>
+          Add Breed
+        </a>
+
+        <!-- Back Button (same style as Add but different color) -->
+        <a href="{{ url_for('pets.species_index') }}"
+          class="inline-flex items-center justify-center bg-gray-200
+                  hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-xl
+                  text-sm font-medium transition">
+          <i class="fa-solid fa-arrow-left mr-2"></i>
+          Back to Species
+        </a>
+      </div>
+    </div>
+
+    {% if breeds %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+      {% for breed in breeds %}
+      <!-- Each breed card has its own Alpine.js state -->
+      <div x-data="{ menu: false, confirm: false }"
+           class="bg-white rounded-3xl border border-gray-100 shadow-sm
+                  hover:shadow-md transition flex flex-col overflow-hidden relative">
+
+        <!-- IMAGE -->
+        <img src="{{ url_for('static', filename=breed.image_url or 'img/default_breed.png') }}"
+             alt="{{ breed.name }}"
+             class="h-40 w-full object-cover">
+
+        <!-- MENU BUTTON -->
+        <button @click="menu = !menu"
+                class="absolute top-3 right-3 bg-white rounded-full p-2 shadow-sm z-10 hover:bg-gray-50 transition">
+          <i class="fa-solid fa-ellipsis-vertical text-gray-500"></i>
+        </button>
+
+        <!-- DROPDOWN MENU -->
+        <div x-show="menu" @click.outside="menu=false"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="absolute right-3 top-12 bg-white rounded-2xl shadow-lg border border-gray-100 z-20 w-44 py-1.5">
+
+          <!-- Edit -->
+          <a href="{{ url_for('pets.edit_breed', species_id=species.id, breed_id=breed.id) }}"
+            class="flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+            <i class="fa-solid fa-pen-to-square w-4"></i>
+            Edit
+          </a>
+
+          <!-- Delete -->
+          <button @click="confirm = true; menu=false"
+                  class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition">
+            <i class="fa-regular fa-trash-can w-4"></i>
+            Delete
+          </button>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="p-4 sm:p-5 flex flex-col flex-1">
+
+          <h3 class="font-semibold text-lg text-gray-900 mb-2">
+            {{ breed.name }}
+          </h3>
+
+          <!-- Summary -->
+          <p class="text-gray-600 text-sm leading-relaxed whitespace-pre-line mb-4 break-words">
+            {% if breed.summary %}
+              {{ breed.summary[:100] }}{% if breed.summary|length > 100 %}…{% endif %}
+            {% else %}
+              No description available.
+            {% endif %}
+          </p>
+
+          <!-- CTA -->
+          <a href="{{ url_for('pets.view_breed', id=breed.id) }}"
+             class="mt-auto block text-center bg-indigo-600 hover:bg-indigo-700
+                    text-white py-2.5 rounded-xl text-sm font-medium transition">
+            View {{ breed.name }}
+          </a>
+        </div>
+
+        <!-- DELETE MODAL -->
+        <div x-show="confirm"
+             x-transition
+             class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+
+          <div class="bg-white rounded-3xl shadow-xl w-full max-w-md mx-4">
+
+            <!-- HEADER -->
+            <div class="px-6 py-4 border-b flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+              <h3 class="font-semibold text-lg">Confirm Delete</h3>
+            </div>
+
+            <!-- BODY -->
+            <div class="px-6 py-4 text-sm text-gray-600 max-h-48 overflow-y-auto">
+
+              <p class="mb-3">
+                You are about to delete this breed:
+              </p>
+
+              <!-- PREVIEW -->
+              <div class="bg-gray-50 rounded-2xl p-4 mb-4 space-y-1">
+                <div><strong>Name:</strong> {{ breed.name }}</div>
+                <div><strong>Summary:</strong> {{ breed.summary }}</div>
+              </div>
+
+              <div class="bg-yellow-50 text-yellow-800 rounded-xl p-3 text-xs">
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                This is a <strong>soft delete</strong>. You can restore it later.
+              </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="px-6 py-4 flex justify-end gap-3 border-t">
+              <button @click="confirm=false"
+                      class="px-4 py-2 rounded-xl border text-sm">
+                Cancel
+              </button>
+
+              <form method="POST"
+                    action="{{ url_for('pets.delete_breed', id=breed.id) }}">
+                <button class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm">
+                  <i class="fa-regular fa-trash-can mr-1"></i>
+                  Delete
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+
+    </div>
+    {% else %}
+      <div class="bg-gray-50 rounded-2xl p-10 text-center text-gray-600">
+        No breeds found for this species.
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% endblock %}

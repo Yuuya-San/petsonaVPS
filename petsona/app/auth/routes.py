@@ -53,6 +53,24 @@ def log_audit(event: str, actor=None, request=None, metadata: dict = None):
 def get_serializer():
     return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
+@bp.route('/home')
+def home():
+    return render_template('auth/home.html')
+
+@bp.route('/feature')
+def feature():
+    return render_template('auth/feature.html')
+
+@bp.route('/about')
+def about():
+    return render_template('auth/about.html')
+
+
+@bp.route('/contact')
+def contact():
+    return render_template('auth/contact.html')
+
+
 @bp.route('/register', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def register():

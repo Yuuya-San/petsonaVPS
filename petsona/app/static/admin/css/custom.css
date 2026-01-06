@@ -361,3 +361,394 @@ textarea {
         margin-left: 0 !important;
     }
 }
+
+
+.admin-dashboard {
+  padding: 2.8rem;
+  overflow: hidden;
+}
+
+/* REMOVE space only for the first section */
+.dashboard-block:first-child {
+  margin-top: -2.8rem;
+}
+
+/* BLOCKS */
+.dashboard-block {
+  margin-top: 3.5rem;
+}
+
+.dashboard-block h2 {
+  margin-bottom: 1.6rem;
+  color: var(--lavender-dark);
+}
+
+/* BACKGROUND SEPARATION */
+.soft-bg {
+  background: var(--lavender-soft);
+  padding: 2.5rem;
+  border-radius: 22px;
+}
+
+/* GRID */
+.wide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+/* STAT CARD */
+.stat-card {
+  background: #fff;
+  padding: 2.2rem;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.08);
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.stat-card i {
+  font-size: 2.4rem;
+  color: var(--lavender-dark);
+}
+
+.stat-card .label {
+  display: block;
+  font-size: .95rem;
+  color: #777;
+}
+
+.stat-card .value {
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--lavender-dark);
+}
+
+/* ROLES */
+.role-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.role-card {
+  background: #fff;
+  padding: 2.2rem;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.08);
+}
+
+/* ACTIVITY */
+.activity-card {
+  background: #fff;
+  padding: 2.2rem;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.08);
+  margin-bottom: 2rem;
+}
+
+.activity-card ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.activity-card li {
+  padding: .8rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: .95rem;
+}
+
+/* MOBILE */
+@media (max-width: 700px) {
+  .admin-dashboard {
+    padding: 1.5rem;
+  }
+
+  .soft-bg {
+    padding: 1.5rem;
+  }
+}
+
+
+.title {
+  text-align: center;
+  font-weight: 600;
+  color: var(--lavender-dark);
+  margin-bottom: 1.2rem;
+}
+
+/* =========================================================
+   DASHBOARD – MOBILE & TABLET FIRST (APP-LIKE)
+========================================================= */
+
+/* WRAPPER */
+.admin-dashboard {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* SECTION */
+.dashboard-block {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.2rem;
+  box-shadow: 0 8px 24px rgba(123,95,198,.12);
+}
+
+/* TITLES */
+.dashboard-block h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--lavender-dark);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* =========================================================
+   STAT CARDS – MOBILE/TABLET
+========================================================= */
+
+.wide-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+
+  padding: 1rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f6f1ff, #ffffff);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.stat-card:active {
+  transform: scale(0.97);
+}
+
+.stat-card i {
+  font-size: 1.9rem;
+  color: var(--lavender-dark);
+  min-width: 36px;
+}
+
+.stat-card .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #7a6fb8;
+}
+
+.stat-card .value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #3d2f8f;
+}
+
+/* =========================================================
+   ROLE OVERVIEW – CARD STACK
+========================================================= */
+
+.role-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.role-card {
+  background: linear-gradient(135deg, #faf7ff, #ffffff);
+  border-radius: 18px;
+  padding: 1.1rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+
+.role-card h4 {
+  font-size: 0.95rem;
+  color: var(--lavender-dark);
+  margin-bottom: 0.4rem;
+}
+
+.role-card p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #555;
+  margin: 0;
+}
+
+/* =========================================================
+   ACTIVITY FEED – TIMELINE STYLE
+========================================================= */
+
+.activity-card {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.activity-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-card li {
+  background: #ffffff;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  margin-bottom: 0.6rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  font-size: 0.85rem;
+}
+
+.activity-card small {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: #777;
+}
+
+/* =========================================================
+   TABLET (BETTER SPACING)
+========================================================= */
+
+@media (min-width: 576px) {
+  .admin-dashboard {
+    padding: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 1.15rem;
+  }
+
+  .dashboard-block h2 {
+    font-size: 1.15rem;
+  }
+}
+
+/* =========================================================
+   DESKTOP ENHANCEMENTS (KEEP PREMIUM)
+========================================================= */
+
+@media (min-width: 992px) {
+
+  .admin-dashboard {
+    padding: 2.5rem;
+  }
+
+  .dashboard-block {
+    padding: 1.8rem;
+  }
+
+  .wide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(0,0,0,.15);
+  }
+
+  .role-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .activity-card li:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* =========================================================
+   ADMINLTE CONTENT OFFSET FIX
+========================================================= */
+
+/* Ensure content starts BELOW navbar */
+.content-wrapper {
+  padding-top: 0.75rem !important;
+}
+
+/* =========================================================
+   DASHBOARD SPACING REFINEMENT (ALL SCREENS)
+========================================================= */
+
+.admin-dashboard {
+  padding-top: 0.5rem;        /* reduce top push */
+  padding-bottom: 1.25rem;
+  gap: 1rem;                  /* closer sections */
+}
+
+/* Section cards closer together */
+.dashboard-block {
+  margin-bottom: -3rem;
+}
+
+/* Remove extra top margin on first section */
+.dashboard-block:first-child {
+  margin-top: 0;
+}
+
+/* =========================================================
+   MOBILE & TABLET TUNING
+========================================================= */
+
+@media (max-width: 991.98px) {
+
+  .content-wrapper {
+    padding-top: 0.5rem !important;
+  }
+
+  .admin-dashboard {
+    padding: 0.75rem;
+    gap: 0.85rem;
+  }
+
+  .dashboard-block {
+    padding: 1rem;
+  }
+
+  .dashboard-block h2 {
+    margin-bottom: 0.6rem;
+  }
+}
+
+/* =========================================================
+   DESKTOP (KEEP AIRY BUT NOT WIDE)
+========================================================= */
+
+@media (min-width: 992px) {
+
+  .admin-dashboard {
+    padding-top: 1.25rem;
+    gap: 1.4rem;
+  }
+}
+
+/* ===============================
+   MOBILE OPTIMIZATION FOR TABLE SCROLL
+================================ */
+@media (max-width: 767.98px) {
+    /* Remove horizontal scroll on table cells */
+    .cell-scroll,
+    .cell-user-agent {
+        overflow-x: hidden !important; /* remove scroll */
+        white-space: normal !important; /* allow wrapping */
+        word-break: break-word;         /* break long words if needed */
+    }
+
+    /* Optional: make table more compact for mobile */
+    .audit-table th,
+    .audit-table td {
+        font-size: 0.95rem;
+        padding: 0.5rem 0.75rem;
+    }
+}

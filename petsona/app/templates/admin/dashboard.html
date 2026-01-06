@@ -1,5 +1,133 @@
 {% extends "admin/base.html" %}
 
+{% block title %}Admin Dashboard | PetSona{% endblock %}
+
 {% block content %}
-<h1>Admin Dashboard</h1>
+
+<section class="admin-dashboard">
+
+  <!-- USER ACCOUNTS -->
+  <section class="dashboard-block">
+    <h2>User Accounts</h2>
+
+    <div class="wide-grid">
+      <div class="stat-card">
+        <i class="fas fa-user-shield"></i>
+        <div>
+          <span class="label">Administrators</span>
+          <span class="value">{{ stats.admins }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <i class="fas fa-user"></i>
+        <div>
+          <span class="label">Pet Owners</span>
+          <span class="value">{{ stats.owners }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <i class="fas fa-store"></i>
+        <div>
+          <span class="label">Service Providers</span>
+          <span class="value">{{ stats.providers }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SYSTEM RECORDS -->
+  <section class="dashboard-block soft-bg">
+    <h2>System Records</h2>
+
+    <div class="wide-grid">
+      <div class="stat-card">
+        <i class="fas fa-paw"></i>
+        <div>
+          <span class="label">Total Species</span>
+          <span class="value">{{ stats.species }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <i class="fas fa-hotel"></i>
+        <div>
+          <span class="label">Total Breeds</span>
+          <span class="value">{{ stats.breeds }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <i class="fas fa-calendar-check"></i>
+        <div>
+          <span class="label">Bookings</span>
+          <span class="value">{{ stats.bookings }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <i class="fas fa-handshake"></i>
+        <div>
+          <span class="label">Matches</span>
+          <span class="value">{{ stats.matches }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROLE OVERVIEW -->
+  <section class="dashboard-block">
+    <h2>User Role Overview</h2>
+
+    <div class="role-layout">
+      <div class="role-card">
+        <h4>Administrator</h4>
+        <p>
+          Manages system configuration, monitors activities, and ensures
+          security and data integrity.
+        </p>
+      </div>
+
+      <div class="role-card">
+        <h4>Pet Owner</h4>
+        <p>
+          Matches with pets, learns proper pet care, and books nearby services.
+        </p>
+      </div>
+
+      <div class="role-card">
+        <h4>Service Provider</h4>
+        <p>
+          Registers and manages pet services, handles bookings, and updates
+          availability.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECENT ACTIVITIES (FROM AUDIT LOGS) -->
+  <section class="dashboard-block soft-bg">
+    <h2>Recent Activities</h2>
+
+    <div class="activity-card">
+      <ul>
+        {% for act in recent_activities %}
+          <li>
+            {{ act.icon }}
+            {{ act.message }}
+            <small class="text-muted">
+              by {{ act.actor }} ·
+              {{ act.time.strftime('%b %d, %I:%M %p') }}
+            </small>
+          </li>
+        {% else %}
+          <li>No recent activity</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+</section>
+
 {% endblock %}

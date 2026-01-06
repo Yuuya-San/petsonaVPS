@@ -1,0 +1,189 @@
+/* ---------- FORM CARD ---------- */
+.user-form-pro {
+  max-width: 720px;
+  margin: auto;
+  padding: 1.5rem 1.8rem 4rem 1.8rem;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+}
+
+/* ---------- GRID ---------- */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  width: 100%;
+}
+
+/* ---------- FIELD CARD ---------- */
+.field-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  background: #faf8ff;
+  transition: 0.2s;
+}
+
+.field-card:hover {
+  border-color: #c6a6f9;
+  box-shadow: 0 3px 10px rgba(124,58,237,0.15);
+}
+
+.field-card.full-width {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: #5c5c5c;
+}
+
+/* ---------- INPUT GROUP ---------- */
+.input-group {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  transition: 0.2s;
+}
+
+.input-group:focus-within {
+  border-color: #b79ced;
+  box-shadow: 0 0 0 3px rgba(183,156,237,0.15);
+}
+
+.input-group .icon {
+  width: 42px;
+  text-align: center;
+  color: #7c3aed;
+}
+
+.input-field {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  outline: none;
+  background: transparent;
+  min-width: 0;
+  font-size: 0.95rem;
+}
+
+/* ---------- PASSWORD ---------- */
+.password-group {
+  position: relative;
+}
+
+.toggle-password {
+  background: none;
+  border: none;
+  padding: 0 12px;
+  cursor: pointer;
+  color: #6c757d;
+}
+
+/* ---------- PASSWORD ACTIONS ---------- */
+.password-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-generate {
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1b3ff;
+  background: #f5edff;
+  color: #7c3aed;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-generate:hover {
+  background: #ede9fe;
+}
+
+/* ---------- DROPDOWN INPUT ---------- */
+.field-card select.input-field {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 10px 12px;
+  background: #fff;
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* Add a custom arrow */
+.field-card select.input-field {
+  background-image: url("data:image/svg+xml,%3Csvg fill='%237c3aed' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* Focus effect */
+.field-card select.input-field:focus {
+  border-color: #b79ced;
+  box-shadow: 0 0 0 3px rgba(183,156,237,0.15);
+  border-radius: 8px;
+}
+
+
+/* ---------- SUBMIT BUTTON ---------- */
+.btn-primary {
+  margin-top: 16px;
+  width: 100%;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+/* ---------- ERROR / HINT TEXT ---------- */
+.error-text {
+  color: #dc3545;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.hint-text {
+  font-size: 0.75rem;
+  color: #5c5c5c;
+}
+
+/* ---------- STICKY ACTION ---------- */
+.sticky-action {
+  position: sticky;
+  bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  z-index: 10;
+}
+
+

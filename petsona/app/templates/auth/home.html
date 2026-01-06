@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}PetSona | Home{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <h1>Find Your Perfect Pet Match</h1>
+    <p>
+      Smart matching based on lifestyle, personality, and environment.
+    </p>
+    <a href="{{ url_for('auth.login') }}" class="cta-btn">Start Matching</a>
+  </div>
+</section>
+
+<!-- MATCHING PREVIEW -->
+<section class="matching-preview">
+  <h2>Suggested Matches</h2>
+
+  <div class="pet-list">
+
+    <!-- CARD -->
+    <div class="pet-card">
+      <img src="{{ url_for('static', filename='images/pets/cat.jpg') }}" alt="Pet">
+      <div class="pet-info">
+        <h4>Luna</h4>
+        <p class="traits">Calm • Indoor • Cat</p>
+        <p class="desc">
+          Perfect for apartment living and quiet environments.
+        </p>
+      </div>
+    </div>
+
+    <div class="pet-card">
+      <img src="{{ url_for('static', filename='images/pets/doggo.jpg') }}" alt="Pet">
+      <div class="pet-info">
+        <h4>Max</h4>
+        <p class="traits">Active • Outdoor • Dog</p>
+        <p class="desc">
+          Energetic and loves long walks and playtime.
+        </p>
+      </div>
+    </div>
+
+    <div class="pet-card">
+      <img src="{{ url_for('static', filename='images/pets/doggie.jpg') }}" alt="Pet">
+      <div class="pet-info">
+        <h4>Bella</h4>
+        <p class="traits">Friendly • Family • Dog</p>
+        <p class="desc">
+          Gentle and great with kids and families.
+        </p>
+      </div>
+    </div>
+
+    <!-- LOCKED PREVIEW -->
+    <div class="pet-card locked">
+      <div class="lock-overlay">
+        <i class="fas fa-lock"></i>
+        <span>Login to see more matches</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

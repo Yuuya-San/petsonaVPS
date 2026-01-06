@@ -1,0 +1,216 @@
+/* ================= ROOT COLORS ================= */
+:root {
+  --lavender: #A078F0;
+  --lavender-soft: #F5F0FF;
+  --lavender-dark: #6D4ED9;
+  --border-soft: #E6E0F3;
+  --text-dark: #2D2D2D;
+  --text-muted: #6B7280;
+}
+
+/* ================= TABLE WRAPPER ================= */
+.audit-table-wrapper {
+  width: 100%;
+  overflow-x: auto;     /* horizontal scroll */
+  overflow-y: auto;     /* vertical scroll */
+  max-height: 70vh;     /* prevents page overflow */
+  border-radius: 1rem;
+}
+
+/* ================= TABLE ================= */
+.audit-table {
+  min-width: 1400px;   /* ensures columns breathe */
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+}
+
+/* ================= HEADER ================= */
+.audit-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--lavender);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.9rem 0.8rem;
+  white-space: nowrap;
+  text-align: center;
+  border-bottom: 0;
+}
+
+/* Rounded header */
+.audit-table thead th:first-child {
+  border-top-left-radius: 1rem;
+}
+.audit-table thead th:last-child {
+  border-top-right-radius: 1rem;
+}
+
+/* ================= BODY CELLS ================= */
+.audit-table tbody td {
+  padding: 0.75rem 0.8rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+
+/* Zebra striping */
+.audit-table tbody tr:nth-child(even) {
+  background: #FAF8FF;
+}
+
+/* Hover */
+.audit-table tbody tr:hover {
+  background: #EFEAFF;
+}
+
+/* ================= COLUMN TUNING ================= */
+
+/* ID */
+.audit-table td:first-child,
+.audit-table th:first-child {
+  min-width: 90px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Event */
+.audit-table td:nth-child(2) {
+  min-width: 200px;
+  font-weight: 500;
+}
+
+/* Actor */
+.audit-table td:nth-child(3) {
+  min-width: 200px;
+}
+
+/* IP */
+.audit-table td:nth-child(4) {
+  min-width: 130px;
+  text-align: center;
+}
+
+/* ================= USER AGENT (NO SCROLL) ================= */
+.cell-user-agent {
+  max-width: 360px;
+  white-space: normal;              /* allow wrapping */
+  word-break: break-word;           /* break long tokens */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;             /* show max 3 lines */
+  -webkit-box-orient: vertical;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  position: relative;
+  cursor: help;
+}
+
+/* Show full user agent on hover (desktop UX) */
+.cell-user-agent:hover {
+  -webkit-line-clamp: unset;
+  background: #F5F0FF;
+  padding: 0.4rem;
+  border-radius: 0.4rem;
+}
+
+
+/* Timestamp */
+.audit-table td:nth-child(6) {
+  min-width: 160px;
+  text-align: center;
+}
+
+/* Details */
+.audit-details {
+  background: var(--lavender-soft);
+  color: #3F3F46;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 0.6rem;
+  border-radius: 0.6rem;
+  max-height: 140px;
+    /* vertical + horizontal */
+  white-space: pre;
+}
+
+/* ================= ACTIONS ================= */
+.audit-table td:last-child {
+  min-width: 110px;
+  text-align: center;
+}
+
+.audit-table .btn-outline-danger {
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.audit-table .btn-outline-danger:hover {
+  background: #DC2626;
+  color: #fff;
+}
+
+/* ================= PAGINATION ================= */
+.pagination .page-link {
+  border-radius: 999px;
+  margin: 0 3px;
+  color: var(--lavender-dark);
+  border: 1px solid var(--border-soft);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--lavender);
+  border-color: var(--lavender);
+  color: #fff;
+}
+
+/* ================= SCROLLBAR (DESKTOP POLISH) ================= */
+.audit-table-wrapper::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.audit-table-wrapper::-webkit-scrollbar-thumb {
+  background: #C4B5FD;
+  border-radius: 10px;
+}
+
+.audit-table-wrapper::-webkit-scrollbar-track {
+  background: #F4F1FB;
+}
+
+/* ================= MOBILE TABLE FIX ================= */
+@media (max-width: 767.98px) {
+    /* Remove horizontal scroll */
+    .audit-table-wrapper {
+        overflow-x: hidden !important;
+    }
+
+    /* Make table take full width */
+    .audit-table {
+        min-width: 100% !important;
+        table-layout: fixed; /* columns shrink to fit */
+    }
+
+    /* Allow wrapping for cells instead of forcing scroll */
+    .audit-table td,
+    .audit-table th {
+        white-space: normal !important; 
+        word-break: break-word;
+    }
+
+    /* Timestamp column aligns right on mobile */
+    .audit-table tbody td:nth-child(6) {
+        text-align: right !important;
+    }
+
+    /* Optional: details box smaller height for mobile */
+    .audit-details {
+        max-height: 100px;
+        font-size: 0.7rem;
+    }
+}

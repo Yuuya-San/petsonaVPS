@@ -1,0 +1,38 @@
+<div class="modal fade" id="speciesModal">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST" action="{{ url_for('pets.save_species') }}"
+          enctype="multipart/form-data"
+          class="modal-content">
+
+      <input type="hidden" name="species_id" id="species_id">
+
+      <div class="modal-header">
+        <h5 id="speciesModalTitle">Add Species</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <img id="imagePreview" class="img-fluid rounded mb-3 d-none">
+
+        <input class="form-control mb-2" name="name" id="species_name" required>
+        <textarea class="form-control mb-2" name="description"
+                  id="species_description" rows="3"></textarea>
+
+        <select class="form-select mb-2" name="legal_status" id="species_legal">
+          <option>Allowed</option>
+          <option>Permit Required</option>
+        </select>
+
+        <input type="file" class="form-control" name="image" id="species_image">
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-lavender">Save</button>
+      </div>
+
+    </form>
+  </div>
+</div>

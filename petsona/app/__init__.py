@@ -78,6 +78,6 @@ def create_app(config_class: type = Config):
     # Root route
     @app.route("/")
     def index():
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.home"))
 
     return app

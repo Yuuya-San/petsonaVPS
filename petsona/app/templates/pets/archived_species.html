@@ -1,0 +1,215 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="w-full min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-12 space-y-8 relative">
+
+  <!-- FLOATING BACK BUTTON -->
+  <a href="{{ url_for('pets.species_index') }}"
+     class="fixed bottom-6 right-6 z-50 flex items-center gap-2
+            bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-full shadow-lg
+            text-sm sm:text-base font-medium transition">
+    <i class="fa-solid fa-arrow-left"></i>
+    Back to Active Species
+  </a>
+
+  <!-- PAGE HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">Archived Species & Breeds</h1>
+  </div>
+
+  <!-- ARCHIVED SPECIES -->
+  <section>
+    <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">Archived Species</h2>
+
+    {% if archived_species %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for species in archived_species %}
+      <div x-data="{ restoreConfirm: false }" 
+           class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+
+        <!-- IMAGE -->
+        <img src="{{ url_for('static', filename=species.image_url or 'img/default_species.png') }}"
+             alt="{{ species.name }}"
+             class="h-48 w-full object-cover">
+
+        <!-- CONTENT -->
+        <div class="p-5 flex flex-col flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="bg-lavender/30 rounded-full p-3 shrink-0">
+              <i class="{{ species.icon }} text-indigo-600 text-xl"></i>
+            </span>
+            <h3 class="font-semibold text-lg text-gray-900">{{ species.name }}</h3>
+          </div>
+
+          <p class="text-gray-600 text-sm sm:text-base leading-relaxed whitespace-pre-line break-words mb-4">
+            {{ species.description[:120] }}{% if species.description|length > 120 %}…{% endif %}
+          </p>
+
+          <div class="flex gap-2 flex-wrap text-sm mb-4">
+            <span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full">
+              {{ species.active_breeds_count or 0 }} Breeds
+            </span>
+
+            <span class="px-3 py-1.5 rounded-full bg-red-50 text-red-700">
+              {{ species.legal_status }}
+            </span>
+          </div>
+
+          <!-- RESTORE BUTTON -->
+          <button @click="restoreConfirm = true"
+                  class="mt-auto bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl text-sm font-medium transition">
+            <i class="fa-solid fa-arrow-rotate-left mr-2"></i> Restore
+          </button>
+        </div>
+
+        <!-- CONFIRM MODAL -->
+        <div x-show="restoreConfirm" 
+             x-transition 
+             class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-3xl shadow-xl w-full max-w-md">
+
+            <!-- HEADER -->
+            <div class="px-6 py-4 border-b flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+              <h3 class="font-semibold text-lg">Confirm Restore</h3>
+              <button @click="restoreConfirm=false" class="ml-auto text-gray-500 text-xl font-bold">&times;</button>
+            </div>
+
+            <!-- BODY -->
+            <div class="px-6 py-4 text-sm text-gray-600 max-h-64 overflow-y-auto space-y-3">
+              <p>You are about to restore this species:</p>
+
+              <!-- PREVIEW -->
+              <div class="bg-gray-50 rounded-2xl p-4 space-y-1">
+                <div><strong>Name:</strong> {{ species.name }}</div>
+                <div><strong>Description:</strong> {{ species.description }}</div>
+              </div>
+
+              <div class="bg-blue-50 text-blue-800 rounded-xl p-3 text-xs flex items-center gap-1">
+                <i class="fas fa-info-circle me-1"></i>
+                This species {{ species.name }} will be active again.
+              </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="px-6 py-4 flex justify-end gap-3 border-t">
+              <button @click="restoreConfirm=false"
+                      class="px-4 py-2 rounded-xl border text-sm">
+                Cancel
+              </button>
+              <form method="POST" action="{{ url_for('pets.restore_species', id=species.id) }}">
+                <button class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm">
+                  Restore
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="bg-gray-50 rounded-2xl p-10 text-center text-gray-600">
+        No archived species found.
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- ARCHIVED BREEDS -->
+  <section class="mt-12">
+    <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">Archived Breeds</h2>
+
+    {% if archived_breeds %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for breed in archived_breeds %}
+      <div x-data="{ restoreConfirm: false }"
+           class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+
+        <!-- IMAGE -->
+        <img src="{{ url_for('static', filename=breed.image_url or 'img/default_breed.png') }}"
+             alt="{{ breed.name }}"
+             class="h-48 w-full object-cover">
+
+        <!-- CONTENT -->
+        <div class="p-5 flex flex-col flex-1">
+          <h3 class="font-semibold text-lg text-gray-900 mb-2">{{ breed.name }}</h3>
+          <p class="text-gray-600 text-sm sm:text-base leading-relaxed break-words mb-4">
+            {{ breed.summary[:100] }}{% if breed.summary|length > 100 %}…{% endif %}
+          </p>
+
+          <div class="flex flex-wrap gap-2 text-sm mb-4">
+            <span class="px-3 py-1.5 rounded-full bg-red-50 text-red-700">
+              {{ breed.energy_level or '—' }} Energy
+            </span>
+            <span class="px-3 py-1.5 rounded-full bg-red-50 text-red-700">
+              {{ breed.grooming_needs or '—' }} Grooming
+            </span>
+          </div>
+
+          <!-- RESTORE BUTTON -->
+          <button @click="restoreConfirm = true"
+                  class="mt-auto bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl text-sm font-medium transition">
+            <i class="fa-solid fa-arrow-rotate-left mr-2"></i> Restore
+          </button>
+        </div>
+
+        <!-- CONFIRM MODAL -->
+        <div x-show="restoreConfirm" 
+             x-transition 
+             class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-3xl shadow-xl w-full max-w-md">
+
+            <!-- HEADER -->
+            <div class="px-6 py-4 border-b flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+              <h3 class="font-semibold text-lg">Confirm Restore</h3>
+              <button @click="restoreConfirm=false" class="ml-auto text-gray-500 text-xl font-bold">&times;</button>
+            </div>
+
+            <!-- BODY -->
+            <div class="px-6 py-4 text-sm text-gray-600 max-h-64 overflow-y-auto space-y-3">
+              <p>You are about to restore this breed:</p>
+
+              <!-- PREVIEW -->
+              <div class="bg-gray-50 rounded-2xl p-4 space-y-1">
+                <div><strong>Name:</strong> {{ breed.name }}</div>
+                <div><strong>Summary:</strong> {{ breed.summary }}</div>
+              </div>
+
+              <div class="bg-blue-50 text-blue-800 rounded-xl p-3 text-xs flex items-center gap-1">
+                <i class="fas fa-info-circle me-1"></i>
+                This breed {{ breed.name }} will be active again.
+              </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="px-6 py-4 flex justify-end gap-3 border-t">
+              <button @click="restoreConfirm=false"
+                      class="px-4 py-2 rounded-xl border text-sm">
+                Cancel
+              </button>
+              <form method="POST" action="{{ url_for('pets.restore_breed', id=breed.id) }}">
+                <button class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm">
+                  Restore
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="bg-gray-50 rounded-2xl p-10 text-center text-gray-600">
+        No archived breeds found.
+      </div>
+    {% endif %}
+  </section>
+
+</div>
+
+{% endblock %}

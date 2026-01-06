@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto p-6">
+
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold tracking-tight">
+      Pet Species
+    </h1>
+
+    <a href="{{ url_for('pets.create_species') }}"
+       class="bg-indigo-600 hover:bg-indigo-700
+              text-white px-6 py-3 rounded-2xl font-semibold shadow-sm">
+      + Add Species
+    </a>
+  </div>
+
+  <div id="species-grid"
+      class="grid grid-cols-1
+              sm:grid-cols-2
+              lg:grid-cols-3
+              gap-5 sm:gap-6">
+    {% include "pets/_species_cards.html" %}
+  </div>
+
+
+</div>
+
+<script src="{{ url_for('static', filename='js/species.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+  <h1 class="text-2xl font-semibold mb-6">{{ page_title }}</h1>
+
+  <form method="POST"
+        action="{{ url_for('pets.save_breed') }}"
+        enctype="multipart/form-data"
+        x-data="{
+          preview: '{{ url_for('static', filename=breed.image_url) if breed and breed.image_url else '' }}',
+          allergy: {{ 'true' if breed and breed.allergy_friendly else 'false' }},
+          resetPreview() { this.preview=''; $refs.file.value=''; }
+        }"
+        class="space-y-6">
+
+    <!-- Hidden Inputs -->
+    <input type="hidden" name="species_id" value="{{ species.id }}">
+    {% if breed %}
+      <input type="hidden" name="breed_id" value="{{ breed.id }}">
+    {% endif %}
+
+    <!-- BASIC INFO -->
+    <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm">
+      <h2 class="font-semibold mb-4 text-lg">Basic Information</h2>
+
+      <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+
+        <!-- IMAGE UPLOAD -->
+        <div class="flex-shrink-0 flex flex-col items-center sm:items-center w-full sm:w-40">
+          <label class="block font-medium mb-2">Image</label>
+          <label class="flex items-center gap-1 cursor-pointer border rounded-xl px-3 py-2 hover:bg-gray-50 transition text-sm mb-2 w-full justify-center">
+            <i class="fa-solid fa-upload text-indigo-600"></i>
+            <span x-text="preview ? 'Change' : 'Upload'"></span>
+            <input type="file" name="image" class="hidden" x-ref="file" @change="preview = URL.createObjectURL($event.target.files[0])">
+          </label>
+
+          <template x-if="preview">
+            <div class="relative w-36 h-36 rounded-xl overflow-hidden border bg-gray-50 flex items-center justify-center">
+              <img :src="preview" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+              <button type="button" @click="resetPreview()" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100 transition">
+                <i class="fa-solid fa-xmark text-gray-600"></i>
+              </button>
+            </div>
+          </template>
+        </div>
+
+        <!-- TEXT FIELDS -->
+        <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+          <div>
+            <label class="block font-medium mb-1 text-sm">Breed Name</label>
+            <input type="text" name="name" class="w-full border rounded-xl px-2 py-1 text-sm" value="{{ breed.name if breed else '' }}" required>
+          </div>
+
+          <div>
+            <label class="block font-medium mb-1 text-sm">Temperament</label>
+            <input type="text" name="temperament" class="w-full border rounded-xl px-2 py-1 text-sm" value="{{ breed.temperament if breed else '' }}">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-medium mb-1 text-sm">Summary</label>
+            <textarea name="summary" rows="2" class="w-full border rounded-xl px-2 py-1 text-sm resize-none" required>{{ breed.summary if breed else '' }}</textarea>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-medium mb-1 text-sm">Personality Traits</label>
+            <input type="text" name="personality_traits" class="w-full border rounded-xl px-2 py-1 text-sm"
+                   value="{% if breed and breed.personality_traits %}{{ breed.personality_traits|join(', ') }}{% endif %}">
+          </div>
+
+          <!-- ALLERGY SWITCH -->
+          <div class="sm:col-span-2 flex items-center gap-2 mt-1">
+            <label for="allergySwitch" class="font-medium text-sm">Allergy Friendly</label>
+            <button type="button"
+                    @click="allergy = !allergy"
+                    :aria-pressed="allergy.toString()"
+                    class="relative inline-flex items-center h-5 w-10 rounded-full transition-colors duration-300 focus:outline-none"
+                    :class="allergy ? 'bg-indigo-600' : 'bg-gray-300'">
+              <span class="sr-only">Toggle Allergy Friendly</span>
+              <span class="inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300"
+                    :class="allergy ? 'translate-x-5' : 'translate-x-0'"></span>
+            </button>
+            <input type="hidden" name="allergy_friendly" :value="allergy ? 1 : 0">
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STATS SECTION -->
+    <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm">
+      <h2 class="font-semibold mb-4 text-lg">Breed Stats</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+        <div>
+          <label class="block font-medium mb-1">Energy Level</label>
+          <select name="energy_level" class="w-full border rounded-xl px-2 py-1">
+            {% for level in ['Low','Medium','High'] %}
+              <option value="{{ level }}" {% if breed and breed.energy_level==level %}selected{% endif %}>{{ level }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Exercise Needs</label>
+          <input type="text" name="exercise_needs" class="w-full border rounded-xl px-2 py-1" value="{{ breed.exercise_needs if breed else '' }}">
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Grooming Needs</label>
+          <select name="grooming_needs" class="w-full border rounded-xl px-2 py-1">
+            {% for level in ['Low','Medium','High'] %}
+              <option value="{{ level }}" {% if breed and breed.grooming_needs==level %}selected{% endif %}>{{ level }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Space Needs</label>
+          <select name="space_needs" class="w-full border rounded-xl px-2 py-1">
+            {% for size in ['Small','Medium','Large'] %}
+              <option value="{{ size }}" {% if breed and breed.space_needs==size %}selected{% endif %}>{{ size }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Trainability</label>
+          <select name="trainability" class="w-full border rounded-xl px-2 py-1">
+            {% for t in ['Easy','Moderate','Difficult'] %}
+              <option value="{{ t }}" {% if breed and breed.trainability==t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Lifespan (years)</label>
+          <input type="number" name="lifespan" class="w-full border rounded-xl px-2 py-1" value="{{ breed.lifespan if breed else '' }}">
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Care Cost ($)</label>
+          <input type="number" step="0.01" name="care_cost" class="w-full border rounded-xl px-2 py-1" value="{{ breed.care_cost if breed else '' }}">
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+      <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-semibold transition">
+        {{ 'Update Breed' if breed else 'Add Breed' }}
+      </button>
+      <a href="{{ url_for('pets.view_species', id=species.id) }}" class="flex-1 text-center py-3 rounded-2xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+        Cancel
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

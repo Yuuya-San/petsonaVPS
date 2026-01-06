@@ -1,0 +1,89 @@
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 30px;
+}
+
+.page-title {
+  font-size: 2rem;
+  margin-bottom: 25px;
+}
+
+.species-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 25px;
+}
+
+.species-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.species-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+}
+
+.species-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.species-card-body {
+  padding: 18px;
+}
+
+.species-card-body h3 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.species-card-body p {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.btn.primary {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.btn.secondary {
+  background: #e5e7eb;
+  color: #111;
+}
+
+.load-more-container {
+  text-align: center;
+  margin-top: 30px;
+}
+
+#loadMoreBtn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  background: #10b981;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}

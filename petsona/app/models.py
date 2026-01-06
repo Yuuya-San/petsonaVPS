@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from .extensions import db, bcrypt
 import json
+from slugify import slugify
 
 
 # Utility function to create an admin user (call from shell or script)
@@ -120,12 +121,33 @@ class AuditLog(db.Model):
 # --------------------------
 class Species(db.Model):
     __tablename__ = 'species'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.Text)
-    legal_status = db.Column(db.Enum('Allowed', 'Restricted', 'Permit Required'), default='Allowed')
 
-    breeds = db.relationship('Breed', backref='species', lazy=True)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    description = db.Column(db.Text)
+    image_url = db.Column(db.String(255), nullable=False)
+    legal_status = db.Column(
+        db.Enum('Allowed', 'Permit Required'),
+        default='Allowed',
+        nullable=False
+    )
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    breeds = db.relationship(
+        'Breed',
+        backref='species',
+        lazy='dynamic'
+    )
+
+    def update_breed_count(self):
+        self.active_breeds_count = self.breeds.filter(
+            Breed.deleted_at.is_(None)
+        ).count()
+
+    def soft_delete(self):
+        self.deleted_at = datetime.utcnow()
 
     def __repr__(self):
         return f"<Species {self.name}>"
@@ -136,22 +158,55 @@ class Species(db.Model):
 # --------------------------
 class Breed(db.Model):
     __tablename__ = 'breed'
+
     id = db.Column(db.Integer, primary_key=True)
-    species_id = db.Column(db.Integer, db.ForeignKey('species.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    summary = db.Column(db.Text, nullable=False)  # Single sentence description
+    species_id = db.Column(
+        db.Integer,
+        db.ForeignKey('species.id'),
+        nullable=False
+    )
+    name = db.Column(db.String(100), nullable=False, index=True)
+    summary = db.Column(db.Text, nullable=False)
     temperament = db.Column(db.String(50))
-    energy_level = db.Column(db.Enum('Low', 'Medium', 'High'), default='Medium')
+    energy_level = db.Column(
+        db.Enum('Low', 'Medium', 'High'),
+        default='Medium'
+    )
     exercise_needs = db.Column(db.String(100))
-    grooming_needs = db.Column(db.Enum('Low', 'Medium', 'High'), default='Medium')
-    space_needs = db.Column(db.Enum('Small', 'Medium', 'Large'), default='Medium')
-    trainability = db.Column(db.Enum('Easy', 'Moderate', 'Difficult'), default='Moderate')
+    grooming_needs = db.Column(
+        db.Enum('Low', 'Medium', 'High'),
+        default='Medium'
+    )
+    space_needs = db.Column(
+        db.Enum('Small', 'Medium', 'Large'),
+        default='Medium'
+    )
+    trainability = db.Column(
+        db.Enum('Easy', 'Moderate', 'Difficult'),
+        default='Moderate'
+    )
     health_issues = db.Column(db.Text)
     lifespan = db.Column(db.Integer)
-    care_cost = db.Column(db.Float)  # Estimated monthly cost
-    personality_traits = db.Column(db.JSON)  # e.g., ["loyal","playful"]
+    care_cost = db.Column(db.Float)
+    personality_traits = db.Column(db.JSON)
     allergy_friendly = db.Column(db.Boolean, default=False)
-    image_url = db.Column(db.String(255))
+    is_active = db.Column(db.Boolean, default=True)
+    image_url = db.Column(db.String(255), nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    def soft_delete(self):
+        self.deleted_at = datetime.utcnow()
+        self.is_active = False
+
+    # UI helper
+    def ui_badges(self):
+        return {
+            "Energy": self.energy_level,
+            "Care": self.grooming_needs,
+            "Space": self.space_needs
+        }
 
     def __repr__(self):
         return f"<Breed {self.name}>"

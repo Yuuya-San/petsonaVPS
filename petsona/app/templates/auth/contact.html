@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}PetSona | Contact Us{% endblock %}
+
+{% block content %}
+
+<!-- ================= HERO SECTION ================= -->
+<section class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-20">
+  <div class="max-w-4xl mx-auto text-center px-4">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">Contact PetSona</h1>
+    <p class="text-lg md:text-xl opacity-90">
+      We'd love to hear from you. Reach out for questions, feedback, or support.
+    </p>
+  </div>
+</section>
+
+<!-- ================= CONTACT SECTION ================= -->
+<section class="py-16 bg-gray-50 dark:bg-gray-900">
+  <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12">
+
+    <!-- ================= CONTACT INFO ================= -->
+    <div class="space-y-6 flex flex-col justify-center">
+      <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Get in Touch</h3>
+      <p class="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+        <i class="fas fa-envelope text-purple-500"></i>
+        support@petsona.com
+      </p>
+      <p class="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+        <i class="fas fa-phone text-purple-500"></i>
+        +63 9XX XXX XXXX
+      </p>
+      <p class="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+        <i class="fas fa-map-marker-alt text-purple-500"></i>
+        Philippines
+      </p>
+    </div>
+
+    <!-- ================= CONTACT FORM ================= -->
+    <div x-data="{ name: '', email: '', message: '', submitting: false, success: false }">
+      <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-6">Send a Message</h3>
+
+      <form @submit.prevent="submitting = true; success = false; setTimeout(() => { submitting = false; success = true; name=''; email=''; message=''; }, 1000)" class="space-y-4 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md">
+        
+        <input
+          type="text"
+          x-model="name"
+          placeholder="Your Name"
+          required
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+        >
+
+        <input
+          type="email"
+          x-model="email"
+          placeholder="Your Email"
+          required
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+        >
+
+        <textarea
+          x-model="message"
+          rows="5"
+          placeholder="Your Message"
+          required
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 resize-none"
+        ></textarea>
+
+        <button
+          type="submit"
+          :disabled="submitting"
+          class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl transition-all duration-300 disabled:opacity-50"
+        >
+          <span x-show="!submitting && !success">Send Message</span>
+          <span x-show="submitting" class="animate-pulse">Sending...</span>
+          <span x-show="success" class="text-green-200 font-bold">Sent!</span>
+        </button>
+
+      </form>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

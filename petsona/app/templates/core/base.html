@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}App{% endblock %}</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- GLOBAL SKELETON -->
+  <div id="skeleton-wrapper">
+    {% block skeleton %}{% endblock %}
+  </div>
+
+  <!-- REAL CONTENT -->
+  <div id="page-content" class="d-none">
+    {% block page_content %}{% endblock %}
+  </div>
+
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+  <script>
+    window.addEventListener('load', () => {
+      document.getElementById('skeleton-wrapper')?.remove();
+      document.getElementById('page-content')?.classList.remove('d-none');
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

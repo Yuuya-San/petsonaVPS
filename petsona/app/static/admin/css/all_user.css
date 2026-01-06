@@ -1,0 +1,112 @@
+.card-modern {
+  border-radius: 12px;
+  border: 1px solid #E0D7F5;
+  overflow: hidden;
+}
+
+.card-header-modern {
+  background-color: #DCCBF9;
+  border-radius: 12px 12px 0 0;
+  padding: 0.75rem 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.role-filter {
+  min-width: 150px;
+}
+
+.card-body-modern {
+  background-color: #F8F5FF;
+  overflow-x: auto;
+}
+
+.table-header-modern {
+  background-color: #A078F0;
+  color: white;
+}
+
+.badge-admin {
+  background-color: #8B5CF6;
+  color: #fff;
+  padding: 0.35em 0.65em;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.badge-merchant {
+  background-color: #3B82F6;
+  color: #fff;
+  padding: 0.35em 0.65em;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.badge-user {
+  background-color: #22C55E;
+  color: #fff;
+  padding: 0.35em 0.65em;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.actions-cell .action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.card-footer-modern {
+  background-color: #F8F5FF;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .actions-cell .action-buttons {
+    flex-direction: column;
+  }
+  .card-header-modern {
+    justify-content: flex-start;
+  }
+  .role-filter {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .table thead {
+    display: none;
+  }
+  .table tbody tr {
+    display: block;
+    margin-bottom: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 0.75rem;
+    background: #fff;
+  }
+  .table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border: none;
+  }
+  .table tbody td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #5c5c5c;
+  }
+  .actions-cell .action-buttons {
+    justify-content: flex-end;
+  }
+}

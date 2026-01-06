@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>PetSona</title>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --lavender-dark: #7b6fd6;
+      --lavender-soft: #f6f5ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", system-ui, sans-serif;
+      background: #fafaff;
+      padding-top: 80px; /* offset for fixed navbar */
+    }
+
+    /* NAVBAR */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #ffffff;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,.06);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* BRAND */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--lavender-dark);
+      text-decoration: none;
+    }
+
+    /* LINKS */
+    .nav-links {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 1.8rem;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-size: .95rem;
+      font-weight: 500;
+      color: #444;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 0;
+      height: 2px;
+      background: var(--lavender-dark);
+      transition: width .25s ease;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    /* LOGIN BUTTON */
+    .nav-auth a {
+      padding: .45rem 1.1rem;
+      border-radius: 20px;
+      background: var(--lavender-soft);
+      color: var(--lavender-dark);
+    }
+
+    /* HAMBURGER */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .nav-toggle span {
+      width: 22px;
+      height: 2px;
+      background: #444;
+      display: block;
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .nav-toggle {
+        display: flex;
+      }
+
+      .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #ffffff;
+        flex-direction: column;
+        gap: 1.2rem;
+        padding: 1.5rem 0;
+        display: none;
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+    }
+
+    /* DEMO CONTENT */
+    .content {
+      max-width: 1000px;
+      margin: auto;
+      padding: 2rem;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+
+      <a href="{{ url_for('auth.home') }}" class="brand">
+        <i class="fas fa-paw"></i> PetSona
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <ul class="nav-links">
+        <li><a href="{{ url_for('auth.home') }}">Home</a></li>
+        <li><a href="{{ url_for('auth.feature') }}">Features</a></li>
+        <li><a href="{{ url_for('auth.about') }}">About</a></li>
+        <li><a href="{{ url_for('auth.contact') }}">Contact</a></li>
+        <li class="nav-auth"><a href="{{ url_for('auth.login') }}">Login</a></li>
+      </ul>
+
+    </div>
+  </nav>
+
+  <!-- JS -->
+  <script>
+    const toggle = document.querySelector('.nav-toggle');
+    const links = document.querySelector('.nav-links');
+
+    toggle.addEventListener('click', () => {
+      links.classList.toggle('active');
+    });
+  </script>
+
+</body>
+</html>

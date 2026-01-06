@@ -28,11 +28,17 @@
             <td>{{ user.role }}</td>
             <td>{{ user.deleted_at.strftime('%Y-%m-%d %H:%M') if user.deleted_at else '-' }}</td>
             <td>
-              <form action="{{ url_for('admin.restore_user', id=user.id) }}" method="POST" style="display:inline;">
-                <button type="submit" class="btn btn-sm btn-success">
-                  <i class="fas fa-undo"></i> Restore
-                </button>
-              </form>
+              <button type="button"
+                      class="btn btn-sm btn-success"
+                      data-toggle="modal"
+                      data-target="#restoreUserModal"
+                      data-user-id="{{ user.id }}"
+                      data-user-name="{{ user.first_name }} {{ user.last_name }}"
+                      data-user-email="{{ user.email }}"
+                      data-user-role="{{ user.role | capitalize }}"
+                      data-user-deleted="{{ user.deleted_at.strftime('%Y-%m-%d %H:%M') if user.deleted_at else '-' }}">
+                <i class="fas fa-undo"></i> Restore
+              </button>
             </td>
           </tr>
           {% else %}
@@ -80,4 +86,81 @@
     {% endif %}
   </div>
 </div>
+
+<!-- RESTORE USER MODAL -->
+<div class="modal fade" id="restoreUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-undo me-2"></i>
+          Confirm Restore User
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-2">
+          You are about to restore the following user:
+        </p>
+
+        <!-- PREVIEW INFO -->
+        <div class="bg-light rounded-3 p-3 mb-3 small">
+          <div><strong>ID:</strong> <span id="restoreUserId"></span></div>
+          <div><strong>Name:</strong> <span id="restoreUserName"></span></div>
+          <div><strong>Email:</strong> <span id="restoreUserEmail"></span></div>
+          <div><strong>Role:</strong> <span id="restoreUserRole"></span></div>
+          <div><strong>Deleted At:</strong> <span id="restoreUserDeleted"></span></div>
+        </div>
+
+        <div class="alert alert-info small mb-0">
+          <i class="fas fa-info-circle me-1"></i>
+          The user account will become active again.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <form id="restoreUserForm" method="POST">
+          <button type="button"
+                  class="btn btn-outline-secondary"
+                  data-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="btn btn-success">
+            <i class="fas fa-check me-1"></i>
+            Restore User
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $('#restoreUserModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+
+    const id = button.data('user-id');
+    const name = button.data('user-name');
+    const email = button.data('user-email');
+    const role = button.data('user-role');
+    const deleted = button.data('user-deleted');
+
+    $('#restoreUserId').text(id);
+    $('#restoreUserName').text(name);
+    $('#restoreUserEmail').text(email);
+    $('#restoreUserRole').text(role);
+    $('#restoreUserDeleted').text(deleted);
+
+    $('#restoreUserForm').attr('action', '/admin/users/restore/' + id);
+  });
+</script>
 {% endblock %}

@@ -1,0 +1,137 @@
+<form method="POST" novalidate class="bg-white shadow-lg rounded-3xl p-6 sm:p-10 max-w-5xl mx-auto space-y-8">
+  {{ form.hidden_tag() }}
+
+  <!-- GRID FIELDS -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- FIRST NAME -->
+    <div class="flex flex-col">
+      <label class="font-medium text-gray-700 mb-2">First Name *</label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+          <i class="fas fa-user"></i>
+        </span>
+        {{ form.first_name(class_="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter first name") }}
+      </div>
+      {% for error in form.first_name.errors %}
+        <small class="text-red-600 mt-1 block">{{ error }}</small>
+      {% endfor %}
+    </div>
+
+    <!-- LAST NAME -->
+    <div class="flex flex-col">
+      <label class="font-medium text-gray-700 mb-2">Last Name *</label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+          <i class="fas fa-user"></i>
+        </span>
+        {{ form.last_name(class_="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter last name") }}
+      </div>
+      {% for error in form.last_name.errors %}
+        <small class="text-red-600 mt-1 block">{{ error }}</small>
+      {% endfor %}
+    </div>
+
+    <!-- EMAIL (full width) -->
+    <div class="flex flex-col md:col-span-2">
+      <label class="font-medium text-gray-700 mb-2">Email Address *</label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+          <i class="fas fa-envelope"></i>
+        </span>
+        {{ form.email(class_="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter email") }}
+      </div>
+      {% for error in form.email.errors %}
+        <small class="text-red-600 mt-1 block">{{ error }}</small>
+      {% endfor %}
+    </div>
+
+    <!-- PASSWORD (full width, optional in edit) -->
+    <div class="flex flex-col md:col-span-2" x-data="{ show: false }">
+      <label class="font-medium text-gray-700 mb-2">
+        {% if is_edit %}
+          New Password (optional)
+        {% else %}
+          Temporary Password *
+        {% endif %}
+      </label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+          <i class="fas fa-lock"></i>
+        </span>
+        {{ form.password(class_="pl-10 pr-12 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter password", id="temp-password", type="password") }}
+        <button type="button" @click="show = !show; $refs.pwd.type = show ? 'text' : 'password'" 
+                class="absolute inset-y-0 right-3 flex items-center text-gray-500">
+          <i :class="show ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+        </button>
+      </div>
+      {% if not is_edit %}
+      <div class="flex items-center justify-between mt-2">
+        <button type="button" onclick="generatePassword()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-1.5 px-4 rounded-xl transition">
+          Generate Password
+        </button>
+        <span class="text-gray-500 text-sm">Will be emailed to the user</span>
+      </div>
+      {% endif %}
+      {% for error in form.password.errors %}
+        <small class="text-red-600 mt-1 block">{{ error }}</small>
+      {% endfor %}
+    </div>
+
+    <!-- ROLE DROPDOWN (full width) -->
+    <div class="flex flex-col md:col-span-2">
+      <label class="font-medium text-gray-700 mb-2">Role *</label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+          <i class="fas fa-user-shield"></i>
+        </span>
+        <select name="{{ form.role.name }}" class="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="">Select role</option>
+          <option value="user" {% if form.role.data == 'user' %}selected{% endif %}>User</option>
+          <option value="merchant" {% if form.role.data == 'merchant' %}selected{% endif %}>Merchant</option>
+          <option value="admin" {% if form.role.data == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+      </div>
+      {% for error in form.role.errors %}
+        <small class="text-red-600 mt-1 block">{{ error }}</small>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- ACTION BUTTONS -->
+  <div class="flex flex-col sm:flex-row gap-4 justify-end mt-6">
+    <!-- Submit -->
+    <button type="submit" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 px-6 rounded-xl text-sm sm:text-base font-medium transition">
+      <i class="fas fa-user-plus"></i>
+      {% if button_text %}{{ button_text }}{% else %}Save User{% endif %}
+    </button>
+
+    <!-- Cancel/Back -->
+    <a href="{{ url_for('admin.users') }}" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2.5 px-6 rounded-xl text-sm sm:text-base font-medium transition">
+      <i class="fas fa-arrow-left"></i>
+      Cancel
+    </a>
+  </div>
+
+</form>
+
+<script>
+function togglePassword(el) {
+  const input = document.getElementById('temp-password');
+  if (input.type === 'password') {
+    input.type = 'text';
+    el.querySelector('i').classList.remove('fa-eye');
+    el.querySelector('i').classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    el.querySelector('i').classList.remove('fa-eye-slash');
+    el.querySelector('i').classList.add('fa-eye');
+  }
+}
+
+function generatePassword() {
+  const pwd = Math.random().toString(36).slice(-10);
+  document.getElementById('temp-password').value = pwd;
+}
+</script>

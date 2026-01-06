@@ -1,141 +1,212 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">Archive Audit Logs</h1>
+<div class="container-fluid py-4">
 
-    <div class="card shadow-sm">
-        <div class="card-body table-responsive p-0">
-            <table class="table table-sm table-hover table-bordered text-sm mb-0">
-                <thead class="thead-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Event</th>
-                        <th>Actor</th>
-                        <th>IP</th>
-                        <th>User Agent</th>
-                        <th>Deleted At</th>
-                        <th>Details</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if logs %}
-                        {% for log in logs %}
-                        <tr>
-                            <td>{{ log.id }}</td>
-                            <td>{{ log.event }}</td>
-                            <td>
-                                {% if log.actor_email %}
-                                    {{ log.actor_email }}
-                                {% elif log.actor_id %}
-                                    User #{{ log.actor_id }}
-                                {% else %}
-                                    System
-                                {% endif %}
-                            </td>
-                            <td>{{ log.ip_address or '-' }}</td>
-                            <td>{{ log.user_agent or '-' }}</td>
-                            <td>{{ log.deleted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                            <td>
-                                <pre style="font-size: 0.75rem; white-space: pre-wrap;">
-                {{ log.get_details() | tojson(indent=2) }}
-                                </pre>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-success"
-                                        data-toggle="modal"
-                                        data-target="#restoreModal"
-                                        data-log-id="{{ log.id }}">
-                                    Restore
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                <i class="fas fa-archive fa-2x mb-2 d-block"></i>
-                                No archived audit logs found
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
+    <h2 class="title">{{ page_title }}</h2>
 
-    <!-- Pagination -->
-    {% if pagination.pages > 1 %}
-    <nav aria-label="Page navigation" class="mt-3">
-        <ul class="pagination justify-content-center">
-            {% if pagination.has_prev %}
-            <li class="page-item">
-                <a class="page-link" href="{{ url_for('admin.archive_audit_logs', page=pagination.prev_num) }}">&laquo; Prev</a>
-            </li>
-            {% else %}
-            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
-            {% endif %}
+    <span class="text-muted small">
+      Showing {{ pagination.total }} total archived logs
+    </span>
+  </div>
 
-            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                {% if page_num %}
-                    {% if page_num == pagination.page %}
-                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
-                    {% else %}
-                        <li class="page-item"><a class="page-link" href="{{ url_for('admin.archive_audit_logs', page=page_num) }}">{{ page_num }}</a></li>
-                    {% endif %}
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="audit-table-wrapper">
+
+      <table class="table table-hover align-middle mb-0 audit-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Event</th>
+            <th>Actor</th>
+            <th>IP</th>
+            <th class="d-none d-lg-table-cell">User Agent</th>
+            <th>Deleted At</th>
+            <th>Details</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% if logs %}
+            {% for log in logs %}
+            <tr>
+
+              <td>{{ log.id }}</td>
+
+              <td>
+                <span class="fw-semibold">{{ log.event }}</span>
+              </td>
+
+              <td>
+                {% if log.actor_email %}
+                  {{ log.actor_email }}
+                {% elif log.actor_id %}
+                  User #{{ log.actor_id }}
                 {% else %}
-                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                  <span class="text-muted">System</span>
                 {% endif %}
-            {% endfor %}
+              </td>
 
-            {% if pagination.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="{{ url_for('admin.archive_audit_logs', page=pagination.next_num) }}">Next &raquo;</a>
-            </li>
-            {% else %}
-            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
+              <td>{{ log.ip_address or "-" }}</td>
+
+              <td>
+                <div class="cell-scroll cell-user-agent">
+                  {{ log.user_agent or '-' }}
+                </div>
+              </td>
+
+              <td class="text-nowrap">
+                {{ log.deleted_at.strftime('%Y-%m-%d') }}<br>
+                <small class="text-muted">
+                  {{ log.deleted_at.strftime('%H:%M:%S') }}
+                </small>
+              </td>
+
+              <td style="min-width:220px;">
+                <pre class="audit-details">
+{{ log.get_details() | tojson(indent=2) }}
+                </pre>
+              </td>
+
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-success"
+                        data-toggle="modal"
+                        data-target="#restoreModal"
+                        data-log-id="{{ log.id }}"
+                        data-log-event="{{ log.event }}"
+                        data-log-actor="{% if log.actor_email %}{{ log.actor_email }}{% elif log.actor_id %}User #{{ log.actor_id }}{% else %}System{% endif %}"
+                        data-log-date="{{ log.deleted_at.strftime('%Y-%m-%d %H:%M:%S') }}">
+                  <i class="fas fa-undo"></i>
+                </button>
+              </td>
+
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="fas fa-archive fa-2x mb-2"></i><br>
+                No archived audit logs found
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- PAGINATION (SAME AS AUDIT LOGS) -->
+  {% if pagination.pages > 1 %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center flex-wrap">
+
+      <!-- Previous -->
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link"
+           href="{{ url_for('admin.archive_audit_logs', page=pagination.prev_num) }}">
+          Previous
+        </a>
+      </li>
+
+      <!-- Page Numbers -->
+      {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+          <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+            <a class="page-link"
+               href="{{ url_for('admin.archive_audit_logs', page=page_num) }}">
+              {{ page_num }}
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">…</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      <!-- Next -->
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link"
+           href="{{ url_for('admin.archive_audit_logs', page=pagination.next_num) }}">
+          Next
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+  {% endif %}
+
 </div>
 
-<!-- Restore Confirmation Modal -->
-<div class="modal fade" id="restoreModal" tabindex="-1" role="dialog" aria-labelledby="restoreModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content border-success">
+<!-- RESTORE MODAL -->
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow">
+
       <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="restoreModalLabel">Confirm Restore</h5>
-        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <h5 class="modal-title">
+          <i class="fas fa-undo me-2"></i>
+          Confirm Restore
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
         </button>
       </div>
+
       <div class="modal-body">
-        Are you sure you want to restore this audit log? <br>
-        This will reactivate the log in the system.
+
+        <p class="mb-2">
+          You are about to restore the following audit log:
+        </p>
+
+        <div class="bg-light rounded-3 p-3 mb-3 small">
+          <div class="mb-1"><strong>ID:</strong> <span id="restoreLogId"></span></div>
+          <div class="mb-1"><strong>Event:</strong> <span id="restoreLogEvent"></span></div>
+          <div class="mb-1"><strong>Actor:</strong> <span id="restoreLogActor"></span></div>
+          <div><strong>Deleted At:</strong> <span id="restoreLogDate"></span></div>
+        </div>
+
+        <div class="alert alert-success small mb-0">
+          <i class="fas fa-info-circle me-1"></i>
+          This log will be <strong>restored</strong> and reactivated.
+        </div>
+
       </div>
+
       <div class="modal-footer">
-        <form id="restoreForm" method="POST" action="">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-success" data-loading="true">Restore</button>
+        <form id="restoreForm" method="POST">
+          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-undo me-1"></i>
+            Restore Log
+          </button>
         </form>
       </div>
+
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Pass log ID dynamically to restore form
-    $('#restoreModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // Button that triggered modal
-        var logId = button.data('log-id');
-        var form = $('#restoreForm');
+  $('#restoreModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
 
-        form.attr('action', '/admin/audit_logs/restore/' + logId);
-    });
+    $('#restoreLogId').text(button.data('log-id'));
+    $('#restoreLogEvent').text(button.data('log-event'));
+    $('#restoreLogActor').text(button.data('log-actor'));
+    $('#restoreLogDate').text(button.data('log-date'));
+
+    $('#restoreForm').attr(
+      'action',
+      '/admin/audit_logs/restore/' + button.data('log-id')
+    );
+  });
 </script>
 {% endblock %}

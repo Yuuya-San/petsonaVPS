@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, FileField, SelectField, BooleanField, SubmitField, IntegerField, PasswordField, EmailField
-from wtforms.validators import DataRequired, URL, NumberRange, Length, Email, ValidationError
+from wtforms.validators import DataRequired, URL, NumberRange, Length, Email, ValidationError, Optional
 import re
 from app.models import User
 
@@ -105,11 +105,20 @@ class AdminEditUserForm(FlaskForm):
     email = StringField(
         "Email", validators=[DataRequired(), Email(), Length(max=255)]
     )
+    
+    # Optional password field for editing
+    password = PasswordField(
+        "Temporary Password",
+        validators=[Optional(), Length(min=6, max=128)],
+        description="Leave blank if you don't want to change the password"
+    )
+
     role = SelectField(
         "Role",
         choices=[("user", "User"), ("merchant", "Merchant"), ("admin", "Admin")],
         validators=[DataRequired()],
     )
+
     submit = SubmitField("Update User")
 
     # ---------- VALIDATORS ----------

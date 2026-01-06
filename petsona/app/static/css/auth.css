@@ -170,6 +170,7 @@ body {
   font-family: "Poppins", sans-serif !important;
   z-index: 1 !important;
   box-sizing: border-box !important;
+  font-size: small !important;
 }
 
 .input-field::placeholder {

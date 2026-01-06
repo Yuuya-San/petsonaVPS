@@ -14,6 +14,9 @@ import random
 from app.auth.emails import send_temp_credentials
 from app.utils.audit import log_event, user_snapshot
 from datetime import datetime
+from app.utils.activity_formatter import format_activity
+from app.utils.activity_config import RECENT_ACTIVITY_EVENTS
+from app.utils.dashboard_stats import get_dashboard_stats
 
 DEFAULT_AVATARS = [
     "images/avatar/cat.png",
@@ -34,8 +37,25 @@ def dashboard():
     if current_user.role != 'admin':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
+    
+    stats = get_dashboard_stats()
+    
+    logs = (
+        AuditLog.query
+        .filter(AuditLog.deleted_at.is_(None))
+        .filter(AuditLog.event.in_(RECENT_ACTIVITY_EVENTS))
+        .order_by(AuditLog.timestamp.desc())
+        .limit(5)
+    )
+       
 
-    return render_template('admin/dashboard.html')
+    recent_activities = [format_activity(log) for log in logs]
+
+    return render_template(
+        "admin/dashboard.html",
+        stats=stats,
+        recent_activities=recent_activities
+    )
 
 
 @bp.route("/users")
@@ -161,7 +181,10 @@ def admin_add_user():
         flash('User created and credentials sent via email.', 'success')
         return redirect(url_for('admin.dashboard'))
 
-    return render_template('admin/add_user.html', form=form)
+    return render_template('admin/add_user.html',
+                            form=form,
+                            page_title="Add User",
+                            button_text="Save User")
 
 # ------------------ EDIT USER ------------------
 @bp.route("/users/edit/<int:id>", methods=["GET", "POST"])
@@ -189,23 +212,10 @@ def edit_user(id):
         flash("User updated successfully.", "success")
         return redirect(url_for("admin.users"))
 
-    return render_template("admin/edit_user.html", user=user, form=form)
-
-
-
-# ------------------ DELETE USER PAGE ------------------
-@bp.route("/users/delete/<int:id>", methods=["GET"])
-@login_required
-def delete_user_page(id):
-    if current_user.role != "admin":
-        abort(403)
-
-    user = User.query.get_or_404(id)
-    if user.id == current_user.id:
-        flash("You cannot delete your own account.", "danger")
-        return redirect(url_for("admin.users"))
-
-    return render_template("admin/delete_user.html", user=user)
+    return render_template("admin/edit_user.html",
+                            user=user, form=form,
+                            page_title="Edit User",
+                            button_text="Update User")
 
 
 # ------------------ DELETE USER ACTION ------------------
@@ -280,14 +290,22 @@ def audit_logs():
         return redirect(url_for("admin.dashboard"))
 
     page = request.args.get("page", 1, type=int)
-    per_page = 10  # logs per page
+    per_page = 10  # 5–10 is ideal → using 10
 
-    pagination = AuditLog.query.filter_by(deleted_at=None)\
-        .order_by(AuditLog.timestamp.desc())\
+    pagination = (
+        AuditLog.query
+        .filter_by(deleted_at=None)
+        .order_by(AuditLog.timestamp.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
+    )
 
-    logs = pagination.items
-    return render_template("admin/audit_logs.html", logs=logs, pagination=pagination)
+    return render_template(
+        "admin/audit_logs.html",
+        logs=pagination.items,
+        pagination=pagination,
+        page_title="Audit Logs"
+    )
+
 
 @bp.route("/audit_logs/delete/<int:log_id>", methods=["POST"])
 @login_required
@@ -297,20 +315,9 @@ def delete_audit_log(log_id):
         return redirect(url_for("admin.audit_logs"))
 
     log = AuditLog.query.get_or_404(log_id)
-    log.deleted_at = datetime.utcnow()  # soft delete
-    db.session.commit()
 
-    # Record this action in audit logs
-    log_event(
-        event="audit_log.soft_deleted",
-        details={
-            "deleted_log_id": log.id,
-            "deleted_event": log.event,
-            "actor_id": current_user.id,
-            "actor_email": current_user.email,
-            "ip_address": request.remote_addr
-        }
-    )
+    log.deleted_at = datetime.utcnow()
+    db.session.commit()
 
     flash("Audit log deleted successfully (soft delete).", "success")
     return redirect(url_for("admin.audit_logs"))
@@ -332,7 +339,10 @@ def archive_audit_logs():
         .paginate(page=page, per_page=per_page, error_out=False)
 
     logs = pagination.items
-    return render_template("admin/archive_audit_logs.html", logs=logs, pagination=pagination)
+    return render_template("admin/archive_audit_logs.html",
+                            logs=logs,
+                            pagination=pagination,
+                            page_title="Archived Audit Logs")
 
 
 # Restore soft-deleted audit log
@@ -344,20 +354,9 @@ def restore_audit_log(log_id):
         return redirect(url_for("admin.archive_audit_logs"))
 
     log = AuditLog.query.get_or_404(log_id)
+
     log.deleted_at = None
     db.session.commit()
-
-    # Record this action in audit logs
-    log_event(
-        event="audit_log.restored",
-        details={
-            "restored_log_id": log.id,
-            "restored_event": log.event,
-            "actor_id": current_user.id,
-            "actor_email": current_user.email,
-            "ip_address": request.remote_addr
-        }
-    )
 
     flash("Audit log restored successfully.", "success")
     return redirect(url_for("admin.archive_audit_logs"))

@@ -126,14 +126,10 @@ class Species(db.Model):
     name = db.Column(db.String(50), nullable=False, unique=True)
     description = db.Column(db.Text)
     image_url = db.Column(db.String(255), nullable=False)
-    legal_status = db.Column(
-        db.Enum('Allowed', 'Permit Required'),
-        default='Allowed',
-        nullable=False
-    )
     deleted_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    icon = db.Column(db.String(100))
 
     breeds = db.relationship(
         'Breed',
@@ -151,6 +147,18 @@ class Species(db.Model):
 
     def __repr__(self):
         return f"<Species {self.name}>"
+    
+    @property
+    def as_dict(self):
+        """Return a JSON-serializable dict."""
+        return {
+            'id': self.id,
+            'name': self.name or "",
+            'description': self.description or "",
+            'image_url': self.image_url or "img/default_species.png",
+            'icon': self.icon or "",
+            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None,
+        }
 
 
 # --------------------------
@@ -172,7 +180,10 @@ class Breed(db.Model):
         db.Enum('Low', 'Medium', 'High'),
         default='Medium'
     )
-    exercise_needs = db.Column(db.String(100))
+    exercise_needs = db.Column(
+        db.Enum('Low', 'Medium', 'High'),
+        default='Medium'   
+    )
     grooming_needs = db.Column(
         db.Enum('Low', 'Medium', 'High'),
         default='Medium'
@@ -185,10 +196,16 @@ class Breed(db.Model):
         db.Enum('Easy', 'Moderate', 'Difficult'),
         default='Moderate'
     )
-    health_issues = db.Column(db.Text)
+    size = db.Column(
+        db.Enum('Small', 'Medium', 'Large', 'Extra Large'),
+        default='Medium'
+    )
+    care_level = db.Column(
+        db.Enum('Beginner', 'Intermediate', 'Advanced'),
+        default='Beginner'
+    )
     lifespan = db.Column(db.Integer)
     care_cost = db.Column(db.Float)
-    personality_traits = db.Column(db.JSON)
     allergy_friendly = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     image_url = db.Column(db.String(255), nullable=False)
@@ -210,6 +227,28 @@ class Breed(db.Model):
 
     def __repr__(self):
         return f"<Breed {self.name}>"
+
+    @property
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "species_id": self.species_id,
+            "name": self.name,
+            "summary": self.summary,
+            "temperament": self.temperament,
+            "energy_level": self.energy_level,
+            "exercise_needs": self.exercise_needs,
+            "grooming_needs": self.grooming_needs,
+            "space_needs": self.space_needs,
+            "trainability": self.trainability,
+            "size": self.size,
+            "care_level": self.care_level,
+            "lifespan": self.lifespan,
+            "care_cost": self.care_cost,
+            "allergy_friendly": self.allergy_friendly,
+            "is_active": self.is_active,
+            "image_url": self.image_url,
+        }
 
 
 # --------------------------

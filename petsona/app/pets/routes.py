@@ -41,44 +41,18 @@ def species_index():
         .group_by(Breed.species_id)
         .all()
     )
+    
 
     # Attach count to each species for the template
     for species in species_list:
         species.active_breed_count = breed_counts.get(species.id, 0)
 
-    # AJAX request (for infinite scroll)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render_template(
-            'pets/_species_cards.html',
-            species_list=species_list
-        )
 
     return render_template(
         'pets/species_index.html',
         species_list=species_list,
         pagination=pagination,
         page_title="Pet Species"
-    )
-
-
-@bp.route('/species/new')
-@login_required
-def create_species():
-    return render_template(
-        'pets/species_form.html',
-        species=None,
-        page_title="Add Species"
-    )
-
-
-@bp.route('/species/<int:id>/edit')
-@login_required
-def edit_species(id):
-    species = Species.query.get_or_404(id)
-    return render_template(
-        'pets/species_form.html',
-        species=species,
-        page_title="Edit Species"
     )
 
 
@@ -109,7 +83,7 @@ def save_species():
         file.save(os.path.join(current_app.static_folder, path))
         species.image_url = path
     elif not species.image_url:
-        species.image_url = 'img/default_species.png'
+        species.image_url = 'uploads/no-image-attachment.jpg'
 
     # ---- SAVE ----
     db.session.add(species)
@@ -158,50 +132,6 @@ def view_species(id):
         page_title=f"{species.name} Breeds"
     )
 
-
-@bp.route('/breeds/<int:id>')
-@login_required
-def view_breed(id):
-    breed = Breed.query.get_or_404(id)
-    return render_template(
-        'pets/breed_view.html',
-        breed=breed,
-        get_species_icon=get_species_icon,
-        page_title=breed.name
-    )
-
-# -------------------
-# ADD BREED FORM
-# -------------------
-@bp.route('/species/<int:species_id>/breed/add')
-@login_required
-def add_breed(species_id):
-    species = Species.query.get_or_404(species_id)
-    return render_template(
-        'pets/breed_form.html',
-        species=species,
-        breed=None,
-        page_title=f"Add Breed to {species.name}"
-    )
-
-
-# -------------------
-# EDIT BREED FORM
-# -------------------
-@bp.route('/species/<int:species_id>/breed/<int:breed_id>/edit')
-@login_required
-def edit_breed(species_id, breed_id):
-    breed = Breed.query.get_or_404(breed_id)
-    species = Species.query.get_or_404(species_id)
-    return render_template(
-        'pets/breed_form.html',
-        breed=breed,
-        species=species,
-        page_title=f"Edit Breed: {breed.name}"
-    )
-
-
-
 # -------------------
 # SAVE BREED (ADD / EDIT)
 # -------------------
@@ -223,20 +153,15 @@ def save_breed():
     breed.name = request.form['name']
     breed.summary = request.form['summary']
     breed.temperament = request.form.get('temperament')
-    breed.personality_traits = request.form.get('personality_traits')
-    breed.energy_level = request.form.get('energy_level', 'Medium')
     breed.exercise_needs = request.form.get('exercise_needs')
+    breed.energy_level = request.form.get('energy_level', 'Medium')
     breed.grooming_needs = request.form.get('grooming_needs', 'Medium')
     breed.space_needs = request.form.get('space_needs', 'Medium')
     breed.trainability = request.form.get('trainability', 'Moderate')
-    breed.health_issues = request.form.get('health_issues')
+    breed.care_level = request.form.get('care_level', 'Beginner')
     breed.lifespan = request.form.get('lifespan') or None
     breed.care_cost = request.form.get('care_cost') or None
-    breed.allergy_friendly = bool(request.form.get('allergy_friendly'))
-
-    # Personality traits as JSON
-    traits = request.form.get('personality_traits', '')
-    breed.personality_traits = [t.strip() for t in traits.split(',') if t.strip()]
+    breed.allergy_friendly = request.form.get('allergy_friendly') == '1'
 
     # IMAGE UPLOAD
     file = request.files.get('image')
@@ -246,12 +171,13 @@ def save_breed():
         file.save(os.path.join(current_app.static_folder, path))
         breed.image_url = path
     elif not getattr(breed, 'image_url', None):
-        breed.image_url = 'img/default_breed.png'
+        breed.image_url = 'uploads/no-image-attachment.jpg'
 
+    # Save breed
     db.session.add(breed)
     db.session.commit()
 
-    # Update active breed count
+    # Update species breed count
     breed.species.update_breed_count()
     db.session.add(breed.species)
     db.session.commit()
@@ -259,6 +185,7 @@ def save_breed():
     log_event('breed.saved', {'breed_id': breed.id, 'name': breed.name})
     flash(f"Breed {'updated' if breed_id else 'added'} successfully.", 'success')
     return redirect(url_for('pets.view_species', id=breed.species_id))
+
 
 
 # -------------------
@@ -287,10 +214,35 @@ def archived_items():
     archived_species = Species.query.filter(Species.deleted_at.isnot(None)).order_by(Species.name.asc()).all()
     archived_breeds = Breed.query.filter(Breed.deleted_at.isnot(None)).order_by(Breed.name.asc()).all()
 
+    # Calculate active breed counts for all species (active breeds only)
+    breed_counts = dict(
+        db.session.query(
+            Breed.species_id,
+            func.count(Breed.id)
+        )
+        .filter(Breed.deleted_at.is_(None))  # only active breeds
+        .group_by(Breed.species_id)
+        .all()
+    )
+
+    # Attach count to each archived species
+    for species in archived_species:
+        species.active_breeds_count = breed_counts.get(species.id, 0)
+
+    # Optional: paginate active species (if needed)
+    page = request.args.get('page', 1, type=int)
+    pagination = Species.query.filter(Species.deleted_at.is_(None)).order_by(Species.name.asc()).paginate(
+        page=page, per_page=8, error_out=False
+    )
+    species_list = pagination.items
+    for species in species_list:
+        species.active_breeds_count = breed_counts.get(species.id, 0)
+
     return render_template(
         'pets/archived_species.html',
         archived_species=archived_species,
         archived_breeds=archived_breeds,
+        species_list=species_list,
         page_title="Archived Items"
     )
 

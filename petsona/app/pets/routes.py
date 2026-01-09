@@ -45,11 +45,6 @@ def species_index():
     )
     
 
-    # Attach count to each species for the template
-    for species in species_list:
-        species.active_breed_count = breed_counts.get(species.id, 0)
-
-
     return render_template(
         'pets/species_index.html',
         species_list=species_list,
@@ -83,13 +78,34 @@ def save_species():
     # ---- BASIC FIELDS ----
     track_change("name", request.form.get("name", "").strip())
     track_change("description", request.form.get("description", "").strip())
-    track_change("legal_status", request.form.get("legal_status"))
+
+    # ---- BOOLEAN FIELDS ----
+    boolean_fields = [
+        "requires_exercise",
+        "requires_training",
+        "requires_grooming",
+        "requires_enclosure",
+        "predatory_species",
+        "fragile_species",
+        "beginner_friendly",
+        "requires_permit",
+        "special_vet_required"
+    ]
+
+    for field in boolean_fields:
+        value = bool(request.form.get(field))  # Checked → True, Unchecked → False
+        track_change(field, value)
+
+    # ---- ENUMERATION FIELDS ----
+    abandonment_risk = request.form.get("abandonment_risk_level", "Medium").strip()
+    if abandonment_risk in ["Low", "Medium", "High"]:
+        track_change("abandonment_risk_level", abandonment_risk)
+
+    # ---- TEXT FIELDS ----
+    track_change("ethical_notes", request.form.get("ethical_notes", "").strip())
 
     # ---- AUTO ICON (SYSTEM CONTROLLED) ----
     auto_icon = get_species_icon(species.name)
-    if species.icon != auto_icon:
-        changes["icon"] = {"old": species.icon, "new": auto_icon}
-        species.icon = auto_icon
 
     # ---- IMAGE HANDLING ----
     file = request.files.get("image")
@@ -120,7 +136,6 @@ def save_species():
 
     flash(f"Species {'updated' if is_update else 'added'} successfully.", "success")
     return redirect(url_for("pets.species_index"))
-
 
 
 @bp.route('/species/<int:id>/delete', methods=['POST'])
@@ -178,30 +193,47 @@ def save_breed():
         breed = Breed(species_id=species_id)
         is_update = False
 
-    # Track changes for audit log
     changes = {}
 
-    # Compare and update fields
     def track_change(field_name, new_value):
         old_value = getattr(breed, field_name, None)
         if old_value != new_value:
             changes[field_name] = {"old": old_value, "new": new_value}
             setattr(breed, field_name, new_value)
 
-    track_change("name", request.form['name'])
-    track_change("summary", request.form['summary'])
+    # --- TEXT FIELDS ---
+    track_change("name", request.form.get('name'))
+    track_change("summary", request.form.get('summary'))
     track_change("temperament", request.form.get('temperament'))
-    track_change("exercise_needs", request.form.get('exercise_needs'))
+    
+    # --- SELECT FIELDS ---
     track_change("energy_level", request.form.get('energy_level', 'Medium'))
+    track_change("exercise_needs", request.form.get('exercise_needs', 'Medium'))
     track_change("grooming_needs", request.form.get('grooming_needs', 'Medium'))
     track_change("space_needs", request.form.get('space_needs', 'Medium'))
     track_change("trainability", request.form.get('trainability', 'Moderate'))
     track_change("care_level", request.form.get('care_level', 'Beginner'))
-    track_change("lifespan", request.form.get('lifespan') or None)
-    track_change("care_cost", request.form.get('care_cost') or None)
-    track_change("allergy_friendly", request.form.get('allergy_friendly') == '1')
+    track_change("care_intensity", request.form.get('care_intensity', 'Medium'))
+    track_change("time_commitment", request.form.get('time_commitment', 'Medium'))
+    track_change("experience_required", request.form.get('experience_required', 'Beginner'))
+    track_change("environment_complexity", request.form.get('environment_complexity', 'Simple'))
+    track_change("handling_tolerance", request.form.get('handling_tolerance', 'Medium'))
+    track_change("noise_level", request.form.get('noise_level', 'Low'))
+    track_change("social_needs", request.form.get('social_needs', 'Medium'))
+    track_change("compatibility_risk", request.form.get('compatibility_risk', 'Low'))
+    track_change("prey_drive", request.form.get('prey_drive', 'None'))
 
-    # IMAGE UPLOAD
+    # --- NUMERIC FIELDS ---
+    track_change("lifespan", float(request.form.get('lifespan', 0)) if request.form.get('lifespan') else None)
+    track_change("care_cost", float(request.form.get('care_cost', 0)) if request.form.get('care_cost') else None)
+
+    # --- CHECKBOXES ---
+    track_change("allergy_friendly", bool(request.form.get('allergy_friendly')))
+    track_change("dog_friendly", bool(request.form.get('dog_friendly')))
+    track_change("cat_friendly", bool(request.form.get('cat_friendly')))
+    track_change("small_pet_friendly", bool(request.form.get('small_pet_friendly')))
+
+    # --- IMAGE UPLOAD ---
     file = request.files.get('image')
     if file and file.filename:
         filename = secure_filename(file.filename)
@@ -213,16 +245,17 @@ def save_breed():
     elif not getattr(breed, 'image_url', None):
         breed.image_url = 'uploads/no-image-attachment.jpg'
 
-    # Save breed
+    # --- SAVE ---
     db.session.add(breed)
     db.session.commit()
 
     # Update species breed count
-    breed.species.update_breed_count()
-    db.session.add(breed.species)
-    db.session.commit()
+    if hasattr(breed, 'species') and hasattr(breed.species, 'update_breed_count'):
+        breed.species.update_breed_count()
+        db.session.add(breed.species)
+        db.session.commit()
 
-    # ---- AUDIT LOG ----
+    # --- AUDIT LOG ---
     if changes:
         log_event(
             event=f"breed.{ 'updated' if is_update else 'created' }",
@@ -236,7 +269,6 @@ def save_breed():
 
     flash(f"Breed {'updated' if is_update else 'added'} successfully.", 'success')
     return redirect(url_for('pets.view_species', id=breed.species_id))
-
 
 
 # -------------------

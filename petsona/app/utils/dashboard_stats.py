@@ -1,6 +1,7 @@
 # utils/dashboard_stats.py
-from sqlalchemy import func
-from app.models import db, User, Breed, Species
+from sqlalchemy import func # pyright: ignore[reportMissingImports]
+from app.models import *
+from app.extensions import db
 
 def count(model, *filters):
     query = db.session.query(func.count(model.id))

@@ -1,6 +1,6 @@
-import pymysql
+import pymysql # pyright: ignore[reportMissingModuleSource]
 from flask import current_app
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine # pyright: ignore[reportMissingImports]
 
 def ensure_database_exists():
     """

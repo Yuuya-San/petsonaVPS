@@ -1,8 +1,9 @@
 from flask import request
 from flask_login import current_user # pyright: ignore[reportMissingImports]
 from datetime import datetime
-from ..models import AuditLog, db
+from app.models import *
 import json
+from app.extensions import db
 
 def log_event(event: str, details: dict = None):
     log = AuditLog(

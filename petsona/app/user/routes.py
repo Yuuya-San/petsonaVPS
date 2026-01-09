@@ -5,7 +5,7 @@ from app.decorators import user_required
 from app.models import Species, Breed
 from app import db
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
-
+from flask import Blueprint, request, jsonify
 
 
 @bp.route('/dashboard')
@@ -22,24 +22,6 @@ def dashboard():
     )
 
     species_list = pagination.items
-
-    # Count active breeds per species
-    # Returns a dictionary {species_id: breed_count}
-    breed_counts = dict(
-        db.session.query(
-            Breed.species_id,
-            func.count(Breed.id)
-        )
-        .filter(Breed.is_active==True)  # only active breeds
-        .group_by(Breed.species_id)
-        .all()
-    )
-    
-
-    # Attach count to each species for the template
-    for species in species_list:
-        species.active_breed_count = breed_counts.get(species.id, 0)
-
 
     return render_template(
         'user/dashboard.html',
@@ -66,4 +48,4 @@ def view_species(id):
         breeds=breeds,
         page_title=f"{species.name} Breeds"
     )
-    
+

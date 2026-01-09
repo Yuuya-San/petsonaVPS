@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import User, create_admin
+from app.models import *
 
 # Default admin photo
 DEFAULT_ADMIN_PHOTO = "images/avatar/dog.png"
@@ -12,7 +12,7 @@ with app.app_context():
     from app.utils.db_init import create_tables
     create_tables(db)
 
-    ADMIN_EMAIL = "jeysalas05@gmail.com"
+    ADMIN_EMAIL = "petsona.helpcare@gmail.com"
 
     try:
         admin_exists = User.query.filter_by(email=ADMIN_EMAIL).first()
@@ -22,12 +22,12 @@ with app.app_context():
         admin_exists = User.query.filter_by(email=ADMIN_EMAIL).first()
 
     if not admin_exists:
-        create_admin(
+        user.create_admin(
             email=ADMIN_EMAIL,
-            password="adminpassword#2025",
+            password="Petsona-0717",
             photo_url=DEFAULT_ADMIN_PHOTO
         )
-        print(f"Default admin account created: {ADMIN_EMAIL} / adminpassword#2025")
+        print(f"Default admin account created: {ADMIN_EMAIL} / Petsona-0717")
     else:
         print(f"Admin account already exists: {ADMIN_EMAIL}")
 

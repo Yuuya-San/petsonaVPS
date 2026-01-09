@@ -2,11 +2,11 @@
 from flask import Flask, redirect, url_for
 from flask_login import current_user
 from .config import Config
-from .extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman
+from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman
 from app.utils.db_init import ensure_database_exists, create_tables
 
 # Import User model for login manager
-from .models import User
+from app.models import *
 from .config import DevelopmentConfig, ProductionConfig
 import os
 

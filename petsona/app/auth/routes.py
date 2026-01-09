@@ -11,6 +11,7 @@ import random
 from datetime import datetime, timedelta
 from ..extensions import limiter
 from .emails import send_password_reset_email
+from app.utils.audit import log_event, user_snapshot
 
 DEFAULT_AVATARS = [
     "images/avatar/cat.png",
@@ -22,33 +23,6 @@ DEFAULT_AVATARS = [
     "images/avatar/rabbit.png",
     "images/avatar/snake.png"
 ]
-
-
-def log_audit(event: str, actor=None, request=None, metadata: dict = None):
-    """
-    Writes a record to AuditLog and commits immediately.
-    Fields saved: event, actor_id, actor_email, ip, user agent, timestamp, metadata JSON.
-    IMPORTANT: We commit immediately to ensure audit persistence (append-only behavior).
-    """
-    ip = None
-    ua = None
-    if request is not None:
-        # If behind proxy; ensure X-Forwarded-For is set by your proxy
-        ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        ua = request.headers.get('User-Agent')
-
-    entry = AuditLog(
-        event=event,
-        actor_id=getattr(actor, 'id', None) if actor else None,
-        actor_email=getattr(actor, 'email', None) if actor else None,
-        ip_address=ip,
-        user_agent=ua,
-    )
-    if metadata:
-        entry.set_metadata(metadata)
-
-    db.session.add(entry)
-    db.session.commit()
 
 def get_serializer():
     return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -128,10 +102,11 @@ def verify_otp():
                 photo_url=reg.get('photo_url'),
                 role='user'
             )
+
             user.set_password(reg['password'])
             db.session.add(user)
             db.session.commit()
-            log_audit('user.register', actor=user, request=request, metadata={'action': 'register'})
+            log_event(event='user.register', details={'user': user_snapshot(user)})
             # Clear session
             session.pop('registration', None)
             session.pop('registration_otp', None)
@@ -170,13 +145,13 @@ def login():
         base_meta = {'email': email}
 
         if not user:
-            log_audit('user.login_failed', actor=None, request=request, metadata={**base_meta, 'reason': 'no_user'})
+            log_event('user.login_failed', details={**base_meta, 'reason': 'no_user'})
             flash('Invalid email or password.', 'danger')
             return redirect(url_for('auth.login'))
 
         # Lockout check
         if user.lockout_until and user.lockout_until > datetime.utcnow():
-            log_audit('user.login_locked', actor=user, request=request, metadata={'locked_until': user.lockout_until.isoformat()})
+            log_event('user.login_locked', details={'locked_until': user.lockout_until.isoformat()})
             flash('Account temporarily locked due to too many failed login attempts. Try again later.', 'danger')
             return redirect(url_for('auth.login'))
 
@@ -185,7 +160,7 @@ def login():
             if user.is_2fa_enabled:
                 code = form.two_factor_code.data or ''
                 if not code or not user.totp_secret or not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
-                    log_audit('user.login_failed_2fa', actor=user, request=request, metadata={'reason': '2fa_failed'})
+                    log_event('user.login_failed_2fa', details={'email': email, 'reason': '2fa_failed'})
                     flash('2FA code required or invalid.', 'danger')
                     return redirect(url_for('auth.login'))
 
@@ -195,7 +170,7 @@ def login():
             db.session.commit()
 
             login_user(user)
-            log_audit('user.login_success', actor=user, request=request, metadata={'ip': request.remote_addr})
+            log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr})
 
             # Redirect based on role
             if user.role == 'user':
@@ -216,11 +191,11 @@ def login():
             if user.failed_login_attempts >= max_attempts:
                 user.lockout_until = datetime.utcnow() + timedelta(seconds=lockout_time)
                 db.session.commit()
-                log_audit('user.account_locked', actor=user, request=request, metadata={'failed_attempts': user.failed_login_attempts})
+                log_event('user.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts})
                 flash('Account locked due to many failed attempts. Please try again later.', 'danger')
             else:
                 db.session.commit()
-                log_audit('user.login_failed', actor=user, request=request, metadata={'failed_attempts': user.failed_login_attempts})
+                log_event('user.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts})
                 flash('Invalid email or password.', 'danger')
 
             return redirect(url_for('auth.login'))
@@ -248,22 +223,16 @@ def admin_login():
 
         # No admin found
         if not user:
-            log_audit(
-                'admin.login_failed',
-                actor=None,
-                request=request,
-                metadata={**base_meta, 'reason': 'no_admin'}
-            )
+            log_event(
+                'admin.login_failed', details={**base_meta, 'reason': 'no_admin'})
             flash('Invalid admin credentials.', 'danger')
             return redirect(url_for('auth.admin_login'))
 
         # Account locked
         if user.lockout_until and user.lockout_until > datetime.utcnow():
-            log_audit(
+            log_event(
                 'admin.login_locked',
-                actor=user,
-                request=request,
-                metadata={'locked_until': user.lockout_until.isoformat()}
+                details={'locked_until': user.lockout_until.isoformat()}
             )
             flash('Account temporarily locked. Try again later.', 'danger')
             return redirect(url_for('auth.admin_login'))
@@ -279,11 +248,9 @@ def admin_login():
                     or not user.totp_secret
                     or not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1)
                 ):
-                    log_audit(
+                    log_event(
                         'admin.login_failed_2fa',
-                        actor=user,
-                        request=request,
-                        metadata={'reason': '2fa_failed'}
+                        details={'email': email, 'reason': '2fa_failed'}
                     )
                     flash('Invalid or missing 2FA code.', 'danger')
                     return redirect(url_for('auth.admin_login'))
@@ -294,11 +261,9 @@ def admin_login():
             db.session.commit()
 
             login_user(user)
-            log_audit(
+            log_event(
                 'admin.login_success',
-                actor=user,
-                request=request,
-                metadata={'ip': request.remote_addr}
+                details={'user': user_snapshot(user), 'ip': request.remote_addr}
             )
 
             flash('Admin login successful.', 'success')
@@ -315,11 +280,9 @@ def admin_login():
             user.lockout_until = datetime.utcnow() + timedelta(seconds=lockout_time)
             db.session.commit()
 
-            log_audit(
+            log_event(
                 'admin.account_locked',
-                actor=user,
-                request=request,
-                metadata={'failed_attempts': user.failed_login_attempts}
+                details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}
             )
             flash(
                 'Account locked due to many failed attempts. Please try again later.',
@@ -327,11 +290,9 @@ def admin_login():
             )
         else:
             db.session.commit()
-            log_audit(
+            log_event(
                 'admin.login_failed',
-                actor=user,
-                request=request,
-                metadata={'failed_attempts': user.failed_login_attempts}
+                details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}
             )
             flash('Invalid admin credentials.', 'danger')
 
@@ -349,7 +310,7 @@ def admin_login():
 @login_required
 def logout():
     # Audit logout event (capture actor before logout)
-    log_audit('user.logout', actor=current_user, request=request)
+    log_event('user.logout', details={'user': user_snapshot(current_user), 'ip': request.remote_addr})
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
@@ -366,7 +327,7 @@ def forgot_password():
             token = s.dumps({'user_id': user.id})
 
             # Audit: reset requested
-            log_audit('user.password_reset_requested', actor=user, request=request)
+            log_event('user.password_reset_requested', details={'user': user_snapshot(user)})
 
             # send email (prefer background worker in production)
             try:
@@ -374,13 +335,13 @@ def forgot_password():
                 flash(f'A password reset link has been sent to {email}.', 'success')
             except Exception as e:
                 # Audit mail-send failure
-                log_audit('email.send_failed', actor=user, request=request, metadata={'error': str(e)})
+                log_event('email.send_failed', details={'user': user_snapshot(user), 'error': str(e)})
                 flash('Failed to send password reset email. Please try again later.', 'danger')
             
             return redirect(url_for('auth.login'))
         else:
             # Audit unknown email reset request
-            log_audit('user.password_reset_requested_unknown', actor=None, request=request, metadata={'email': email})
+            log_event('user.password_reset_requested_unknown', details={'email': email})
             flash(f'The email {email} is not registered.', 'warning')
             return redirect(url_for('auth.login'))
 
@@ -401,13 +362,13 @@ def reset_password(token):
         user_id = data.get('user_id')
     except Exception:
         flash('Invalid or expired password reset token.', 'danger')
-        log_audit('user.password_reset_invalid_token', actor=None, request=request, metadata={'token_excerpt': token[:32]})
+        log_event('user.password_reset_invalid_token', details={'token_excerpt': token[:32]})
         return redirect(url_for('auth.forgot_password'))
 
     user = User.query.get(user_id)
     if not user:
         flash('Invalid user for this reset token.', 'danger')
-        log_audit('user.password_reset_invalid_user', actor=None, request=request, metadata={'token_excerpt': token[:32]})
+        log_event('user.password_reset_invalid_user', details={'token_excerpt': token[:32]})
         return redirect(url_for('auth.forgot_password'))
 
     if form.validate_on_submit():
@@ -415,7 +376,7 @@ def reset_password(token):
         user.failed_login_attempts = 0
         user.lockout_until = None
         db.session.commit()
-        log_audit('user.password_reset_success', actor=user, request=request)
+        log_event('user.password_reset_success', details={'user': user_snapshot(user)})
         flash('Your password has been reset. You can now log in.', 'success')
         return redirect(url_for('auth.login'))
 

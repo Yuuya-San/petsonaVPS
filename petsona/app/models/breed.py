@@ -10,7 +10,7 @@ class Breed(db.Model):
     species_id = db.Column(db.Integer,db.ForeignKey('species.id'),nullable=False)
     name = db.Column(db.String(100), nullable=False, index=True)
     summary = db.Column(db.Text, nullable=False)
-    temperament = db.Column(db.String(50))
+    temperament = db.Column(db.String(255))
     image_url = db.Column(db.String(255), nullable=False)
     energy_level = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium')
     exercise_needs = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium')

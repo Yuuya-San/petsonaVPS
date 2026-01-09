@@ -18,7 +18,7 @@ def dashboard():
     pagination = Species.query.filter(
         Species.deleted_at.is_(None)
     ).order_by(Species.name.asc()).paginate(
-        page=page, per_page=8, error_out=False
+        page=page, per_page=1000, error_out=False
     )
 
     species_list = pagination.items

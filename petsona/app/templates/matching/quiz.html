@@ -1,0 +1,604 @@
+{% extends current_user.role ~ "/base.html" %}
+{% block content %}
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .quiz-section {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  .form-label {
+    transition: all 0.2s ease;
+  }
+
+  .form-label:hover {
+    background-color: rgba(99, 102, 241, 0.05);
+  }
+
+  input[type="radio"]:checked + .form-label {
+    background-color: rgba(99, 102, 241, 0.1);
+    border-color: #6366f1;
+  }
+</style>
+
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 py-12 px-4">
+  <div class="max-w-3xl mx-auto" x-data="quizApp()" @change="updateProgress()">
+    
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Pet Compatibility Quiz</h1>
+      <p class="text-gray-600">Find the perfect pet for your lifestyle</p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-semibold text-gray-700">Section <span x-text="section"></span> of 7</span>
+        <span class="text-sm text-gray-500"><span x-text="answeredCount"></span>/24 questions answered (<span x-text="Math.round((answeredCount/24)*100)"></span>%)</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div class="bg-indigo-600 h-full rounded-full transition-all duration-300" :style="'width: ' + (answeredCount/24*100) + '%'"></div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" class="space-y-0">
+
+    <!-- ================= Personality ================= -->
+    <div x-show="section===1" class="quiz-section">
+      <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">About You</h2>
+
+        <div class="space-y-6">
+          <!-- Q1 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How active are you most days?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="energy_level" value="Low" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I mostly relax at home</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="energy_level" value="Medium" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I move around sometimes</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="energy_level" value="High" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I am very active and always busy</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q2 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How much noise can you handle at home?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="noise_level" value="Silent" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I need it very quiet</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="noise_level" value="Low" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Some noise is okay</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="noise_level" value="Moderate" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Noise does not bother me</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q3 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How much attention do you want to give your pet?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="social_needs" value="Low" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Just a little</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="social_needs" value="Medium" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">A fair amount</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="social_needs" value="High" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">A lot, I like bonding</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q4 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How calm is your home?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="handling_tolerance" value="High" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Very calm and quiet</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="handling_tolerance" value="Medium" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Normal</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="handling_tolerance" value="Low" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Busy, noisy, and active</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Time & Care ================= -->
+    <div x-show="section===2" class="quiz-section">
+      <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Time & Care</h2>
+
+        <div class="space-y-6">
+          <!-- Q5 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How much time can you spend on pet care daily?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="daily_care_time" value="Less than 1 hour" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Less than 1 hour</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="daily_care_time" value="1-2 hours" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">1-2 hours</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="daily_care_time" value="2-4 hours" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">2-4 hours</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="daily_care_time" value="More than 4 hours" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">More than 4 hours</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q6 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How often can you clean, groom, or care for your pet?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="grooming_needs" value="Rarely" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Rarely</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="grooming_needs" value="About once a week" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">About once a week</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="grooming_needs" value="Very often" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Very often</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q7 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Can you give your pet exercise or play every day?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="exercise_needs" value="No" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="exercise_needs" value="Sometimes" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Sometimes</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="exercise_needs" value="Yes, every day" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes, every day</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q8 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Are you okay with setting up tanks, cages, or special homes?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="environment_complexity" value="Simple" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No, I prefer simple pets</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="environment_complexity" value="Moderate" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I can manage a little</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="environment_complexity" value="Complex" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes, I'm okay with it</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Experience ================= -->
+    <div x-show="section===3" class="quiz-section">
+      <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Experience</h2>
+
+        <div class="space-y-6">
+          <!-- Q9 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Have you taken care of pets before?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="experience_required" value="Beginner" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">This is my first pet</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="experience_required" value="Intermediate" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I have had a few</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="experience_required" value="Advanced" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I have a lot of experience</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q10 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How patient are you with training or teaching a pet?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="trainability" value="Difficult" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Not very patient</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="trainability" value="Moderate" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Somewhat patient</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="trainability" value="Easy" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Very patient</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q11 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How well can you handle difficult or stubborn pets?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="temperament_tolerance" value="Not well" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Not well</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="temperament_tolerance" value="I can try" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I can try</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="temperament_tolerance" value="I handle them well" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">I handle them well</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Home & Space ================= -->
+    <div x-show="section===4" class="quiz-section">
+      <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Home & Space</h2>
+
+        <div class="space-y-6">
+          <!-- Q12 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How big is your living space?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="space_needs" value="Small" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Small apartment or room</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="space_needs" value="Medium" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Medium-sized home</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="space_needs" value="Large" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Large home or house with space</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q13 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Can you keep tanks, cages, or enclosures if needed?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="min_enclosure_size" value="0" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="min_enclosure_size" value="1" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Small ones only</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="min_enclosure_size" value="2" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Large ones are okay</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Money ================= -->
+    <div x-show="section===5" class="quiz-section">
+      <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Budget & Costs</h2>
+
+        <div class="space-y-6">
+          <!-- Q14 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">How much can you spend on your pet each month?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="monthly_cost_level" value="Low" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Low budget</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="monthly_cost_level" value="Medium" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Medium budget</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="monthly_cost_level" value="High" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">High budget</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q15 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Can you handle emergency vet bills?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="emergency_care_risk" value="No" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="emergency_care_risk" value="Maybe" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Maybe</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="emergency_care_risk" value="Yes" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q16 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Are you ready for long-term pet expenses?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="lifetime_cost_level" value="Not really" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Not really</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="lifetime_cost_level" value="Somewhat" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Somewhat</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="lifetime_cost_level" value="Yes, I'm prepared" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes, I'm prepared</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Household ================= -->
+    <div x-show="section===6" class="quiz-section">
+      <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Household</h2>
+
+        <div class="space-y-5">
+          <!-- Q17 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Do you have children at home?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="child_friendly" value="Yes" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="child_friendly" value="No" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q18 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Do you have dogs?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="dog_friendly" value="Yes" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="dog_friendly" value="No" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q19 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Do you have cats?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="cat_friendly" value="Yes" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="cat_friendly" value="No" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q20 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Do you have small pets?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="small_pet_friendly" value="Yes" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="small_pet_friendly" value="No" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Species & Risk ================= -->
+    <div x-show="section===7" class="quiz-section">
+      <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Species & Safety</h2>
+
+        <div class="space-y-5">
+          <!-- Q21 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Are you okay with pets that hunt or eat other animals?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="prey_drive" value="None" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="prey_drive" value="Low" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Maybe</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="prey_drive" value="High" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q22 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Are you okay caring for fragile or delicate animals?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="okay_fragile" value="No" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="okay_fragile" value="Yes" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q23 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Are you okay with special permits or legal requirements?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="okay_permit" value="No" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="okay_permit" value="Yes" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q24 -->
+          <div>
+            <p class="text-lg font-medium text-gray-900 mb-3">Can you access special or exotic veterinarians if needed?</p>
+            <div class="space-y-2">
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="okay_special_vet" value="No" required class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">No</span>
+              </label>
+              <label class="form-label flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input type="radio" name="okay_special_vet" value="Yes" class="w-4 h-4 text-indigo-600">
+                <span class="ml-3 text-gray-700">Yes</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-8 mb-8">
+      <button type="button" @click="prevSection()" x-show="section>1" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-8 rounded-lg transition">
+        Previous
+      </button>
+      <div x-show="section===7" class="w-full sm:w-auto"></div>
+      <button type="button" @click="nextSection()" x-show="section<7" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-lg transition">
+        Next
+      </button>
+      <button type="submit" x-show="section===7" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition">
+        See My Matches
+      </button>
+    </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  function quizApp() {
+    return {
+      section: 1,
+      answeredCount: 0,
+      questions: [
+        'energy_level', 'noise_level', 'social_needs', 'handling_tolerance',
+        'daily_care_time', 'grooming_needs', 'exercise_needs', 'environment_complexity',
+        'experience_required', 'trainability', 'temperament_tolerance',
+        'space_needs', 'min_enclosure_size',
+        'monthly_cost_level', 'emergency_care_risk', 'lifetime_cost_level',
+        'child_friendly', 'dog_friendly', 'cat_friendly', 'small_pet_friendly',
+        'prey_drive', 'okay_fragile', 'okay_permit', 'okay_special_vet'
+      ],
+      updateProgress() {
+        this.answeredCount = this.questions.filter(q => {
+          const input = document.querySelector(`input[name="${q}"]:checked`);
+          return input !== null;
+        }).length;
+      },
+      prevSection() {
+        if (this.section > 1) {
+          this.section--;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+      nextSection() {
+        if (this.section < 7) {
+          this.section++;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }
+  }
+</script>
+
+{% endblock %}

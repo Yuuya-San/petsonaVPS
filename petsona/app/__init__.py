@@ -1,6 +1,5 @@
 """Application factory. Initializes extensions, registers blueprints."""
 from flask import Flask, redirect, url_for
-from flask_login import current_user
 from .config import Config
 from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman
 from app.utils.db_init import ensure_database_exists, create_tables
@@ -74,6 +73,10 @@ def create_app(config_class: type = Config):
     # PROFILE BLUEPRINT
     from .profile import bp as profile_bp
     app.register_blueprint(profile_bp, url_prefix="/profile")
+
+    # PET MATCHING BLUEPRINT
+    from .matching import bp as matching_bp
+    app.register_blueprint(matching_bp, url_prefix="/matching")
 
     # Root route
     @app.route("/")

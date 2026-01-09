@@ -27,7 +27,7 @@ def species_index():
     pagination = Species.query.filter(
         Species.deleted_at.is_(None)
     ).order_by(Species.name.asc()).paginate(
-        page=page, per_page=8, error_out=False
+        page=page, per_page=1000, error_out=False
     )
 
     species_list = pagination.items
@@ -224,14 +224,49 @@ def save_breed():
     track_change("prey_drive", request.form.get('prey_drive', 'None'))
 
     # --- NUMERIC FIELDS ---
-    track_change("lifespan", float(request.form.get('lifespan', 0)) if request.form.get('lifespan') else None)
-    track_change("care_cost", float(request.form.get('care_cost', 0)) if request.form.get('care_cost') else None)
+    lifespan_val = None
+    if request.form.get('lifespan'):
+        try:
+            lifespan_val = float(request.form.get('lifespan'))
+        except (ValueError, TypeError):
+            lifespan_val = None
+    track_change("lifespan", lifespan_val)
+
+    care_cost_val = None
+    if request.form.get('care_cost'):
+        try:
+            care_cost_val = float(request.form.get('care_cost'))
+        except (ValueError, TypeError):
+            care_cost_val = None
+    track_change("care_cost", care_cost_val)
 
     # --- CHECKBOXES ---
     track_change("allergy_friendly", bool(request.form.get('allergy_friendly')))
     track_change("dog_friendly", bool(request.form.get('dog_friendly')))
     track_change("cat_friendly", bool(request.form.get('cat_friendly')))
     track_change("small_pet_friendly", bool(request.form.get('small_pet_friendly')))
+    track_change("child_friendly", bool(request.form.get('child_friendly')))
+    track_change("senior_friendly", bool(request.form.get('senior_friendly')))
+
+    # --- MORE NUMERIC FIELDS ---
+    min_enclosure_val = None
+    if request.form.get('min_enclosure_size'):
+        try:
+            min_enclosure_val = float(request.form.get('min_enclosure_size'))
+        except (ValueError, TypeError):
+            min_enclosure_val = None
+    track_change("min_enclosure_size", min_enclosure_val)
+
+    # --- ADDITIONAL SELECT FIELDS ---
+    track_change("preventive_care_level", request.form.get('preventive_care_level', 'Medium'))
+    track_change("emergency_care_risk", request.form.get('emergency_care_risk', 'Low'))
+    track_change("stress_sensitivity", request.form.get('stress_sensitivity', 'Medium'))
+    track_change("monthly_cost_level", request.form.get('monthly_cost_level', 'Medium'))
+    track_change("lifetime_cost_level", request.form.get('lifetime_cost_level', 'Medium'))
+
+    # --- TEXT AREA FIELDS ---
+    common_health = request.form.get('common_health_issues', '').strip() if request.form.get('common_health_issues') else None
+    track_change("common_health_issues", common_health)
 
     # --- IMAGE UPLOAD ---
     file = request.files.get('image')
@@ -267,7 +302,12 @@ def save_breed():
             }
         )
 
-    flash(f"Breed {'updated' if is_update else 'added'} successfully.", 'success')
+    # Build success message
+    change_count = len(changes) if changes else 0
+    if change_count > 0:
+        flash(f"Breed {'updated' if is_update else 'added'} successfully. {change_count} field(s) saved.", 'success')
+    else:
+        flash(f"Breed {'updated' if is_update else 'added'} successfully.", 'success')
     return redirect(url_for('pets.view_species', id=breed.species_id))
 
 

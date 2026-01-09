@@ -1,23 +1,40 @@
 {% extends "admin/base.html" %}
 {% block content %}
 
-<div x-data="{ speciesModal: false, editingSpecies: null, imagePreview: null, viewModal: false, viewSpecies: null, formStep: 'basic' }" class="max-w-7xl mx-auto p-6 space-y-8">
+<div x-data="{ speciesModal: false, editingSpecies: null, imagePreview: null, viewModal: false, viewSpecies: null, formStep: 'basic' }" class="w-full bg-gray-50/50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 space-y-8">
 
-  <!-- HEADER -->
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold tracking-tight text-gray-900">Pet Species</h1>
+    <!-- HEADER -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">Pet Species</h1>
 
-    <!-- ADD SPECIES BUTTON -->
-    <button @click="speciesModal = true; editingSpecies = null; imagePreview=null; formStep='basic'"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-sm transition flex items-center gap-2">
-      <i class="fa-solid fa-circle-plus"></i>
-      Add Species
-    </button>
-  </div>
+      <!-- ACTION BUTTONS -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <!-- FIND ME PET BUTTON (LINK) -->
+        <a
+          href="{{ url_for('matching.quiz') }}"
+          class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-semibold shadow-sm transition flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base whitespace-nowrap"
+        >
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span class="hidden sm:inline">Find Me Pet</span>
+          <span class="sm:hidden">Find Pet</span>
+        </a>
 
-  <!-- SPECIES GRID -->
-  <div id="species-grid"
-       class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
+        <!-- ADD SPECIES BUTTON -->
+        <button
+          @click="speciesModal = true; editingSpecies = null; imagePreview=null; formStep='basic'"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-semibold shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
+        >
+          <i class="fa-solid fa-circle-plus"></i>
+          <span class="hidden sm:inline">Add Species</span>
+          <span class="sm:hidden">Add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SPECIES GRID -->
+    <div id="species-grid"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
 
     {% for species in species_list %}
     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full"
@@ -54,42 +71,42 @@
 
       <!-- IMAGE -->
       <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
-           class="w-full h-44 sm:h-48 object-cover">
+           class="w-full h-40 sm:h-44 md:h-48 object-cover">
 
       <!-- CONTENT -->
-      <div class="p-4 sm:p-5 flex flex-col flex-1">
+      <div class="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 gap-4">
 
         <!-- TITLE -->
-        <div class="flex items-center gap-3 mb-3">
-          <span class="bg-lavender/30 rounded-full p-2">
-            <i class="{{ species.display_icon }} text-indigo-600"></i>
+        <div class="flex items-center gap-2 sm:gap-3 min-h-fit">
+          <span class="bg-lavender/30 rounded-full p-2 flex-shrink-0">
+            <i class="{{ species.display_icon }} text-indigo-600 text-base sm:text-lg"></i>
           </span>
-          <h3 class="text-lg sm:text-xl font-semibold">{{ species.name }}</h3>
+          <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 line-clamp-2">{{ species.name }}</h3>
         </div>
 
-        <!-- BADGES - UPDATED WITH BEGINNER FRIENDLY -->
-        <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
-          <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
+        <!-- BADGES -->
+        <div class="flex flex-wrap items-center gap-2 min-h-fit">
+          <span class="bg-indigo-50 text-indigo-700 px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
             <i class="fa-solid fa-paw text-xs mr-1"></i>{{ species.active_breed_count }} Breeds
           </span>
           <span 
-            class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1
+            class="px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap
                   {{ 'bg-green-50 text-green-700' if species.beginner_friendly else 'bg-red-100 text-red-700' }}">
             <i class="fa-solid fa-seedling text-xs"></i>
             {{ 'Beginner' if species.beginner_friendly else 'Advanced' }}
           </span>
         </div>
 
-        <!-- CTA BUTTONS - IMPROVED LABELS -->
-        <div class="mt-auto flex flex-col gap-2">
+        <!-- CTA BUTTONS -->
+        <div class="mt-auto flex flex-col gap-2 pt-2">
           <button type="button" @click="viewSpecies = JSON.parse($el.getAttribute('data-species')); viewModal = true; menu=false"
                   data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
-                  class="block w-full text-center bg-gray-100 hover:bg-gray-200
-                         text-gray-800 py-2.5 rounded-xl text-sm font-medium transition">View {{ species.name }} Details
+                  class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
+            View Details
           </button>
           <a href="{{ url_for('pets.view_species', id=species.id) }}"
-             class="block w-full text-center bg-indigo-600 hover:bg-indigo-700
-                    text-white py-2.5 rounded-xl text-sm font-medium transition">Explore {{ species.name }} Breeds
+             class="w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
+            Explore Breeds
           </a>
         </div>
 
@@ -135,6 +152,7 @@
     {% endfor %}
 
   </div>
+</div>
 
   <!-- 🔷 ADD / EDIT SPECIES MODAL -->
   <div x-show="speciesModal" x-transition.opacity
@@ -455,10 +473,10 @@
         <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
           <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
             <div class="flex items-center gap-2">
-              <i :class="viewSpecies?.['requires exercise'] ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <i :class="viewSpecies?.['requires_exercise'] ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
               <span class="text-sm font-medium text-gray-700">Requires Exercise</span>
             </div>
-            <span :class="viewSpecies?.['requires exercise'] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.['requires exercise'] ? 'YES' : 'NO'"></span>
+            <span :class="viewSpecies?.['requires_exercise'] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.['requires_exercise'] ? 'YES' : 'NO'"></span>
           </div>
           <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
             <div class="flex items-center gap-2">

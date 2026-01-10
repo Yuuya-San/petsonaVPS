@@ -1,7 +1,173 @@
 {% extends "user/base.html" %}
 {% block content %}
 
-<div x-data="{ viewModal: false, viewSpecies: null }" class="w-full bg-gray-50/50 min-h-screen">
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+</style>
+
+<div x-data="{
+  speciesModal: false, 
+  imagePreview: null, 
+  viewModal: false, 
+  viewSpecies: null, 
+  quizModal: false,
+  currentQuestion: 0,
+  quizAnswers: {},
+  quizLoading: false,
+  resultsModal: false,
+  quizResults: null,
+  selectedBreed: null,
+  
+  // Quiz methods
+  getAnsweredCount() {
+    const answered = ['energy_level', 'noise_level', 'social_needs', 'handling_tolerance', 'daily_care_time', 'grooming_needs', 'exercise_needs', 'environment_complexity', 'experience_required', 'trainability', 'temperament_tolerance', 'space_needs', 'min_enclosure_size', 'monthly_cost_level', 'emergency_care_risk', 'lifetime_cost_level', 'child_friendly', 'dog_friendly', 'cat_friendly', 'small_pet_friendly', 'prey_drive', 'okay_fragile', 'okay_permit', 'okay_special_vet'];
+    return answered.filter(q => this.quizAnswers[q]).length;
+  },
+  resetQuizAnswers() {
+    this.quizAnswers = {};
+    this.currentQuestion = 0;
+  },
+  previousQuestion() {
+    if (this.currentQuestion > 0) {
+      this.currentQuestion--;
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10);
+    }
+  },
+  nextQuestion() {
+    const questions = this.getQuizQuestions();
+    if (this.currentQuestion < questions.length - 1) {
+      this.currentQuestion++;
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10);
+    }
+  },
+  getQuizQuestions() {
+    return [
+      { name: 'energy_level', section: 'About You', question: 'How active are you most days?', options: ['I mostly relax at home', 'I move around sometimes', 'I am very active and always busy'] },
+      { name: 'noise_level', section: 'About You', question: 'How much noise can you handle at home?', options: ['I need it very quiet', 'Some noise is okay', 'Noise does not bother me'] },
+      { name: 'social_needs', section: 'About You', question: 'How much attention do you want to give your pet?', options: ['Just a little', 'A fair amount', 'A lot, I like bonding'] },
+      { name: 'handling_tolerance', section: 'About You', question: 'How calm is your home?', options: ['Very calm and quiet', 'Normal', 'Busy, noisy, and active'] },
+      { name: 'daily_care_time', section: 'Time & Care', question: 'How much time can you spend on pet care daily?', options: ['Less than 1 hour', '1-2 hours', '2-4 hours', 'More than 4 hours'] },
+      { name: 'grooming_needs', section: 'Time & Care', question: 'How often can you clean, groom, or care for your pet?', options: ['Rarely', 'About once a week', 'Very often'] },
+      { name: 'exercise_needs', section: 'Time & Care', question: 'Can you give your pet exercise or play every day?', options: ['No', 'Sometimes', 'Yes, every day'] },
+      { name: 'environment_complexity', section: 'Time & Care', question: 'Are you okay with setting up tanks, cages, or special homes?', options: ['No, I prefer simple pets', 'I can manage a little', 'Yes, I\'m okay with it'] },
+      { name: 'experience_required', section: 'Experience', question: 'Have you taken care of pets before?', options: ['This is my first pet', 'I have had a few', 'I have a lot of experience'] },
+      { name: 'trainability', section: 'Experience', question: 'How patient are you with training or teaching a pet?', options: ['Not very patient', 'Somewhat patient', 'Very patient'] },
+      { name: 'temperament_tolerance', section: 'Experience', question: 'How well can you handle difficult or stubborn pets?', options: ['Not well', 'I can try', 'I handle them well'] },
+      { name: 'space_needs', section: 'Home & Space', question: 'How big is your living space?', options: ['Small apartment or room', 'Medium-sized home', 'Large home or house with space'] },
+      { name: 'min_enclosure_size', section: 'Home & Space', question: 'Can you keep tanks, cages, or enclosures if needed?', options: ['No', 'Small ones only', 'Large ones are okay'] },
+      { name: 'monthly_cost_level', section: 'Budget & Costs', question: 'How much can you spend on your pet each month?', options: ['Low budget', 'Medium budget', 'High budget'] },
+      { name: 'emergency_care_risk', section: 'Budget & Costs', question: 'Can you handle emergency vet bills?', options: ['No', 'Maybe', 'Yes'] },
+      { name: 'lifetime_cost_level', section: 'Budget & Costs', question: 'Are you ready for long-term pet expenses?', options: ['Not really', 'Somewhat', 'Yes, I\'m prepared'] },
+      { name: 'child_friendly', section: 'Household', question: 'Do you have children at home?', options: ['Yes', 'No'] },
+      { name: 'dog_friendly', section: 'Household', question: 'Do you have dogs?', options: ['Yes', 'No'] },
+      { name: 'cat_friendly', section: 'Household', question: 'Do you have cats?', options: ['Yes', 'No'] },
+      { name: 'small_pet_friendly', section: 'Household', question: 'Do you have small pets?', options: ['Yes', 'No'] },
+      { name: 'prey_drive', section: 'Species & Safety', question: 'Are you okay with pets that hunt or eat other animals?', options: ['No', 'Maybe', 'Yes'] },
+      { name: 'okay_fragile', section: 'Species & Safety', question: 'Are you okay caring for fragile or delicate animals?', options: ['No', 'Yes'] },
+      { name: 'okay_permit', section: 'Species & Safety', question: 'Are you okay with special permits or legal requirements?', options: ['No', 'Yes'] },
+      { name: 'okay_special_vet', section: 'Species & Safety', question: 'Can you access special or exotic veterinarians if needed?', options: ['No', 'Yes'] }
+    ];
+  },
+  async submitQuiz() {
+    // Validate all questions are answered
+    const questions = this.getQuizQuestions();
+    const unanswered = questions.filter(q => !this.quizAnswers[q.name]);
+    if (unanswered.length > 0) {
+      alert('Please answer all questions before submitting.');
+      return;
+    }
+
+    // Prevent multiple submissions
+    if (this.quizLoading) {
+      console.warn('Quiz submission already in progress');
+      return;
+    }
+
+    this.quizLoading = true;
+    console.log('Starting quiz submission...');
+    
+    // Timeout to prevent infinite loading (60 seconds)
+    const timeoutId = setTimeout(() => {
+      this.quizLoading = false;
+      console.error('Quiz submission timeout after 60 seconds');
+      alert('The server is taking too long to process your quiz. Please refresh and try again.');
+    }, 60000);
+
+    try {
+      const endpoint = '{{ url_for("matching.api_quiz_submit") }}';
+      console.log('Submitting quiz to:', endpoint);
+      console.log('Quiz answers count:', Object.keys(this.quizAnswers).length);
+
+      const controller = new AbortController();
+      const timeoutAbort = setTimeout(() => {
+        console.log('Aborting request due to 55s timeout');
+        controller.abort();
+      }, 55000);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(this.quizAnswers),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutAbort);
+      clearTimeout(timeoutId);
+      
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Quiz results received successfully, match count:', data.matches?.length || 0);
+        
+        if (data && data.matches && Array.isArray(data.matches)) {
+          this.quizResults = data;
+          this.quizModal = false;
+          this.resultsModal = true;
+        } else {
+          throw new Error('Invalid response: missing matches array');
+        }
+      } else {
+        const errorText = await response.text().catch(() => '');
+        console.error('Server error:', response.status, errorText);
+        throw new Error(`Server error: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Quiz submission error:', error);
+      clearTimeout(timeoutId);
+      
+      let errorMessage = 'Unable to process your quiz. Please try again.';
+      if (error.name === 'AbortError') {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Network error. Check your connection.';
+      } else if (error.message.includes('Invalid response')) {
+        errorMessage = 'Server returned invalid data.';
+      }
+      
+      alert(errorMessage);
+    } finally {
+      this.quizLoading = false;
+      console.log('Quiz submission finished. Loading state reset.');
+    }
+  }
+}" class="w-full bg-gray-50/50 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 space-y-8">
 
     <!-- HEADER -->
@@ -10,15 +176,15 @@
 
       <!-- ACTION BUTTONS -->
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-        <!-- FIND ME PET BUTTON (LINK) -->
-        <a
-          href="{{ url_for('matching.quiz') }}"
-          class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-semibold shadow-sm transition flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base whitespace-nowrap"
+        <!-- FIND ME PET BUTTON (MODAL) -->
+        <button
+          @click="quizModal = true; currentQuestion = 0; resetQuizAnswers()"
+          class="bg-emerald-800 hover:bg-emerald-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-semibold shadow-sm transition flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base whitespace-nowrap"
         >
           <i class="fa-solid fa-magnifying-glass"></i>
           <span class="hidden sm:inline">Find Me Pet</span>
           <span class="sm:hidden">Find Pet</span>
-        </a>
+        </button>
       </div>
     </div>
 
@@ -26,272 +192,626 @@
     <div id="species-grid"
          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
 
-      {% for species in species_list %}
-      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full">
+    {% for species in species_list %}
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full"
+         x-data="{ menu:false, confirm:false }">
 
-        <!-- IMAGE -->
-        <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
-             class="w-full h-40 sm:h-44 md:h-48 object-cover">
+      <!-- IMAGE -->
+      <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
+           class="w-full h-40 sm:h-44 md:h-48 object-cover">
 
-        <!-- CONTENT -->
-        <div class="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 gap-4">
+      <!-- CONTENT -->
+      <div class="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 gap-4">
 
-          <!-- TITLE -->
-          <div class="flex items-center gap-2 sm:gap-3 min-h-fit">
-            <span class="bg-lavender/30 rounded-full p-2 flex-shrink-0">
-              <i class="{{ species.display_icon }} text-indigo-600 text-base sm:text-lg"></i>
-            </span>
-            <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 line-clamp-2">{{ species.name }}</h3>
-          </div>
+        <!-- TITLE -->
+        <div class="flex items-center gap-2 sm:gap-3 min-h-fit">
+          <span>
+            <i class="{{ species.display_icon }} text-indigo-800 text-base sm:text-lg"></i>
+          </span>
+          <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 line-clamp-2">{{ species.name }}</h3>
+        </div>
 
-          <!-- BADGES -->
-          <div class="flex flex-wrap items-center gap-2 min-h-fit">
-            <span class="bg-indigo-50 text-indigo-700 px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-              <i class="fa-solid fa-paw text-xs mr-1"></i>{{ species.active_breed_count }} Breeds
-            </span>
-            <span 
-              class="px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap
-                    {{ 'bg-green-50 text-green-700' if species.beginner_friendly else 'bg-red-100 text-red-700' }}">
-              <i class="fa-solid fa-seedling text-xs"></i>
-              {{ 'Beginner' if species.beginner_friendly else 'Advanced' }}
-            </span>
-          </div>
+        <!-- BADGES -->
+        <div class="flex items-center justify-between w-full min-h-fit">
+          <span class="bg-indigo-100 text-indigo-800 px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
+            <i class="fa-solid fa-paw text-xs mr-1"></i>{{ species.active_breed_count }} Breeds
+          </span>
 
-          <!-- CTA BUTTONS -->
-          <div class="mt-auto flex flex-col gap-2 pt-2">
-            <button type="button" @click="viewSpecies = JSON.parse($el.getAttribute('data-species')); viewModal = true"
-                    data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
-                    class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
-              View Details
-            </button>
-            <a href="{{ url_for('user.view_species', id=species.id) }}"
-               class="w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
-              Explore Breeds
-            </a>
-          </div>
+          <span 
+            class="px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap
+                  {{ 'bg-teal-50 text-teal-700' if species.beginner_friendly else 'bg-red-100 text-red-700' }}">
+            <i class="fa-solid fa-seedling text-xs"></i>
+            {{ 'Beginner' if species.beginner_friendly else 'Advanced' }}
+          </span>
+        </div>
 
+        <!-- CTA BUTTONS -->
+        <div class="mt-auto flex flex-col gap-2 pt-2">
+          <button type="button" @click="viewSpecies = JSON.parse($el.getAttribute('data-species')); viewModal = true; menu=false"
+                  data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
+                  class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
+            View Details
+          </button>
+          <a href="{{ url_for('user.view_species', id=species.id) }}"
+             class="w-full text-center bg-indigo-800 hover:bg-indigo-900 text-white py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
+            Explore Breeds
+          </a>
         </div>
 
       </div>
-      {% endfor %}
 
-      {% if species_list|length == 0 %}
-        <div class="col-span-full text-center py-20 text-gray-500">
-          No species found.
-        </div>
-      {% endif %}
+</div>
+{% endfor %}
 
+<!-- 🔷 VIEW SPECIES MODAL - INSTAGRAM + RECEIPT PROFILE STYLE -->
+<div x-show="viewModal" x-transition.opacity
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl border border-gray-200 flex flex-col max-h-[95vh] overflow-hidden transition-all duration-300">
+
+    <!-- HEADER with Close Button -->
+    <div class="sticky top-0 bg-gradient-to-r from-indigo-500 to-indigo-900 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-3xl">
+      <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-microscope"></i> Species Profile
+      </h3>
+      <button @click="viewModal=false; viewSpecies=null"
+              class="text-white hover:bg-indigo-950 rounded-full p-2 transition">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
     </div>
 
-  </div>
+    <!-- SCROLLABLE CONTENT -->
+    <div class="overflow-y-auto flex-1 px-4 sm:px-6 py-6 space-y-5">
 
-  <!-- 🔷 VIEW SPECIES MODAL - INSTAGRAM + RECEIPT PROFILE STYLE -->
-  <div x-show="viewModal" x-transition.opacity
-       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl border border-gray-200 flex flex-col max-h-[95vh] overflow-hidden transition-all duration-300">
+      <!-- HERO IMAGE SECTION -->
+      <div class="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden shadow-md">
+        <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
+             alt="Species Image"
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+      </div>
 
-      <!-- HEADER with Close Button -->
-      <div class="sticky top-0 bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-3xl">
-        <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-microscope"></i> Species Profile
+      <!-- SPECIES NAME & BASIC INFO - RECEIPT STYLE HEADER -->
+      <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-2xl p-4 sm:p-5 border border-indigo-200">
+        <div class="flex items-start justify-between gap-4 mb-3">
+          <div class="flex items-center gap-3">
+            <span class="bg-white rounded-full p-2.5 shadow-sm">
+              <i :class="viewSpecies?.icon" class="text-indigo-800 text-lg"></i>
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
+          </div>
+        </div>
+        <div class="border-t border-indigo-200 pt-3 mt-3">
+          <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.description || 'No description available.'"></p>
+        </div>
+      </div>
+
+      <!-- DIVIDER LINE (Receipt Style) -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
+
+      <!-- QUICK STATS SECTION - 3 COLUMNS ON DESKTOP, 2 ON MOBILE -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-1 text-indigo-800"></i> Quick Stats
         </h3>
-        <button @click="viewModal=false; viewSpecies=null"
-                class="text-white hover:bg-indigo-800 rounded-full p-2 transition">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          
+          <!-- Beginner Friendly -->
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-blue-700 uppercase">Difficulty</span>
+              <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-blue-600' : 'fa-solid fa-star text-blue-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-blue-600 font-medium" x-text="viewSpecies?.beginner_friendly ? '✓ Beginner' : '⭐ Advanced'"></p>
+          </div>
+
+          <!-- Predatory -->
+          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-orange-700 uppercase">Type</span>
+              <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-orange-600' : 'fa-solid fa-leaf text-orange-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-orange-600 font-medium" x-text="viewSpecies?.predatory_species ? 'Predatory' : 'Non-predatory'"></p>
+          </div>
+
+          <!-- Fragile -->
+          <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-pink-700 uppercase">Durability</span>
+              <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-heart-crack text-pink-600' : 'fa-solid fa-shield text-pink-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-pink-600 font-medium" x-text="viewSpecies?.fragile_species ? 'Fragile' : 'Hardy'"></p>
+          </div>
+
+          <!-- Permit -->
+          <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 border border-yellow-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-yellow-700 uppercase">Legal</span>
+              <i :class="viewSpecies?.requires_permit ? 'fa-solid fa-file-contract text-yellow-600' : 'fa-solid fa-check text-yellow-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-yellow-600 font-medium" x-text="viewSpecies?.requires_permit ? 'Permit Needed' : 'No Permit Needed'"></p>
+          </div>
+
+          <!-- Vet Care -->
+          <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 border border-red-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-red-700 uppercase">Vet</span>
+              <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-red-600' : 'fa-solid fa-check text-red-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-red-600 font-medium" x-text="viewSpecies?.special_vet_required ? 'Specialist' : 'Standard'"></p>
+          </div>
+
+          <!-- Breed Count -->
+          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-green-700 uppercase">Breeds</span>
+              <i class="fa-solid fa-paw text-green-600 text-sm"></i>
+            </div>
+              <p class="text-xs text-green-600 font-medium" 
+                x-text="viewSpecies ? (viewSpecies.active_breed_count || 0) + ' Available' : '0 Available'">
+              </p>
+          </div>
+
+        </div>
       </div>
 
-      <!-- SCROLLABLE CONTENT -->
-      <div class="overflow-y-auto flex-1 px-4 sm:px-6 py-6 space-y-5">
+      <!-- DIVIDER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
 
-        <!-- HERO IMAGE SECTION -->
-        <div class="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden shadow-md">
-          <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
-               alt="Species Image"
-               class="w-full h-full object-cover">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-        </div>
-
-        <!-- SPECIES NAME & BASIC INFO - RECEIPT STYLE HEADER -->
-        <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-2xl p-4 sm:p-5 border border-indigo-200">
-          <div class="flex items-start justify-between gap-4 mb-3">
-            <div class="flex items-center gap-3">
-              <span class="bg-white rounded-full p-2.5 shadow-sm">
-                <i :class="viewSpecies?.icon" class="text-indigo-600 text-lg"></i>
-              </span>
-              <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
+      <!-- CARE REQUIREMENTS - RECEIPT STYLE -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
+        </h3>
+        <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.['requires_exercise'] ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Exercise</span>
             </div>
+            <span :class="viewSpecies?.['requires_exercise'] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.['requires_exercise'] ? 'YES' : 'NO'"></span>
           </div>
-          <div class="border-t border-indigo-200 pt-3 mt-3">
-            <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.description || 'No description available.'"></p>
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.requires_training ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Training</span>
+            </div>
+            <span :class="viewSpecies?.requires_training ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_training ? 'YES' : 'NO'"></span>
           </div>
-        </div>
-
-        <!-- DIVIDER LINE (Receipt Style) -->
-        <div class="border-t-2 border-dashed border-gray-300"></div>
-
-        <!-- QUICK STATS SECTION - 3 COLUMNS ON DESKTOP, 2 ON MOBILE -->
-        <div>
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-1 text-indigo-600"></i> Quick Stats
-          </h3>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-            
-            <!-- Beginner Friendly -->
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-blue-700 uppercase">Difficulty</span>
-                <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-blue-600' : 'fa-solid fa-star text-blue-600'" class="text-sm"></i>
-              </div>
-              <p class="text-xs text-blue-600 font-medium" x-text="viewSpecies?.beginner_friendly ? '✓ Beginner' : '⭐ Advanced'"></p>
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.requires_grooming ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Grooming</span>
             </div>
-
-            <!-- Predatory -->
-            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-orange-700 uppercase">Type</span>
-                <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-orange-600' : 'fa-solid fa-leaf text-orange-600'" class="text-sm"></i>
-              </div>
-              <p class="text-xs text-orange-600 font-medium" x-text="viewSpecies?.predatory_species ? 'Predatory' : 'Non-predatory'"></p>
+            <span :class="viewSpecies?.requires_grooming ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_grooming ? 'YES' : 'NO'"></span>
+          </div>
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.requires_enclosure ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Enclosure</span>
             </div>
-
-            <!-- Fragile -->
-            <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-pink-700 uppercase">Durability</span>
-                <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-heart-crack text-pink-600' : 'fa-solid fa-shield text-pink-600'" class="text-sm"></i>
-              </div>
-              <p class="text-xs text-pink-600 font-medium" x-text="viewSpecies?.fragile_species ? 'Fragile' : 'Hardy'"></p>
-            </div>
-
-            <!-- Permit -->
-            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 border border-yellow-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-yellow-700 uppercase">Legal</span>
-                <i :class="viewSpecies?.requires_permit ? 'fa-solid fa-file-contract text-yellow-600' : 'fa-solid fa-check text-yellow-600'" class="text-sm"></i>
-              </div>
-              <p class="text-xs text-yellow-600 font-medium" x-text="viewSpecies?.requires_permit ? 'Permit Needed' : 'No Permit Needed'"></p>
-            </div>
-
-            <!-- Vet Care -->
-            <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 border border-red-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-red-700 uppercase">Vet</span>
-                <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-red-600' : 'fa-solid fa-check text-red-600'" class="text-sm"></i>
-              </div>
-              <p class="text-xs text-red-600 font-medium" x-text="viewSpecies?.special_vet_required ? 'Specialist' : 'Standard'"></p>
-            </div>
-
-            <!-- Breed Count -->
-            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-green-700 uppercase">Breeds</span>
-                <i class="fa-solid fa-paw text-green-600 text-sm"></i>
-              </div>
-              <p class="text-xs text-green-600 font-medium" x-text="viewSpecies ? (viewSpecies.active_breed_count || 0) + ' Available' : '0 Available'"></p>
-            </div>
-
+            <span :class="viewSpecies?.requires_enclosure ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_enclosure ? 'YES' : 'NO'"></span>
           </div>
         </div>
-
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300"></div>
-
-        <!-- CARE REQUIREMENTS - RECEIPT STYLE -->
-        <div>
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
-          </h3>
-          <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i :class="viewSpecies?.requires_exercise ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Requires Exercise</span>
-              </div>
-              <span :class="viewSpecies?.requires_exercise ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_exercise ? 'YES' : 'NO'"></span>
-            </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i :class="viewSpecies?.requires_training ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Requires Training</span>
-              </div>
-              <span :class="viewSpecies?.requires_training ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_training ? 'YES' : 'NO'"></span>
-            </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i :class="viewSpecies?.requires_grooming ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Requires Grooming</span>
-              </div>
-              <span :class="viewSpecies?.requires_grooming ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_grooming ? 'YES' : 'NO'"></span>
-            </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i :class="viewSpecies?.requires_enclosure ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Requires Enclosure</span>
-              </div>
-              <span :class="viewSpecies?.requires_enclosure ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_enclosure ? 'YES' : 'NO'"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300"></div>
-
-        <!-- RISK ASSESSMENT SECTION -->
-        <div>
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-3 text-orange-600"></i> Risk Assessment
-          </h3>
-
-          <!-- Abandonment Risk -->
-          <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200 mb-3">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-bold text-gray-700 flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation text-orange-600"></i> Abandonment Risk Level
-              </span>
-              <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'bg-green-500' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'"
-                    class="inline-block w-3 h-3 rounded-full"></span>
-            </div>
-            <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'text-green-700 bg-green-100' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'text-yellow-700 bg-yellow-100' : 'text-red-700 bg-red-100'"
-                  class="inline-block px-3 py-1 rounded-full font-bold text-sm"
-                  x-text="viewSpecies?.abandonment_risk_level || 'Unknown'"></span>
-          </div>
-        </div>
-
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300"></div>
-
-        <!-- ETHICAL NOTES SECTION -->
-        <template x-if="viewSpecies?.ethical_notes && viewSpecies?.ethical_notes.trim()">
-          <div>
-            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-              <i class="fa-solid fa-circle-4 text-purple-600"></i> Ethical Considerations
-            </h3>
-            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200 border-l-4 border-l-purple-600">
-              <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
-            </div>
-          </div>
-        </template>
-
-        <!-- RECEIPT FOOTER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300 pt-2">
-          <p class="text-center text-xs text-gray-500">
-            <i class="fa-solid fa-paw"></i> End of Species Profile <i class="fa-solid fa-paw"></i>
-          </p>
-        </div>
-
       </div>
 
-      <!-- FOOTER BUTTONS - STICKY -->
-      <div class="sticky bottom-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end rounded-b-3xl">
-        <button @click="viewModal=false; viewSpecies=null"
-                class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition">Close
-        </button>
+      <!-- DIVIDER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
+
+      <!-- RISK ASSESSMENT SECTION -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-3 text-orange-600"></i> Risk Assessment
+        </h3>
+
+        <!-- Abandonment Risk -->
+        <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200 mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-orange-600"></i> Abandonment Risk Level
+            </span>
+            <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'bg-green-500' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'"
+                  class="inline-block w-3 h-3 rounded-full"></span>
+          </div>
+          <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'text-green-700 bg-green-100' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'text-yellow-700 bg-yellow-100' : 'text-red-700 bg-red-100'"
+                class="inline-block px-3 py-1 rounded-full font-bold text-sm"
+                x-text="viewSpecies?.abandonment_risk_level || 'Unknown'"></span>
+        </div>
+      </div>
+
+      <!-- DIVIDER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
+
+      <!-- ETHICAL NOTES SECTION -->
+      <template x-if="viewSpecies?.ethical_notes && viewSpecies?.ethical_notes.trim()">
+        <div>
+          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-circle-4 text-indigo-800"></i> Ethical Considerations
+          </h3>
+          <div class="bg-gradient-to-r from-indigo-50 to-pink-50 rounded-xl p-4 border border-indigo-200 border-l-4 border-l-indigo-800">
+            <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
+          </div>
+        </div>
+      </template>
+
+      <!-- RECEIPT FOOTER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300 pt-2">
+        <p class="text-center text-xs text-gray-500">
+          <i class="fa-solid fa-paw"></i> End of Species Profile <i class="fa-solid fa-paw"></i>
+        </p>
       </div>
 
     </div>
-  </div>
 
+    <!-- FOOTER BUTTONS - STICKY -->
+    <div class="sticky bottom-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end rounded-b-3xl">
+      <button @click="viewModal=false; viewSpecies=null"
+              class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition">Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- 🔷 PET COMPATIBILITY QUIZ MODAL -->
+<div x-show="quizModal" x-transition.opacity
+     class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
+  <div class="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl w-full max-w-4xl mx-2 border border-indigo-100 flex flex-col max-h-[90vh] overflow-hidden mt-6 sm:mt-10 transition-all duration-300">
+
+    <!-- HEADER -->
+    <div class="px-4 sm:px-6 py-4 border-b border-indigo-100 flex justify-between items-center sticky top-0 bg-white/95 z-10">
+      <h3 class="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <i class="fa-solid fa-heart text-indigo-800"></i>
+        <span>Find Your Perfect Pet</span>
+      </h3>
+      <button @click="quizModal=false; resetQuizAnswers()" class="text-gray-500 hover:text-gray-700 transition">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="px-4 sm:px-6 py-3 bg-gray-50 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-semibold text-gray-700">Question <span x-text="currentQuestion + 1"></span> of <span x-text="getQuizQuestions().length"></span></span>
+        <span class="text-sm text-gray-500"><span x-text="currentQuestion + 1"></span>/<span x-text="getQuizQuestions().length"></span> answered</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div class="bg-indigo-800 h-full rounded-full transition-all duration-300" :style="'width: ' + ((currentQuestion + 1)/getQuizQuestions().length*100) + '%'"></div>
+      </div>
+    </div>
+
+    <!-- QUIZ CONTENT - QUESTION BY QUESTION -->
+    <div class="px-4 sm:px-6 py-6 overflow-y-auto flex-1 flex flex-col justify-center">
+      <template x-if="getQuizQuestions().length > 0">
+        <div class="space-y-6 max-w-2xl mx-auto w-full animate-fadeIn">
+          <template x-if="currentQuestion < getQuizQuestions().length">
+            <div>
+              <!-- Question Counter & Section -->
+              <div class="mb-6">
+                <p class="text-xs font-semibold text-indigo-800 uppercase tracking-widest" x-text="getQuizQuestions()[currentQuestion].section"></p>
+                <h4 class="text-2xl sm:text-3xl font-bold text-gray-900 mt-2" x-text="getQuizQuestions()[currentQuestion].question"></h4>
+              </div>
+
+              <!-- Answer Options -->
+              <form @submit.prevent="currentQuestion < getQuizQuestions().length - 1 ? nextQuestion() : submitQuiz()" class="space-y-3">
+                <template x-for="(option, idx) in getQuizQuestions()[currentQuestion].options" :key="idx">
+                  <label class="flex items-center p-4 border-2 border-gray-200 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition group"
+                         :class="quizAnswers[getQuizQuestions()[currentQuestion].name] === option ? 'border-indigo-800 bg-indigo-50' : '">
+                    <input type="radio" 
+                           :name="getQuizQuestions()[currentQuestion].name"
+                           :value="option" 
+                           @change="quizAnswers[getQuizQuestions()[currentQuestion].name] = option"
+                           :checked="quizAnswers[getQuizQuestions()[currentQuestion].name] === option"
+                           class="w-5 h-5 text-indigo-800">
+                    <span class="ml-3 text-gray-700 font-medium group-hover:text-gray-900 transition" x-text="option"></span>
+                  </label>
+                </template>
+
+                <!-- Navigation -->
+                <div class="flex items-center justify-between gap-3 mt-8 pt-6 border-t border-gray-200">
+                  <button type="button" @click="previousQuestion()" x-show="currentQuestion > 0"
+                          class="px-6 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition">
+                    <i class="fa-solid fa-chevron-left mr-2"></i> Back
+                  </button>
+                  <div x-show="currentQuestion === 0"></div>
+                  
+                  <template x-if="currentQuestion < getQuizQuestions().length - 1">
+                    <button type="button" @click="nextQuestion()" :disabled="!quizAnswers[getQuizQuestions()[currentQuestion].name]"
+                            class="px-6 py-2.5 rounded-xl bg-indigo-800 hover:bg-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition flex items-center gap-2">
+                      <span>Next</span> <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                  </template>
+                  <template x-if="currentQuestion === getQuizQuestions().length - 1">
+                    <button type="button"
+                            @click="submitQuiz()"
+                            :disabled="!quizAnswers[getQuizQuestions()[currentQuestion]?.name] || quizLoading"
+                            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition flex items-center gap-2">
+
+                      <span x-text="!quizLoading ? 'Find My Perfect Match' : 'Finding Your Match...'"></span>
+
+                      <template x-if="!quizLoading">
+                        <i class="fa-solid fa-heart"></i>
+                      </template>
+
+                      <template x-if="quizLoading">
+                        <i class="fa-solid fa-spinner animate-spin"></i>
+                      </template>
+
+                    </button>
+                  </template>
+                </div>
+              </form>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <!-- FOOTER BUTTONS -->
+    <div class="sticky bottom-0 bg-white border-t border-indigo-100 px-4 sm:px-6 py-4 hidden">
+      <!-- Hidden footer - navigation handled in quiz content -->
+    </div>
+  </div>
+</div>
+
+<!-- 🔷 QUIZ RESULTS MODAL - ENHANCED TOP 5 BREEDS -->
+<div x-show="resultsModal" x-transition.opacity
+     class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl mx-2 border border-indigo-100 flex flex-col max-h-[95vh] overflow-hidden mt-6 transition-all duration-300">
+
+    <!-- HEADER -->
+    <div class="px-4 sm:px-6 py-5 border-b border-indigo-100 bg-gradient-to-r from-indigo-500 to-indigo-900 flex justify-between items-center sticky top-0 z-10 rounded-t-3xl">
+      <h2 class="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
+        <i class="fa-solid fa-star text-yellow-300"></i>
+        Your Perfect Pet Matches
+      </h2>
+      <button @click="resultsModal=false; quizResults=null" class="text-white hover:bg-indigo-950 rounded-full p-2 transition">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+    </div>
+
+    <!-- RESULTS CONTENT -->
+    <div class="px-4 sm:px-6 py-6 overflow-y-auto flex-1 space-y-8">
+      <template x-if="quizResults && quizResults.matches && quizResults.matches.length > 0">
+        <div class="space-y-8">
+
+          <!-- #1 TOP MATCH SHOWCASE - PREMIUM CARD -->
+          <div class="relative">
+            <!-- Animated Background Blur -->
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-900 rounded-3xl blur-2xl opacity-75"></div>
+            
+            <!-- Main Card -->
+            <div class="bg-gradient-to-br from-indigo-50 via-white to-indigo-100 rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8 overflow-hidden relative">
+              <!-- Decorative Elements (hidden on mobile) -->
+              <div class="hidden sm:block absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-br from-indigo-200 to-transparent rounded-full blur-3xl -mr-24 sm:-mr-32 -mt-24 sm:-mt-32 opacity-30"></div>
+              <div class="hidden sm:block absolute bottom-0 left-0 w-36 sm:w-48 h-36 sm:h-48 bg-gradient-to-tr from-indigo-200 to-transparent rounded-full blur-3xl -ml-18 sm:-ml-24 -mb-18 sm:-mb-24 opacity-30"></div>
+              
+              <div class="relative z-10 space-y-6">
+                <!-- TOP MATCH BADGE -->
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <span class="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full text-white font-bold text-sm sm:text-lg animate-bounce flex-shrink-0">
+                      ⭐
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-indigo-800 uppercase tracking-widest">Perfect Match</span>
+                  </div>
+                  <span class="text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-800 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">Rank #1</span>
+                </div>
+
+                <!-- Breed Name & Species -->
+                <div>
+                  <h3 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-indigo-900 via-indigo-700 to-indigo-900 bg-clip-text text-transparent mb-1 break-words" x-text="quizResults.matches[0].breed.name"></h3>
+                  <p class="text-sm sm:text-base md:text-lg font-semibold text-indigo-700" x-text="quizResults.matches[0].breed.species.name"></p>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                  <!-- Breed Image -->
+                  <div class="md:col-span-1">
+                    <div class="relative h-40 sm:h-48 md:h-56 rounded-xl md:rounded-2xl overflow-hidden shadow-lg border-2 sm:border-4 border-white">
+                      <img :src="quizResults.matches[0].breed.image_url ? '/static/' + quizResults.matches[0].breed.image_url : '/static/uploads/no-image-attachment.jpg'" 
+                           alt="Breed" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </div>
+                  </div>
+
+                  <!-- Score & Details -->
+                  <div class="md:col-span-2 space-y-3 md:space-y-4">
+                    <!-- Compatibility Score Card -->
+                    <div class="bg-gradient-to-br from-white to-indigo-50 rounded-xl md:rounded-2xl p-3 md:p-5 border-2 border-indigo-200 shadow-md">
+                      <div class="flex items-end justify-between gap-2 mb-2">
+                        <p class="text-xs sm:text-sm font-bold text-gray-600 uppercase tracking-widest">Score</p>
+                        <div class="text-right">
+                          <div class="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent" x-text="quizResults.matches[0].score + '%'"></div>
+                          <p class="text-xs sm:text-sm font-bold text-indigo-700 capitalize" x-text="quizResults.matches[0].level + ' Match'"></p>
+                        </div>
+                      </div>
+                      <!-- Progress Bar -->
+                      <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden mt-3">
+                        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 h-full rounded-full transition-all duration-500" :style="'width: ' + quizResults.matches[0].score + '%'"></div>
+                      </div>
+                    </div>
+
+                    <!-- Summary Box -->
+                    <div class="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border-2 border-indigo-100 shadow-sm">
+                      <p class="text-xs sm:text-sm text-gray-700 leading-relaxed"><strong class="text-indigo-800">About:</strong> <span x-text="quizResults.matches[0].breed.summary || 'A wonderful companion.'"></span></p>
+                    </div>
+
+                    <!-- Why This Match -->
+                    <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-xl md:rounded-2xl p-3 md:p-5 text-white shadow-lg">
+                      <p class="text-xs sm:text-sm font-bold mb-2 md:mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-heart text-yellow-300"></i> <span class="hidden sm:inline">Why You're a Perfect Match</span><span class="sm:hidden">Perfect Match</span>
+                      </p>
+                      <ul class="text-xs sm:text-sm space-y-1 md:space-y-2">
+                        <template x-for="reason in (quizResults.matches[0].suggestions || []).slice(0, 3)" :key="reason">
+                          <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-check text-yellow-300 mt-0.5 flex-shrink-0"></i>
+                            <span x-text="reason"></span>
+                          </li>
+                        </template>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Improvement Suggestions -->
+                <template x-if="quizResults.matches[0].mismatches && quizResults.matches[0].mismatches.length > 0">
+                  <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl md:rounded-2xl p-3 md:p-5 border-2 border-orange-200 shadow-md">
+                    <p class="text-xs sm:text-sm font-bold mb-2 md:mb-3 flex items-center gap-2 text-orange-900">
+                      <i class="fa-solid fa-lightbulb text-orange-600"></i> <span class="hidden sm:inline">How to Become Even More Compatible</span><span class="sm:hidden">Improvement Tips</span>
+                    </p>
+                    <ul class="text-xs sm:text-sm space-y-1 md:space-y-2">
+                      <template x-for="tip in quizResults.matches[0].mismatches.slice(0, 3)" :key="tip">
+                        <li class="flex gap-2 text-orange-800">
+                          <i class="fa-solid fa-arrow-right text-orange-600 mt-0.5 flex-shrink-0"></i>
+                          <span x-text="tip"></span>
+                        </li>
+                      </template>
+                    </ul>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- OTHER TOP 4 MATCHES - ENHANCED -->
+          <div>
+            <div class="mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-indigo-200">
+              <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+                <i class="fa-solid fa-star text-indigo-800 text-base sm:text-lg"></i> <span>Other Matches</span><span class="hidden sm:inline"> Breeds</span>
+              </h3>
+              <p class="text-gray-600 text-xs sm:text-sm mt-1 sm:mt-2">Also compatible with your lifestyle</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+              <template x-for="(match, idx) in quizResults.matches.slice(1, 5)" :key="idx">
+                <div class="bg-white rounded-xl md:rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col border border-gray-100 hover:border-indigo-300">
+                  
+                  <!-- Image Header with Rank Badge -->
+                  <div class="relative h-36 sm:h-40 md:h-48 bg-gradient-to-br from-gray-200 to-gray-300 overflow-hidden group">
+                    <img :src="match.breed.image_url ? '/static/' + match.breed.image_url : '/static/uploads/no-image-attachment.jpg'" 
+                         alt="Breed" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent group-hover:from-black/50"></div>
+                    
+                    <!-- Rank Badge -->
+                    <div class="absolute top-2 sm:top-3 left-2 sm:left-4 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 rounded-full font-bold text-sm sm:text-base md:text-lg shadow-lg">
+                      #<span x-text="idx + 2"></span>
+                    </div>
+                    
+                    <!-- Score Badge -->
+                    <div class="absolute top-2 sm:top-3 right-2 sm:right-4 bg-white shadow-lg px-2 sm:px-3 py-1 sm:py-2 rounded-full">
+                      <div class="text-center">
+                        <div class="text-lg sm:text-xl md:text-2xl font-black" :class="match.score >= 80 ? 'text-indigo-800' : match.score >= 60 ? 'text-yellow-600' : 'text-orange-600'" x-text="match.score + '%'"></div>
+                        <p class="text-xs font-bold text-gray-600">Match</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Content Section -->
+                  <div class="p-3 sm:p-4 md:p-5 flex flex-col flex-1 space-y-2 md:space-y-4">
+                    <!-- Breed Title -->
+                    <div>
+                      <h4 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 break-words" x-text="match.breed.name"></h4>
+                      <p class="text-xs sm:text-sm text-indigo-700 font-semibold" x-text="match.breed.species.name"></p>
+                    </div>
+
+                    <!-- Match Level Badge -->
+                    <div class="flex items-center gap-2">
+                      <span :class="match.level === 'Excellent' ? 'bg-indigo-100 text-indigo-900' : match.level === 'Good' ? 'bg-blue-100 text-blue-700' : match.level === 'Fair' ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'" 
+                            class="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold">
+                        <i :class="match.level === 'Excellent' ? 'fa-solid fa-heart text-indigo-600' : match.level === 'Good' ? 'fa-solid fa-heart-half text-blue-600' : match.level === 'Fair' ? 'fa-regular fa-heart text-yellow-600' : 'fa-solid fa-star text-orange-600'"></i>
+                        <span x-text="match.level + ' Match'"></span>
+                      </span>
+                    </div>
+
+                    <!-- Summary -->
+                    <p class="text-xs sm:text-sm text-gray-600 leading-relaxed" x-text="match.breed.summary || 'A wonderful pet option for you.'"></p>
+
+                    <!-- Why This Breed - Enhanced -->
+                    <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg md:rounded-xl p-2 md:p-4 border border-indigo-200">
+                      <p class="text-xs font-bold text-indigo-900 mb-2 md:mb-3 flex items-center gap-1 md:gap-2">
+                        <i class="fa-solid fa-check-circle text-indigo-600 text-sm"></i> <span class="hidden sm:inline">Perfect For You Because</span><span class="sm:hidden">Why Match</span>
+                      </p>
+                      <ul class="text-xs text-indigo-900 space-y-1 md:space-y-2">
+                        <template x-for="reason in (match.suggestions || []).slice(0, 2)" :key="reason">
+                          <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-sparkles text-indigo-600 flex-shrink-0 mt-0.5"></i>
+                            <span x-text="reason"></span>
+                          </li>
+                        </template>
+                      </ul>
+                    </div>
+
+                    <!-- Considerations - Enhanced -->
+                    <template x-if="match.mismatches && match.mismatches.length > 0">
+                      <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg md:rounded-xl p-2 md:p-4 border border-orange-200 border-l-4 border-l-orange-500">
+                        <p class="text-xs font-bold text-orange-900 mb-1 md:mb-2 flex items-center gap-1 md:gap-2">
+                          <i class="fa-solid fa-triangle-exclamation text-orange-600 text-sm"></i> <span class="hidden sm:inline">Things to Keep in Mind</span><span class="sm:hidden">Consider</span>
+                        </p>
+                        <ul class="text-xs text-orange-800 space-y-1">
+                          <template x-for="consideration in match.mismatches.slice(0, 2)" :key="consideration">
+                            <li class="flex gap-2 items-start">
+                              <i class="fa-solid fa-circle-dot text-orange-500 flex-shrink-0 mt-0.5"></i>
+                              <span x-text="consideration"></span>
+                            </li>
+                          </template>
+                        </ul>
+                      </div>
+                    </template>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2 mt-auto pt-2">
+                      <button @click="viewSpecies = match.breed.species; viewModal = true; resultsModal = false"
+                              class="flex-1 py-2 px-2 sm:py-2.5 sm:px-3 bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white rounded-lg text-xs sm:text-xs font-bold transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-1 sm:gap-2">
+                        <i class="fa-solid fa-eye text-sm"></i> <span class="hidden sm:inline">View</span><span class="sm:hidden">Details</span>
+                      </button>
+                      <button @click="resultsModal=false; quizModal=true; currentQuestion=0; resetQuizAnswers()"
+                              class="flex-1 py-2 px-2 sm:py-2.5 sm:px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs sm:text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 border border-gray-200">
+                        <i class="fa-solid fa-redo text-sm"></i> <span>Retake</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- No Matches Message -->
+          <template x-if="!quizResults || !quizResults.matches || quizResults.matches.length === 0">
+            <div class="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-2 border-yellow-300 rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 text-center shadow-lg">
+              <div class="inline-block bg-gradient-to-br from-yellow-300 to-orange-300 rounded-full p-4 sm:p-6 mb-4 sm:mb-6 shadow-lg">
+                <i class="fa-solid fa-search text-3xl sm:text-4xl md:text-5xl text-white"></i>
+              </div>
+              <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">No Matches Found</h3>
+              <p class="text-gray-700 mb-4 sm:mb-8 text-sm sm:text-base md:text-lg leading-relaxed">We couldn't find any compatible breeds with your current preferences. Try adjusting your answers to see more options!</p>
+              <div class="flex flex-col gap-2 sm:gap-3 justify-center">
+                <button @click="resultsModal=false; quizModal=true; currentQuestion=0; resetQuizAnswers()"
+                        class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all duration-200 shadow-lg hover:shadow-xl">
+                  <i class="fa-solid fa-redo"></i> <span>Retake Quiz</span>
+                </button>
+                <button @click="resultsModal=false"
+                        class="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-300 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all duration-200">
+                  <i class="fa-solid fa-times"></i> <span>Close</span>
+                </button>
+              </div>
+            </div>
+          </template>
+
+        </div>
+      </template>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="sticky bottom-0 bg-gradient-to-r from-white to-indigo-50 border-t-2 border-indigo-200 px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 rounded-b-2xl sm:rounded-b-3xl shadow-lg">
+      <button @click="resultsModal=false; quizResults=null; quizModal=true; currentQuestion=0; resetQuizAnswers()"
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white font-bold text-xs sm:text-sm md:text-sm transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1 sm:gap-2">
+        <i class="fa-solid fa-redo text-sm"></i> <span class="hidden sm:inline">Retake Quiz</span><span class="sm:hidden">Retake</span>
+      </button>
+      <button @click="resultsModal=false; quizResults=null"
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-lg bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs sm:text-sm md:text-sm transition-all duration-200 border-2 border-gray-300 flex items-center justify-center gap-1 sm:gap-2">
+        <i class="fa-solid fa-xmark text-sm"></i> <span class="hidden sm:inline">Close Results</span><span class="sm:hidden">Close</span>
+      </button>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

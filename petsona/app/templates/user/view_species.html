@@ -11,143 +11,132 @@
         matchProgress: 0,
         matchStep: 1,
         totalMatchSteps: 24,
-        calculateCompatibility() {
-          const breed = this.selectedBreed;
-          const answers = this.matchAnswers;
-          let score = 0;
-          let maxScore = 0;
-          let feedback = [];
-
-          // Energy Level Compatibility
-          maxScore += 10;
-          if (answers.energy_level === breed.energy_level) {
-            score += 10;
-          } else if ((answers.energy_level === 'Low' && breed.energy_level === 'Medium') ||
-                     (answers.energy_level === 'High' && breed.energy_level === 'Medium')) {
-            score += 7;
-            feedback.push('🔸 Energy: Consider more active/quiet activities as needed');
-          } else {
-            score += 3;
-            feedback.push('⚠️ Energy: Major mismatch - you may struggle with this breed\'s energy');
+        matchLoading: false,
+        async submitMatchForm() {
+          const questions = this.getQuizQuestions();
+          const unanswered = questions.filter(q => !this.matchAnswers[q.name]);
+          if (unanswered.length > 0) {
+            alert('Please answer all questions before submitting.');
+            return;
           }
 
-          // Care Time
-          maxScore += 10;
-          const careTimeMap = {'Less than 1 hour': 1, '1-2 hours': 2, '2-4 hours': 3, 'More than 4 hours': 4};
-          const careDemandMap = {'Low': 1, 'Medium': 2, 'High': 3};
-          const careTime = careTimeMap[answers.daily_care_time] || 0;
-          const careDemand = careDemandMap[breed.care_intensity] || 0;
-          if (Math.abs(careTime - careDemand) <= 1) {
-            score += 10;
-          } else if (Math.abs(careTime - careDemand) === 2) {
-            score += 5;
-            feedback.push('⚠️ Care Time: You may not have enough time for this breed');
-          } else {
-            score += 1;
-            feedback.push('⚠️ Care Time: This breed requires more daily care than you can provide');
+          if (this.matchLoading) {
+            console.warn('Match submission already in progress');
+            return;
           }
 
-          // Noise Tolerance
-          maxScore += 10;
-          const noiseMap = {'Silent': 1, 'Low': 2, 'Moderate': 3, 'Loud': 4};
-          const userNoise = noiseMap[answers.noise_level] || 0;
-          const breedNoise = noiseMap[breed.noise_level] || 0;
-          if (userNoise >= breedNoise - 1) {
-            score += 10;
-          } else {
-            score += 3;
-            feedback.push('⚠️ Noise: This breed is noisier than you prefer');
-          }
-
-          // Social Needs
-          maxScore += 10;
-          const socialMap = {'Low': 1, 'Medium': 2, 'High': 3};
-          const userSocial = socialMap[answers.social_needs] || 0;
-          const breedSocial = socialMap[breed.social_needs] || 0;
-          if (Math.abs(userSocial - breedSocial) <= 1) {
-            score += 10;
-          } else if (userSocial < breedSocial) {
-            score += 4;
-            feedback.push('🔸 Bonding: Breed needs more attention than you\'re offering');
-          } else {
-            score += 8;
-            feedback.push('✅ Bonding: You can give more attention than needed');
-          }
-
-          // Experience Level
-          maxScore += 10;
-          const expMap = {'Beginner': 1, 'Intermediate': 2, 'Advanced': 3};
-          const userExp = expMap[answers.experience_required] || 0;
-          const breedExp = expMap[breed.experience_required] || 0;
-          if (userExp >= breedExp) {
-            score += 10;
-          } else {
-            score += Math.max(1, 10 - (breedExp - userExp) * 5);
-            feedback.push('⚠️ Experience: This breed is complex for your experience level');
-          }
-
-          // Space
-          maxScore += 10;
-          const spaceMap = {'Small': 1, 'Medium': 2, 'Large': 3};
-          const userSpace = spaceMap[answers.space_needs] || 0;
-          const breedSpace = spaceMap[breed.space_needs] || 0;
-          if (userSpace >= breedSpace) {
-            score += 10;
-          } else {
-            score += 4;
-            feedback.push('⚠️ Space: Your home is smaller than what this breed prefers');
-          }
-
-          // Budget
-          maxScore += 10;
-          const budgetMap = {'Low': 1, 'Medium': 2, 'High': 3};
-          const userBudget = budgetMap[answers.budget] || 0;
-          const breedBudget = budgetMap[breed.monthly_cost_level] || 0;
-          if (userBudget >= breedBudget) {
-            score += 10;
-          } else {
-            score += Math.max(1, 10 - (breedBudget - userBudget) * 3);
-            feedback.push('💰 Budget: Monthly costs may exceed your budget');
-          }
-
-          const percentage = Math.round((score / maxScore) * 100);
+          this.matchLoading = true;
+          console.log('Starting breed match submission...');
           
-          let colorClass = 'text-red-600';
-          let bgClass = 'bg-red-50';
-          let borderClass = 'border-red-200';
-          let recommendation = '❌ Not Recommended';
-          
-          if (percentage >= 80) {
-            colorClass = 'text-green-600';
-            bgClass = 'bg-green-50';
-            borderClass = 'border-green-200';
-            recommendation = '✅ Excellent Match!';
-          } else if (percentage >= 60) {
-            colorClass = 'text-yellow-600';
-            bgClass = 'bg-yellow-50';
-            borderClass = 'border-yellow-200';
-            recommendation = '🟡 Good Match';
-          } else if (percentage >= 40) {
-            colorClass = 'text-orange-600';
-            bgClass = 'bg-orange-50';
-            borderClass = 'border-orange-200';
-            recommendation = '🟠 Moderate Match';
-          }
+          const timeoutId = setTimeout(() => {
+            this.matchLoading = false;
+            console.error('Match submission timeout after 60 seconds');
+            alert('The server is taking too long to process your match. Please refresh and try again.');
+          }, 60000);
 
-          return {
-            percentage,
-            score: Math.round(score),
-            maxScore,
-            recommendation,
-            colorClass,
-            bgClass,
-            borderClass,
-            feedback: feedback.length > 0 ? feedback : ['✅ Great fit across all factors!']
-          };
+          try {
+            const endpoint = '{{ url_for("matching.api_breed_match") }}';
+            console.log('Submitting breed match to:', endpoint);
+            console.log('Selected breed ID:', this.selectedBreed?.id);
+
+            const controller = new AbortController();
+            const timeoutAbort = setTimeout(() => {
+              console.log('Aborting request due to 55s timeout');
+              controller.abort();
+            }, 55000);
+
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                breed_id: this.selectedBreed?.id,
+                answers: this.matchAnswers
+              }),
+              signal: controller.signal
+            });
+            
+            clearTimeout(timeoutAbort);
+            clearTimeout(timeoutId);
+            
+            console.log('Response status:', response.status);
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Match results received successfully');
+              console.log('API Response:', data);
+              
+              if (data && data.score !== undefined) {
+                this.matchResult = {
+                  percentage: data.score,
+                  score: data.score,
+                  maxScore: 100,
+                  recommendation: data.level === 'Excellent' ? '✅ Excellent Match!' : data.level === 'Good' ? '🟡 Good Match' : data.level === 'Fair' ? '🟠 Moderate Match' : '❌ Not Recommended',
+                  colorClass: data.score >= 80 ? 'text-green-600' : data.score >= 60 ? 'text-yellow-600' : data.score >= 40 ? 'text-orange-600' : 'text-red-600',
+                  bgClass: data.score >= 80 ? 'bg-green-50' : data.score >= 60 ? 'bg-yellow-50' : data.score >= 40 ? 'bg-orange-50' : 'bg-red-50',
+                  borderClass: data.score >= 80 ? 'border-green-200' : data.score >= 60 ? 'border-yellow-200' : data.score >= 40 ? 'border-orange-200' : 'border-red-200',
+                  feedback: data.suggestions && data.suggestions.length > 0 ? data.suggestions : ['✅ Great fit across all factors!'],
+                  improvement_areas: data.improvement_areas || [],
+                  strength_areas: data.strength_areas || []
+                };
+                console.log('Match result object created:', this.matchResult);
+                this.matchStep = this.totalMatchSteps + 1;
+              } else {
+                throw new Error('Invalid response: missing score data');
+              }
+            } else {
+              const errorText = await response.text().catch(() => '');
+              console.error('Server error:', response.status, errorText);
+              throw new Error(`Server error: ${response.status}`);
+            }
+          } catch (error) {
+            console.error('Match submission error:', error);
+            clearTimeout(timeoutId);
+            
+            let errorMessage = 'Unable to process your match. Please try again.';
+            if (error.name === 'AbortError') {
+              errorMessage = 'Request timed out. Please try again.';
+            } else if (error.message.includes('Failed to fetch')) {
+              errorMessage = 'Network error. Check your connection.';
+            } else if (error.message.includes('Invalid response')) {
+              errorMessage = 'Server returned invalid data.';
+            }
+            
+            alert(errorMessage);
+          } finally {
+            this.matchLoading = false;
+            console.log('Match submission finished. Loading state reset.');
+          }
         },
-        submitMatchForm() {
-          this.matchResult = this.calculateCompatibility();
-          this.matchStep = this.totalMatchSteps + 1;
+        getQuizQuestions() {
+          return [
+            { name: 'energy_level', section: 'About You', question: 'How active are you most days?', options: ['I mostly relax at home', 'I move around sometimes', 'I am very active and always busy'] },
+            { name: 'noise_level', section: 'About You', question: 'How much noise can you handle at home?', options: ['I need it very quiet', 'Some noise is okay', 'Noise does not bother me'] },
+            { name: 'social_needs', section: 'About You', question: 'How much attention do you want to give your pet?', options: ['Just a little', 'A fair amount', 'A lot, I like bonding'] },
+            { name: 'handling_tolerance', section: 'About You', question: 'How calm is your home?', options: ['Very calm and quiet', 'Normal', 'Busy, noisy, and active'] },
+            { name: 'daily_care_time', section: 'Time & Care', question: 'How much time can you spend on pet care daily?', options: ['Less than 1 hour', '1-2 hours', '2-4 hours', 'More than 4 hours'] },
+            { name: 'grooming_needs', section: 'Time & Care', question: 'How often can you clean, groom, or care for your pet?', options: ['Rarely', 'About once a week', 'Very often'] },
+            { name: 'exercise_needs', section: 'Time & Care', question: 'Can you give your pet exercise or play every day?', options: ['No', 'Sometimes', 'Yes, every day'] },
+            { name: 'environment_complexity', section: 'Time & Care', question: 'Are you okay with setting up tanks, cages, or special homes?', options: ['No, I prefer simple pets', 'I can manage a little', 'Yes, I\'m okay with it'] },
+            { name: 'experience_required', section: 'Experience', question: 'Have you taken care of pets before?', options: ['This is my first pet', 'I have had a few', 'I have a lot of experience'] },
+            { name: 'trainability', section: 'Experience', question: 'How patient are you with training or teaching a pet?', options: ['Not very patient', 'Somewhat patient', 'Very patient'] },
+            { name: 'temperament_tolerance', section: 'Experience', question: 'How well can you handle difficult or stubborn pets?', options: ['Not well', 'I can try', 'I handle them well'] },
+            { name: 'space_needs', section: 'Home & Space', question: 'How big is your living space?', options: ['Small apartment or room', 'Medium-sized home', 'Large home or house with space'] },
+            { name: 'min_enclosure_size', section: 'Home & Space', question: 'Can you keep tanks, cages, or enclosures if needed?', options: ['No', 'Small ones only', 'Large ones are okay'] },
+            { name: 'monthly_cost_level', section: 'Budget & Costs', question: 'How much can you spend on your pet each month?', options: ['Low budget', 'Medium budget', 'High budget'] },
+            { name: 'emergency_care_risk', section: 'Budget & Costs', question: 'Can you handle emergency vet bills?', options: ['No', 'Maybe', 'Yes'] },
+            { name: 'lifetime_cost_level', section: 'Budget & Costs', question: 'Are you ready for long-term pet expenses?', options: ['Not really', 'Somewhat', 'Yes, I\'m prepared'] },
+            { name: 'child_friendly', section: 'Household', question: 'Do you have children at home?', options: ['Yes', 'No'] },
+            { name: 'dog_friendly', section: 'Household', question: 'Do you have dogs?', options: ['Yes', 'No'] },
+            { name: 'cat_friendly', section: 'Household', question: 'Do you have cats?', options: ['Yes', 'No'] },
+            { name: 'small_pet_friendly', section: 'Household', question: 'Do you have small pets?', options: ['Yes', 'No'] },
+            { name: 'prey_drive', section: 'Species & Safety', question: 'Are you okay with pets that hunt or eat other animals?', options: ['No', 'Maybe', 'Yes'] },
+            { name: 'okay_fragile', section: 'Species & Safety', question: 'Are you okay caring for fragile or delicate animals?', options: ['No', 'Yes'] },
+            { name: 'okay_permit', section: 'Species & Safety', question: 'Are you okay with special permits or legal requirements?', options: ['No', 'Yes'] },
+            { name: 'okay_special_vet', section: 'Species & Safety', question: 'Can you access special or exotic veterinarians if needed?', options: ['No', 'Yes'] }
+          ];
         }
       }"
      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
@@ -156,7 +145,7 @@
   <div>
 
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-8">
       <div class="flex items-center gap-2 sm:gap-3">
         <span class="bg-lavender/30 rounded-full p-2 flex-shrink-0">
           <i class="{{ species.display_icon }} text-indigo-600 text-lg sm:text-xl"></i>
@@ -166,20 +155,20 @@
         </h2>
       </div>
 
-      <div class="flex">
+      <div class="flex flex-col sm:flex-row gap-3">
         <!-- Back Button -->
         <a href="{{ url_for('user.dashboard') }}"
-           class="inline-flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition">
+          class="inline-flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition">
           <i class="fa-solid fa-arrow-left mr-2"></i> Back
         </a>
       </div>
     </div>
 
+
     {% if breeds %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
 
       {% for breed in breeds %}
-      <!-- Each breed card has its own Alpine.js state for menu/delete -->
       <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative">
 
         <!-- IMAGE -->
@@ -208,6 +197,7 @@
                       care === 'High' ? 'Advanced' : 'N/A'"
             ></span>
           </div>
+
 
           <!-- VIEW MODAL BUTTON -->
           <button 
@@ -289,48 +279,48 @@
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 hover:shadow-md transition">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-semibold text-green-600">Lifespan</span>
-                <i class="fa-solid fa-hourglass-half text-green-500"></i>
+                <span class="text-xs font-bold text-green-700 uppercase">Lifespan</span>
+                <i class="fa-solid fa-hourglass-half text-green-600 text-sm"></i>
               </div>
               <p class="text-xs text-green-600 font-medium" x-text="selectedBreed?.lifespan ? selectedBreed.lifespan + ' years' : 'N/A'"></p>
             </div>
 
             <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200 hover:shadow-md transition">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-semibold text-orange-600">Care Cost</span>
-                <i class="fa-solid fa-peso-sign text-orange-500"></i>
+                <span class="text-xs font-bold text-orange-700 uppercase">Care Cost</span>
+                <i class="fa-solid fa-peso-sign text-orange-600 text-sm"></i>
               </div>
               <p class="text-xs text-orange-600 font-medium" x-text="selectedBreed?.estimated_care_cost ? '₱' + selectedBreed.estimated_care_cost.toFixed(2) : 'N/A'"></p>
             </div>
 
             <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200 hover:shadow-md transition">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-semibold text-pink-600">Experience</span>
-                <i class="fa-solid fa-user-graduate text-pink-500"></i>
+                <span class="text-xs font-bold text-pink-700 uppercase">Difficulty</span>
+                <i class="fa-solid fa-star text-pink-600 text-sm"></i>
               </div>
               <p class="text-xs text-pink-600 font-medium" x-text="selectedBreed?.experience_required || 'N/A'"></p>
             </div>
 
             <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 border border-yellow-200 hover:shadow-md transition">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-semibold text-yellow-600">Noise Level</span>
-                <i class="fa-solid fa-volume-high text-yellow-500"></i>
+                <span class="text-xs font-bold text-yellow-700 uppercase">Noise Level</span>
+                <i class="fa-solid fa-volume-high text-yellow-600 text-sm"></i>
               </div>
               <p class="text-xs text-yellow-600 font-medium" x-text="selectedBreed?.noise_level || 'N/A'"></p>
             </div>
 
             <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 hover:shadow-md transition">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-semibold text-blue-600">Energy</span>
-                <i class="fa-solid fa-bolt text-blue-500"></i>
+                <span class="text-xs font-bold text-blue-700 uppercase">Energy</span>
+                <i class="fa-solid fa-bolt text-blue-600 text-sm"></i>
               </div>
               <p class="text-xs text-blue-600 font-medium" x-text="selectedBreed?.energy_level || 'N/A'"></p>
             </div>
 
             <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200 hover:shadow-md transition">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-semibold text-purple-600">Time</span>
-                <i class="fa-solid fa-clock text-purple-500"></i>
+                <span class="text-xs font-bold text-purple-700 uppercase">Time Needed</span>
+                <i class="fa-solid fa-clock text-purple-600 text-sm"></i>
               </div>
               <p class="text-xs text-purple-600 font-medium" x-text="selectedBreed?.time_commitment || 'N/A'"></p>
             </div>
@@ -380,7 +370,7 @@
             <!-- Space Needs - Always shown -->
             <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
               <div class="flex items-center gap-2">
-                <i class="fa-solid fa-house text-purple-500 text-lg"></i>
+                <i class="fa-solid fa-ruler-combined text-purple-500 text-lg"></i>
                 <span class="text-sm font-medium text-gray-700">Space Needs</span>
               </div>
               <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.space_needs || 'N/A'"></span>
@@ -401,7 +391,7 @@
             {% if not species.fragile_species %}
             <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
               <div class="flex items-center gap-2">
-                <i class="fa-solid fa-hand text-blue-500 text-lg"></i>
+                <i class="fa-solid fa-handshake text-green-500 text-lg"></i>
                 <span class="text-sm font-medium text-gray-700">Handling Tolerance</span>
               </div>
               <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.handling_tolerance || 'N/A'"></span>
@@ -596,7 +586,7 @@
             <!-- Monthly Cost Level - Always shown -->
             <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
               <div class="flex items-center gap-2">
-                <i class="fa-solid fa-calendar-month text-green-500 text-lg"></i>
+                <i class="fa-solid fa-wallet text-red-600"></i>
                 <span class="text-sm font-medium text-gray-700">Monthly Cost Level</span>
               </div>
               <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.monthly_cost_level || 'N/A'"></span>
@@ -647,32 +637,48 @@
     </div>
   </div>
 
-  <!-- 🔷 MATCH MODAL - COMPATIBILITY TEST -->
-  <div x-show="matchModal" x-transition
-       class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+  <!-- 🔷 MATCH MODAL - ENHANCED COMPATIBILITY TEST -->
+  <style>
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-fadeIn {
+      animation: fadeIn 0.3s ease-out;
+    }
+  </style>
 
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl border border-gray-200 flex flex-col max-h-[90vh] overflow-hidden my-4">
+  <div x-show="matchModal" x-transition.opacity
+       class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
+
+    <div class="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl w-full max-w-4xl mx-2 border border-indigo-100 flex flex-col max-h-[90vh] overflow-hidden mt-6 sm:mt-10 transition-all duration-300">
 
       <!-- HEADER -->
-      <div class="sticky top-0 bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-3xl z-20">
-        <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-heart"></i> 
-          <span x-text="matchStep <= totalMatchSteps ? 'Compatibility Test' : 'Your Results'"></span>
+      <div class="px-4 sm:px-6 py-4 border-b border-indigo-100 flex justify-between items-center sticky top-0 bg-white/95 z-10">
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <i class="fa-solid fa-heart text-indigo-600"></i>
+          <span x-text="matchStep <= totalMatchSteps ? 'Breed Compatibility Test' : 'Compatibility Results'"></span>
         </h3>
-        <button @click="matchModal=false; matchResult=null; matchStep=1; matchAnswers={};"
-                class="text-white hover:bg-emerald-800 rounded-full p-2 transition">
-          <i class="fa-solid fa-xmark text-xl"></i>
+        <button @click="matchModal=false; matchResult=null; matchStep=1; matchAnswers={};" class="text-gray-500 hover:text-gray-700 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
       <!-- PROGRESS BAR -->
-      <div x-show="matchStep <= totalMatchSteps" class="px-4 sm:px-6 py-3 border-b border-gray-200 bg-gray-50">
+      <div x-show="matchStep <= totalMatchSteps" class="px-4 sm:px-6 py-3 bg-gray-50 border-b border-gray-200">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs sm:text-sm font-semibold text-gray-700">Question <span x-text="matchStep"></span> of 24</span>
-          <span class="text-xs text-gray-500"><span x-text="Math.round((matchStep/24)*100)"></span>%</span>
+          <span class="text-sm font-semibold text-gray-700">Question <span x-text="matchStep"></span> of <span x-text="totalMatchSteps"></span></span>
+          <span class="text-sm text-gray-500"><span x-text="Math.round((matchStep/totalMatchSteps)*100)"></span>%</span>
         </div>
-        <div class="w-full bg-gray-300 rounded-full h-2 overflow-hidden">
-          <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-full rounded-full transition-all duration-300" :style="'width: ' + (matchStep/24*100) + '%'"></div>
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 h-full rounded-full transition-all duration-300" :style="'width: ' + ((matchStep/totalMatchSteps)*100) + '%'"></div>
         </div>
       </div>
 
@@ -680,395 +686,224 @@
       <div class="overflow-y-auto flex-1 px-4 sm:px-6 py-6 space-y-6">
 
         <!-- BREED INFO HEADER -->
-        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-200">
-          <div class="flex items-center gap-3">
+        <div x-show="matchStep <= totalMatchSteps" class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-4 sm:p-5 border border-indigo-200">
+          <div class="flex items-center gap-3 sm:gap-4">
             <img :src="selectedBreed?.image_url ? '/static/' + selectedBreed.image_url : '/static/uploads/no-image-attachment.jpg'"
-                 class="w-16 h-16 rounded-xl object-cover">
-            <div>
-              <h4 class="text-lg font-bold text-gray-900" x-text="selectedBreed?.name"></h4>
-              <p class="text-sm text-gray-600" x-text="selectedBreed?.temperament || 'Unknown temperament'"></p>
+                 class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shadow-md">
+            <div class="flex-1">
+              <h4 class="text-lg sm:text-xl font-bold text-gray-900" x-text="selectedBreed?.name"></h4>
+              <p class="text-xs sm:text-sm text-gray-600 mt-1" x-text="selectedBreed?.temperament || 'Unknown temperament'"></p>
+              <div class="mt-2 flex items-center gap-2">
+                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+                  <i class="fa-solid fa-heart mr-1"></i>Test this breed
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- QUESTIONS (24 Total from Quiz) -->
-        <form @submit.prevent="submitMatchForm()" class="space-y-4 text-sm">
+        <!-- QUESTIONS -->
+        <form @submit.prevent="submitMatchForm()" class="space-y-4">
 
-          <!-- Q1: Energy Level -->
-          <div x-show="matchStep === 1" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-bolt text-yellow-500 mr-2"></i> How active are you most days?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.energy_level === 'Low' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Low" x-model="matchAnswers.energy_level" class="w-4 h-4"><span class="ml-3 text-gray-700">I mostly relax at home</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.energy_level === 'Medium' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Medium" x-model="matchAnswers.energy_level" class="w-4 h-4"><span class="ml-3 text-gray-700">I move around sometimes</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.energy_level === 'High' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="High" x-model="matchAnswers.energy_level" class="w-4 h-4"><span class="ml-3 text-gray-700">I am very active and always busy</span>
-            </label>
-          </div>
+          <template x-if="getQuizQuestions().length > 0">
+            <div x-show="matchStep <= totalMatchSteps" class="space-y-6 max-w-2xl mx-auto w-full animate-fadeIn">
+              <template x-if="matchStep <= totalMatchSteps">
+                <div>
+                  <!-- Question Counter & Section -->
+                  <div class="mb-6">
+                    <p class="text-xs font-semibold text-indigo-700 uppercase tracking-widest" x-text="getQuizQuestions()[matchStep - 1]?.section"></p>
+                    <h4 class="text-2xl sm:text-3xl font-bold text-gray-900 mt-2" x-text="getQuizQuestions()[matchStep - 1]?.question"></h4>
+                  </div>
 
-          <!-- Q2: Noise Level -->
-          <div x-show="matchStep === 2" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-volume-high text-orange-500 mr-2"></i> How much noise can you handle at home?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.noise_level === 'Silent' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Silent" x-model="matchAnswers.noise_level" class="w-4 h-4"><span class="ml-3 text-gray-700">I need it very quiet</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.noise_level === 'Low' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Low" x-model="matchAnswers.noise_level" class="w-4 h-4"><span class="ml-3 text-gray-700">Some noise is okay</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.noise_level === 'Moderate' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Moderate" x-model="matchAnswers.noise_level" class="w-4 h-4"><span class="ml-3 text-gray-700">Noise does not bother me</span>
-            </label>
-          </div>
-
-          <!-- Q3: Social Needs -->
-          <div x-show="matchStep === 3" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-heart text-red-500 mr-2"></i> How much attention do you want to give your pet?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.social_needs === 'Low' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Low" x-model="matchAnswers.social_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Just a little</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.social_needs === 'Medium' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Medium" x-model="matchAnswers.social_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">A fair amount</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.social_needs === 'High' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="High" x-model="matchAnswers.social_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">A lot, I like bonding</span>
-            </label>
-          </div>
-
-          <!-- Q4: Handling Tolerance / Home Calm -->
-          <div x-show="matchStep === 4" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-home text-purple-500 mr-2"></i> How calm is your home?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.handling_tolerance === 'High' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="High" x-model="matchAnswers.handling_tolerance" class="w-4 h-4"><span class="ml-3 text-gray-700">Very calm and quiet</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.handling_tolerance === 'Medium' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Medium" x-model="matchAnswers.handling_tolerance" class="w-4 h-4"><span class="ml-3 text-gray-700">Normal</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.handling_tolerance === 'Low' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Low" x-model="matchAnswers.handling_tolerance" class="w-4 h-4"><span class="ml-3 text-gray-700">Busy, noisy, and active</span>
-            </label>
-          </div>
-
-          <!-- Q5: Daily Care Time -->
-          <div x-show="matchStep === 5" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-clock text-blue-500 mr-2"></i> How much time can you spend on pet care daily?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.daily_care_time === 'Less than 1 hour' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Less than 1 hour" x-model="matchAnswers.daily_care_time" class="w-4 h-4"><span class="ml-3 text-gray-700">Less than 1 hour</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.daily_care_time === '1-2 hours' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="1-2 hours" x-model="matchAnswers.daily_care_time" class="w-4 h-4"><span class="ml-3 text-gray-700">1-2 hours</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.daily_care_time === '2-4 hours' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="2-4 hours" x-model="matchAnswers.daily_care_time" class="w-4 h-4"><span class="ml-3 text-gray-700">2-4 hours</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.daily_care_time === 'More than 4 hours' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="More than 4 hours" x-model="matchAnswers.daily_care_time" class="w-4 h-4"><span class="ml-3 text-gray-700">More than 4 hours</span>
-            </label>
-          </div>
-
-          <!-- Q6: Grooming -->
-          <div x-show="matchStep === 6" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-brush text-pink-500 mr-2"></i> How often can you clean, groom, or care for your pet?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.grooming_needs === 'Rarely' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Rarely" x-model="matchAnswers.grooming_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Rarely</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.grooming_needs === 'About once a week' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="About once a week" x-model="matchAnswers.grooming_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">About once a week</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.grooming_needs === 'Very often' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Very often" x-model="matchAnswers.grooming_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Very often</span>
-            </label>
-          </div>
-
-          <!-- Q7: Exercise -->
-          <div x-show="matchStep === 7" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-dumbbell text-red-500 mr-2"></i> Can you give your pet exercise or play every day?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.exercise_needs === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.exercise_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.exercise_needs === 'Sometimes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Sometimes" x-model="matchAnswers.exercise_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Sometimes</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.exercise_needs === 'Yes, every day' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes, every day" x-model="matchAnswers.exercise_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes, every day</span>
-            </label>
-          </div>
-
-          <!-- Q8: Environment Complexity -->
-          <div x-show="matchStep === 8" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-cube text-cyan-500 mr-2"></i> Are you okay with setting up tanks, cages, or special homes?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.environment_complexity === 'Simple' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Simple" x-model="matchAnswers.environment_complexity" class="w-4 h-4"><span class="ml-3 text-gray-700">No, I prefer simple pets</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.environment_complexity === 'Moderate' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Moderate" x-model="matchAnswers.environment_complexity" class="w-4 h-4"><span class="ml-3 text-gray-700">I can manage a little</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.environment_complexity === 'Complex' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Complex" x-model="matchAnswers.environment_complexity" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes, I'm okay with it</span>
-            </label>
-          </div>
-
-          <!-- Q9: Experience -->
-          <div x-show="matchStep === 9" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-user-graduate text-indigo-500 mr-2"></i> Have you taken care of pets before?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.experience_required === 'Beginner' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Beginner" x-model="matchAnswers.experience_required" class="w-4 h-4"><span class="ml-3 text-gray-700">This is my first pet</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.experience_required === 'Intermediate' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Intermediate" x-model="matchAnswers.experience_required" class="w-4 h-4"><span class="ml-3 text-gray-700">I have had a few</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.experience_required === 'Advanced' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Advanced" x-model="matchAnswers.experience_required" class="w-4 h-4"><span class="ml-3 text-gray-700">I have a lot of experience</span>
-            </label>
-          </div>
-
-          <!-- Q10: Trainability / Patience -->
-          <div x-show="matchStep === 10" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-brain text-green-500 mr-2"></i> How patient are you with training or teaching a pet?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.trainability === 'Difficult' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Difficult" x-model="matchAnswers.trainability" class="w-4 h-4"><span class="ml-3 text-gray-700">Not very patient</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.trainability === 'Moderate' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Moderate" x-model="matchAnswers.trainability" class="w-4 h-4"><span class="ml-3 text-gray-700">Somewhat patient</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.trainability === 'Easy' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Easy" x-model="matchAnswers.trainability" class="w-4 h-4"><span class="ml-3 text-gray-700">Very patient</span>
-            </label>
-          </div>
-
-          <!-- Q11: Temperament Tolerance -->
-          <div x-show="matchStep === 11" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-shield text-amber-500 mr-2"></i> How well can you handle difficult or stubborn pets?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.temperament_tolerance === 'Not well' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Not well" x-model="matchAnswers.temperament_tolerance" class="w-4 h-4"><span class="ml-3 text-gray-700">Not well</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.temperament_tolerance === 'I can try' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="I can try" x-model="matchAnswers.temperament_tolerance" class="w-4 h-4"><span class="ml-3 text-gray-700">I can try</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.temperament_tolerance === 'I handle them well' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="I handle them well" x-model="matchAnswers.temperament_tolerance" class="w-4 h-4"><span class="ml-3 text-gray-700">I handle them well</span>
-            </label>
-          </div>
-
-          <!-- Q12: Space -->
-          <div x-show="matchStep === 12" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-house text-purple-500 mr-2"></i> How big is your living space?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.space_needs === 'Small' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Small" x-model="matchAnswers.space_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Small apartment or room</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.space_needs === 'Medium' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Medium" x-model="matchAnswers.space_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Medium-sized home</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.space_needs === 'Large' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Large" x-model="matchAnswers.space_needs" class="w-4 h-4"><span class="ml-3 text-gray-700">Large home or house with space</span>
-            </label>
-          </div>
-
-          <!-- Q13: Enclosure Size -->
-          <div x-show="matchStep === 13" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-box text-teal-500 mr-2"></i> Can you keep tanks, cages, or enclosures if needed?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.min_enclosure_size === '0' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="0" x-model="matchAnswers.min_enclosure_size" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.min_enclosure_size === '1' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="1" x-model="matchAnswers.min_enclosure_size" class="w-4 h-4"><span class="ml-3 text-gray-700">Small ones only</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.min_enclosure_size === '2' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="2" x-model="matchAnswers.min_enclosure_size" class="w-4 h-4"><span class="ml-3 text-gray-700">Large ones are okay</span>
-            </label>
-          </div>
-
-          <!-- Q14: Monthly Budget -->
-          <div x-show="matchStep === 14" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-wallet text-green-500 mr-2"></i> How much can you spend on your pet each month?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.monthly_cost_level === 'Low' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Low" x-model="matchAnswers.monthly_cost_level" class="w-4 h-4"><span class="ml-3 text-gray-700">Low budget</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.monthly_cost_level === 'Medium' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Medium" x-model="matchAnswers.monthly_cost_level" class="w-4 h-4"><span class="ml-3 text-gray-700">Medium budget</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.monthly_cost_level === 'High' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="High" x-model="matchAnswers.monthly_cost_level" class="w-4 h-4"><span class="ml-3 text-gray-700">High budget</span>
-            </label>
-          </div>
-
-          <!-- Q15: Emergency Care -->
-          <div x-show="matchStep === 15" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-heart-pulse text-red-500 mr-2"></i> Can you handle emergency vet bills?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.emergency_care_risk === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.emergency_care_risk" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.emergency_care_risk === 'Maybe' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Maybe" x-model="matchAnswers.emergency_care_risk" class="w-4 h-4"><span class="ml-3 text-gray-700">Maybe</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.emergency_care_risk === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.emergency_care_risk" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-          </div>
-
-          <!-- Q16: Lifetime Costs -->
-          <div x-show="matchStep === 16" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-piggy-bank text-yellow-600 mr-2"></i> Are you ready for long-term pet expenses?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.lifetime_cost_level === 'Not really' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Not really" x-model="matchAnswers.lifetime_cost_level" class="w-4 h-4"><span class="ml-3 text-gray-700">Not really</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.lifetime_cost_level === 'Somewhat' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Somewhat" x-model="matchAnswers.lifetime_cost_level" class="w-4 h-4"><span class="ml-3 text-gray-700">Somewhat</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.lifetime_cost_level === 'Yes, I\'m prepared' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes, I'm prepared" x-model="matchAnswers.lifetime_cost_level" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes, I'm prepared</span>
-            </label>
-          </div>
-
-          <!-- Q17: Children -->
-          <div x-show="matchStep === 17" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-children text-pink-500 mr-2"></i> Do you have children at home?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.child_friendly === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.child_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.child_friendly === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.child_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-          </div>
-
-          <!-- Q18: Dogs -->
-          <div x-show="matchStep === 18" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-dog text-orange-500 mr-2"></i> Do you have dogs?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.dog_friendly === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.dog_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.dog_friendly === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.dog_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-          </div>
-
-          <!-- Q19: Cats -->
-          <div x-show="matchStep === 19" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-cat text-purple-500 mr-2"></i> Do you have cats?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.cat_friendly === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.cat_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.cat_friendly === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.cat_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-          </div>
-
-          <!-- Q20: Small Pets -->
-          <div x-show="matchStep === 20" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-hamster text-amber-500 mr-2"></i> Do you have small pets?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.small_pet_friendly === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.small_pet_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.small_pet_friendly === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.small_pet_friendly" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-          </div>
-
-          <!-- Q21: Prey Drive -->
-          <div x-show="matchStep === 21" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-crosshairs text-red-600 mr-2"></i> Are you okay with pets that hunt or eat other animals?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.prey_drive === 'None' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="None" x-model="matchAnswers.prey_drive" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.prey_drive === 'Low' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Low" x-model="matchAnswers.prey_drive" class="w-4 h-4"><span class="ml-3 text-gray-700">Maybe</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.prey_drive === 'High' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="High" x-model="matchAnswers.prey_drive" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-          </div>
-
-          <!-- Q22: Fragile Animals -->
-          <div x-show="matchStep === 22" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-feather text-cyan-500 mr-2"></i> Are you okay caring for fragile or delicate animals?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.okay_fragile === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.okay_fragile" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.okay_fragile === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.okay_fragile" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-          </div>
-
-          <!-- Q23: Permits -->
-          <div x-show="matchStep === 23" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-file-contract text-blue-600 mr-2"></i> Are you okay with special permits or legal requirements?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.okay_permit === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.okay_permit" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.okay_permit === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.okay_permit" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-          </div>
-
-          <!-- Q24: Special Vet -->
-          <div x-show="matchStep === 24" class="space-y-2">
-            <label class="block font-semibold text-gray-900"><i class="fa-solid fa-stethoscope text-green-600 mr-2"></i> Can you access special or exotic veterinarians if needed?</label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.okay_special_vet === 'No' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="No" x-model="matchAnswers.okay_special_vet" class="w-4 h-4"><span class="ml-3 text-gray-700">No</span>
-            </label>
-            <label class="flex items-center p-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-emerald-400 transition" :class="matchAnswers.okay_special_vet === 'Yes' ? 'border-emerald-600 bg-emerald-50' : ''">
-              <input type="radio" value="Yes" x-model="matchAnswers.okay_special_vet" class="w-4 h-4"><span class="ml-3 text-gray-700">Yes</span>
-            </label>
-          </div>
-
-          <!-- RESULTS -->
-          <div x-show="matchStep > totalMatchSteps" class="space-y-6">
-            <!-- Compatibility Score -->
-            <div :class="matchResult?.bgClass + ' ' + matchResult?.borderClass" class="rounded-2xl p-6 border-2 text-center">
-              <div class="text-5xl font-bold mb-2" :class="matchResult?.colorClass" x-text="matchResult?.percentage + '%'"></div>
-              <h4 class="text-2xl font-bold text-gray-900 mb-2" x-text="matchResult?.recommendation"></h4>
-              <p class="text-sm text-gray-600">Compatibility Score: <span x-text="matchResult?.score"></span> / <span x-text="matchResult?.maxScore"></span></p>
-            </div>
-
-            <!-- Feedback -->
-            <div class="space-y-3">
-              <h5 class="text-lg font-bold text-gray-900">Compatibility Factors:</h5>
-              <template x-for="item in matchResult?.feedback" :key="item">
-                <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 border border-gray-200">
-                  <p x-text="item"></p>
+                  <!-- Answer Options -->
+                  <div class="space-y-3">
+                    <template x-for="(option, idx) in getQuizQuestions()[matchStep - 1]?.options" :key="idx">
+                      <label class="flex items-center p-4 border-2 border-gray-200 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition group"
+                             :class="matchAnswers[getQuizQuestions()[matchStep - 1].name] === option ? 'border-indigo-800 bg-indigo-50' : '">
+                        <input type="radio" 
+                               :name="getQuizQuestions()[matchStep - 1].name"
+                               :value="option" 
+                               @change="matchAnswers[getQuizQuestions()[matchStep - 1].name] = option"
+                               :checked="matchAnswers[getQuizQuestions()[matchStep - 1].name] === option"
+                               class="w-5 h-5 text-indigo-800">
+                        <span class="ml-3 text-gray-700 font-medium group-hover:text-gray-900 transition" x-text="option"></span>
+                      </label>
+                    </template>
+                  </div>
                 </div>
               </template>
             </div>
+          </template>
 
-            <!-- Suggestions -->
-            <div class="bg-blue-50 rounded-2xl p-4 border border-blue-200">
-              <h5 class="font-bold text-blue-900 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-lightbulb"></i> How to Improve Compatibility
-              </h5>
-              <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                <li>Read more about this breed's specific care requirements</li>
-                <li>Consider adjusting your schedule to match the breed's needs</li>
-                <li>Consult with breeders or owners for firsthand experiences</li>
-                <li>Join pet communities to learn from experienced owners</li>
-              </ul>
-            </div>
+          <!-- RESULTS -->
+            <div x-show="matchStep > totalMatchSteps" class="space-y-6 max-w-3xl mx-auto w-full animate-fadeIn">
+
+              <!-- BREED PROFILE CARD -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 rounded-2xl p-4 sm:p-5 border-2 border-indigo-200">
+                <!-- Breed Image -->
+                <div class="sm:col-span-1">
+                  <img :src="selectedBreed?.image_url ? '/static/' + selectedBreed.image_url : '/static/uploads/no-image-attachment.jpg'"
+                       :alt="selectedBreed?.name"
+                       class="w-full h-32 sm:h-40 rounded-xl object-cover shadow-md border border-indigo-300">
+                </div>
+                <!-- Breed Info -->
+                <div class="sm:col-span-2 flex flex-col justify-between">
+                  <div>
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-1" x-text="selectedBreed?.name"></h3>
+                    <p class="text-sm text-gray-600 mb-3" x-text="selectedBreed?.summary || selectedBreed.temperament "></p>
+                    <div class="space-y-1 text-xs sm:text-sm text-gray-700">                                               
+                      <p><strong>Lifespan:</strong> <span x-text="selectedBreed?.lifespan || 'Unknown'"></span> years</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Compatibility Score Card -->
+              <div :class="matchResult?.bgClass" class="rounded-3xl p-6 sm:p-8 border-2" :class="matchResult?.borderClass">
+                <div class="text-center">
+                  <div class="flex items-center justify-center gap-2 mb-3">
+                    <span class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full text-white font-bold text-lg animate-bounce">
+                      ⭐
+                    </span>
+                  </div>
+                  <h4 class="text-3xl sm:text-4xl font-bold mb-2" :class="matchResult?.colorClass" x-text="matchResult?.recommendation"></h4>
+                  <div class="text-5xl sm:text-6xl font-black mb-2" :class="matchResult?.colorClass" x-text="matchResult?.percentage + '%'"></div>
+                  <p class="text-sm sm:text-base" :class="matchResult?.colorClass">
+                    Compatibility Score
+                  </p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden mt-6">
+                  <div :class="{
+                    'bg-gradient-to-r from-green-500 to-green-600': matchResult?.percentage >= 80,
+                    'bg-gradient-to-r from-yellow-500 to-yellow-600': matchResult?.percentage >= 60 && matchResult?.percentage < 80,
+                    'bg-gradient-to-r from-orange-500 to-orange-600': matchResult?.percentage >= 40 && matchResult?.percentage < 60,
+                    'bg-gradient-to-r from-red-500 to-red-600': matchResult?.percentage < 40
+                  }" class="h-full rounded-full transition-all duration-700" :style="'width: ' + matchResult?.percentage + '%'"></div>
+                </div>
+              </div>
+
+              <!-- Strength Areas (if available) -->
+              <template x-if="matchResult?.strength_areas && matchResult.strength_areas.length > 0">
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 sm:p-5 border-2 border-green-200">
+                  <p class="text-sm font-bold text-green-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-star text-green-600"></i> Perfect Matches - Your Strengths
+                  </p>
+                  <div class="space-y-2">
+                    <template x-for="strength in matchResult?.strength_areas" :key="strength">
+                      <div class="flex items-start gap-2 p-3 bg-white rounded-lg border border-green-100 hover:border-green-300 transition">
+                        <i class="fa-solid fa-check text-green-500 text-sm mt-0.5 flex-shrink-0"></i>
+                        <p class="text-xs sm:text-sm text-gray-700 leading-relaxed" x-text="strength"></p>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Improvement Areas - HIGH Priority -->
+              <template x-if="matchResult?.improvement_areas && matchResult.improvement_areas.filter(a => a.priority === 'High').length > 0">
+                <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-4 sm:p-5 border-2 border-red-300">
+                  <p class="text-sm font-bold text-red-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-exclamation-circle text-red-600"></i> Critical Areas to Improve
+                  </p>
+                  <div class="space-y-3">
+                    <template x-for="area in matchResult?.improvement_areas?.filter(a => a.priority === 'High')" :key="area.title">
+                      <div class="bg-white rounded-lg p-3 border-l-4 border-red-500 hover:shadow-md transition">
+                        <h4 class="font-bold text-gray-900 text-sm mb-2" x-text="area.title"></h4>
+                        <div class="space-y-1 text-xs text-gray-700 mb-2">
+                          <p><strong>Current:</strong> <span x-text="area.current"></span></p>
+                          <p><strong>Ideal:</strong> <span x-text="area.ideal"></span></p>
+                        </div>
+                        <p class="text-xs bg-red-50 border border-red-200 rounded p-2 text-red-800 leading-relaxed" x-text="area.action"></p>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Improvement Areas - MEDIUM Priority -->
+              <template x-if="matchResult?.improvement_areas && matchResult.improvement_areas.filter(a => a.priority === 'Medium').length > 0">
+                <div class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 sm:p-5 border-2 border-yellow-300">
+                  <p class="text-sm font-bold text-yellow-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-yellow-600"></i> Areas to Improve
+                  </p>
+                  <div class="space-y-3">
+                    <template x-for="area in matchResult?.improvement_areas?.filter(a => a.priority === 'Medium')" :key="area.title">
+                      <div class="bg-white rounded-lg p-3 border-l-4 border-yellow-500 hover:shadow-md transition">
+                        <h4 class="font-bold text-gray-900 text-sm mb-2" x-text="area.title"></h4>
+                        <div class="space-y-1 text-xs text-gray-700 mb-2">
+                          <p><strong>Current:</strong> <span x-text="area.current"></span></p>
+                          <p><strong>Ideal:</strong> <span x-text="area.ideal"></span></p>
+                        </div>
+                        <p class="text-xs bg-yellow-50 border border-yellow-200 rounded p-2 text-yellow-800 leading-relaxed" x-text="area.action"></p>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Summary Assessment -->
+              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-5 border-2 border-indigo-200">
+                <p class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                  <i class="fa-solid fa-circle-info text-indigo-600"></i> Overall Assessment
+                </p>
+                <div class="space-y-2">
+                  <template x-if="matchResult?.feedback && matchResult.feedback.length > 0">
+                    <template x-for="item in matchResult?.feedback" :key="item">
+                      <div class="flex items-start gap-2 p-2 text-xs sm:text-sm text-gray-700">
+                        <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5 flex-shrink-0"></i>
+                        <span x-text="item"></span>
+                      </div>
+                    </template>
+                  </template>
+                  <template x-if="!matchResult?.feedback || matchResult.feedback.length === 0">
+                    <div class="flex items-start gap-2 p-2 text-xs sm:text-sm text-gray-700">
+                      <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5 flex-shrink-0"></i>
+                      <span>Review the improvement areas above to enhance compatibility with <span x-text="selectedBreed?.name"></span></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
           </div>
 
         </form>
       </div>
 
       <!-- FOOTER BUTTONS -->
-      <div class="sticky bottom-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-3 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-between rounded-b-3xl">
-        <div class="flex gap-2">
-          <button x-show="matchStep > 1 && matchStep <= totalMatchSteps"
-                  @click="matchStep--"
-                  class="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-xs sm:text-sm transition">
-            <i class="fa-solid fa-chevron-left mr-1"></i> Back
-          </button>
-        </div>
-        <div class="flex gap-2 sm:ml-auto">
-          <button x-show="matchStep <= totalMatchSteps"
-                  @click="matchStep < totalMatchSteps ? matchStep++ : submitMatchForm()"
-                  :disabled="!Object.values(matchAnswers)[matchStep - 1]"
-                  class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-semibold text-xs sm:text-sm transition flex-1">
-            <span x-text="matchStep === totalMatchSteps ? 'See Results' : 'Next'"></span>
-          </button>
-          <button @click="matchModal=false; matchResult=null; matchStep=1; matchAnswers={};"
-                  class="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-xs sm:text-sm transition">
-            Close
-          </button>
-        </div>
+      <div class="sticky bottom-0 bg-white border-t border-indigo-100 px-4 sm:px-6 py-4 flex flex-row justify-between items-center rounded-b-3xl">
+        
+        <!-- BACK BUTTON -->
+        <button type="button" 
+                x-show="matchStep > 1 && matchStep <= totalMatchSteps"
+                @click="matchStep--"
+                class="px-4 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition flex items-center gap-2">
+          <i class="fa-solid fa-chevron-left"></i> Back
+        </button>
+
+        <!-- NEXT / SEE RESULTS BUTTON -->
+        <button type="button" 
+                x-show="matchStep <= totalMatchSteps"
+                @click="if (matchStep < totalMatchSteps) { matchStep++; } else { submitMatchForm(); }"
+                :disabled="!matchAnswers[getQuizQuestions()[matchStep - 1]?.name]"
+                class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition flex items-center gap-2">
+          <span x-text="matchStep === totalMatchSteps ? 'See Results' : 'Next'"></span>
+          <template x-if="matchStep < totalMatchSteps">
+            <i class="fa-solid fa-chevron-right"></i>
+          </template>
+          <template x-if="matchStep === totalMatchSteps">
+            <i class="fa-solid fa-heart"></i>
+          </template>
+        </button>
+
+        <!-- CLOSE BUTTON -->
+        <button type="button" 
+                x-show="matchStep > totalMatchSteps"
+                @click="matchModal=false; matchResult=null; matchStep=1; matchAnswers={};"
+                class="px-4 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition">
+          Close
+        </button>
+
       </div>
 
     </div>

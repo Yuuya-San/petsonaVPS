@@ -223,21 +223,11 @@ def save_breed():
     track_change("compatibility_risk", request.form.get('compatibility_risk', 'Low'))
     track_change("prey_drive", request.form.get('prey_drive', 'None'))
 
-    # --- NUMERIC FIELDS ---
-    lifespan_val = None
-    if request.form.get('lifespan'):
-        try:
-            lifespan_val = float(request.form.get('lifespan'))
-        except (ValueError, TypeError):
-            lifespan_val = None
+    # --- TEXT FIELDS (FORMERLY NUMERIC) ---
+    lifespan_val = request.form.get('lifespan', '').strip() if request.form.get('lifespan') else None
     track_change("lifespan", lifespan_val)
 
-    care_cost_val = None
-    if request.form.get('care_cost'):
-        try:
-            care_cost_val = float(request.form.get('care_cost'))
-        except (ValueError, TypeError):
-            care_cost_val = None
+    care_cost_val = request.form.get('care_cost', '').strip() if request.form.get('care_cost') else None
     track_change("care_cost", care_cost_val)
 
     # --- CHECKBOXES ---
@@ -248,13 +238,8 @@ def save_breed():
     track_change("child_friendly", bool(request.form.get('child_friendly')))
     track_change("senior_friendly", bool(request.form.get('senior_friendly')))
 
-    # --- MORE NUMERIC FIELDS ---
-    min_enclosure_val = None
-    if request.form.get('min_enclosure_size'):
-        try:
-            min_enclosure_val = float(request.form.get('min_enclosure_size'))
-        except (ValueError, TypeError):
-            min_enclosure_val = None
+    # --- TEXT FIELDS ---
+    min_enclosure_val = request.form.get('min_enclosure_size', '').strip() if request.form.get('min_enclosure_size') else None
     track_change("min_enclosure_size", min_enclosure_val)
 
     # --- ADDITIONAL SELECT FIELDS ---

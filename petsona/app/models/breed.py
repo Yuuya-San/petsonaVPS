@@ -32,15 +32,15 @@ class Breed(db.Model):
     stress_sensitivity = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium',comment="How easily the pet becomes stressed by change")
     monthly_cost_level = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium',comment="Food, grooming, routine care")
     lifetime_cost_level = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium',comment="Expected long-term financial commitment")
-    care_cost = db.Column(db.Float)
-    lifespan = db.Column(db.Integer)
+    care_cost = db.Column(db.String(255),comment="Estimated average annual care cost")
+    lifespan = db.Column(db.String(50),comment="Average life expectancy")
     allergy_friendly = db.Column(db.Boolean,default=False,comment="Suitable for allergy-sensitive owners")
     child_friendly = db.Column(db.Boolean,default=True,comment="Safe and tolerant around children")
     senior_friendly = db.Column(db.Boolean,default=True,comment="Suitable for elderly owners")
     dog_friendly = db.Column(db.Boolean, default=True)
     cat_friendly = db.Column(db.Boolean, default=True)
     small_pet_friendly = db.Column(db.Boolean, default=True)
-    min_enclosure_size = db.Column(db.Integer,nullable=True,comment="Tank or cage size depending on species")
+    min_enclosure_size = db.Column(db.String(100),comment="Minimum recommended enclosure size for the breed")
 
     # --------------------------
     # Status & timestamps
@@ -111,6 +111,7 @@ class Breed(db.Model):
             "stress_sensitivity": self.stress_sensitivity,
             "common_health_issues": self.common_health_issues,
             "lifespan": self.lifespan,
+            "min_enclosure_size": self.min_enclosure_size,
 
             # --------------------------
             # Financial Reality
@@ -118,6 +119,7 @@ class Breed(db.Model):
             "monthly_cost_level": self.monthly_cost_level,
             "lifetime_cost_level": self.lifetime_cost_level,
             "estimated_care_cost": self.care_cost,
+            "care_cost": self.care_cost,
 
             # --------------------------
             # Household Compatibility

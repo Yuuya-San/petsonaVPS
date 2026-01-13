@@ -209,8 +209,8 @@
 
           <!-- MATCH NOW BUTTON -->
           <button
-            @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); matchModal = true;"
-            data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
+            @click="window.location.href = '{{ url_for('matching.quiz_specific', breed_id='') }}' + this.getAttribute('data-breed-id');"
+            data-breed-id="{{ breed.id }}"
             class="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-medium transition w-full">
             Match Now
           </button>
@@ -894,6 +894,14 @@
           <template x-if="matchStep === totalMatchSteps">
             <i class="fa-solid fa-heart"></i>
           </template>
+        </button>
+
+        <!-- VIEW FULL RESULTS BUTTON -->
+        <button type="button" 
+                x-show="matchStep > totalMatchSteps"
+                @click="window.location.href = '{{ url_for('matching.breed_match', breed_id='') }}' + selectedBreed?.id"
+                class="px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold text-sm transition flex items-center gap-2">
+          <i class="fa-solid fa-arrow-right"></i> View Full Results
         </button>
 
         <!-- CLOSE BUTTON -->

@@ -5,15 +5,9 @@
 <div x-data="{
         viewModal: false,
         breedModal: false,
-        matchModal: false,
         selectedBreed: null,
         editingBreed: null,
         imagePreview: null,
-        matchAnswers: {},
-        matchResult: null,
-        matchProgress: 0,
-        matchStep: 1,
-        totalMatchSteps: 24,
         openEditBreed(breed) {
           this.editingBreed = breed;
           this.imagePreview = breed.image_url ? '{{ url_for('static', filename='') }}' + breed.image_url : null;
@@ -23,133 +17,6 @@
           this.editingBreed = null;
           this.imagePreview = null;
           if($refs.breedFile) $refs.breedFile.value = '';
-        },
-        matchLoading: false,
-        async submitMatchForm() {
-          const questions = this.getQuizQuestions();
-          const unanswered = questions.filter(q => !this.matchAnswers[q.name]);
-          if (unanswered.length > 0) {
-            alert('Please answer all questions before submitting.');
-            return;
-          }
-
-          if (this.matchLoading) {
-            console.warn('Match submission already in progress');
-            return;
-          }
-
-          this.matchLoading = true;
-          console.log('Starting breed match submission...');
-          
-          const timeoutId = setTimeout(() => {
-            this.matchLoading = false;
-            console.error('Match submission timeout after 60 seconds');
-            alert('The server is taking too long to process your match. Please refresh and try again.');
-          }, 60000);
-
-          try {
-            const endpoint = '{{ url_for("matching.api_breed_match") }}';
-            console.log('Submitting breed match to:', endpoint);
-            console.log('Selected breed ID:', this.selectedBreed?.id);
-
-            const controller = new AbortController();
-            const timeoutAbort = setTimeout(() => {
-              console.log('Aborting request due to 55s timeout');
-              controller.abort();
-            }, 55000);
-
-            const response = await fetch(endpoint, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({
-                breed_id: this.selectedBreed?.id,
-                answers: this.matchAnswers
-              }),
-              signal: controller.signal
-            });
-            
-            clearTimeout(timeoutAbort);
-            clearTimeout(timeoutId);
-            
-            console.log('Response status:', response.status);
-            
-            if (response.ok) {
-              const data = await response.json();
-              console.log('Match results received successfully');
-              console.log('API Response:', data);
-              
-              if (data && data.score !== undefined) {
-                this.matchResult = {
-                  percentage: data.score,
-                  score: data.score,
-                  maxScore: 100,
-                  recommendation: data.level === 'Excellent' ? '✅ Excellent Match!' : data.level === 'Good' ? '🟡 Good Match' : data.level === 'Fair' ? '🟠 Moderate Match' : '❌ Not Recommended',
-                  colorClass: data.score >= 80 ? 'text-green-600' : data.score >= 60 ? 'text-yellow-600' : data.score >= 40 ? 'text-orange-600' : 'text-red-600',
-                  bgClass: data.score >= 80 ? 'bg-green-50' : data.score >= 60 ? 'bg-yellow-50' : data.score >= 40 ? 'bg-orange-50' : 'bg-red-50',
-                  borderClass: data.score >= 80 ? 'border-green-200' : data.score >= 60 ? 'border-yellow-200' : data.score >= 40 ? 'border-orange-200' : 'border-red-200',
-                  feedback: data.suggestions && data.suggestions.length > 0 ? data.suggestions : ['✅ Great fit across all factors!'],
-                  improvement_areas: data.improvement_areas || [],
-                  strength_areas: data.strength_areas || []
-                };
-                console.log('Match result object created:', this.matchResult);
-                this.matchStep = this.totalMatchSteps + 1;
-              } else {
-                throw new Error('Invalid response: missing score data');
-              }
-            } else {
-              const errorText = await response.text().catch(() => '');
-              console.error('Server error:', response.status, errorText);
-              throw new Error(`Server error: ${response.status}`);
-            }
-          } catch (error) {
-            console.error('Match submission error:', error);
-            clearTimeout(timeoutId);
-            
-            let errorMessage = 'Unable to process your match. Please try again.';
-            if (error.name === 'AbortError') {
-              errorMessage = 'Request timed out. Please try again.';
-            } else if (error.message.includes('Failed to fetch')) {
-              errorMessage = 'Network error. Check your connection.';
-            } else if (error.message.includes('Invalid response')) {
-              errorMessage = 'Server returned invalid data.';
-            }
-            
-            alert(errorMessage);
-          } finally {
-            this.matchLoading = false;
-            console.log('Match submission finished. Loading state reset.');
-          }
-        },
-        getQuizQuestions() {
-          return [
-            { name: 'energy_level', section: 'About You', question: 'How active are you most days?', options: ['I mostly relax at home', 'I move around sometimes', 'I am very active and always busy'] },
-            { name: 'noise_level', section: 'About You', question: 'How much noise can you handle at home?', options: ['I need it very quiet', 'Some noise is okay', 'Noise does not bother me'] },
-            { name: 'social_needs', section: 'About You', question: 'How much attention do you want to give your pet?', options: ['Just a little', 'A fair amount', 'A lot, I like bonding'] },
-            { name: 'handling_tolerance', section: 'About You', question: 'How calm is your home?', options: ['Very calm and quiet', 'Normal', 'Busy, noisy, and active'] },
-            { name: 'daily_care_time', section: 'Time & Care', question: 'How much time can you spend on pet care daily?', options: ['Less than 1 hour', '1-2 hours', '2-4 hours', 'More than 4 hours'] },
-            { name: 'grooming_needs', section: 'Time & Care', question: 'How often can you clean, groom, or care for your pet?', options: ['Rarely', 'About once a week', 'Very often'] },
-            { name: 'exercise_needs', section: 'Time & Care', question: 'Can you give your pet exercise or play every day?', options: ['No', 'Sometimes', 'Yes, every day'] },
-            { name: 'environment_complexity', section: 'Time & Care', question: 'Are you okay with setting up tanks, cages, or special homes?', options: ['No, I prefer simple pets', 'I can manage a little', 'Yes, I\'m okay with it'] },
-            { name: 'experience_required', section: 'Experience', question: 'Have you taken care of pets before?', options: ['This is my first pet', 'I have had a few', 'I have a lot of experience'] },
-            { name: 'trainability', section: 'Experience', question: 'How patient are you with training or teaching a pet?', options: ['Not very patient', 'Somewhat patient', 'Very patient'] },
-            { name: 'temperament_tolerance', section: 'Experience', question: 'How well can you handle difficult or stubborn pets?', options: ['Not well', 'I can try', 'I handle them well'] },
-            { name: 'space_needs', section: 'Home & Space', question: 'How big is your living space?', options: ['Small apartment or room', 'Medium-sized home', 'Large home or house with space'] },
-            { name: 'min_enclosure_size', section: 'Home & Space', question: 'Can you keep tanks, cages, or enclosures if needed?', options: ['No', 'Small ones only', 'Large ones are okay'] },
-            { name: 'monthly_cost_level', section: 'Budget & Costs', question: 'How much can you spend on your pet each month?', options: ['Low budget', 'Medium budget', 'High budget'] },
-            { name: 'emergency_care_risk', section: 'Budget & Costs', question: 'Can you handle emergency vet bills?', options: ['No', 'Maybe', 'Yes'] },
-            { name: 'lifetime_cost_level', section: 'Budget & Costs', question: 'Are you ready for long-term pet expenses?', options: ['Not really', 'Somewhat', 'Yes, I\'m prepared'] },
-            { name: 'child_friendly', section: 'Household', question: 'Do you have children at home?', options: ['Yes', 'No'] },
-            { name: 'dog_friendly', section: 'Household', question: 'Do you have dogs?', options: ['Yes', 'No'] },
-            { name: 'cat_friendly', section: 'Household', question: 'Do you have cats?', options: ['Yes', 'No'] },
-            { name: 'small_pet_friendly', section: 'Household', question: 'Do you have small pets?', options: ['Yes', 'No'] },
-            { name: 'prey_drive', section: 'Species & Safety', question: 'Are you okay with pets that hunt or eat other animals?', options: ['No', 'Maybe', 'Yes'] },
-            { name: 'okay_fragile', section: 'Species & Safety', question: 'Are you okay caring for fragile or delicate animals?', options: ['No', 'Yes'] },
-            { name: 'okay_permit', section: 'Species & Safety', question: 'Are you okay with special permits or legal requirements?', options: ['No', 'Yes'] },
-            { name: 'okay_special_vet', section: 'Species & Safety', question: 'Can you access special or exotic veterinarians if needed?', options: ['No', 'Yes'] }
-          ];
         }
       }"
      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
@@ -287,16 +154,14 @@
               @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); viewModal = true;"
               data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
               class="mt-auto block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-medium transition">
-              View {{ breed.name }}
+              View Details
           </button>
 
-          <!-- MATCH NOW BUTTON -->
-          <button
-            @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); matchModal = true;"
-            data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
-            class="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-medium transition w-full">
+          <!-- MATCH NOW BUTTON - LINKS TO BREED MATCHING -->
+          <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
+             class="mt-2 block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-medium transition">
             Match Now
-          </button>
+          </a>
         </div>
 
         <!-- DELETE MODAL -->
@@ -400,7 +265,7 @@
                 <span class="text-xs font-bold text-green-700 uppercase">Lifespan</span>
                 <i class="fa-solid fa-hourglass-half text-green-600 text-sm"></i>
               </div>
-              <p class="text-xs text-green-600 font-medium" x-text="selectedBreed?.lifespan ? selectedBreed.lifespan + ' years' : 'N/A'"></p>
+              <p class="text-xs text-green-600 font-medium" x-text="selectedBreed?.lifespan || 'N/A'"></p>
             </div>
 
             <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200 hover:shadow-md transition">
@@ -408,7 +273,7 @@
                 <span class="text-xs font-bold text-orange-700 uppercase">Care Cost</span>
                 <i class="fa-solid fa-peso-sign text-orange-600 text-sm"></i>
               </div>
-              <p class="text-xs text-orange-600 font-medium" x-text="selectedBreed?.estimated_care_cost ? '₱' + selectedBreed.estimated_care_cost.toFixed(2) : 'N/A'"></p>
+              <p class="text-xs text-orange-600 font-medium" x-text="selectedBreed?.care_cost || 'N/A'"></p>
             </div>
 
             <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200 hover:shadow-md transition">
@@ -843,17 +708,17 @@
               <div class="grid grid-cols-2 gap-4 w-full">
                 <div class="flex flex-col">
                   <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-hourglass-half text-indigo-600"></i> Lifespan (years) <span class="text-red-600">*</span>
+                    <i class="fa-solid fa-hourglass-half text-indigo-600"></i> Lifespan <span class="text-red-600">*</span>
                   </label>
-                  <input type="number" name="lifespan" min="0" x-bind:value="editingBreed?.lifespan || ''"
-                        class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white transition shadow-sm hover:shadow-md" required>
+                  <input type="text" name="lifespan" placeholder="e.g., 10-15 years" x-bind:value="editingBreed?.lifespan || ''"
+                        class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md" required>
                 </div>
                 <div class="flex flex-col">
                   <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-peso-sign text-indigo-600"></i> Care Cost (₱) <span class="text-red-600">*</span>
+                    <i class="fa-solid fa-peso-sign text-indigo-600"></i> Care Cost <span class="text-red-600">*</span>
                   </label>
-                  <input type="number" step="0.01" min="0" name="care_cost" x-bind:value="editingBreed?.care_cost || ''"
-                        class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white transition shadow-sm hover:shadow-md" required>
+                  <input type="text" name="care_cost" placeholder="e.g., 5,000-10,000 PHP" x-bind:value="editingBreed?.care_cost || ''"
+                        class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md" required>
                 </div>
               </div>
 
@@ -863,7 +728,7 @@
                 <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <i class="fa-solid fa-house text-indigo-600"></i> Minimum Enclosure Size
                 </label>
-                <input type="number" name="min_enclosure_size" min="0" x-bind:value="editingBreed?.min_enclosure_size || ''" placeholder="Size in appropriate units (tank/cage)"
+                <input type="text" name="min_enclosure_size" x-bind:value="editingBreed?.min_enclosure_size || ''" placeholder="Size in appropriate units (tank/cage)"
                       class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full">
               </div>
               {% endif %}
@@ -1219,279 +1084,5 @@
       </div>
     </div>
   </div>
-
-  <!-- 🔷 MATCH MODAL - ENHANCED COMPATIBILITY TEST -->
-  <style>
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .animate-fadeIn {
-      animation: fadeIn 0.3s ease-out;
-    }
-  </style>
-
-  <div x-show="matchModal" x-transition.opacity
-       class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
-
-    <div class="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl w-full max-w-4xl mx-2 border border-indigo-100 flex flex-col max-h-[90vh] overflow-hidden mt-6 sm:mt-10 transition-all duration-300">
-
-      <!-- HEADER -->
-      <div class="px-4 sm:px-6 py-4 border-b border-indigo-100 flex justify-between items-center sticky top-0 bg-white/95 z-10">
-        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <i class="fa-solid fa-heart text-indigo-600"></i>
-          <span x-text="matchStep <= totalMatchSteps ? 'Breed Compatibility Test' : 'Compatibility Results'"></span>
-        </h3>
-        <button @click="matchModal=false; matchResult=null; matchStep=1; matchAnswers={};" class="text-gray-500 hover:text-gray-700 transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <!-- PROGRESS BAR -->
-      <div x-show="matchStep <= totalMatchSteps" class="px-4 sm:px-6 py-3 bg-gray-50 border-b border-gray-200">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-semibold text-gray-700">Question <span x-text="matchStep"></span> of <span x-text="totalMatchSteps"></span></span>
-          <span class="text-sm text-gray-500"><span x-text="Math.round((matchStep/totalMatchSteps)*100)"></span>%</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-          <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 h-full rounded-full transition-all duration-300" :style="'width: ' + ((matchStep/totalMatchSteps)*100) + '%'"></div>
-        </div>
-      </div>
-
-      <!-- CONTENT -->
-      <div class="overflow-y-auto flex-1 px-4 sm:px-6 py-6 space-y-6">
-
-        <!-- BREED INFO HEADER -->
-        <div x-show="matchStep <= totalMatchSteps" class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-4 sm:p-5 border border-indigo-200">
-          <div class="flex items-center gap-3 sm:gap-4">
-            <img :src="selectedBreed?.image_url ? '/static/' + selectedBreed.image_url : '/static/uploads/no-image-attachment.jpg'"
-                 class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shadow-md">
-            <div class="flex-1">
-              <h4 class="text-lg sm:text-xl font-bold text-gray-900" x-text="selectedBreed?.name"></h4>
-              <p class="text-xs sm:text-sm text-gray-600 mt-1" x-text="selectedBreed?.temperament || 'Unknown temperament'"></p>
-              <div class="mt-2 flex items-center gap-2">
-                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
-                  <i class="fa-solid fa-heart mr-1"></i>Test this breed
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- QUESTIONS -->
-        <form @submit.prevent="submitMatchForm()" class="space-y-4">
-
-          <template x-if="getQuizQuestions().length > 0">
-            <div x-show="matchStep <= totalMatchSteps" class="space-y-6 max-w-2xl mx-auto w-full animate-fadeIn">
-              <template x-if="matchStep <= totalMatchSteps">
-                <div>
-                  <!-- Question Counter & Section -->
-                  <div class="mb-6">
-                    <p class="text-xs font-semibold text-indigo-700 uppercase tracking-widest" x-text="getQuizQuestions()[matchStep - 1]?.section"></p>
-                    <h4 class="text-2xl sm:text-3xl font-bold text-gray-900 mt-2" x-text="getQuizQuestions()[matchStep - 1]?.question"></h4>
-                  </div>
-
-                  <!-- Answer Options -->
-                  <div class="space-y-3">
-                    <template x-for="(option, idx) in getQuizQuestions()[matchStep - 1]?.options" :key="idx">
-                      <label class="flex items-center p-4 border-2 border-gray-200 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition group"
-                             :class="matchAnswers[getQuizQuestions()[matchStep - 1].name] === option ? 'border-indigo-800 bg-indigo-50' : '">
-                        <input type="radio" 
-                               :name="getQuizQuestions()[matchStep - 1].name"
-                               :value="option" 
-                               @change="matchAnswers[getQuizQuestions()[matchStep - 1].name] = option"
-                               :checked="matchAnswers[getQuizQuestions()[matchStep - 1].name] === option"
-                               class="w-5 h-5 text-indigo-800">
-                        <span class="ml-3 text-gray-700 font-medium group-hover:text-gray-900 transition" x-text="option"></span>
-                      </label>
-                    </template>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </template>
-
-          <!-- RESULTS -->
-            <div x-show="matchStep > totalMatchSteps" class="space-y-6 max-w-3xl mx-auto w-full animate-fadeIn">
-
-              <!-- BREED PROFILE CARD -->
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 rounded-2xl p-4 sm:p-5 border-2 border-indigo-200">
-                <!-- Breed Image -->
-                <div class="sm:col-span-1">
-                  <img :src="selectedBreed?.image_url ? '/static/' + selectedBreed.image_url : '/static/uploads/no-image-attachment.jpg'"
-                       :alt="selectedBreed?.name"
-                       class="w-full h-32 sm:h-40 rounded-xl object-cover shadow-md border border-indigo-300">
-                </div>
-                <!-- Breed Info -->
-                <div class="sm:col-span-2 flex flex-col justify-between">
-                  <div>
-                    <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-1" x-text="selectedBreed?.name"></h3>
-                    <p class="text-sm text-gray-600 mb-3" x-text="selectedBreed?.summary || selectedBreed.temperament "></p>
-                    <div class="space-y-1 text-xs sm:text-sm text-gray-700">                                               
-                      <p><strong>Lifespan:</strong> <span x-text="selectedBreed?.lifespan || 'Unknown'"></span> years</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Compatibility Score Card -->
-              <div :class="matchResult?.bgClass" class="rounded-3xl p-6 sm:p-8 border-2" :class="matchResult?.borderClass">
-                <div class="text-center">
-                  <div class="flex items-center justify-center gap-2 mb-3">
-                    <span class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full text-white font-bold text-lg animate-bounce">
-                      ⭐
-                    </span>
-                  </div>
-                  <h4 class="text-3xl sm:text-4xl font-bold mb-2" :class="matchResult?.colorClass" x-text="matchResult?.recommendation"></h4>
-                  <div class="text-5xl sm:text-6xl font-black mb-2" :class="matchResult?.colorClass" x-text="matchResult?.percentage + '%'"></div>
-                  <p class="text-sm sm:text-base" :class="matchResult?.colorClass">
-                    Compatibility Score
-                  </p>
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden mt-6">
-                  <div :class="{
-                    'bg-gradient-to-r from-green-500 to-green-600': matchResult?.percentage >= 80,
-                    'bg-gradient-to-r from-yellow-500 to-yellow-600': matchResult?.percentage >= 60 && matchResult?.percentage < 80,
-                    'bg-gradient-to-r from-orange-500 to-orange-600': matchResult?.percentage >= 40 && matchResult?.percentage < 60,
-                    'bg-gradient-to-r from-red-500 to-red-600': matchResult?.percentage < 40
-                  }" class="h-full rounded-full transition-all duration-700" :style="'width: ' + matchResult?.percentage + '%'"></div>
-                </div>
-              </div>
-
-              <!-- Strength Areas (if available) -->
-              <template x-if="matchResult?.strength_areas && matchResult.strength_areas.length > 0">
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 sm:p-5 border-2 border-green-200">
-                  <p class="text-sm font-bold text-green-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-star text-green-600"></i> Perfect Matches - Your Strengths
-                  </p>
-                  <div class="space-y-2">
-                    <template x-for="strength in matchResult?.strength_areas" :key="strength">
-                      <div class="flex items-start gap-2 p-3 bg-white rounded-lg border border-green-100 hover:border-green-300 transition">
-                        <i class="fa-solid fa-check text-green-500 text-sm mt-0.5 flex-shrink-0"></i>
-                        <p class="text-xs sm:text-sm text-gray-700 leading-relaxed" x-text="strength"></p>
-                      </div>
-                    </template>
-                  </div>
-                </div>
-              </template>
-
-              <!-- Improvement Areas - HIGH Priority -->
-              <template x-if="matchResult?.improvement_areas && matchResult.improvement_areas.filter(a => a.priority === 'High').length > 0">
-                <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-4 sm:p-5 border-2 border-red-300">
-                  <p class="text-sm font-bold text-red-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-exclamation-circle text-red-600"></i> Critical Areas to Improve
-                  </p>
-                  <div class="space-y-3">
-                    <template x-for="area in matchResult?.improvement_areas?.filter(a => a.priority === 'High')" :key="area.title">
-                      <div class="bg-white rounded-lg p-3 border-l-4 border-red-500 hover:shadow-md transition">
-                        <h4 class="font-bold text-gray-900 text-sm mb-2" x-text="area.title"></h4>
-                        <div class="space-y-1 text-xs text-gray-700 mb-2">
-                          <p><strong>Current:</strong> <span x-text="area.current"></span></p>
-                          <p><strong>Ideal:</strong> <span x-text="area.ideal"></span></p>
-                        </div>
-                        <p class="text-xs bg-red-50 border border-red-200 rounded p-2 text-red-800 leading-relaxed" x-text="area.action"></p>
-                      </div>
-                    </template>
-                  </div>
-                </div>
-              </template>
-
-              <!-- Improvement Areas - MEDIUM Priority -->
-              <template x-if="matchResult?.improvement_areas && matchResult.improvement_areas.filter(a => a.priority === 'Medium').length > 0">
-                <div class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 sm:p-5 border-2 border-yellow-300">
-                  <p class="text-sm font-bold text-yellow-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-lightbulb text-yellow-600"></i> Areas to Improve
-                  </p>
-                  <div class="space-y-3">
-                    <template x-for="area in matchResult?.improvement_areas?.filter(a => a.priority === 'Medium')" :key="area.title">
-                      <div class="bg-white rounded-lg p-3 border-l-4 border-yellow-500 hover:shadow-md transition">
-                        <h4 class="font-bold text-gray-900 text-sm mb-2" x-text="area.title"></h4>
-                        <div class="space-y-1 text-xs text-gray-700 mb-2">
-                          <p><strong>Current:</strong> <span x-text="area.current"></span></p>
-                          <p><strong>Ideal:</strong> <span x-text="area.ideal"></span></p>
-                        </div>
-                        <p class="text-xs bg-yellow-50 border border-yellow-200 rounded p-2 text-yellow-800 leading-relaxed" x-text="area.action"></p>
-                      </div>
-                    </template>
-                  </div>
-                </div>
-              </template>
-
-              <!-- Summary Assessment -->
-              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-5 border-2 border-indigo-200">
-                <p class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
-                  <i class="fa-solid fa-circle-info text-indigo-600"></i> Overall Assessment
-                </p>
-                <div class="space-y-2">
-                  <template x-if="matchResult?.feedback && matchResult.feedback.length > 0">
-                    <template x-for="item in matchResult?.feedback" :key="item">
-                      <div class="flex items-start gap-2 p-2 text-xs sm:text-sm text-gray-700">
-                        <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5 flex-shrink-0"></i>
-                        <span x-text="item"></span>
-                      </div>
-                    </template>
-                  </template>
-                  <template x-if="!matchResult?.feedback || matchResult.feedback.length === 0">
-                    <div class="flex items-start gap-2 p-2 text-xs sm:text-sm text-gray-700">
-                      <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5 flex-shrink-0"></i>
-                      <span>Review the improvement areas above to enhance compatibility with <span x-text="selectedBreed?.name"></span></span>
-                    </div>
-                  </template>
-                </div>
-              </div>
-          </div>
-
-        </form>
-      </div>
-
-      <!-- FOOTER BUTTONS -->
-      <div class="sticky bottom-0 bg-white border-t border-indigo-100 px-4 sm:px-6 py-4 flex flex-row justify-between items-center rounded-b-3xl">
-        
-        <!-- BACK BUTTON -->
-        <button type="button" 
-                x-show="matchStep > 1 && matchStep <= totalMatchSteps"
-                @click="matchStep--"
-                class="px-4 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition flex items-center gap-2">
-          <i class="fa-solid fa-chevron-left"></i> Back
-        </button>
-
-        <!-- NEXT / SEE RESULTS BUTTON -->
-        <button type="button" 
-                x-show="matchStep <= totalMatchSteps"
-                @click="if (matchStep < totalMatchSteps) { matchStep++; } else { submitMatchForm(); }"
-                :disabled="!matchAnswers[getQuizQuestions()[matchStep - 1]?.name]"
-                class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition flex items-center gap-2">
-          <span x-text="matchStep === totalMatchSteps ? 'See Results' : 'Next'"></span>
-          <template x-if="matchStep < totalMatchSteps">
-            <i class="fa-solid fa-chevron-right"></i>
-          </template>
-          <template x-if="matchStep === totalMatchSteps">
-            <i class="fa-solid fa-heart"></i>
-          </template>
-        </button>
-
-        <!-- CLOSE BUTTON -->
-        <button type="button" 
-                x-show="matchStep > totalMatchSteps"
-                @click="matchModal=false; matchResult=null; matchStep=1; matchAnswers={};"
-                class="px-4 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition">
-          Close
-        </button>
-
-      </div>
-
-    </div>
-  </div>
-
-</div>
 
 {% endblock %}

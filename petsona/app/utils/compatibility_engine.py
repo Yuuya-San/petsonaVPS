@@ -372,6 +372,13 @@ class CompatibilityEngine:
     @classmethod
     def calculate_match_score(cls, answers: Dict, breed) -> Dict[str, Any]:
         """Calculate comprehensive compatibility score"""
+        
+        if not answers or not isinstance(answers, dict):
+            return cls._create_error_score()
+        
+        if not breed:
+            return cls._create_error_score()
+        
         category_scores = {
             'lifestyle': {'total': 0, 'weight_sum': 0},
             'experience': {'total': 0, 'weight_sum': 0},
@@ -389,6 +396,7 @@ class CompatibilityEngine:
         
         for question_key, (attr_name, attr_source) in cls.ATTRIBUTE_MAPPING.items():
             user_answer = answers.get(question_key)
+            
             if user_answer is None:
                 continue
             
@@ -402,7 +410,11 @@ class CompatibilityEngine:
             
             score = cls._calculate_question_score(question_key, user_answer, breed_value, breed)
             
-            # Get normalized values for improvement logic
+            if score is None or not isinstance(score, (int, float)):
+                score = 0.5
+            
+            score = max(0.0, min(1.0, float(score)))
+            
             user_normalized = cls.normalize_answer_value(question_key, user_answer)
             breed_normalized = cls.normalize_breed_value(breed_value)
             
@@ -450,10 +462,9 @@ class CompatibilityEngine:
         final_score = (total_weighted / total_weight * 100) if total_weight > 0 else 0
         final_score = max(0, min(100, final_score))
         
-        # Generate improvement suggestions with priorities
         improvements = cls._generate_improvement_suggestions(answers, breed, individual_scores, final_score)
         
-        return {
+        result = {
             'score': round(final_score, 1),
             'compatibility_level': cls._get_compatibility_level(final_score),
             'category_scores': category_results,
@@ -465,6 +476,25 @@ class CompatibilityEngine:
             'suggestions': mismatches[:3],
             'improvement_suggestions': improvements,
             'total_questions_answered': len(individual_scores),
+        }
+        
+        return result
+    
+    @staticmethod
+    def _create_error_score() -> Dict[str, Any]:
+        """Return a neutral error score when calculation fails"""
+        return {
+            'score': 50.0,
+            'compatibility_level': 'Unknown',
+            'category_scores': {},
+            'individual_scores': [],
+            'mismatches': [],
+            'strengths': [],
+            'mismatch_areas': [],
+            'strength_areas': [],
+            'suggestions': [],
+            'improvement_suggestions': [],
+            'total_questions_answered': 0,
         }
     
     @classmethod
@@ -483,171 +513,163 @@ class CompatibilityEngine:
         Returns:
             float: Score from 0.0 (poor match) to 1.0 (excellent match)
         """
-        
-        # Normalize user answer
-        user_normalized = cls.normalize_answer_value(question_key, user_answer)
-        if user_normalized is None:
-            return 0.5  # Neutral fallback
-        
-        # Normalize breed value
-        breed_normalized = cls.normalize_breed_value(breed_value)
-        
-        # =====================================================================
-        # BINARY SAFETY QUESTIONS (pass/fail)
-        # =====================================================================
-        
-        if question_key == 'okay_fragile':
-            """User must be okay with fragile species if breed is fragile"""
-            user_okay = user_answer == 'Yes'
-            breed_fragile = breed.species.fragile_species if breed.species else False
-            if breed_fragile and not user_okay:
-                return 0.0  # Deal breaker
-            return 1.0  # Match
-        
-        if question_key == 'okay_permit':
-            """User must be okay with permits if breed requires them"""
-            user_okay = user_answer == 'Yes'
-            breed_permit = breed.species.requires_permit if breed.species else False
-            if breed_permit and not user_okay:
-                return 0.0  # Deal breaker
-            return 1.0  # Match
-        
-        if question_key == 'okay_special_vet':
-            """User should be able to access special vet if breed needs it"""
-            user_okay = user_answer == 'Yes'
-            breed_vet = breed.species.special_vet_required if breed.species else False
-            if breed_vet and not user_okay:
-                return 0.5  # Significant concern but not automatic fail
-            return 1.0  # Match
-        
-        # =====================================================================
-        # HOUSEHOLD BINARY QUESTIONS (presence of children/pets)
-        # =====================================================================
-        
-        if question_key in ['child_friendly', 'dog_friendly', 'cat_friendly', 'small_pet_friendly']:
-            """
-            Score household compatibility based on presence vs. breed friendliness.
-            If user HAS children/pets, breed MUST be compatible.
-            If user DOESN'T have them, no penalty.
-            """
-            user_has = user_answer == 'Yes'
-            breed_attr_map = {
-                'child_friendly': 'child_friendly',
-                'dog_friendly': 'dog_friendly',
-                'cat_friendly': 'cat_friendly',
-                'small_pet_friendly': 'small_pet_friendly',
-            }
-            breed_compatible = getattr(breed, breed_attr_map[question_key], True)
-            
-            if user_has and not breed_compatible:
-                return 0.0  # Deal breaker - user has child/pet but breed not compatible
-            return 1.0  # Safe match
-        
-        # =====================================================================
-        # PREY DRIVE SPECIAL CASE
-        # =====================================================================
-        
-        if question_key == 'prey_drive':
-            """User must be okay with prey drive if breed has it"""
-            # user_normalized: No=1, Maybe=2, Yes=4
-            # breed_value: Low/Medium/High (from breed table)
-            user_okay = user_normalized >= 2  # User is okay with 'Maybe' or 'Yes'
-            
-            if breed_value and breed_value.lower() in ['high', 'very high']:
-                if not user_okay:
-                    return 0.2  # Very unlikely match
-            elif breed_value and breed_value.lower() in ['medium']:
-                if user_normalized == 1:  # User said "No"
-                    return 0.5  # Moderate concern
-            
-            return cls.calculate_penalty_score(user_normalized, 2, 'capability')
-        
-        # =====================================================================
-        # STANDARD CAPABILITY QUESTIONS
-        # (User ability must meet breed requirement)
-        # =====================================================================
-        
-        capability_questions = [
-            'energy_level', 'exercise_needs', 'daily_care_time', 'grooming_needs',
-            'experience_required', 'space_needs', 'environment_complexity',
-            'min_enclosure_size', 'monthly_cost_level', 'emergency_care_risk',
-            'lifetime_cost_level', 'care_cost', 'preventive_care_level'
-        ]
-        
-        if question_key in capability_questions:
-            if breed_normalized is None:
-                return 0.5  # Can't determine breed requirement
-            return cls.calculate_penalty_score(user_normalized, breed_normalized, 'capability')
-        
-        # =====================================================================
-        # TOLERANCE QUESTIONS
-        # (User tolerance must meet breed production/requirement)
-        # =====================================================================
-        
-        tolerance_questions = [
-            'noise_level', 'handling_tolerance', 'social_needs', 'stress_sensitivity'
-        ]
-        
-        if question_key in tolerance_questions:
-            if breed_normalized is None:
-                return 0.5  # Can't determine breed requirement
-            return cls.calculate_penalty_score(user_normalized, breed_normalized, 'tolerance')
-        
-        # =====================================================================
-        # TRAINING/TEMPERAMENT PATIENCE QUESTIONS
-        # =====================================================================
-        
-        if question_key == 'trainability':
-            """User patience must match breed training difficulty"""
-            # trainability maps user patience to 1-4 scale
-            if breed_normalized is None:
+        try:
+            user_normalized = cls.normalize_answer_value(question_key, user_answer)
+            if user_normalized is None:
                 return 0.5
-            return cls.calculate_penalty_score(user_normalized, breed_normalized, 'capability')
-        
-        if question_key == 'temperament_tolerance':
-            """User ability to handle temperament issues"""
-            if breed_normalized is None:
-                return 0.5
-            return cls.calculate_penalty_score(user_normalized, breed_normalized, 'capability')
-        
-        # =====================================================================
-        # LIFESPAN MATCHING
-        # =====================================================================
-        
-        if question_key == 'lifespan':
-            """User lifetime commitment vs. breed lifespan"""
-            try:
-                # Extract numeric values
-                if isinstance(user_answer, str):
-                    user_years = int(re.search(r'\d+', user_answer).group()) if re.search(r'\d+', user_answer) else 10
-                else:
-                    user_years = int(user_answer) if user_answer else 10
+            
+            breed_normalized = cls.normalize_breed_value(breed_value)
+            
+            # =====================================================================
+            # BINARY SAFETY QUESTIONS (pass/fail)
+            # =====================================================================
+            
+            if question_key == 'okay_fragile':
+                user_okay = user_answer == 'Yes'
+                breed_fragile = breed.species.fragile_species if breed.species else False
+                if breed_fragile and not user_okay:
+                    return 0.0
+                return 1.0
+            
+            if question_key == 'okay_permit':
+                user_okay = user_answer == 'Yes'
+                breed_permit = breed.species.requires_permit if breed.species else False
+                if breed_permit and not user_okay:
+                    return 0.0
+                return 1.0
+            
+            if question_key == 'okay_special_vet':
+                user_okay = user_answer == 'Yes'
+                breed_vet = breed.species.special_vet_required if breed.species else False
+                if breed_vet and not user_okay:
+                    return 0.5
+                return 1.0
+            
+            # =====================================================================
+            # HOUSEHOLD BINARY QUESTIONS (presence of children/pets)
+            # =====================================================================
+            
+            if question_key in ['child_friendly', 'dog_friendly', 'cat_friendly', 'small_pet_friendly']:
+                user_has = user_answer == 'Yes'
+                breed_attr_map = {
+                    'child_friendly': 'child_friendly',
+                    'dog_friendly': 'dog_friendly',
+                    'cat_friendly': 'cat_friendly',
+                    'small_pet_friendly': 'small_pet_friendly',
+                }
+                breed_compatible = getattr(breed, breed_attr_map[question_key], True)
                 
-                if isinstance(breed_value, str):
-                    match = re.search(r'(\d+)', breed_value)
-                    breed_years = int(match.group(1)) if match else 10
-                else:
-                    breed_years = int(breed_value) if breed_value else 10
+                if user_has and not breed_compatible:
+                    return 0.0
+                return 1.0
+            
+            # =====================================================================
+            # PREY DRIVE SPECIAL CASE
+            # =====================================================================
+            
+            if question_key == 'prey_drive':
+                user_okay = user_normalized >= 2
                 
-                # Score based on lifespan match
-                if user_years >= breed_years:
+                if breed_value and breed_value.lower() in ['high', 'very high']:
+                    if not user_okay:
+                        return 0.2
+                    else:
+                        return 0.9
+                elif breed_value and breed_value.lower() in ['medium']:
+                    if user_normalized == 1:
+                        return 0.5
+                    else:
+                        return 0.85
+                else:
+                    return 0.95
+            
+            # =====================================================================
+            # STANDARD CAPABILITY QUESTIONS
+            # =====================================================================
+            
+            capability_questions = [
+                'energy_level', 'exercise_needs', 'daily_care_time', 'grooming_needs',
+                'experience_required', 'space_needs', 'environment_complexity',
+                'min_enclosure_size', 'monthly_cost_level', 'emergency_care_risk',
+                'lifetime_cost_level', 'care_cost', 'preventive_care_level'
+            ]
+            
+            if question_key in capability_questions:
+                if breed_normalized is None:
+                    return 0.5
+                return cls.calculate_penalty_score(user_normalized, breed_normalized, 'capability')
+            
+            # =====================================================================
+            # TOLERANCE QUESTIONS
+            # =====================================================================
+            
+            tolerance_questions = [
+                'noise_level', 'handling_tolerance', 'social_needs', 'stress_sensitivity'
+            ]
+            
+            if question_key in tolerance_questions:
+                if breed_normalized is None:
+                    return 0.5
+                return cls.calculate_penalty_score(user_normalized, breed_normalized, 'tolerance')
+            
+            # =====================================================================
+            # TRAINING/TEMPERAMENT PATIENCE QUESTIONS
+            # =====================================================================
+            
+            if question_key == 'trainability':
+                if breed_normalized is None:
+                    return 0.5
+                return cls.calculate_penalty_score(user_normalized, breed_normalized, 'capability')
+            
+            if question_key == 'temperament_tolerance':
+                if breed_normalized is None:
+                    return 0.5
+                return cls.calculate_penalty_score(user_normalized, breed_normalized, 'capability')
+            
+            # =====================================================================
+            # LIFESPAN MATCHING
+            # =====================================================================
+            
+            if question_key == 'lifespan':
+                try:
+                    if isinstance(user_answer, str):
+                        user_years = int(re.search(r'\d+', user_answer).group()) if re.search(r'\d+', user_answer) else 10
+                    else:
+                        user_years = int(user_answer) if user_answer else 10
+                    
+                    if isinstance(breed_value, str):
+                        match = re.search(r'(\d+)', breed_value)
+                        breed_years = int(match.group(1)) if match else 10
+                    else:
+                        breed_years = int(breed_value) if breed_value else 10
+                    
+                    if user_years >= breed_years:
+                        return 1.0
+                    elif user_years >= breed_years - 2:
+                        return 0.8
+                    else:
+                        return max(0.3, user_years / breed_years)
+                except (ValueError, TypeError):
+                    return 0.5
+            
+            # =====================================================================
+            # HEALTH ISSUES
+            # =====================================================================
+            
+            if question_key == 'common_health_issues':
+                if not breed_value or str(breed_value).lower() in ['none', 'minimal']:
                     return 1.0
-                elif user_years >= breed_years - 2:
-                    return 0.8
                 else:
-                    return max(0.3, user_years / breed_years)
-            except (ValueError, TypeError):
-                return 0.5  # Neutral fallback
-        
-        # =====================================================================
-        # HEALTH ISSUES
-        # =====================================================================
-        
-        if question_key == 'common_health_issues':
-            """User readiness for breed health challenges"""
-            if not breed_value or str(breed_value).lower() in ['none', 'minimal']:
-                return 1.0  # No health issues
+                    return 0.75 if user_normalized >= 3 else 0.60
             
+            # =====================================================================
+            # DEFAULT FALLBACK
+            # =====================================================================
+            
+            return 0.5
+        
+        except Exception as e:
+            return 0.5
             user_aware = user_answer in ['Yes', 'Ready', 'Prepared', 'High', 'Yes']
             return 0.85 if user_aware else 0.55
         
@@ -966,26 +988,46 @@ class CompatibilityEngine:
     
     @classmethod
     def find_top_matches(cls, answers: Dict, limit: int = 5) -> List[Dict]:
-        """Find top N most compatible breeds"""
-        matches = []
+        """Find top N most compatible breeds - one top breed per species for diversity"""
+        
+        if not answers or not isinstance(answers, dict):
+            return []
+        
+        # Dictionary to track the best breed for each species
+        species_best_breeds = {}  # {species_id: {'breed': Breed, 'score': float, 'level': str, ...}}
+        
         breeds = Breed.query.filter(
             Breed.is_active == True,
             Breed.deleted_at.is_(None)
         ).all()
         
         for breed in breeds:
-            result = cls.calculate_match_score(answers, breed)
-            matches.append({
-                'breed': breed,
-                'score': result['score'],
-                'level': result['compatibility_level'],
-                'mismatches': result['mismatches'],
-                'strengths': result['strengths'],
-                'details': result,
-                'scores': {'raw_score': result['score']}
-            })
+            try:
+                result = cls.calculate_match_score(answers, breed)
+                
+                if result and 'score' in result:
+                    score = result['score']
+                    species_id = breed.species_id
+                    
+                    # If this species doesn't have a breed yet, or this breed scores higher, update it
+                    if species_id not in species_best_breeds or score > species_best_breeds[species_id]['score']:
+                        species_best_breeds[species_id] = {
+                            'breed': breed,
+                            'score': score,
+                            'level': result.get('compatibility_level', 'Unknown'),
+                            'mismatches': result.get('mismatches', []),
+                            'strengths': result.get('strengths', []),
+                            'details': result,
+                            'scores': {'raw_score': score}
+                        }
+            except Exception as e:
+                pass
         
+        # Convert to list and sort by score
+        matches = list(species_best_breeds.values())
         matches.sort(key=lambda x: x['score'], reverse=True)
+        
+        # Return top N matches (each from different species)
         return matches[:limit]
     
     @classmethod

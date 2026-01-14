@@ -213,18 +213,14 @@
 
   <!-- 🔷 VIEW BREED MODAL - INSTAGRAM + RECEIPT PROFILE STYLE -->
   <div x-show="viewModal" x-transition.opacity
-       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl border border-gray-200 flex flex-col max-h-[95vh] overflow-hidden transition-all duration-300">
+       class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl w-full max-w-full sm:max-w-2xl lg:max-w-4xl mx-0 sm:mx-2 md:mx-4 lg:mx-6 border border-lavender-200 flex flex-col max-h-[90vh] overflow-hidden mt-6 sm:mt-10 transition-all duration-300">
 
       <!-- HEADER with Close Button -->
       <div class="sticky top-0 bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-3xl">
         <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
           <i class="fa-solid fa-dna"></i> Breed Profile
         </h3>
-        <button @click="viewModal=false; selectedBreed=null"
-                class="text-white hover:bg-indigo-800 rounded-full p-2 transition">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
       </div>
 
       <!-- SCROLLABLE CONTENT -->
@@ -639,9 +635,6 @@
           </template>
           <span x-text="editingBreed ? 'Edit Breed' : 'Add Breed'"></span>
         </h3>
-        <button @click="breedModal=false; resetBreedForm()" class="text-gray-500 hover:text-gray-700 transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
       </div>
 
       <!-- FORM -->
@@ -1070,7 +1063,7 @@
           </div>
 
           <!-- FOOTER BUTTONS -->
-          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-lavender-200 sticky bottom-0 bg-white/95 px-2 sm:px-0">
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-lavender-200 bg-white/95 px-2 sm:px-0">
             <button type="submit"
                     class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm w-full sm:w-auto">
                     <span x-text="editingBreed ? 'Save Changes' : 'Add Breed'"></span>

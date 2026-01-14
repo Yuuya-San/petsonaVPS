@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.extensions import db
 import json
+import pytz
 
 
 class MatchHistory(db.Model):
@@ -49,24 +50,73 @@ class MatchHistory(db.Model):
     @property
     def as_dict(self):
         """Convert to dictionary for JSON serialization"""
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'match_type': self.match_type,
-            'breed_id': self.breed_id,
-            'breed_name': self.breed.name if self.breed else None,
-            'species_name': self.breed.species.name if self.breed else None,
-            'compatibility_score': self.compatibility_score,
-            'compatibility_level': self.compatibility_level,
-            'top_matches': self.top_matches,
-            'category_scores': self.category_scores,
-            'mismatches': self.mismatches,
-            'improvement_suggestions': self.improvement_suggestions,
-            'strength_areas': self.strength_areas,
-            'device_type': self.device_type,
-            'source': self.source,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-        }
+        try:
+            breed_dict = None
+            if self.breed:
+                try:
+                    breed_dict = {
+                        'id': self.breed.id,
+                        'name': self.breed.name,
+                        'image_url': self.breed.image_url,
+                        'species_id': self.breed.species_id,
+                        'species_name': self.breed.species.name if self.breed.species else None,
+                    }
+                except Exception as e:
+                    print(f"[ERROR] Failed to serialize breed: {e}")
+                    breed_dict = None
+            
+            # Convert UTC timestamp to Philippines Time (UTC+8)
+            created_at_pht = None
+            if self.created_at:
+                try:
+                    utc_tz = pytz.UTC
+                    pht_tz = pytz.timezone('Asia/Manila')
+                    # Make created_at timezone-aware if it isn't already
+                    if self.created_at.tzinfo is None:
+                        created_at_utc = utc_tz.localize(self.created_at)
+                    else:
+                        created_at_utc = self.created_at
+                    created_at_pht = created_at_utc.astimezone(pht_tz).isoformat()
+                except Exception as e:
+                    print(f"[ERROR] Failed to convert timestamp: {e}")
+                    created_at_pht = self.created_at.isoformat() if self.created_at else None
+            
+            return {
+                'id': self.id,
+                'user_id': self.user_id,
+                'match_type': self.match_type,
+                'breed_id': self.breed_id,
+                'breed': breed_dict,
+                'compatibility_score': float(self.compatibility_score) if self.compatibility_score else 0,
+                'compatibility_level': self.compatibility_level or 'Unknown',
+                'top_matches': self.top_matches or [],
+                'category_scores': self.category_scores or {},
+                'mismatches': self.mismatches or [],
+                'improvement_suggestions': self.improvement_suggestions or [],
+                'strength_areas': self.strength_areas or [],
+                'device_type': self.device_type,
+                'source': self.source,
+                'created_at': created_at_pht,
+            }
+        except Exception as e:
+            print(f"[ERROR] Failed to convert match to dict: {e}")
+            return {
+                'id': self.id,
+                'user_id': self.user_id,
+                'match_type': self.match_type,
+                'breed_id': self.breed_id,
+                'breed': None,
+                'compatibility_score': 0,
+                'compatibility_level': 'Unknown',
+                'top_matches': [],
+                'category_scores': {},
+                'mismatches': [],
+                'improvement_suggestions': [],
+                'strength_areas': [],
+                'device_type': None,
+                'source': None,
+                'created_at': None,
+            }
     
     def __repr__(self):
         return f"<MatchHistory {self.id} - {self.match_type} - {self.compatibility_score}%>"

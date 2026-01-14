@@ -384,17 +384,17 @@
     <!-- ACTION BUTTONS -->
     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4">
       {% if current_user.is_authenticated %}
-        {% if current_user.role == "admin" %}
+        {% if current_user.role == "admin" and breed.species_id %}
           <a href="{{ url_for('pets.view_species', id=breed.species_id) }}" 
             class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition active:scale-95">
             <i class="fa-solid fa-arrow-left"></i> Back to Breed Management
           </a>
-        {% elif current_user.role == "merchant" %}
-          <a href="{{ url_for('user.view_species', id=breed.species_id) }}" 
+        {% elif current_user.role == "merchant" and breed.species_id %}
+          <a href="{{ url_for('merchant.view_species', id=breed.species_id) }}" 
             class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition active:scale-95">
             <i class="fa-solid fa-arrow-left"></i> Back to Breeds
           </a>
-        {% elif current_user.role == "user" %}
+        {% elif current_user.role == "user" and breed.species_id %}
           <a href="{{ url_for('user.view_species', id=breed.species_id) }}" 
             class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition active:scale-95">
             <i class="fa-solid fa-arrow-left"></i> Back to Breeds

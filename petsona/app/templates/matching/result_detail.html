@@ -37,269 +37,215 @@
     <!-- HEADER -->
     <div class="animate-fadeIn">
       <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-        <i class="fa-solid fa-history text-indigo-600"></i> Quiz Result Details
+        <i class="fa-solid fa-search text-indigo-600"></i> 
+        {% if result.match_type == 'breed' and result.breed %}
+          {{ result.breed.name }} Compatibility
+        {% else %}
+          Your Top 5 Matches
+        {% endif %}
       </h1>
       <p class="text-sm sm:text-base text-gray-600">
-        <time datetime="{{ result.created_at.isoformat() }}">
-          {{ result.created_at.strftime('%B %d, %Y at %I:%M %p') }}
-        </time>
+        Assessment from <time datetime="{{ result.created_at.isoformat() }}">{{ result.created_at.strftime('%B %d, %Y') }}</time>
       </p>
     </div>
 
-    <!-- MATCH TYPE INDICATOR -->
-    <div class="bg-white rounded-2xl shadow-md p-5 sm:p-6 border border-gray-100 result-card">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+    <!-- MAIN SCORE CARD -->
+    <div class="bg-white rounded-2xl shadow-md p-6 sm:p-8 border border-gray-100 result-card">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- LEFT: BREED/MATCH NAME -->
         <div>
           {% if result.match_type == 'breed' and result.breed %}
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">{{ result.breed.name }}</h2>
-            <span class="inline-block bg-purple-100 text-purple-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold">
-              <i class="fa-solid fa-dna mr-1.5"></i> Breed-Specific Match
+            <h2 class="text-3xl font-bold text-gray-900 mb-3">{{ result.breed.name }}</h2>
+            {% if result.breed.species_name %}
+              <p class="text-sm text-gray-600 mb-3">
+                <i class="fa-solid fa-leaf text-green-600"></i> {{ result.breed.species_name }}
+              </p>
+            {% endif %}
+            <span class="inline-block bg-purple-100 text-purple-800 px-3 py-1.5 rounded-full text-xs font-bold">
+              <i class="fa-solid fa-dna mr-1.5"></i> Breed Match
             </span>
-            <!-- BREED IMAGE -->
-            <div class="hidden sm:block mt-4 rounded-lg overflow-hidden shadow-md border border-gray-200">
+            <!-- BREED IMAGE FOR BREED MATCHES -->
+            <div class="hidden md:block mt-4 rounded-lg overflow-hidden shadow-md border border-gray-200 h-40">
               <img src="{% if result.breed.image_url %}{{ url_for('static', filename=result.breed.image_url) }}{% else %}{{ url_for('static', filename='images/breeds/default.jpg') }}{% endif %}" 
                    alt="{{ result.breed.name }}" 
-                   class="w-full h-48 object-cover">
+                   class="w-full h-full object-cover">
             </div>
           {% else %}
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Top 5 Breed Matches</h2>
-            <span class="inline-block bg-indigo-100 text-indigo-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold">
-              <i class="fa-solid fa-star mr-1.5"></i> General Matching Results
+            <h2 class="text-3xl font-bold text-gray-900 mb-3">Top 5 Recommendations</h2>
+            <span class="inline-block bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-full text-xs font-bold">
+              <i class="fa-solid fa-star mr-1.5"></i> General Results
             </span>
           {% endif %}
         </div>
 
-        <!-- SCORE DISPLAY -->
-        <div class="flex flex-col justify-center">
-          <p class="text-xs sm:text-sm font-semibold text-gray-600 mb-2">Overall Score</p>
-          <div class="flex items-end gap-3">
-            <p class="text-5xl sm:text-6xl font-bold" style="background: linear-gradient(to right, #4f46e5, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{{ result.compatibility_score|round|int }}%</p>
+        <!-- CENTER: COMPATIBILITY SCORE -->
+        <div class="md:col-span-2 flex flex-col justify-center items-center md:items-end">
+          <p class="text-xs sm:text-sm font-semibold text-gray-600 mb-2">Your Compatibility Score</p>
+          <div class="text-center md:text-right">
+            <p class="text-6xl sm:text-7xl font-bold" style="background: linear-gradient(to right, #4f46e5, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+              {{ result.compatibility_score|round|int }}%
+            </p>
             {% set score = result.compatibility_score | float %}
-            {% if score >= 80 %}
-              <span class="inline-block bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold">
-                <i class="fa-solid fa-star text-green-600 mr-1"></i> Excellent
-              </span>
-            {% elif score >= 60 %}
-              <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold">
-                <i class="fa-solid fa-check-circle text-blue-600 mr-1"></i> Very Good
-              </span>
-            {% elif score >= 40 %}
-              <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold">
-                <i class="fa-solid fa-circle-exclamation text-yellow-600 mr-1"></i> Fair
-              </span>
-            {% else %}
-              <span class="inline-block bg-orange-100 text-orange-800 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold">
-                <i class="fa-solid fa-triangle-exclamation text-orange-600 mr-1"></i> Needs Care
-              </span>
-            {% endif %}
+            <div class="mt-3 flex flex-col sm:flex-row gap-3 items-center md:justify-end">
+              {% if score >= 80 %}
+                <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-bold">
+                  <i class="fa-solid fa-star text-green-600 mr-1"></i> Excellent Match
+                </span>
+              {% elif score >= 60 %}
+                <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-bold">
+                  <i class="fa-solid fa-check-circle text-blue-600 mr-1"></i> Good Match
+                </span>
+              {% elif score >= 40 %}
+                <span class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-bold">
+                  <i class="fa-solid fa-circle-exclamation text-yellow-600 mr-1"></i> Fair Match
+                </span>
+              {% else %}
+                <span class="bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-bold">
+                  <i class="fa-solid fa-triangle-exclamation text-orange-600 mr-1"></i> Needs Consideration
+                </span>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
 
       <!-- PROGRESS BAR -->
-      {% set score = result.compatibility_score | float %}
-      <div class="mt-6 pt-6 border-t border-gray-200">
-        <div class="w-full bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden">
+      <div class="mt-6 pt-6 border-t border-gray-200" x-data="{ score: {{ score|round|int }} }">
+        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           {% if score >= 80 %}
-            <div class="h-full rounded-full transition-all duration-700" style="--bar-width: {{ score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #10b981, #059669);"></div>
+            <div class="h-full rounded-full transition-all duration-700" :style="`width: ${score}%; background: linear-gradient(90deg, #10b981, #059669);`"></div>
           {% elif score >= 60 %}
-            <div class="h-full rounded-full transition-all duration-700" style="--bar-width: {{ score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #3b82f6, #4f46e5);"></div>
+            <div class="h-full rounded-full transition-all duration-700" :style="`width: ${score}%; background: linear-gradient(90deg, #3b82f6, #4f46e5);`"></div>
           {% elif score >= 40 %}
-            <div class="h-full rounded-full transition-all duration-700" style="--bar-width: {{ score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #eab308, #ea580c);"></div>
+            <div class="h-full rounded-full transition-all duration-700" :style="`width: ${score}%; background: linear-gradient(90deg, #eab308, #ea580c);`"></div>
           {% else %}
-            <div class="h-full rounded-full transition-all duration-700" style="--bar-width: {{ score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #ea580c, #dc2626);"></div>
+            <div class="h-full rounded-full transition-all duration-700" :style="`width: ${score}%; background: linear-gradient(90deg, #ea580c, #dc2626);`"></div>
           {% endif %}
         </div>
       </div>
     </div>
 
-    <!-- DETAILED ANALYSIS -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+    <!-- SIMPLE TWO COLUMN LAYOUT -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- LEFT COLUMN: DETAILS -->
+      <div class="lg:col-span-2 space-y-6">
 
-      <!-- LEFT COLUMN -->
-      <div class="lg:col-span-2 space-y-6 sm:space-y-8">
-
-        <!-- COMPATIBILITY BREAKDOWN -->
+        <!-- CATEGORY BREAKDOWN -->
         {% if result.category_scores %}
-        <div class="bg-white rounded-2xl shadow-md p-6 sm:p-8 border border-gray-100 result-card">
-          <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <i class="fa-solid fa-chart-bar text-indigo-600"></i> Compatibility Breakdown by Category
+        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 result-card">
+          <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-chart-bar text-indigo-600"></i> Score Breakdown
           </h3>
-
-          <div class="space-y-5">
+          <div class="space-y-3">
             {% for category, data in result.category_scores.items() %}
               {% set cat_score = (data.raw_score * 100)|round|int %}
               <div>
-                <div class="flex justify-between items-center mb-2.5">
-                  <span class="font-semibold text-gray-800 text-sm sm:text-base capitalize">{{ category|replace('_', ' ') }}</span>
-                  <span class="text-sm sm:text-base font-bold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">{{ cat_score }}%</span>
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-semibold text-gray-800 capitalize">{{ category|replace('_', ' ') }}</span>
+                  <span class="text-sm font-bold text-indigo-600">{{ cat_score }}%</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden" x-data="{ score: {{ cat_score }} }">
                   {% if cat_score >= 80 %}
-                    <div class="h-full rounded-full transition-all duration-500" style="--bar-width: {{ cat_score }}%; width: var(--bar-width); background: linear-gradient(to right, #10b981, #059669);"></div>
+                    <div class="h-full" :style="`width: ${score}%; background: linear-gradient(90deg, #10b981, #059669);`"></div>
                   {% elif cat_score >= 60 %}
-                    <div class="h-full rounded-full transition-all duration-500" style="--bar-width: {{ cat_score }}%; width: var(--bar-width); background: linear-gradient(to right, #3b82f6, #4f46e5);"></div>
+                    <div class="h-full" :style="`width: ${score}%; background: linear-gradient(90deg, #3b82f6, #4f46e5);`"></div>
                   {% elif cat_score >= 40 %}
-                    <div class="h-full rounded-full transition-all duration-500" style="--bar-width: {{ cat_score }}%; width: var(--bar-width); background: linear-gradient(to right, #eab308, #ea580c);"></div>
+                    <div class="h-full" :style="`width: ${score}%; background: linear-gradient(90deg, #eab308, #ea580c);`"></div>
                   {% else %}
-                    <div class="h-full rounded-full transition-all duration-500" style="--bar-width: {{ cat_score }}%; width: var(--bar-width); background: linear-gradient(to right, #ea580c, #dc2626);"></div>
+                    <div class="h-full" :style="`width: ${score}%; background: linear-gradient(90deg, #ea580c, #dc2626);`"></div>
                   {% endif %}
                 </div>
               </div>
             {% endfor %}
-          </div>
-
-          <div class="mt-6 pt-6 border-t border-gray-200 bg-indigo-50 rounded-xl p-4">
-            <p class="text-xs sm:text-sm text-gray-800"><i class="fa-solid fa-info-circle text-indigo-600 mr-2"></i><strong>Score Guide:</strong> 80%+ excellent alignment | 60-79% good match | 40-59% fair match | Below 40% significant concerns</p>
           </div>
         </div>
         {% endif %}
 
         <!-- STRENGTHS -->
         {% if result.strength_areas %}
-        <div class="bg-green-50 rounded-2xl shadow-md p-6 sm:p-8 border-2 border-green-200 result-card">
-          <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-            <i class="fa-solid fa-check-circle text-green-600"></i> Your Strengths
+        <div class="bg-green-50 rounded-2xl shadow-md p-6 border-2 border-green-200 result-card">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-check-circle text-green-600"></i> What's Working Well
           </h3>
-          <ul class="space-y-3 sm:space-y-4">
+          <ul class="space-y-2">
             {% for s in result.strength_areas %}
-              <li class="flex items-start gap-3 p-4 sm:p-5 bg-white rounded-xl border border-green-200 hover:shadow-md transition">
-                <i class="fa-solid fa-star text-green-600 flex-shrink-0 mt-0.5 text-sm"></i>
-                <span class="text-sm sm:text-base text-gray-800">{{ s }}</span>
+              <li class="flex gap-3 text-sm text-gray-800">
+                <i class="fa-solid fa-star text-green-600 flex-shrink-0 mt-0.5"></i>
+                <span>{{ s }}</span>
               </li>
             {% endfor %}
           </ul>
-          <div class="mt-4 p-4 bg-white rounded-xl text-xs sm:text-sm text-green-700 border border-green-200 flex items-start gap-2">
-            <i class="fa-solid fa-circle-info flex-shrink-0 mt-0.5"></i>
-            <span><strong>Veterinary Note:</strong> These areas demonstrate excellent alignment with your chosen pet's requirements, significantly improving compatibility.</span>
-          </div>
         </div>
         {% endif %}
 
-        <!-- AREAS TO ADDRESS -->
+        <!-- CONCERNS -->
         {% if result.mismatches %}
-        <div class="bg-orange-50 rounded-2xl shadow-md p-6 sm:p-8 border-2 border-orange-200 result-card">
-          <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-            <i class="fa-solid fa-lightbulb text-orange-600"></i> Areas Requiring Attention
+        <div class="bg-orange-50 rounded-2xl shadow-md p-6 border-2 border-orange-200 result-card">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-lightbulb text-orange-600"></i> Areas to Consider
           </h3>
-          <div class="space-y-3 sm:space-y-4">
+          <ul class="space-y-2">
             {% for m in result.mismatches %}
-              <div class="p-4 sm:p-5 bg-white rounded-xl border border-orange-200 hover:shadow-md transition">
-                <p class="flex items-start gap-3 text-sm sm:text-base text-gray-800">
-                  <i class="fa-solid fa-circle-info text-orange-600 flex-shrink-0 mt-0.5"></i>
-                  <span>{{ m }}</span>
-                </p>
-              </div>
+              <li class="flex gap-3 text-sm text-gray-800">
+                <i class="fa-solid fa-circle-info text-orange-600 flex-shrink-0 mt-0.5"></i>
+                <span>{{ m }}</span>
+              </li>
             {% endfor %}
-          </div>
-          <div class="mt-4 p-4 bg-white rounded-xl text-xs sm:text-sm text-orange-700 border border-orange-200 flex items-start gap-2">
-            <i class="fa-solid fa-circle-exclamation flex-shrink-0 mt-0.5"></i>
-            <span><strong>Recommendation:</strong> These areas may require lifestyle adjustments or additional preparation. Consult with a veterinarian about mitigation strategies before proceeding.</span>
-          </div>
+          </ul>
         </div>
         {% endif %}
-
-        <!-- IMPROVEMENT STRATEGY -->
-        <div class="bg-blue-50 rounded-2xl shadow-md p-6 sm:p-8 border-2 border-blue-200 result-card">
-          <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-            <i class="fa-solid fa-rocket text-blue-600"></i> Increase Your Compatibility
-          </h3>
-          <div class="space-y-4">
-            <div class="p-4 sm:p-5 bg-white rounded-xl border border-blue-200">
-              <p class="text-xs sm:text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-target text-blue-600"></i> Actionable Steps
-              </p>
-              <ul class="text-xs sm:text-sm text-gray-800 space-y-2 ml-6">
-                <li>• Review flagged compatibility areas in detail above</li>
-                <li>• Create an action plan addressing top concerns</li>
-                <li>• Consult breed specialists or experienced owners</li>
-                <li>• Schedule veterinary consultation for breed-specific guidance</li>
-                <li>• Revisit quiz after making lifestyle adjustments</li>
-              </ul>
-            </div>
-            {% set score = result.compatibility_score|float %}
-            {% if score < 70 %}
-            <div class="p-4 sm:p-5 bg-white rounded-xl border border-blue-200">
-              <p class="text-xs sm:text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-chart-line text-blue-600"></i> Priority Improvements
-              </p>
-              <p class="text-xs sm:text-sm text-gray-800 leading-relaxed">Your current score indicates several compatibility gaps. Focus on addressing the most critical concerns (highlighted in orange above) before proceeding. Making meaningful changes in 2-3 key areas could significantly improve your compatibility.</p>
-            </div>
-            {% elif score < 80 %}
-            <div class="p-4 sm:p-5 bg-white rounded-xl border border-blue-200">
-              <p class="text-xs sm:text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-check-double text-blue-600"></i> Near-Perfect Match
-              </p>
-              <p class="text-xs sm:text-sm text-gray-800 leading-relaxed">You're close to an excellent match! Small adjustments in a few areas could push you to 80%+ compatibility. Consider these refinements to achieve optimal alignment.</p>
-            </div>
-            {% endif %}
-          </div>
-        </div>
 
       </div>
 
-      <!-- RIGHT COLUMN: SUMMARY -->
-      <div class="space-y-6 sm:space-y-8">
+      <!-- RIGHT COLUMN: SUMMARY & RECOMMENDATIONS -->
+      <div class="space-y-6">
 
-        <!-- PROFESSIONAL SUMMARY -->
-        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl shadow-md p-6 sm:p-8 border-2 border-indigo-200 result-card">
-          <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-prescription-bottle text-indigo-600"></i> Assessment Summary
+        <!-- RECOMMENDATION -->
+        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl shadow-md p-6 border-2 border-indigo-200 result-card">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-thumbs-up text-indigo-600"></i> Recommendation
           </h3>
-          <div class="bg-white rounded-xl p-4 sm:p-5 border border-indigo-200 text-xs sm:text-sm text-gray-800 leading-relaxed space-y-3">
+          <div class="bg-white rounded-xl p-4 border border-indigo-200 text-sm text-gray-800 space-y-2">
+            {% set score = result.compatibility_score | float %}
             {% if score >= 80 %}
               <p class="font-semibold text-green-700">✓ Highly Recommended</p>
-              <p>This is an excellent compatibility match. Your lifestyle, experience, and circumstances align exceptionally well with the pet's requirements. Proceed with confidence in adoption.</p>
+              <p>Excellent match! You're well-prepared for a successful adoption.</p>
             {% elif score >= 60 %}
-              <p class="font-semibold text-blue-700">✓ Recommended</p>
-              <p>This is a strong match with good potential for success. Focus on the areas flagged above, and you'll be well-prepared for a positive adoption experience.</p>
+              <p class="font-semibold text-blue-700">✓ Good Match</p>
+              <p>This can work well. Focus on the areas highlighted above to prepare.</p>
             {% elif score >= 40 %}
-              <p class="font-semibold text-yellow-700">⚠ Conditional</p>
-              <p>This match requires careful preparation and lifestyle adjustments. Implement solutions for the flagged areas, and seek professional veterinary guidance before proceeding.</p>
+              <p class="font-semibold text-yellow-700">⚠ Proceed with Caution</p>
+              <p>Possible with preparation. Address concerns and consult with veterinarians.</p>
             {% else %}
-              <p class="font-semibold text-orange-700">⚠ Not Recommended</p>
-              <p>This combination presents significant compatibility challenges. Address the major concerns first, or consider alternative breeds better suited to your current situation.</p>
+              <p class="font-semibold text-orange-700">⚠ Reconsider</p>
+              <p>Significant challenges present. Consider alternatives or make major lifestyle changes.</p>
             {% endif %}
           </div>
         </div>
 
-        <!-- COMPATIBILITY LEVEL -->
-        <div class="bg-white rounded-2xl shadow-md p-6 sm:p-8 border border-gray-100 result-card">
-          <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-gauge-high text-indigo-600"></i> Score Interpretation
-          </h3>
-          <div class="text-xs sm:text-sm text-gray-700 space-y-3">
-            <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-              <p><strong class="text-indigo-800">{{ result.compatibility_level }}</strong></p>
-              <p class="mt-1">Overall compatibility assessment based on multi-dimensional analysis</p>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <p class="text-xs"><strong>Scoring Methodology:</strong> Assessment based on 8 weighted categories including lifestyle, experience, space, care requirements, household environment, financial capability, health considerations, and safety factors.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- QUICK ACTIONS -->
-        <div class="bg-white rounded-2xl shadow-md p-6 sm:p-8 border border-gray-100 result-card">
-          <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-bolt text-yellow-600"></i> Next Steps
+        <!-- NEXT STEPS -->
+        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 result-card">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-arrow-right text-indigo-600"></i> What to Do Next
           </h3>
           <ul class="space-y-2 text-sm text-gray-700">
-            <li class="flex items-start gap-2">
-              <i class="fa-solid fa-chevron-right text-indigo-600 flex-shrink-0 mt-0.5"></i>
-              <span>Review strength and concern areas above</span>
+            <li class="flex gap-2">
+              <span class="font-bold text-indigo-600">1.</span>
+              <span>Review strengths and concerns</span>
             </li>
-            <li class="flex items-start gap-2">
-              <i class="fa-solid fa-chevron-right text-indigo-600 flex-shrink-0 mt-0.5"></i>
-              <span>Consult with veterinarian for guidance</span>
+            <li class="flex gap-2">
+              <span class="font-bold text-indigo-600">2.</span>
+              <span>Talk to a veterinarian</span>
             </li>
-            <li class="flex items-start gap-2">
-              <i class="fa-solid fa-chevron-right text-indigo-600 flex-shrink-0 mt-0.5"></i>
-              <span>Take quiz again to explore other breeds</span>
+            <li class="flex gap-2">
+              <span class="font-bold text-indigo-600">3.</span>
+              <span>Make any needed changes</span>
             </li>
-            <li class="flex items-start gap-2">
-              <i class="fa-solid fa-chevron-right text-indigo-600 flex-shrink-0 mt-0.5"></i>
-              <span>View complete matching history</span>
+            <li class="flex gap-2">
+              <span class="font-bold text-indigo-600">4.</span>
+              <span>Take the quiz again</span>
             </li>
           </ul>
         </div>
@@ -307,6 +253,163 @@
       </div>
 
     </div>
+
+    <!-- TOP 5 GENERAL MATCHES - ONE BY ONE DETAILED VIEW -->
+    {% if result.match_type == 'general' and result.top_matches %}
+    <div x-data="{ 
+      idx: 0, 
+      matches: {{ result.top_matches|tojson|safe }},
+      current() { return this.matches[this.idx] || {} }
+    }" class="mt-8">
+      
+      <!-- NAVIGATION TABS -->
+      <div class="mb-6 flex gap-2 overflow-x-auto pb-2">
+        <template x-for="(match, i) in matches" :key="i">
+          <button 
+            @click="idx = i"
+            :class="idx === i ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'"
+            class="px-4 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition flex-shrink-0">
+            <span x-text="`${i+1}. ${match.breed_name}`"></span>
+          </button>
+        </template>
+      </div>
+
+      <!-- DETAILED BREED VIEW -->
+      <template x-if="current().breed_name">
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+            
+            <!-- LEFT: BREED IMAGE -->
+            <div class="md:col-span-1">
+              <div class="rounded-xl overflow-hidden shadow-md border border-gray-200 h-64">
+                <img :src="current().image_url ? '/static/' + current().image_url : '/static/images/breeds/default.jpg'" 
+                     :alt="current().breed_name" 
+                     class="w-full h-full object-cover">
+              </div>
+            </div>
+
+            <!-- CENTER & RIGHT: DETAILS -->
+            <div class="md:col-span-2 space-y-4">
+              <!-- BREED NAME & SCORE -->
+              <div>
+                <h2 class="text-4xl font-bold text-gray-900 mb-2" x-text="current().breed_name"></h2>
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="text-5xl font-bold" style="background: linear-gradient(to right, #4f46e5, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" x-text="`${Math.round(current().score)}%`"></div>
+                  <template x-if="current().score >= 80">
+                    <span class="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-sm font-bold">
+                      <i class="fa-solid fa-star text-green-600 mr-1"></i> Excellent
+                    </span>
+                  </template>
+                  <template x-if="current().score >= 60 && current().score < 80">
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-sm font-bold">
+                      <i class="fa-solid fa-check-circle text-blue-600 mr-1"></i> Good
+                    </span>
+                  </template>
+                  <template x-if="current().score >= 40 && current().score < 60">
+                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-full text-sm font-bold">
+                      <i class="fa-solid fa-circle-exclamation text-yellow-600 mr-1"></i> Fair
+                    </span>
+                  </template>
+                  <template x-if="current().score < 40">
+                    <span class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-full text-sm font-bold">
+                      <i class="fa-solid fa-triangle-exclamation text-orange-600 mr-1"></i> Poor
+                    </span>
+                  </template>
+                </div>
+              </div>
+
+              <!-- PROGRESS BAR -->
+              <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <template x-if="current().score >= 80">
+                  <div class="h-full" :style="`width: ${current().score}%; background: linear-gradient(90deg, #10b981, #059669);`"></div>
+                </template>
+                <template x-if="current().score >= 60 && current().score < 80">
+                  <div class="h-full" :style="`width: ${current().score}%; background: linear-gradient(90deg, #3b82f6, #4f46e5);`"></div>
+                </template>
+                <template x-if="current().score >= 40 && current().score < 60">
+                  <div class="h-full" :style="`width: ${current().score}%; background: linear-gradient(90deg, #eab308, #ea580c);`"></div>
+                </template>
+                <template x-if="current().score < 40">
+                  <div class="h-full" :style="`width: ${current().score}%; background: linear-gradient(90deg, #ea580c, #dc2626);`"></div>
+                </template>
+              </div>
+
+              <!-- STRENGTHS -->
+              <template x-if="current().strengths && current().strengths.length">
+                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <p class="font-semibold text-green-900 mb-2">
+                    <i class="fa-solid fa-star text-green-600 mr-2"></i> Strengths
+                  </p>
+                  <ul class="space-y-1">
+                    <template x-for="s in current().strengths" :key="s">
+                      <li class="flex gap-2 text-sm text-green-800">
+                        <i class="fa-solid fa-check text-green-600 flex-shrink-0 mt-0.5"></i>
+                        <span x-text="s"></span>
+                      </li>
+                    </template>
+                  </ul>
+                </div>
+              </template>
+
+              <!-- MISMATCHES -->
+              <template x-if="current().mismatches && current().mismatches.length">
+                <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                  <p class="font-semibold text-orange-900 mb-2">
+                    <i class="fa-solid fa-lightbulb text-orange-600 mr-2"></i> Areas to Consider
+                  </p>
+                  <ul class="space-y-1">
+                    <template x-for="m in current().mismatches" :key="m">
+                      <li class="flex gap-2 text-sm text-orange-800">
+                        <i class="fa-solid fa-circle-info text-orange-600 flex-shrink-0 mt-0.5"></i>
+                        <span x-text="m"></span>
+                      </li>
+                    </template>
+                  </ul>
+                </div>
+              </template>
+
+              <!-- CATEGORY SCORES -->
+              <template x-if="current().category_scores">
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <p class="font-semibold text-gray-900 mb-3">
+                    <i class="fa-solid fa-chart-bar text-indigo-600 mr-2"></i> Category Breakdown
+                  </p>
+                  <div class="space-y-2">
+                    <template x-for="(score, cat) in current().category_scores" :key="cat">
+                      <div>
+                        <div class="flex justify-between items-center mb-1">
+                          <span class="text-xs font-semibold text-gray-700 capitalize" x-text="cat.replace('_', ' ')"></span>
+                          <span class="text-xs font-bold text-indigo-600" x-text="`${Math.round(score.raw_score * 100)}%`"></span>
+                        </div>
+                        <div class="w-full bg-gray-300 rounded-full h-1.5 overflow-hidden">
+                          <div class="h-full" :style="`width: ${score.raw_score * 100}%; background: linear-gradient(90deg, #4f46e5, #a855f7);`"></div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- NAVIGATION BUTTONS -->
+      <div class="flex gap-4 justify-center mt-6">
+        <button @click="idx = idx > 0 ? idx - 1 : matches.length - 1" 
+                class="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded-lg transition">
+          <i class="fa-solid fa-chevron-left"></i> Previous
+        </button>
+        <span class="flex items-center px-4 py-2 font-semibold text-gray-800">
+          <span x-text="`${idx + 1} of ${matches.length}`"></span>
+        </span>
+        <button @click="idx = idx < matches.length - 1 ? idx + 1 : 0" 
+                class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg transition">
+          Next <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    {% endif %}
 
     <!-- ACTION BUTTONS -->
     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4">
@@ -319,6 +422,83 @@
         <i class="fa-solid fa-history"></i> View History
       </a>
     </div>
+
+    <!-- SHOW DETAILS FOR A SPECIFIC TOP MATCH IF top_match IS PROVIDED -->
+    {% if top_match %}
+    <div class="bg-white rounded-2xl shadow-md p-5 sm:p-6 border border-gray-100 result-card mb-8">
+      <div class="flex flex-col sm:flex-row gap-6 items-center">
+        <img src="{{ top_match.image_url if top_match.image_url else url_for('static', filename='images/breeds/default.jpg') }}" alt="{{ top_match.breed_name }}" class="w-32 h-32 object-cover rounded-lg border border-gray-200 mb-4 sm:mb-0">
+        <div class="flex-1">
+          <h2 class="text-2xl sm:text-3xl font-bold text-indigo-800 mb-2">{{ top_match.breed_name }}</h2>
+          <div class="mb-2">
+            <span class="inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold">Score: {{ top_match.score|round|int }}%</span>
+            <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-bold ml-2">Level: {{ top_match.level }}</span>
+          </div>
+          {% if top_match.strengths %}
+          <div class="mb-2">
+            <span class="font-semibold text-green-700 text-xs">Strengths:</span>
+            <ul class="list-disc ml-5 text-xs text-green-800">
+              {% for s in top_match.strengths %}
+                <li>{{ s }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          {% if top_match.mismatches %}
+          <div class="mb-2">
+            <span class="font-semibold text-orange-700 text-xs">Mismatches:</span>
+            <ul class="list-disc ml-5 text-xs text-orange-800">
+              {% for m in top_match.mismatches %}
+                <li>{{ m }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="mt-6">
+        <h3 class="text-lg font-bold mb-2">Category Scores</h3>
+        <div class="space-y-2">
+          {% for cat, val in top_match.category_scores.items() %}
+          <div class="flex justify-between items-center">
+            <span class="capitalize">{{ cat|replace('_', ' ') }}</span>
+            <span class="font-bold">{{ (val.raw_score * 100)|round|int }}%</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% if top_match.strength_areas %}
+      <div class="mt-4">
+        <h3 class="text-sm font-bold text-green-700 mb-1">Strength Areas</h3>
+        <ul class="list-disc ml-5 text-xs text-green-800">
+          {% for s in top_match.strength_areas %}
+            <li>{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if top_match.mismatch_areas %}
+      <div class="mt-4">
+        <h3 class="text-sm font-bold text-orange-700 mb-1">Mismatch Areas</h3>
+        <ul class="list-disc ml-5 text-xs text-orange-800">
+          {% for m in top_match.mismatch_areas %}
+            <li>{{ m }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if top_match.improvement_suggestions %}
+      <div class="mt-4">
+        <h3 class="text-sm font-bold text-blue-700 mb-1">Improvement Suggestions</h3>
+        <ul class="list-disc ml-5 text-xs text-blue-800">
+          {% for s in top_match.improvement_suggestions %}
+            <li>{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
 
   </div>
 </div>

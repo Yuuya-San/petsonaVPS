@@ -290,6 +290,7 @@
         });
 
         try {
+          console.log('Submitting quiz with answers:', formattedAnswers);
           const response = await fetch('/matching/api/quiz-submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -297,14 +298,17 @@
           });
 
           const data = await response.json();
+          console.log('Quiz submission response:', data);
 
-          if (data.success) {
+          if (data.success && response.ok) {
             this.quizResults = data;
-            // Keep loader visible and redirect after 2 seconds
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Keep loader visible and redirect after 2.5 seconds to ensure session is saved
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            console.log('Redirecting to results page...');
             window.location.href = '/matching/results/general';
           } else {
             this.quizComplete = false;
+            console.error('Quiz submission failed:', data);
             alert('Error: ' + (data.error || 'Failed to process quiz'));
           }
         } catch (error) {

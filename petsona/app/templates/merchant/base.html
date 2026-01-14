@@ -19,6 +19,36 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='merchant/custom.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/compatibility-scores.css') }}">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+        theme: {
+            extend: {
+            colors: {
+                lavender: '#E6E6FA'
+            }
+            }
+        }
+        }
+    </script>
+
+    <style>
+    [x-cloak] { display: none !important; }
+    </style>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-..."
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+
     {% block styles %}{% endblock %}
 </head>
 

@@ -1,4 +1,4 @@
-{% extends "user/base.html" %}
+{% extends "merchant/base.html" %}
 {% block content %}
 
 <style>
@@ -89,7 +89,7 @@
                   class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
             View Details
           </button>
-          <a href="{{ url_for('user.view_species', id=species.id) }}"
+          <a href="{{ url_for('merchant.view_species', id=species.id) }}"
              class="w-full text-center bg-indigo-800 hover:bg-indigo-900 text-white py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
             Explore Breeds
           </a>

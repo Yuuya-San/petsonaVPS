@@ -178,6 +178,7 @@
 
       <div class="modal-footer">
         <form id="restoreForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
             Cancel
           </button>

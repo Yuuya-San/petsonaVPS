@@ -26,6 +26,7 @@ def create_app(config_class: type = Config):
         DevelopmentConfig.init_app(app)
 
     # Initialize extensions
+
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
@@ -33,17 +34,13 @@ def create_app(config_class: type = Config):
     bcrypt.init_app(app)
     limiter.init_app(app)
     talisman.init_app(app, content_security_policy=app.config.get("CSP", {}))
+    from app.extensions import csrf
+    csrf.init_app(app)
 
     # Flask-Login user loader
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
-
-    # Ensure session lifetime
-    @app.before_request
-    def make_session_permanent():
-        from flask import session
-        session.permanent = True
 
     # Auto-create database and tables
     with app.app_context():

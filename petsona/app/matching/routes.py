@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required # pyright: ignore[reportMissingImports]
 from datetime import datetime
 import uuid
-from app.extensions import db
+from app.extensions import db, csrf
 from app.models.breed import Breed
 from app.models.match_history import MatchHistory
 from app.utils.compatibility_engine import CompatibilityEngine
@@ -14,6 +14,7 @@ from . import bp
 # GLOBAL QUIZ PAGE (NEW)
 # --------------------------
 @bp.route("/", methods=["GET"])
+@login_required
 def quiz():
     """Display global quiz page accessible to all users"""
     # Clear any previous quiz data to ensure fresh session
@@ -30,6 +31,7 @@ def quiz():
 # BREED-SPECIFIC QUIZ PAGE (NEW)
 # --------------------------
 @bp.route("/quiz/specific/<int:breed_id>", methods=["GET"])
+@login_required
 def quiz_specific(breed_id):
     """Display breed-specific quiz for compatibility assessment"""
     breed = Breed.query.get_or_404(breed_id)
@@ -48,6 +50,7 @@ def quiz_specific(breed_id):
 # GENERAL RESULTS PAGE (NEW)
 # --------------------------
 @bp.route("/results/general", methods=["GET"])
+@login_required
 def general_results():
     """Display top 5 breed matches from previous quiz submission"""
     # Get last stored matches from session
@@ -101,6 +104,7 @@ def general_results():
 # API: GET RESULTS (NEW)
 # --------------------------
 @bp.route("/api/results/general", methods=["GET"])
+@login_required
 def api_get_results():
     """Fetch results from session as JSON (for dashboard integration)"""
     matches = session.get('last_matches', [])
@@ -119,6 +123,7 @@ def api_get_results():
 # BREED-SPECIFIC RESULTS PAGE (NEW)
 # --------------------------
 @bp.route("/results/breed/<int:breed_id>", methods=["GET"])
+@login_required
 def breed_match(breed_id):
     """Display compatibility assessment for specific breed"""
     breed = Breed.query.get_or_404(breed_id)
@@ -184,6 +189,7 @@ def breed_match(breed_id):
 # MATCH HISTORY PAGE (NEW)
 # --------------------------
 @bp.route("/history", methods=["GET"])
+@login_required
 def history():
     """Display all match history for current user"""
     if not current_user.is_authenticated:
@@ -217,6 +223,7 @@ def history():
 # VIEW SPECIFIC RESULT (NEW)
 # --------------------------
 @bp.route("/results/<int:result_id>", methods=["GET"])
+@login_required
 def view_result(result_id):
     """View a specific past match result"""
     match = MatchHistory.query.get_or_404(result_id)
@@ -245,6 +252,8 @@ def view_result(result_id):
 # DELETE HISTORY RECORD (NEW)
 # --------------------------
 @bp.route("/history/delete", methods=["DELETE"])
+@csrf.exempt
+@login_required
 def delete_history():
     """Delete a match history record"""
     if not current_user.is_authenticated:
@@ -266,6 +275,8 @@ def delete_history():
 # API: QUIZ SUBMISSION (UPDATED)
 # ---------------------------
 @bp.route("/api/quiz-submit", methods=["POST"])
+@csrf.exempt
+@login_required
 def api_quiz_submit():
     """
     Submit quiz answers and get top 5 matches.
@@ -381,6 +392,8 @@ def api_quiz_submit():
 # API: BREED-SPECIFIC MATCH (UPDATED)
 # ---------------------------
 @bp.route("/api/breed-match", methods=["POST"])
+@csrf.exempt
+@login_required
 def api_breed_match():
     """
     Calculate compatibility for a specific breed.
@@ -392,13 +405,19 @@ def api_breed_match():
         breed_id = data.get("breed_id")
         answers = data.get("answers")
 
-        if not breed_id or not answers:
-            return jsonify({'error': 'Missing breed_id or answers'}), 400
+        if not breed_id:
+            return jsonify({'error': 'Missing breed_id', 'success': False}), 400
+        
+        if not answers or len(answers) == 0:
+            return jsonify({'error': 'No quiz answers provided', 'success': False}), 400
 
         breed = Breed.query.get_or_404(breed_id)
 
         # Calculate match score
-        match_data = CompatibilityEngine.calculate_match_score(answers, breed)
+        try:
+            match_data = CompatibilityEngine.calculate_match_score(answers, breed)
+        except Exception as calc_error:
+            return jsonify({'error': f'Calculation error: {str(calc_error)}', 'success': False}), 500
         
         # Store answers in session for breed_match route
         session['last_answers'] = answers
@@ -428,6 +447,7 @@ def api_breed_match():
                 db.session.add(match_record)
                 db.session.commit()
             except Exception as e:
+                print(f"Error saving match history: {str(e)}")
                 pass
 
         return jsonify({
@@ -443,6 +463,9 @@ def api_breed_match():
         }), 200
 
     except Exception as e:
+        print(f"Breed match error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return jsonify({'error': str(e), 'success': False}), 500
 
 
@@ -450,6 +473,7 @@ def api_breed_match():
 # API: Match Score
 # --------------------------
 @bp.route("/api/match-score/<int:breed_id>", methods=["POST"])
+@login_required
 def api_match_score(breed_id):
     """Get match score for a specific breed based on session answers"""
     answers = session.get("last_answers")
@@ -474,6 +498,7 @@ def api_match_score(breed_id):
 # API: Analytics
 # ---------------------------
 @bp.route("/api/analytics/stats")
+@login_required
 def api_analytics_stats():
     """Get matching system statistics."""
     try:
@@ -483,7 +508,7 @@ def api_analytics_stats():
         breed_matches = MatchHistory.query.filter_by(match_type='breed').count()
         
         # Get top breeds
-        from sqlalchemy import func
+        from sqlalchemy import func # pyright: ignore[reportMissingImports]
         top_breeds = db.session.query(
             MatchHistory.breed_id,
             func.count(MatchHistory.id).label('match_count')

@@ -1,10 +1,28 @@
 <!-- ================= GLOBAL LOADER ================= -->
-<div id="loader-overlay">
+<div id="loader-overlay" role="status" aria-live="polite" aria-label="Loading content">
     <div class="loader-wrapper">
-        <div class="loader-pulse"></div>
-        <div class="loader-core">
-            <i class="fas fa-paw"></i>
+        <!-- Animated Paw Print -->
+        <div class="loader-container">
+            <div class="loader-paw">
+                <i class="fas fa-paw"></i>
+            </div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring-inner"></div>
         </div>
-        <div class="loader-text">Loading, please wait...</div>
+
+        <!-- Loading Text with Animation -->
+        <div class="loader-text">
+            <span class="loader-message">Loading</span>
+            <span class="loader-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="loader-progress">
+            <div class="progress-bar"></div>
+        </div>
     </div>
 </div>

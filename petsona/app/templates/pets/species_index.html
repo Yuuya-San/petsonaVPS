@@ -199,6 +199,7 @@
       <!-- FORM -->
       <div class="px-4 sm:px-6 py-6 overflow-y-auto flex-1 space-y-6 w-full">
         <form id="species-form" method="POST" action="{{ url_for('pets.save_species') }}" enctype="multipart/form-data" class="space-y-6 w-full">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="species_id" :value="editingSpecies?.id || ''">
 
           <!-- ========== SECTION 1: BASIC INFORMATION ========== -->

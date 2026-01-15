@@ -88,6 +88,7 @@
               <button @click="restoreConfirm=false"
                       class="px-4 py-2 rounded-xl border text-sm">Cancel</button>
               <form method="POST" action="{{ url_for('pets.restore_species', id=species.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm">Restore</button>
               </form>
             </div>
@@ -179,6 +180,7 @@
               <button @click="restoreConfirm=false"
                       class="px-4 py-2 rounded-xl border text-sm">Cancel</button>
               <form method="POST" action="{{ url_for('pets.restore_breed', id=breed.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm">Restore</button>
               </form>
             </div>

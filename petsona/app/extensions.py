@@ -1,11 +1,12 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
-from flask_mail import Mail
-from flask_bcrypt import Bcrypt
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_talisman import Talisman
+from flask_sqlalchemy import SQLAlchemy # pyright: ignore[reportMissingImports]
+from flask_migrate import Migrate # pyright: ignore[reportMissingModuleSource]
+from flask_login import LoginManager # pyright: ignore[reportMissingImports]
+from flask_mail import Mail # pyright: ignore[reportMissingImports]
+from flask_bcrypt import Bcrypt # pyright: ignore[reportMissingImports]
+from flask_limiter import Limiter # pyright: ignore[reportMissingImports]
+from flask_limiter.util import get_remote_address # pyright: ignore[reportMissingImports]
+from flask_talisman import Talisman # pyright: ignore[reportMissingImports]
+from flask_wtf import CSRFProtect
 
 # Database + migrations
 db = SQLAlchemy()
@@ -29,5 +30,9 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
+
 # Security headers / HSTS
 talisman = Talisman()
+
+# CSRF protection
+csrf = CSRFProtect()

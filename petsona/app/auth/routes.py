@@ -1,7 +1,9 @@
-import pyotp
-"""Authentication routes + audit logging on critical paths."""
-from flask import render_template, redirect, url_for, flash, request, current_app, session
-from flask_login import login_user, logout_user, login_required, current_user
+
+from app.models.species import Species
+from app.models.breed import Breed
+
+from flask import g, render_template, redirect, url_for, flash, request, current_app, session
+from flask_login import login_user, logout_user, login_required, current_user # pyright: ignore[reportMissingImports]
 from . import bp
 from .forms import RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
 from ..models import User, AuditLog
@@ -12,6 +14,9 @@ from datetime import datetime, timedelta
 from ..extensions import limiter
 from .emails import send_password_reset_email
 from app.utils.audit import log_event, user_snapshot
+from sqlalchemy import func # pyright: ignore[reportMissingImports]
+import pyotp
+
 
 DEFAULT_AVATARS = [
     "images/avatar/cat.png",
@@ -29,7 +34,36 @@ def get_serializer():
 
 @bp.route('/home')
 def home():
-    return render_template('auth/home.html')
+    page = request.args.get('page', 1, type=int)
+
+    # Paginate active species
+    pagination = Species.query.filter(
+        Species.deleted_at.is_(None)
+    ).order_by(Species.name.asc()).paginate(
+        page=page, per_page=1000, error_out=False
+    )
+
+    species_list = pagination.items
+
+    # Count active breeds per species
+    # Returns a dictionary {species_id: breed_count}
+    breed_counts = dict(
+        db.session.query(
+            Breed.species_id,
+            func.count(Breed.id)
+        )
+        .filter(Breed.is_active==True)  # only active breeds
+        .group_by(Breed.species_id)
+        .all()
+    )
+    
+
+    return render_template(
+        'auth/home.html',
+        species_list=species_list,
+        pagination=pagination,
+        page_title="Pet Species"
+    )
 
 @bp.route('/feature')
 def feature():
@@ -139,10 +173,24 @@ def resend_otp():
 @limiter.limit("10 per minute")
 def login():
     form = LoginForm()
+
+
     if form.validate_on_submit():
         email = form.email.data.lower()
         user = User.query.filter_by(email=email).first()
         base_meta = {'email': email}
+
+        # Always log out any existing user before a new login attempt
+        if current_user.is_authenticated:
+            logout_user()
+            session.clear()
+
+        # Clear session to ensure no old user data remains
+        session.clear()
+
+        import secrets
+        # Generate a new session token for this login
+        session_token = secrets.token_urlsafe(32)
 
         if not user:
             log_event('user.login_failed', details={**base_meta, 'reason': 'no_user'})
@@ -169,6 +217,10 @@ def login():
             user.lockout_until = None
             db.session.commit()
 
+            # Save session token to user and session
+            user.session_token = session_token
+            db.session.commit()
+            session['session_token'] = session_token
             login_user(user)
             log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr})
 
@@ -218,6 +270,15 @@ def admin_login():
     if form.validate_on_submit():
         email = form.email.data.lower()
         user = User.query.filter_by(email=email, role='admin').first()
+
+        # Enforce single-login-per-session: if already logged in as another user, prevent login
+        if current_user.is_authenticated:
+            if current_user.id != (user.id if user else None):
+                flash('You are already logged in as another user. Please log out first to switch accounts.', 'warning')
+                return redirect(url_for('auth.login'))
+
+        # Clear session to ensure no old user data remains
+        session.clear()
 
         base_meta = {'email': email}
 
@@ -386,3 +447,4 @@ def reset_password(token):
             flash(error, 'danger')
 
     return render_template('auth/reset_password.html', form=form)
+

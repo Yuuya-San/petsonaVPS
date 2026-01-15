@@ -190,6 +190,7 @@
             <div class="px-6 py-4 flex justify-end gap-3 border-t">
               <button @click="confirm=false" class="px-4 py-2 rounded-xl border text-sm">Cancel</button>
               <form method="POST" action="{{ url_for('pets.delete_breed', id=breed.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm">
                   <i class="fa-regular fa-trash-can mr-1"></i> Delete
                 </button>
@@ -640,6 +641,7 @@
       <!-- FORM -->
       <div class="px-4 sm:px-6 py-6 overflow-y-auto flex-1 space-y-6 w-full">
         <form id="breed-form" method="POST" action="{{ url_for('pets.save_breed') }}" enctype="multipart/form-data" class="space-y-6 w-full">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="breed_id" :value="editingBreed?.id || ''">
           <input type="hidden" name="species_id" value="{{ species.id }}">
 

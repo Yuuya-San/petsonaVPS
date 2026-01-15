@@ -76,7 +76,7 @@ class AdminAddUserForm(FlaskForm):
     first_name = StringField("First Name", validators=[DataRequired(), Length(max=64)])
     last_name = StringField("Last Name", validators=[DataRequired(), Length(max=64)])
     email = StringField("Email", validators=[DataRequired(), Email(), Length(max=255)])
-    role = SelectField("Role", choices=[("user", "User"), ("admin", "Admin")], validators=[DataRequired()])
+    role = SelectField("Role", choices=[("user", "User"), ("merchant", "Merchant"), ("admin", "Admin")], validators=[DataRequired()])
     password = PasswordField("Temporary Password", validators=[DataRequired(), Length(min=6)])
     is_active = BooleanField("Active", default=True)
     submit = SubmitField("Add User")

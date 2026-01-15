@@ -55,12 +55,13 @@ class Species(db.Model):
 
     @property
     def as_dict(self):
+        from markupsafe import escape
         return {
             "id": self.id,
-            "name": self.name,
-            "description": self.description or "",
-            "image_url": self.image_url,
-            "icon": self.display_icon,
+            "name": escape(self.name) if self.name else "",
+            "description": escape(self.description) if self.description else "",
+            "image_url": escape(self.image_url) if self.image_url else "",
+            "icon": escape(self.display_icon) if self.display_icon else "",
 
             "requires_exercise": self.requires_exercise,
             "requires_training": self.requires_training,
@@ -71,12 +72,12 @@ class Species(db.Model):
             "fragile_species": self.fragile_species,
 
             "beginner_friendly": self.beginner_friendly,
-            "abandonment_risk_level": self.abandonment_risk_level,
+            "abandonment_risk_level": escape(self.abandonment_risk_level) if self.abandonment_risk_level else "",
 
             "requires_permit": self.requires_permit,
             "special_vet_required": self.special_vet_required,
 
-            "ethical_notes": self.ethical_notes or "",
+            "ethical_notes": escape(self.ethical_notes) if self.ethical_notes else "",
             
             "active_breed_count": self.active_breed_count
         }

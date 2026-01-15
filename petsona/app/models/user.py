@@ -26,6 +26,7 @@ class User(db.Model, UserMixin):
     totp_secret = db.Column(db.String(32))
     is_2fa_enabled = db.Column(db.Boolean, default=False)
 
+
     @property
     def is_admin(self):
         return self.role == "admin"

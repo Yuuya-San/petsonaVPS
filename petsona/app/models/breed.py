@@ -66,60 +66,60 @@ class Breed(db.Model):
 
     @property
     def as_dict(self):
+        from markupsafe import escape
         return {
             # --------------------------
             # Identity
             # --------------------------
             "id": self.id,
             "species_id": self.species_id,
-            "name": self.name,
-            "summary": self.summary,
-            "temperament": self.temperament,
-            "image_url": self.image_url,
+            "name": escape(self.name) if self.name else "",
+            "summary": escape(self.summary) if self.summary else "",
+            "temperament": escape(self.temperament) if self.temperament else "",
+            "image_url": escape(self.image_url) if self.image_url else "",
 
             # --------------------------
             # Lifestyle & Behavior
             # --------------------------
-            "energy_level": self.energy_level,
-            "exercise_needs": self.exercise_needs,
-            "grooming_needs": self.grooming_needs,
-            "noise_level": self.noise_level,
-            "social_needs": self.social_needs,
-            "prey_drive": self.prey_drive,
-            "handling_tolerance": self.handling_tolerance,
+            "energy_level": escape(self.energy_level) if self.energy_level else "",
+            "exercise_needs": escape(self.exercise_needs) if self.exercise_needs else "",
+            "grooming_needs": escape(self.grooming_needs) if self.grooming_needs else "",
+            "noise_level": escape(self.noise_level) if self.noise_level else "",
+            "social_needs": escape(self.social_needs) if self.social_needs else "",
+            "prey_drive": escape(self.prey_drive) if self.prey_drive else "",
+            "handling_tolerance": escape(self.handling_tolerance) if self.handling_tolerance else "",
 
             # --------------------------
             # Space & Environment
             # --------------------------
-            "space_needs": self.space_needs,
-            "environment_complexity": self.environment_complexity,
-            "min_enclosure_size": self.min_enclosure_size,
+            "space_needs": escape(self.space_needs) if self.space_needs else "",
+            "environment_complexity": escape(self.environment_complexity) if self.environment_complexity else "",
+            "min_enclosure_size": escape(self.min_enclosure_size) if self.min_enclosure_size else "",
 
             # --------------------------
             # Experience & Time
             # --------------------------
-            "care_intensity": self.care_intensity,
-            "time_commitment": self.time_commitment,
-            "experience_required": self.experience_required,
-            "trainability": self.trainability,
+            "care_intensity": escape(self.care_intensity) if self.care_intensity else "",
+            "time_commitment": escape(self.time_commitment) if self.time_commitment else "",
+            "experience_required": escape(self.experience_required) if self.experience_required else "",
+            "trainability": escape(self.trainability) if self.trainability else "",
 
             # --------------------------
             # Health & Veterinary Factors
             # --------------------------
-            "preventive_care_level": self.preventive_care_level,
-            "emergency_care_risk": self.emergency_care_risk,
-            "stress_sensitivity": self.stress_sensitivity,
-            "common_health_issues": self.common_health_issues,
-            "lifespan": self.lifespan,
-            "min_enclosure_size": self.min_enclosure_size,
+            "preventive_care_level": escape(self.preventive_care_level) if self.preventive_care_level else "",
+            "emergency_care_risk": escape(self.emergency_care_risk) if self.emergency_care_risk else "",
+            "stress_sensitivity": escape(self.stress_sensitivity) if self.stress_sensitivity else "",
+            "common_health_issues": escape(self.common_health_issues) if self.common_health_issues else "",
+            "lifespan": escape(self.lifespan) if self.lifespan else "",
 
             # --------------------------
             # Financial Reality
             # --------------------------
-            "monthly_cost_level": self.monthly_cost_level,
-            "lifetime_cost_level": self.lifetime_cost_level,
-            "estimated_care_cost": self.care_cost,
-            "care_cost": self.care_cost,
+            "monthly_cost_level": escape(self.monthly_cost_level) if self.monthly_cost_level else "",
+            "lifetime_cost_level": escape(self.lifetime_cost_level) if self.lifetime_cost_level else "",
+            "estimated_care_cost": escape(self.care_cost) if self.care_cost else "",
+            "care_cost": escape(self.care_cost) if self.care_cost else "",
 
             # --------------------------
             # Household Compatibility
@@ -134,7 +134,7 @@ class Breed(db.Model):
             # --------------------------
             # Risk & Responsibility
             # --------------------------
-            "compatibility_risk": self.compatibility_risk,
+            "compatibility_risk": escape(self.compatibility_risk) if self.compatibility_risk else "",
             "is_active": self.is_active
         }
 

@@ -19,10 +19,14 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       font-family: "Poppins", system-ui, sans-serif;
       background: #fafaff;
+    }
+
+    body {
       padding-top: 80px; /* offset for fixed navbar */
     }
 
@@ -35,12 +39,13 @@
       background: #ffffff;
       z-index: 1000;
       box-shadow: 0 4px 12px rgba(0,0,0,.06);
+      height: 80px;
     }
 
     .nav-container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 1rem 1.5rem;
+      width: 100%;
+      height: 100%;
+      padding: 0 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -50,11 +55,12 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: .5rem;
+      gap: 0.5rem;
       font-size: 1.4rem;
       font-weight: 600;
       color: var(--lavender-dark);
       text-decoration: none;
+      white-space: nowrap;
     }
 
     /* LINKS */
@@ -62,17 +68,18 @@
       list-style: none;
       display: flex;
       align-items: center;
-      gap: 1.8rem;
+      gap: 2.5rem;
       margin: 0;
       padding: 0;
     }
 
     .nav-links a {
       text-decoration: none;
-      font-size: .95rem;
+      font-size: 0.95rem;
       font-weight: 500;
       color: #444;
       position: relative;
+      transition: color 0.3s ease;
     }
 
     .nav-links a::after {
@@ -83,7 +90,11 @@
       width: 0;
       height: 2px;
       background: var(--lavender-dark);
-      transition: width .25s ease;
+      transition: width 0.25s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--lavender-dark);
     }
 
     .nav-links a:hover::after {
@@ -92,10 +103,16 @@
 
     /* LOGIN BUTTON */
     .nav-auth a {
-      padding: .45rem 1.1rem;
-      border-radius: 20px;
+      padding: 0.5rem 1.2rem;
+      border-radius: 25px;
       background: var(--lavender-soft);
       color: var(--lavender-dark);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .nav-auth a:hover {
+      background: var(--lavender-dark);
+      color: #fff;
     }
 
     /* HAMBURGER */
@@ -106,17 +123,32 @@
       background: none;
       border: none;
       cursor: pointer;
+      padding: 0;
     }
 
     .nav-toggle span {
-      width: 22px;
-      height: 2px;
+      width: 24px;
+      height: 2.5px;
       background: #444;
       display: block;
+      border-radius: 2px;
+      transition: all 0.3s ease;
     }
 
     /* MOBILE */
     @media (max-width: 768px) {
+      .navbar {
+        height: 70px;
+      }
+
+      .nav-container {
+        padding: 0 1rem;
+      }
+
+      .brand {
+        font-size: 1.2rem;
+      }
+
       .nav-toggle {
         display: flex;
       }
@@ -128,14 +160,45 @@
         width: 100%;
         background: #ffffff;
         flex-direction: column;
-        gap: 1.2rem;
-        padding: 1.5rem 0;
+        gap: 0;
+        padding: 1rem 0;
         display: none;
         box-shadow: 0 8px 20px rgba(0,0,0,.08);
       }
 
+      .nav-links li {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        text-align: center;
+      }
+
+      .nav-links a {
+        font-size: 0.9rem;
+      }
+
       .nav-links.active {
         display: flex;
+      }
+
+      .nav-auth {
+        padding: 0.75rem 1.5rem !important;
+        border-top: 1px solid #f0f0f0;
+        margin-top: 0.5rem;
+      }
+
+      .nav-auth a {
+        width: 100%;
+        display: block;
+        text-align: center;
+        border-radius: 15px;
+        padding: 0.6rem 1rem;
+      }
+    }
+
+    /* TABLET */
+    @media (max-width: 1024px) {
+      .nav-links {
+        gap: 1.5rem;
       }
     }
 

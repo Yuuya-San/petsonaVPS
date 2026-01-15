@@ -4,77 +4,182 @@
 
 {% block content %}
 
+<style>
+  .features-hero {
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: white;
+    margin-bottom: 3rem;
+  }
+
+  .features-hero-inner {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .features-hero h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.5px;
+  }
+
+  .features-hero p {
+    font-size: 1.1rem;
+    opacity: 0.95;
+    line-height: 1.6;
+  }
+
+  .features-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+  }
+
+  .feature-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    transition: all 0.3s ease;
+    border-left: 4px solid #7c3aed;
+  }
+
+  .feature-card:hover {
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .feature-card.reverse {
+    flex-direction: row-reverse;
+  }
+
+  .feature-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f5edff, #ede9fe);
+    color: #7c3aed;
+    font-size: 2rem;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+  }
+
+  .feature-content h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .feature-content p {
+    color: #666;
+    line-height: 1.8;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .features-hero h1 {
+      font-size: 2rem;
+    }
+
+    .features-hero p {
+      font-size: 1rem;
+    }
+
+    .feature-card {
+      flex-direction: column !important;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      min-width: 60px;
+      font-size: 1.5rem;
+    }
+
+    .feature-content h3 {
+      font-size: 1.25rem;
+    }
+
+    .feature-content p {
+      font-size: 0.95rem;
+    }
+  }
+</style>
+
 <section class="features-hero">
   <div class="features-hero-inner">
     <h1>PetSona Features</h1>
     <p>
-      Designed to promote responsible pet ownership through smart matching,
-      education, and accessible pet services.
+      Designed to promote responsible pet ownership through smart matching, education, and accessible pet services.
     </p>
   </div>
 </section>
 
 <section class="features-section">
 
-  <!-- FEATURE 1 -->
-  <div class="feature-card">
-    <div class="feature-icon">
+  <!-- Feature 1 -->
+  <article class="feature-card">
+    <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-heart"></i>
     </div>
     <div class="feature-content">
       <h3>Pet to Owner Matching</h3>
       <p>
-        PetSona analyzes pet characteristics such as behavior, energy level,
-        and care requirements, then matches them with owners whose lifestyle
-        and environment are suitable.
+        PetSona analyzes comprehensive pet characteristics including behavior patterns, energy levels, and specific care requirements, then matches them with owners whose lifestyle and environment are perfectly suited to provide the best care and companionship.
       </p>
     </div>
-  </div>
+  </article>
 
-  <!-- FEATURE 2 -->
-  <div class="feature-card reverse">
-    <div class="feature-icon">
+  <!-- Feature 2 -->
+  <article class="feature-card reverse">
+    <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-user-check"></i>
     </div>
     <div class="feature-content">
       <h3>Owner to Pet Matching</h3>
       <p>
-        Owners can also find pets based on their preferences, experience,
-        living space, and availability. This ensures a long-term and healthy
-        relationship between pets and owners.
+        Owners can discover pets based on their preferences, experience level, living space, and availability. This comprehensive matching process ensures a long-term and healthy relationship between pets and owners, leading to greater satisfaction for both.
       </p>
     </div>
-  </div>
+  </article>
 
-  <!-- FEATURE 3 -->
-  <div class="feature-card">
-    <div class="feature-icon">
+  <!-- Feature 3 -->
+  <article class="feature-card">
+    <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-book-open"></i>
     </div>
     <div class="feature-content">
       <h3>Pet Knowledge & Education</h3>
       <p>
-        PetSona provides reliable information about pet care, nutrition,
-        health, and behavior to help owners make informed decisions and
-        practice responsible pet ownership.
+        PetSona provides reliable and comprehensive information about pet care, nutrition, health, and behavior. Our educational resources help owners make informed decisions and practice responsible pet ownership for the well-being of their animal companions.
       </p>
     </div>
-  </div>
+  </article>
 
-  <!-- FEATURE 4 -->
-  <div class="feature-card reverse">
-    <div class="feature-icon">
+  <!-- Feature 4 -->
+  <article class="feature-card reverse">
+    <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-hotel"></i>
     </div>
     <div class="feature-content">
       <h3>Nearby Pet Hotels & Services</h3>
       <p>
-        Discover nearby pet hotels, clinics, grooming services, and other
-        pet-related establishments based on location for convenience
-        and peace of mind.
+        Discover nearby pet hotels, veterinary clinics, grooming services, and other pet-related establishments based on your location. Find the services you need for convenience and peace of mind when it comes to your pet's well-being.
       </p>
     </div>
-  </div>
+  </article>
 
 </section>
 

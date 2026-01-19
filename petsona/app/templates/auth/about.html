@@ -5,128 +5,288 @@
 {% block content %}
 
 <style>
-  .about-hero {
-    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-    padding: 3rem 1.5rem;
-    text-align: center;
-    color: white;
-    margin-bottom: 3rem;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: #f8fafc;
+}
+
+/* ================= ABOUT HERO ================= */
+
+.about-hero {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    clamp(3rem, 8vw, 8rem)
+    clamp(1.25rem, 6vw, 10rem);
+  text-align: center;
+  overflow: hidden;
+}
+
+.about-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    url("{{ url_for('static', filename='images/bg/bg-image.png') }}")
+    center / cover no-repeat;
+  z-index: 1;
+}
+
+.about-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15,23,42,.90) 0%,
+    rgba(15,23,42,.70) 35%,
+    rgba(15,23,42,.30) 65%,
+    rgba(15,23,42,.10) 100%
+  );
+  z-index: 2;
+}
+
+.about-hero-inner {
+  position: relative;
+  z-index: 3;
+  max-width: 1100px;
+  animation: fadeUp 1s ease;
+}
+
+.about-hero h1 {
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: white;
+  text-shadow: 0 14px 50px rgba(0,0,0,.45);
+}
+
+.about-hero h1 span {
+  background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.about-hero p {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.75;
+  color: #e5e7eb;
+}
+
+/* ================= PILLARS GRID ================= */
+
+.about-pillars {
+  width: 100%;
+  max-width: 1600px;
+  margin: clamp(4rem, 8vw, 7rem) auto;
+  padding: 0 clamp(1.25rem, 5vw, 6rem);
+
+  display: grid;
+  gap: clamp(2rem, 4vw, 3.5rem);
+}
+
+/* ===== DESKTOP: 3 STRAIGHT CARDS ===== */
+@media (min-width: 1024px) {
+  .about-pillars {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===== TABLET & MOBILE: 1 CARD PER ROW ===== */
+@media (max-width: 1023px) {
+  .about-pillars {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= GLASS CARD ================= */
+
+.pillar-card {
+  position: relative;
+  padding: clamp(2rem, 4vw, 3rem);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(248,250,252,.75),
+      rgba(237,233,254,.5)
+    );
+  backdrop-filter: blur(28px);
+  border: 1px solid rgba(203,213,225,.5);
+  box-shadow:
+    0 30px 80px rgba(15,23,42,.14),
+    inset 0 1px 0 rgba(255,255,255,.7);
+  text-align: center;
+  transition: all .45s ease;
+}
+
+.pillar-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    520px circle at top center,
+    rgba(167,139,250,.18),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+.pillar-card:hover::before {
+  opacity: 1;
+}
+
+.pillar-card:hover {
+  transform: translateY(-10px);
+  box-shadow:
+    0 45px 95px rgba(124,58,237,.25),
+    inset 0 1px 0 rgba(255,255,255,.75);
+}
+
+/* ================= ICON ================= */
+
+.pillar-icon {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    linear-gradient(135deg, #e5e7eb, #ddd6fe);
+  color: #6d28d9;
+  font-size: 1.7rem;
+  box-shadow: 0 14px 36px rgba(124,58,237,.28);
+}
+
+/* ================= TEXT ================= */
+
+.pillar-card h3 {
+  font-size: clamp(1.45rem, 3vw, 1.9rem);
+  font-weight: 700;
+  margin-bottom: 0.85rem;
+  color: #1f2937;
+}
+
+.pillar-card p {
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.75;
+  color: #475569;
+}
+
+.pillar-card ul {
+  margin-top: 1.1rem;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.pillar-card ul li {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.pillar-card ul li::before {
+  content: "•";
+  color: #8b5cf6;
+  font-size: 1.4rem;
+}
+
+/* ================= MOBILE POLISH ================= */
+
+@media (max-width: 480px) {
+  .pillar-card {
+    padding: 1.8rem;
+    border-radius: 22px;
   }
 
-  .about-hero-inner {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .about-hero h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    letter-spacing: -0.5px;
-  }
-
-  .about-hero p {
-    font-size: 1.1rem;
-    opacity: 0.95;
-    line-height: 1.6;
-  }
-
-  .about-content {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 1.5rem 3rem;
-  }
-
-  .about-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-left: 4px solid #7c3aed;
-    transition: all 0.3s ease;
-  }
-
-  .about-card:hover {
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.12);
-    transform: translateY(-2px);
-  }
-
-  .about-card h3 {
+  .pillar-icon {
+    width: 56px;
+    height: 56px;
     font-size: 1.4rem;
-    color: #7c3aed;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
   }
+}
 
-  .about-card p {
-    color: #555;
-    line-height: 1.8;
-    font-size: 1rem;
+/* ================= ANIMATION ================= */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
-
-  @media (max-width: 768px) {
-    .about-hero h1 {
-      font-size: 2rem;
-    }
-
-    .about-hero p {
-      font-size: 1rem;
-    }
-
-    .about-card {
-      padding: 1.5rem;
-    }
-
-    .about-card h3 {
-      font-size: 1.2rem;
-    }
-  }
+}
 </style>
 
 <section class="about-hero">
   <div class="about-hero-inner">
-    <h1>About PetSona</h1>
+    <h1>About <span>PetSona</span></h1>
     <p>
-      A smart platform dedicated to promoting responsible and informed pet ownership through intelligent matching and accessible pet services.
+      A smart platform dedicated to promoting responsible and informed pet ownership
+      through intelligent matching and accessible pet services.
     </p>
   </div>
 </section>
 
-<section class="about-content">
+<section class="about-pillars">
 
-  <article class="about-card">
-    <h3>
-      <i class="fas fa-target" aria-hidden="true"></i>
-      Our Purpose
-    </h3>
+  <div class="pillar-card">
+    <div class="pillar-icon">
+      <i class="fas fa-bullseye"></i>
+    </div>
+    <h3>Our Mission</h3>
     <p>
-      PetSona was developed to address the growing need for responsible pet ownership by helping individuals find pets that truly match their lifestyle, environment, and level of commitment. We believe that every pet deserves a home where they can thrive, and every owner deserves a pet that fits their needs.
+      To guide people toward responsible pet ownership through intelligent
+      matching, education, and accessible services.
     </p>
-  </article>
+  </div>
 
-  <article class="about-card">
-    <h3>
-      <i class="fas fa-lightbulb" aria-hidden="true"></i>
-      Our Vision
-    </h3>
+  <div class="pillar-card">
+    <div class="pillar-icon">
+      <i class="fas fa-eye"></i>
+    </div>
+    <h3>Our Vision</h3>
     <p>
-      To become a trusted digital platform that improves the quality of life of pets and owners through smart matching, education, and accessible pet services. We envision a world where pet abandonment is minimized and the bond between pets and their owners is strengthened through informed decisions.
+      A world where every pet is placed in the right home, abandonment is minimized,
+      and technology strengthens the human–animal bond.
     </p>
-  </article>
+  </div>
 
-  <article class="about-card">
-    <h3>
-      <i class="fas fa-heart" aria-hidden="true"></i>
-      Our Mission
-    </h3>
-    <p>
-      PetSona aims to reduce pet abandonment and mismatches by providing intelligent matching tools, reliable pet care information, and access to nearby pet-related services. We are committed to fostering a community of responsible pet owners and ensuring the well-being of all animals in our care.
-    </p>
-  </article>
+  <div class="pillar-card">
+    <div class="pillar-icon">
+      <i class="fas fa-heart"></i>
+    </div>
+    <h3>Our Core Values</h3>
+    <ul>
+      <li><strong>Care</strong> — Pets first, always</li>
+      <li><strong>Trust</strong> — Honest guidance</li>
+      <li><strong>Responsibility</strong> — Lifelong commitment</li>
+      <li><strong>Innovation</strong> — Technology for good</li>
+    </ul>
+  </div>
 
 </section>
 

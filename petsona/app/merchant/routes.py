@@ -137,7 +137,7 @@ def apply():
     
     if existing_merchant and existing_merchant.application_status in ['pending', 'under_review']:
         flash('You already have a pending application. Please wait for admin review.', 'warning')
-        return redirect(url_for('merchant.dashboard'))
+        return redirect(url_for('user.dashboard'))
     
     form = MerchantApplicationForm()
     

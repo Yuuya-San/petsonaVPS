@@ -21,6 +21,13 @@ body,
     --text-dark: #2c2c2c;
 }
 
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+
 /* ===============================
    SIDEBAR
 ================================ */

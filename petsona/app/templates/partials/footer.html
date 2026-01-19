@@ -1,3 +1,97 @@
-<footer style="background:#fff; padding:1.5rem; text-align:center; font-size:.85rem;">
-  © 2026 PetSona. All rights reserved.
+<footer class="glass-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <i class="fas fa-paw"></i>
+      <span>PetSona</span>
+    </div>
+
+    <p class="footer-text">
+      © 2026 PetSona. Crafted with care for pets and people.
+    </p>
+  </div>
 </footer>
+
+<style>
+/* ================= GLASS FOOTER ================= */
+.glass-footer {
+  width: 100%;
+  margin-top: 4rem;
+
+  background: linear-gradient(
+    135deg,
+    rgba(248,250,252,.75),
+    rgba(237,233,254,.65)
+  );
+
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+
+  border-top: 1px solid rgba(255,255,255,.45);
+
+  box-shadow:
+    0 -20px 50px rgba(15,23,42,.15),
+    inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+/* INNER WRAP */
+.footer-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.6rem clamp(1rem, 4vw, 3.5rem);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* BRAND */
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: .95rem;
+}
+
+.footer-brand i {
+  color: #8b5cf6;
+  filter: drop-shadow(0 0 6px rgba(139,92,246,.45));
+}
+
+/* TEXT */
+.footer-text {
+  margin: 0;
+  font-size: .85rem;
+  color: #475569;
+}
+
+/* SUBTLE HOVER POLISH */
+.footer-brand,
+.footer-text {
+  transition: transform .3s ease, opacity .3s ease;
+}
+
+.glass-footer:hover .footer-brand {
+  transform: translateY(-1px);
+}
+
+.glass-footer:hover .footer-text {
+  opacity: .95;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: .6rem;
+    padding: 1.4rem 1rem;
+  }
+
+  .footer-text {
+    font-size: .8rem;
+  }
+}
+</style>

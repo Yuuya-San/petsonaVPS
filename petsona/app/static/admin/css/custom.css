@@ -8,6 +8,12 @@ body,
 .content-wrapper {
     font-family: 'Poppins', sans-serif;
 }
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 
 /* ===============================
    PET LAVENDER THEME VARIABLES

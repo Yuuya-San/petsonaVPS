@@ -5,131 +5,245 @@
 {% block content %}
 
 <style>
-  .features-hero {
-    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-    padding: 3rem 1.5rem;
-    text-align: center;
-    color: white;
-    margin-bottom: 3rem;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-  .features-hero-inner {
-    max-width: 800px;
-    margin: 0 auto;
-  }
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: #f8fafc;
+}
 
-  .features-hero h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    letter-spacing: -0.5px;
-  }
+/* ================= FEATURES HERO ================= */
 
-  .features-hero p {
-    font-size: 1.1rem;
-    opacity: 0.95;
-    line-height: 1.6;
-  }
+.features-hero {
+  position: relative;
+  width: 100vw;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    clamp(2.5rem, 6vw, 7rem)
+    clamp(1rem, 5vw, 8rem);
+  text-align: center;
+  overflow: hidden;
+}
 
-  .features-section {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 1.5rem 3rem;
-  }
 
-  .feature-card {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 12px;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    transition: all 0.3s ease;
-    border-left: 4px solid #7c3aed;
-  }
+.features-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    url("{{ url_for('static', filename='images/bg/bg-image.png') }}")
+      center / cover no-repeat;
+  z-index: 1;
+  will-change: transform;
+}
 
-  .feature-card:hover {
-    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.12);
-    transform: translateY(-2px);
-  }
 
+/* CINEMATIC OVERLAY (controls contrast, not blur) */
+.features-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15,23,42,.90) 0%,
+    rgba(15,23,42,.70) 35%,
+    rgba(15,23,42,.30) 65%,
+    rgba(15,23,42,.10) 100%
+  );
+  z-index: 2;
+}
+
+.features-hero-inner {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 1100px;
+  padding-inline: clamp(0.5rem, 3vw, 2rem);
+  animation: fadeUp 1s ease;
+}
+
+
+.features-hero h1 {
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  color: white;
+  text-shadow: 0 10px 40px rgba(0,0,0,.45);
+}
+
+.features-hero h1 span {
+  background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.features-hero p {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  max-width: 720px;
+  margin: 0 auto;
+  line-height: 1.7;
+  color: #e5e7eb;
+  text-shadow: 0 6px 25px rgba(0,0,0,.35);
+}
+
+/* ================= FEATURES SECTION ================= */
+
+.features-section {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding:
+    clamp(3rem, 8vw, 10rem)
+    clamp(1rem, 5vw, 6rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 5vw, 5rem);
+}
+
+
+/* ================= GLASS FEATURE CARDS ================= */
+
+.feature-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  padding: clamp(2.2rem, 4vw, 3.2rem);
+  border-radius: 22px;
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,.65),
+    rgba(255,255,255,.35)
+  );
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255,255,255,.5);
+  box-shadow:
+    0 30px 70px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.5);
+  transition: all .45s ease;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    600px circle at top left,
+    rgba(167,139,250,.15),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 45px 90px rgba(124,58,237,.25),
+    inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+.feature-card.reverse {
+  flex-direction: row-reverse;
+}
+
+/* ================= ICON ================= */
+
+.feature-icon {
+  width: clamp(80px, 12vw, 110px);
+  height: clamp(80px, 12vw, 110px);
+  min-width: clamp(80px, 12vw, 110px);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  color: white;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  box-shadow: 0 25px 60px rgba(124,58,237,.45);
+  transition: transform .4s ease, box-shadow .4s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.12) rotate(6deg);
+  box-shadow: 0 35px 80px rgba(124,58,237,.6);
+}
+
+/* ================= TEXT ================= */
+
+.feature-content {
+  flex: 1;
+}
+
+.feature-content h3 {
+  font-size: clamp(1.4rem, 3.5vw, 2.1rem);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+}
+
+.feature-content p {
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.7;
+  color: #475569;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .feature-card,
   .feature-card.reverse {
-    flex-direction: row-reverse;
+    flex-direction: column;
+    text-align: center;
+    gap: 1.75rem;
   }
+}
 
-  .feature-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
-    min-width: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f5edff, #ede9fe);
-    color: #7c3aed;
-    font-size: 2rem;
-    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+@media (prefers-reduced-motion: reduce) {
+  .feature-card,
+  .feature-icon,
+  .features-hero-inner {
+    animation: none;
+    transition: none;
   }
+}
 
-  .feature-content h3 {
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 1rem;
-    font-weight: 600;
-  }
+/* ================= ANIMATIONS ================= */
 
-  .feature-content p {
-    color: #666;
-    line-height: 1.8;
-    font-size: 1rem;
-  }
-
-  @media (max-width: 768px) {
-    .features-hero h1 {
-      font-size: 2rem;
-    }
-
-    .features-hero p {
-      font-size: 1rem;
-    }
-
-    .feature-card {
-      flex-direction: column !important;
-      padding: 1.5rem;
-      text-align: center;
-    }
-
-    .feature-icon {
-      width: 60px;
-      height: 60px;
-      min-width: 60px;
-      font-size: 1.5rem;
-    }
-
-    .feature-content h3 {
-      font-size: 1.25rem;
-    }
-
-    .feature-content p {
-      font-size: 0.95rem;
-    }
-  }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>
+
 
 <section class="features-hero">
   <div class="features-hero-inner">
-    <h1>PetSona Features</h1>
+    <h1>PetSona <span>Features</span></h1>
     <p>
-      Designed to promote responsible pet ownership through smart matching, education, and accessible pet services.
+      Discover features designed to match pets with owners, provide educational resources, and offer nearby services — all with a beautiful, pet-friendly interface.
     </p>
   </div>
 </section>
 
 <section class="features-section">
 
-  <!-- Feature 1 -->
   <article class="feature-card">
     <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-heart"></i>
@@ -137,12 +251,11 @@
     <div class="feature-content">
       <h3>Pet to Owner Matching</h3>
       <p>
-        PetSona analyzes comprehensive pet characteristics including behavior patterns, energy levels, and specific care requirements, then matches them with owners whose lifestyle and environment are perfectly suited to provide the best care and companionship.
+        Our system analyzes pet characteristics and matches them with owners whose lifestyle and environment provide the best care and companionship.
       </p>
     </div>
   </article>
 
-  <!-- Feature 2 -->
   <article class="feature-card reverse">
     <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-user-check"></i>
@@ -150,12 +263,11 @@
     <div class="feature-content">
       <h3>Owner to Pet Matching</h3>
       <p>
-        Owners can discover pets based on their preferences, experience level, living space, and availability. This comprehensive matching process ensures a long-term and healthy relationship between pets and owners, leading to greater satisfaction for both.
+        Owners can find pets based on preferences, experience, living space, and availability, ensuring healthy and lasting relationships.
       </p>
     </div>
   </article>
 
-  <!-- Feature 3 -->
   <article class="feature-card">
     <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-book-open"></i>
@@ -163,20 +275,19 @@
     <div class="feature-content">
       <h3>Pet Knowledge & Education</h3>
       <p>
-        PetSona provides reliable and comprehensive information about pet care, nutrition, health, and behavior. Our educational resources help owners make informed decisions and practice responsible pet ownership for the well-being of their animal companions.
+        Comprehensive resources help owners make informed decisions about pet care, nutrition, and behavior.
       </p>
     </div>
   </article>
 
-  <!-- Feature 4 -->
   <article class="feature-card reverse">
     <div class="feature-icon" aria-hidden="true">
       <i class="fas fa-hotel"></i>
     </div>
     <div class="feature-content">
-      <h3>Nearby Pet Hotels & Services</h3>
+      <h3>Nearby Pet Services</h3>
       <p>
-        Discover nearby pet hotels, veterinary clinics, grooming services, and other pet-related establishments based on your location. Find the services you need for convenience and peace of mind when it comes to your pet's well-being.
+        Discover local veterinary clinics, grooming, and boarding services to ensure your pet’s well-being and convenience.
       </p>
     </div>
   </article>

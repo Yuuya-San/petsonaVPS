@@ -1,22 +1,27 @@
 /* ===== LOADER OVERLAY ===== */
 #loader-overlay {
     position: fixed;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(245, 237, 255, 0.2));
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    z-index: 99999;
+
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.3),
+        rgba(245, 237, 255, 0.2)
+    );
+
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
-    z-index: 99999;
-    
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    
+
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #loader-overlay.active {
@@ -25,14 +30,24 @@
     pointer-events: all;
 }
 
+/* ===== TRUE VIEWPORT CENTER (TRANSFORM SAFE) ===== */
 .loader-wrapper {
-    position: relative;
+    position: fixed;
+
+    /* viewport-based centering */
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
     gap: 2rem;
     padding: 2rem;
+
+    will-change: transform;
 }
 
 /* ===== ANIMATED PAW CONTAINER ===== */
@@ -40,6 +55,7 @@
     position: relative;
     width: 120px;
     height: 120px;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -55,26 +71,20 @@
 
 .loader-ring {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     border: 3px solid rgba(124, 58, 237, 0.15);
     border-radius: 50%;
     animation: rotate 2s linear infinite;
-    z-index: 2;
 }
 
 .loader-ring-inner {
     position: absolute;
-    width: 80%;
-    height: 80%;
-    top: 10%;
-    left: 10%;
+    inset: 10%;
     border: 2px solid transparent;
-    border-top: 2px solid #7c3aed;
-    border-right: 2px solid #a78bfa;
+    border-top-color: #7c3aed;
+    border-right-color: #a78bfa;
     border-radius: 50%;
     animation: rotateReverse 1.5s linear infinite;
-    z-index: 1;
 }
 
 /* ===== LOADING TEXT WITH DOTS ===== */
@@ -100,7 +110,6 @@
 }
 
 .loader-dots .dot {
-    display: inline-block;
     width: 0.4rem;
     height: 0.4rem;
     background: #7c3aed;
@@ -108,13 +117,8 @@
     animation: bounce 1.4s infinite;
 }
 
-.loader-dots .dot:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.loader-dots .dot:nth-child(3) {
-    animation-delay: 0.4s;
-}
+.loader-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+.loader-dots .dot:nth-child(3) { animation-delay: 0.4s; }
 
 /* ===== PROGRESS BAR ===== */
 .loader-progress {
@@ -128,62 +132,32 @@
 .progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #7c3aed, #a78bfa, #7c3aed);
-    border-radius: 10px;
     animation: progress 2s ease-in-out infinite;
 }
 
 /* ===== ANIMATIONS ===== */
 @keyframes pawBeat {
-    0%, 100% {
-        transform: scale(1) translateY(0);
-    }
-    50% {
-        transform: scale(1.2) translateY(-10px);
-    }
+    0%,100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.2) translateY(-10px); }
 }
 
 @keyframes rotate {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
 @keyframes rotateReverse {
-    0% {
-        transform: rotate(360deg);
-    }
-    100% {
-        transform: rotate(0deg);
-    }
+    to { transform: rotate(-360deg); }
 }
 
 @keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    50% {
-        transform: translateY(-6px);
-        opacity: 0.7;
-    }
+    0%,100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-6px); opacity: 0.7; }
 }
 
 @keyframes progress {
-    0% {
-        width: 0%;
-        opacity: 0.3;
-    }
-    50% {
-        width: 100%;
-        opacity: 1;
-    }
-    100% {
-        width: 0%;
-        opacity: 0.3;
-    }
+    0% { width: 0%; opacity: 0.3; }
+    50% { width: 100%; opacity: 1; }
+    100% { width: 0%; opacity: 0.3; }
 }
 
 /* ===== RESPONSIVE ===== */

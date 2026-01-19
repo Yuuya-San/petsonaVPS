@@ -1,24 +1,239 @@
 {% extends 'base.html' %}
 {% block title %}Verify OTP{% endblock %}
 {% block content %}
-<div class="auth-card fade-in">
-  <h2 class="title">Verify Your Email</h2>
-  <p class="subtitle">Enter the OTP sent to your email address to complete registration.</p>
-  <form method="post" novalidate class="auth-form">
-    {{ form.hidden_tag() }}
-    <div class="input-group">
-      <span class="icon"><i class="fas fa-key"></i></span>
-      {{ form.otp(class_='input-field', placeholder="Enter OTP", required=true, maxlength="6", id="otp") }}
-      <span class="input-status" id="otp-status"></span>
-    </div>
-    <button class="btn-primary loading-btn" type="submit" aria-label="Verify OTP">
-      <span class="btn-text">Verify</span>
-      <span class="loader"></span>
-    </button>
-  </form>
-  <div class="links">
-    <p>Didn't receive the code?</p>
-    <a href="{{ url_for('auth.resend_otp') }}">Resend OTP</a>
+
+<style>
+/* ===============================
+   BACKGROUND (SAME THEME)
+================================ */
+.auth-bg {
+  position: relative;
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(2rem, 6vh, 3.2rem) 1rem;
+}
+
+.auth-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("{{ url_for('static', filename='images/bg/bg-image.png') }}")
+    center / cover no-repeat;
+  z-index: 1;
+}
+
+.auth-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 24, 45, 0.88),
+    rgba(20, 24, 45, 0.65)
+  );
+  z-index: 2;
+}
+
+/* ===============================
+   CARD
+================================ */
+.auth-card {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 420px;
+  padding: 2.2rem;
+  border-radius: 22px;
+  background: rgba(245, 245, 250, 0.18);
+  backdrop-filter: blur(20px) saturate(130%);
+  border: 1px solid rgba(230, 225, 255, 0.28);
+  box-shadow: 0 22px 50px rgba(0,0,0,.42);
+}
+
+/* ===============================
+   TEXT
+================================ */
+.title {
+  text-align: center;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #fafaff;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #d8d4ea;
+  margin-bottom: 1.8rem;
+}
+
+/* ===============================
+   FORM
+================================ */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(210, 205, 235, 0.45);
+}
+
+.input-group:focus-within {
+  border-bottom-color: #c2b8ff;
+  box-shadow: 0 2px 0 rgba(194, 184, 255, 0.35);
+}
+
+.icon i {
+  color: #d6d2f2;
+}
+
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.4rem 0;
+  color: #fafaff;
+  font-size: 0.95rem;
+}
+
+.input-field::placeholder {
+  color: rgba(215, 210, 235, 0.75);
+}
+
+/* ===============================
+   BUTTON
+================================ */
+.btn-primary {
+  width: 100%;
+  margin-top: 1.2rem;
+  padding: 0.95rem;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #c6bcff, #a395ff);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===============================
+   LINKS
+================================ */
+.links {
+  margin-top: 1.6rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #d8d2f2;
+  text-align: center;
+  flex-wrap: wrap;
+}
+
+.links a {
+  color: #d8d2f2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.links a:hover {
+  color: #e4e0ff;
+}
+</style>
+
+<div class="auth-bg">
+  <div class="auth-card fade-in">
+
+    <h2 class="title">Verify Your Email</h2>
+    <p class="subtitle">
+      Enter the OTP sent to your email address to complete registration.
+    </p>
+
+    <form method="post" novalidate class="auth-form">
+      {{ form.hidden_tag() }}
+
+      <div class="input-group">
+        <span class="icon"><i class="fas fa-key"></i></span>
+        {{ form.otp(class_='input-field', placeholder="Enter OTP", required=true, maxlength="6", id="otp") }}
+        <span class="input-status" id="otp-status"></span>
+      </div>
+
+      <button class="btn-primary loading-btn" type="submit" aria-label="Verify OTP">
+        <span class="btn-text">Verify</span>
+        <span class="loader"></span>
+      </button>
+    </form>
+
+    <div class="links">
+      <p>Didn't receive the code?</p>
+        <a href="{{ url_for('auth.resend_otp') }}" id="resend-otp">Resend OTP</a>
+      </div>
+
   </div>
 </div>
+
+<script>
+const RESEND_COOLDOWN = 20; // seconds
+const resendBtn = document.getElementById('resend-otp');
+const cooldownKey = 'otp_resend_time';
+
+function startCooldown(remaining) {
+  resendBtn.classList.add('disabled');
+  resendBtn.style.pointerEvents = 'none';
+
+  const interval = setInterval(() => {
+    remaining--;
+    resendBtn.textContent = `Resend OTP (${remaining}s)`;
+
+    if (remaining <= 0) {
+      clearInterval(interval);
+      resendBtn.textContent = 'Resend OTP';
+      resendBtn.classList.remove('disabled');
+      resendBtn.style.pointerEvents = '';
+      localStorage.removeItem(cooldownKey);
+    }
+  }, 1000);
+}
+
+// Check existing cooldown on load
+const lastTime = localStorage.getItem(cooldownKey);
+if (lastTime) {
+  const elapsed = Math.floor((Date.now() - lastTime) / 1000);
+  const remaining = RESEND_COOLDOWN - elapsed;
+  if (remaining > 0) {
+    startCooldown(remaining);
+  }
+}
+
+// Start cooldown on click
+resendBtn.addEventListener('click', () => {
+  localStorage.setItem(cooldownKey, Date.now());
+  startCooldown(RESEND_COOLDOWN);
+});
+</script>
+
+
 {% endblock %}

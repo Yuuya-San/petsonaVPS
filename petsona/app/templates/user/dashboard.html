@@ -12,10 +12,187 @@
       transform: translateY(0);
     }
   }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
   
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
+
+  .animate-slideDown {
+    animation: slideDown 0.4s ease-out;
+  }
+
+  /* Glass Morphism Styles */
+  .glass-search {
+    background: rgba(243, 244, 246, 0.85);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(129, 140, 248, 0.3);
+    box-shadow: 0 15px 40px rgba(31, 38, 135, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .glass-search:hover {
+    background: rgba(243, 244, 246, 0.95);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 20px 50px rgba(31, 38, 135, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .glass-search:focus-within {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 25px 60px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .glass-card {
+    background: rgba(243, 244, 246, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 30px 70px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translateY(-8px);
+  }
+
+  .search-input::placeholder {
+    color: rgba(107, 114, 128, 0.6);
+  }
+
+  .species-item {
+    transition: all 0.3s ease;
+  }
+
+  .species-item.hidden {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-card,
+    .glass-search {
+      transition: none;
+    }
+  }
+
+  /* Heart Button Styles */
+  .heart-btn {
+    background: rgba(243, 244, 246, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 50px;
+    cursor: pointer;
+  }
+
+  .heart-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 12px 30px rgba(239, 68, 68, 0.15);
+  }
+
+  .heart-btn.liked {
+    background: rgba(254, 226, 226, 0.9);
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 12px 35px rgba(239, 68, 68, 0.25);
+  }
+
+  .heart-icon {
+    font-size: 1.1rem;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+  }
+
+  .heart-btn:active .heart-icon {
+    animation: heartPulse 0.6s ease-out;
+  }
+
+  .heart-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .heart-btn.liked .heart-count {
+    color: #dc2626;
+  }
+
+  .heart-btn:not(.liked) .heart-count {
+    color: #6b7280;
+  }
+
+  @keyframes heartPulse {
+    0% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(1.3) rotate(-10deg);
+    }
+    50% {
+      transform: scale(1.1) rotate(0deg);
+    }
+    75% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes heartFill {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Heart Firework Animation */
+  @keyframes heartFirework {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--tx), var(--ty)) scale(0);
+    }
+  }
+
+  .heart-firework {
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.5rem;
+    z-index: 9999;
+    will-change: transform, opacity;
+    animation: heartFirework 0.8s ease-out forwards;
+  }
+
 </style>
 
 <div x-data="{
@@ -24,9 +201,81 @@
   imagePreview: null, 
   viewModal: false, 
   viewSpecies: null,
-  selectedBreed: null
-}" class="w-full bg-gray-50/50 min-h-screen">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-8">
+  selectedBreed: null,
+  searchQuery: '',
+  userVotes: {},
+  voteCounts: {},
+  loadingVotes: {},
+  async initVotes() {
+    // Wait for DOM to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const speciesItems = document.querySelectorAll('.species-item');
+    console.log('🔍 Found species items:', speciesItems.length);
+    
+    const speciesIds = Array.from(speciesItems).map(el => {
+      const heart = el.querySelector('.heart-btn');
+      return parseInt(heart?.getAttribute('data-species-id'));
+    }).filter(Boolean);
+    
+    console.log('📋 Species IDs to load votes for:', speciesIds);
+    
+    if (speciesIds.length > 0) {
+      try {
+        const response = await fetch('/api/votes/heart/check-votes', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({species_ids: speciesIds})
+        });
+        const data = await response.json();
+        console.log('✅ Votes API response:', data);
+        
+        if (data.success) {
+          Object.entries(data.votes).forEach(([id, voteData]) => {
+            this.userVotes[id] = voteData.user_voted;
+            this.voteCounts[id] = voteData.total_votes;
+            console.log(`📊 Set votes for species ${id}:`, voteData.total_votes);
+          });
+          console.log('✔️ Vote counts loaded:', this.voteCounts);
+          
+          // Now set up socket watchers for each species
+          this.setupSocketWatchers(speciesIds);
+        }
+      } catch (error) {
+        console.error('❌ Error loading votes:', error);
+      }
+    } else {
+      console.warn('⚠️ No species items found to load votes for');
+    }
+  },
+  setupSocketWatchers(speciesIds) {
+    // Wait for socketManager to be ready
+    if (typeof socketManager === 'undefined' || !socketManager) {
+      console.log('⏳ SocketManager not ready, retrying in 100ms...');
+      setTimeout(() => this.setupSocketWatchers(speciesIds), 100);
+      return;
+    }
+    
+    if (!socketManager.isConnected()) {
+      console.log('⏳ Socket not connected yet, retrying in 100ms...');
+      setTimeout(() => this.setupSocketWatchers(speciesIds), 100);
+      return;
+    }
+    
+    console.log('✅ Setting up Socket.IO watchers for', speciesIds.length, 'species');
+    
+    speciesIds.forEach(speciesId => {
+      const speciesIdStr = String(speciesId);
+      console.log(`👁️ Watching species ${speciesId}...`);
+      
+      socketManager.watchSpecies(speciesId, (newCount) => {
+        console.log(`📡 Socket update for species ${speciesId}: ${newCount} votes`);
+        this.voteCounts[speciesIdStr] = newCount;
+      });
+    });
+  }
+}" @load="initVotes()" x-init="$nextTick(() => initVotes())" class="w-full bg-gray-50/50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
 
     <!-- HEADER -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
@@ -45,13 +294,52 @@
       </div>
     </div>
 
+    <!-- SEARCH BAR WITH GLASS EFFECT -->
+    <div class="animate-slideDown">
+      <div class="glass-search rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-3 sm:py-4">
+        <div class="flex items-center gap-3 sm:gap-4">
+          <i class="fa-solid fa-magnifying-glass text-indigo-800 text-lg sm:text-xl flex-shrink-0"></i>
+          <input 
+            type="text" 
+            x-model="searchQuery"
+            placeholder="Search by species name..."
+            class="search-input w-full bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none text-sm sm:text-base font-medium"
+          >
+          <template x-if="searchQuery">
+            <button 
+              @click="searchQuery = ''"
+              class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+              title="Clear search"
+            >
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </template>
+        </div>
+      </div>
+      <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery">
+        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} species`"></span>
+      </div>
+    </div>
+
     <!-- SPECIES GRID -->
     <div id="species-grid"
          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
 
     {% for species in species_list %}
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full"
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full glass-card species-item animate-fadeIn"
+         :class="searchQuery && !('{{ species.name }}'.toLowerCase().includes(searchQuery.toLowerCase())) ? 'hidden' : ''"
          x-data="{ menu:false, confirm:false }">
+
+      <!-- HEART BUTTON - TOP RIGHT (TOGGLE VOTE) -->
+      <button @click="toggleHeart($event, {{ species.id }});"
+              :class="userVotes['{{ species.id }}'] ? 'liked' : ''"
+              data-species-id="{{ species.id }}"
+              class="heart-btn absolute top-3 right-3 z-10 group"
+              :title="userVotes['{{ species.id }}'] ? 'Remove your vote' : 'Vote for this species'"
+              :disabled="loadingVotes['{{ species.id }}']">
+        <i :class="userVotes['{{ species.id }}'] ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" class="heart-icon" :style="userVotes['{{ species.id }}'] ? 'color: #dc2626' : 'color: #9ca3af'"></i>
+        <span class="heart-count" x-text="voteCounts['{{ species.id }}'] || 0"></span>
+      </button>
 
       <!-- IMAGE -->
       <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
@@ -312,5 +600,188 @@
 
   </div>
 </div>
+
+<!-- HEART TOGGLE API SCRIPT WITH REAL-TIME UPDATES -->
+<script>
+  function toggleHeart(event, speciesId) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('🖱️ Heart button clicked for species:', speciesId);
+    
+    const button = event.target.closest('button');
+    if (!button) {
+      console.error('❌ Button not found');
+      return;
+    }
+    
+    if (button.disabled) {
+      console.warn('⏸️ Request in progress');
+      return;
+    }
+
+    button.disabled = true;
+    console.log('📤 Sending request to /api/votes/heart/' + speciesId);
+
+    fetch(`/api/votes/heart/${speciesId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => {
+      console.log('📥 Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('✅ API Response:', data);
+      
+      if (data.success) {
+        // Update the heart count
+        const heartCount = button.querySelector('.heart-count');
+        if (heartCount) {
+          console.log('📊 Updating count from', heartCount.textContent, 'to', data.total_votes);
+          heartCount.textContent = data.total_votes;
+        }
+        
+        // Update liked state
+        if (data.voted) {
+          button.classList.add('liked');
+          console.log('❤️ Vote cast!');
+          createHeartFirework(event);
+        } else {
+          button.classList.remove('liked');
+          console.log('🤍 Vote removed!');
+        }
+        
+        // Update the icon
+        const icon = button.querySelector('.heart-icon');
+        if (icon) {
+          if (data.voted) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+            icon.style.color = '#dc2626';
+          } else {
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+            icon.style.color = '#9ca3af';
+          }
+        }
+      } else {
+        // Vote failed - show error message
+        console.error('❌ Vote failed:', data.error);
+        alert(data.error || 'Vote failed. Please try again.');
+      }
+    })
+    .catch(error => {
+      console.error('❌ Fetch error:', error);
+      alert('An error occurred. Please try again.');
+    })
+    .finally(() => {
+      button.disabled = false;
+      console.log('✔️ Request completed');
+    });
+  }
+</script>
+
+<!-- HEART FIREWORK EFFECT SCRIPT -->
+<script>
+  function createHeartFirework(event) {
+    const button = event.target.closest('button');
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const startX = rect.left + rect.width / 2;
+    const startY = rect.top + rect.height / 2;
+
+    const hearts = ['❤️', '💗', '💕', '💓', '💖'];
+    const heartCount = 8;
+
+    for (let i = 0; i < heartCount; i++) {
+      const heart = document.createElement('div');
+      heart.classList.add('heart-firework');
+      heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+
+      // Random angle for spread
+      const angle = (Math.PI * 2 * i) / heartCount + (Math.random() - 0.5) * 0.4;
+      const distance = 80 + Math.random() * 60;
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance - Math.random() * 40;
+
+      heart.style.setProperty('--tx', tx + 'px');
+      heart.style.setProperty('--ty', ty + 'px');
+      heart.style.left = startX + 'px';
+      heart.style.top = startY + 'px';
+      heart.style.transform = 'translate(-50%, -50%)';
+
+      document.body.appendChild(heart);
+
+      // Remove after animation completes
+      setTimeout(() => {
+        heart.remove();
+      }, 800);
+    }
+  }
+</script>
+
+<!-- SEARCH FILTER SCRIPT -->
+<script>
+  document.addEventListener('alpine:initialized', () => {
+    const handleSearch = (searchQuery) => {
+      const items = document.querySelectorAll('.species-item');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
+        const matches = speciesName.includes((searchQuery || '').toLowerCase());
+        
+        if (matches || !searchQuery) {
+          item.classList.remove('hidden');
+          item.style.animation = 'fadeIn 0.3s ease-out';
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    };
+
+    window.addEventListener('input', (e) => {
+      if (e.target.classList.contains('search-input')) {
+        handleSearch(e.target.value);
+      }
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput && !window.Alpine) {
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.species-item');
+
+        items.forEach(item => {
+          const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
+          if (speciesName.includes(query)) {
+            item.classList.remove('hidden');
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+      });
+    }
+  });
+</script>
+
+<style>
+  .vote-highlight {
+    background-color: #fff3cd !important;
+    animation: pulse 0.5s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: #fff3cd; }
+  }
+</style>
 
 {% endblock %}

@@ -1,7 +1,7 @@
 """Application factory. Initializes extensions, registers blueprints."""
 from flask import Flask, redirect, url_for
 from .config import Config
-from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman
+from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman, socketio
 from app.utils.db_init import ensure_database_exists, create_tables
 
 # Import User model for login manager
@@ -36,6 +36,7 @@ def create_app(config_class: type = Config):
     talisman.init_app(app, content_security_policy=app.config.get("CSP", {}))
     from app.extensions import csrf
     csrf.init_app(app)
+    socketio.init_app(app)
 
     # Flask-Login user loader
     @login_manager.user_loader
@@ -75,9 +76,16 @@ def create_app(config_class: type = Config):
     from .matching import bp as matching_bp
     app.register_blueprint(matching_bp, url_prefix="/matching")
 
+    # VOTES API BLUEPRINT
+    from .votes import votes_bp
+    app.register_blueprint(votes_bp)
+
+    # SOCKET.IO EVENTS
+    from . import socket_events
+
     # Root route
     @app.route("/")
     def index():
         return redirect(url_for("auth.home"))
 
-    return app
+    return app, socketio

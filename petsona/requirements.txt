@@ -15,3 +15,4 @@ pyotp
 qrcode
 pytz
 requests
+Flask-SocketIO

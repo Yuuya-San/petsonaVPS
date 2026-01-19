@@ -23,6 +23,7 @@ class Species(db.Model):
     ethical_notes = db.Column(db.Text,comment="Species-level welfare concerns")
     requires_permit = db.Column(db.Boolean,default=False,comment="Local permits may be required")
     special_vet_required = db.Column(db.Boolean,default=False,comment="Exotic or specialized vet care needed")
+    heart_vote_count = db.Column(db.Integer, default=0, comment="Total heart votes from all users")
 
     deleted_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -45,6 +46,14 @@ class Species(db.Model):
             Breed.deleted_at.is_(None),
             Breed.is_active.is_(True)
         ).count()
+
+    def increment_heart_votes(self):
+        """Increment heart vote count"""
+        self.heart_vote_count = (self.heart_vote_count or 0) + 1
+    
+    def decrement_heart_votes(self):
+        """Decrement heart vote count"""
+        self.heart_vote_count = max(0, (self.heart_vote_count or 0) - 1)
 
     @property
     def display_icon(self):

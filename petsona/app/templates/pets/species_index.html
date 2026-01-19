@@ -13,8 +13,87 @@
     }
   }
   
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes glassFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slideDown {
+    animation: slideDown 0.4s ease-out;
+  }
+
+  /* Glass Morphism Styles */
+  .glass-search {
+    background: rgba(243, 244, 246, 0.85);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(129, 140, 248, 0.3);
+    box-shadow: 0 15px 40px rgba(31, 38, 135, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .glass-search:hover {
+    background: rgba(243, 244, 246, 0.95);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 20px 50px rgba(31, 38, 135, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .glass-search:focus-within {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 25px 60px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .glass-card {
+    background: rgba(243, 244, 246, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 30px 70px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translateY(-8px);
+  }
+
+  .search-input::placeholder {
+    color: rgba(107, 114, 128, 0.6);
+  }
+
+  /* Fade out for hidden items */
+  .species-item {
+    transition: all 0.3s ease;
+  }
+
+  .species-item.hidden {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-card,
+    .glass-search {
+      transition: none;
+    }
   }
 </style>
 
@@ -24,9 +103,10 @@
   imagePreview: null, 
   viewModal: false, 
   viewSpecies: null,
-  selectedBreed: null
+  selectedBreed: null,
+  searchQuery: ''
 }" class="w-full bg-gray-50/50 min-h-screen">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-8 lg:py-8 space-y-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-8 lg:py-8 space-y-6 sm:space-y-8">
 
     <!-- HEADER -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
@@ -55,12 +135,40 @@
       </div>
     </div>
 
+    <!-- SEARCH BAR WITH GLASS EFFECT -->
+    <div class="animate-slideDown">
+      <div class="glass-search rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-3 sm:py-4">
+        <div class="flex items-center gap-3 sm:gap-4">
+          <i class="fa-solid fa-magnifying-glass text-indigo-800 text-lg sm:text-xl flex-shrink-0"></i>
+          <input 
+            type="text" 
+            x-model="searchQuery"
+            placeholder="Search by species name..."
+            class="search-input w-full bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none text-sm sm:text-base font-medium"
+          >
+          <template x-if="searchQuery">
+            <button 
+              @click="searchQuery = ''"
+              class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+              title="Clear search"
+            >
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </template>
+        </div>
+      </div>
+      <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery">
+        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} species`"></span>
+      </div>
+    </div>
+
     <!-- SPECIES GRID -->
     <div id="species-grid"
          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
 
     {% for species in species_list %}
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full"
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full glass-card species-item animate-fadeIn"
+         :class="searchQuery && !('{{ species.name }}'.toLowerCase().includes(searchQuery.toLowerCase())) ? 'hidden' : ''"
          x-data="{ menu:false, confirm:false }">
 
       <!-- MENU BUTTON -->
@@ -590,5 +698,65 @@
     </div>
   </div>
 </div>
+
+<!-- SEARCH FILTER SCRIPT -->
+<script>
+  // Enhanced search functionality
+  document.addEventListener('alpine:initialized', () => {
+    // Listen for search query changes
+    const handleSearch = (searchQuery) => {
+      const items = document.querySelectorAll('.species-item');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
+        const matches = speciesName.includes((searchQuery || '').toLowerCase());
+        
+        if (matches || !searchQuery) {
+          item.classList.remove('hidden');
+          item.style.animation = 'fadeIn 0.3s ease-out';
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+
+      // Update results count
+      const resultsText = document.querySelector('[x-show="searchQuery"]');
+      if (resultsText) {
+        resultsText.textContent = `Found ${visibleCount} species`;
+      }
+    };
+
+    // Observe Alpine data changes
+    window.addEventListener('input', (e) => {
+      if (e.target.classList.contains('search-input')) {
+        handleSearch(e.target.value);
+      }
+    });
+  });
+
+  // Fallback for non-Alpine environments
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput && !window.Alpine) {
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.species-item');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+          const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
+          if (speciesName.includes(query)) {
+            item.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+      });
+    }
+  });
+</script>
 
 {% endblock %}

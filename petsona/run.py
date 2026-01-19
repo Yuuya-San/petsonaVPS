@@ -4,8 +4,8 @@ from app.models import *
 # Default admin photo
 DEFAULT_ADMIN_PHOTO = "images/avatar/dog.png"
 
-# Create Flask app
-app = create_app()
+# Create Flask app and get Socket.IO instance
+app, socketio = create_app()
 
 # Ensure tables exist before querying for admin user
 with app.app_context():
@@ -32,5 +32,5 @@ with app.app_context():
         print(f"Admin account already exists: {ADMIN_EMAIL}")
 
 if __name__ == '__main__':
-    # Dev server — in production, use Gunicorn/uWSGI behind Nginx
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Dev server — in production, use Gunicorn/uWSGI behind Nginx with python-socketio
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)

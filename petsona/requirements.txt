@@ -14,3 +14,4 @@ email-validator
 pyotp
 qrcode
 pytz
+requests

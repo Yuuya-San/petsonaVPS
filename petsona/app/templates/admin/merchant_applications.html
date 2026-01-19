@@ -1,0 +1,476 @@
+{% extends "admin/base.html" %}
+
+{% block page_content %}
+<div class="container-fluid" x-data="merchantApplications()">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-store text-purple-500 mr-2"></i>Partner Applications
+      </h1>
+      <p class="text-muted small mt-1">Manage and review merchant partner applications</p>
+    </div>
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-outline-primary" :class="{ active: filterStatus === 'all' }" @click="filterStatus = 'all'; loadApplications()">
+        All <span class="badge badge-secondary ml-2" x-text="applications.length"></span>
+      </button>
+      <button type="button" class="btn btn-outline-warning" :class="{ active: filterStatus === 'pending' }" @click="filterStatus = 'pending'; loadApplications()">
+        Pending <span class="badge badge-warning ml-2" x-text="getPendingCount()"></span>
+      </button>
+      <button type="button" class="btn btn-outline-info" :class="{ active: filterStatus === 'under_review' }" @click="filterStatus = 'under_review'; loadApplications()">
+        Under Review <span class="badge badge-info ml-2" x-text="getUnderReviewCount()"></span>
+      </button>
+      <button type="button" class="btn btn-outline-success" :class="{ active: filterStatus === 'approved' }" @click="filterStatus = 'approved'; loadApplications()">
+        Approved <span class="badge badge-success ml-2" x-text="getApprovedCount()"></span>
+      </button>
+      <button type="button" class="btn btn-outline-danger" :class="{ active: filterStatus === 'rejected' }" @click="filterStatus = 'rejected'; loadApplications()">
+        Rejected <span class="badge badge-danger ml-2" x-text="getRejectedCount()"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card border-left-primary shadow">
+        <div class="card-body">
+          <div class="text-primary font-weight-bold text-uppercase mb-1">Total Applications</div>
+          <div class="h3 mb-0 text-gray-800" x-text="applications.length"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-warning shadow">
+        <div class="card-body">
+          <div class="text-warning font-weight-bold text-uppercase mb-1">Pending Review</div>
+          <div class="h3 mb-0 text-gray-800" x-text="getPendingCount()"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-success shadow">
+        <div class="card-body">
+          <div class="text-success font-weight-bold text-uppercase mb-1">Approved</div>
+          <div class="h3 mb-0 text-gray-800" x-text="getApprovedCount()"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-danger shadow">
+        <div class="card-body">
+          <div class="text-danger font-weight-bold text-uppercase mb-1">Rejected</div>
+          <div class="h3 mb-0 text-gray-800" x-text="getRejectedCount()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Applications Table -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-list mr-2"></i>Partner Applications List
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover" id="dataTable">
+          <thead class="bg-light">
+            <tr>
+              <th>Business Name</th>
+              <th>Owner</th>
+              <th>Business Type</th>
+              <th>Contact</th>
+              <th>Location</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="app in filteredApplications()" :key="app.id">
+              <tr>
+                <td class="font-weight-bold">
+                  <i class="fas fa-store text-purple-500 mr-2"></i>
+                  <span x-text="app.business_name"></span>
+                </td>
+                <td>
+                  <div x-text="app.owner_manager_name" class="font-weight-bold"></div>
+                  <small class="text-muted" x-text="app.contact_email"></small>
+                </td>
+                <td>
+                  <span class="badge badge-secondary" x-text="app.business_type"></span>
+                </td>
+                <td>
+                  <small>
+                    <i class="fas fa-phone text-success mr-1"></i>
+                    <span x-text="app.contact_phone"></span><br>
+                    <i class="fas fa-envelope text-info mr-1"></i>
+                    <span x-text="app.contact_email"></span>
+                  </small>
+                </td>
+                <td>
+                  <small>
+                    <i class="fas fa-map-marker-alt text-danger mr-1"></i>
+                    <span x-text="`${app.city}, ${app.province}`"></span>
+                  </small>
+                </td>
+                <td>
+                  <small>
+                    <span x-text="formatDate(app.submitted_at)"></span><br>
+                    <span class="text-muted" x-text="getTimeAgo(app.submitted_at)"></span>
+                  </small>
+                </td>
+                <td>
+                  <span :class="`badge badge-${getStatusColor(app.application_status)}`" x-text="app.application_status.toUpperCase()"></span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-primary" @click="viewApplication(app.id)" title="View Details">
+                    <i class="fas fa-eye mr-1"></i>View
+                  </button>
+                  <div class="btn-group btn-group-sm" role="group" x-show="app.application_status === 'pending'">
+                    <button type="button" class="btn btn-success" @click="approveApplication(app.id)" title="Approve">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="btn btn-warning" @click="reviewApplication(app.id)" title="Review">
+                      <i class="fas fa-search"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger" @click="rejectApplication(app.id)" title="Reject">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Detail Modal -->
+  <div class="modal fade" id="applicationModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">
+            <i class="fas fa-store mr-2"></i>
+            <span x-text="selectedApp?.business_name || 'Application Details'"></span>
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <template x-if="selectedApp">
+            <!-- Status Badge -->
+            <div class="mb-3">
+              <span :class="`badge badge-${getStatusColor(selectedApp.application_status)} badge-lg`" x-text="selectedApp.application_status.toUpperCase()"></span>
+              <span class="badge badge-secondary ml-2">Submitted <span x-text="getTimeAgo(selectedApp.submitted_at)"></span> ago</span>
+            </div>
+
+            <!-- Business Information -->
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-building text-purple-500 mr-2"></i>Business Information</h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <small class="text-muted">Business Name</small>
+                    <div x-text="selectedApp.business_name" class="font-weight-bold"></div>
+                  </div>
+                  <div class="col-md-6">
+                    <small class="text-muted">Business Type</small>
+                    <div x-text="selectedApp.business_type" class="font-weight-bold"></div>
+                  </div>
+                  <div class="col-md-6 mt-2">
+                    <small class="text-muted">Years in Operation</small>
+                    <div x-text="selectedApp.years_in_operation || 'N/A'" class="font-weight-bold"></div>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <small class="text-muted">Description</small>
+                  <div x-text="selectedApp.business_description" class="border-left-4 border-primary pl-3 text-justify text-muted"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact & Location -->
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-user text-success mr-2"></i>Contact Information</h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <small class="text-muted">Manager Name</small>
+                    <div x-text="selectedApp.owner_manager_name" class="font-weight-bold"></div>
+                  </div>
+                  <div class="col-md-6">
+                    <small class="text-muted">Email</small>
+                    <div>
+                      <a :href="`mailto:${selectedApp.contact_email}`" x-text="selectedApp.contact_email" class="font-weight-bold text-primary"></a>
+                    </div>
+                  </div>
+                  <div class="col-md-12 mt-2">
+                    <small class="text-muted">Phone</small>
+                    <div>
+                      <a :href="`tel:${selectedApp.contact_phone}`" x-text="selectedApp.contact_phone" class="font-weight-bold text-success"></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Services & Pets -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card mb-3">
+                  <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-briefcase text-info mr-2"></i>Services Offered</h6>
+                  </div>
+                  <div class="card-body">
+                    <ul class="list-unstyled">
+                      <template x-for="service in selectedApp.services_offered" :key="service">
+                        <li class="mb-2">
+                          <i class="fas fa-check-circle text-success mr-2"></i>
+                          <span x-text="service"></span>
+                        </li>
+                      </template>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card mb-3">
+                  <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-paw text-danger mr-2"></i>Pets Accepted</h6>
+                  </div>
+                  <div class="card-body">
+                    <ul class="list-unstyled">
+                      <template x-for="pet in selectedApp.pets_accepted" :key="pet">
+                        <li class="mb-2">
+                          <i class="fas fa-check-circle text-success mr-2"></i>
+                          <span x-text="pet"></span>
+                        </li>
+                      </template>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pricing & Capacity -->
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-money-bill text-warning mr-2"></i>Pricing & Capacity</h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <small class="text-muted">Max Pets/Day</small>
+                    <div x-text="selectedApp.max_pets_per_day" class="font-weight-bold h5 text-primary"></div>
+                  </div>
+                  <div class="col-md-4">
+                    <small class="text-muted">Min Price</small>
+                    <div>₱<span x-text="selectedApp.min_price_per_day.toFixed(2)"></span></div>
+                  </div>
+                  <div class="col-md-4">
+                    <small class="text-muted">Max Price</small>
+                    <div>₱<span x-text="selectedApp.max_price_per_day.toFixed(2)"></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-map text-danger mr-2"></i>Location</h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <small class="text-muted">Province</small>
+                    <div x-text="selectedApp.province" class="font-weight-bold"></div>
+                  </div>
+                  <div class="col-md-4">
+                    <small class="text-muted">City</small>
+                    <div x-text="selectedApp.city" class="font-weight-bold"></div>
+                  </div>
+                  <div class="col-md-4">
+                    <small class="text-muted">Barangay</small>
+                    <div x-text="selectedApp.barangay || 'N/A'" class="font-weight-bold"></div>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <small class="text-muted">Full Address</small>
+                  <div x-text="selectedApp.full_address" class="border-left-4 border-warning pl-3"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="card">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-file-upload text-secondary mr-2"></i>Verification Documents</h6>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info" x-show="!selectedApp.government_id_path && !selectedApp.business_permit_path">
+                  <i class="fas fa-info-circle mr-2"></i>No documents uploaded yet.
+                </div>
+                <template x-if="selectedApp.government_id_path">
+                  <div class="mb-3">
+                    <small class="text-muted">Government ID</small>
+                    <div>
+                      <a :href="`{{ url_for('static', filename='') }}${selectedApp.government_id_path}`" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-download mr-1"></i>View Document
+                      </a>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="selectedApp.business_permit_path">
+                  <div class="mb-3">
+                    <small class="text-muted">Business Permit</small>
+                    <div>
+                      <a :href="`{{ url_for('static', filename='') }}${selectedApp.business_permit_path}`" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-download mr-1"></i>View Document
+                      </a>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+        <div class="modal-footer">
+          <template x-if="selectedApp?.application_status === 'pending'">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-warning" @click="reviewApplication(selectedApp.id); $('#applicationModal').modal('hide');">
+              <i class="fas fa-search mr-1"></i>Mark as Under Review
+            </button>
+            <button type="button" class="btn btn-success" @click="approveApplication(selectedApp.id); $('#applicationModal').modal('hide');">
+              <i class="fas fa-check mr-1"></i>Approve
+            </button>
+            <button type="button" class="btn btn-danger" @click="rejectApplication(selectedApp.id); $('#applicationModal').modal('hide');">
+              <i class="fas fa-times mr-1"></i>Reject
+            </button>
+          </template>
+          <template x-if="selectedApp?.application_status !== 'pending'">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function merchantApplications() {
+    return {
+      applications: [],
+      selectedApp: null,
+      filterStatus: 'all',
+
+      async init() {
+        await this.loadApplications();
+      },
+
+      async loadApplications() {
+        // In production, fetch from API
+        // This is placeholder data structure
+        this.applications = [];
+      },
+
+      filteredApplications() {
+        if (this.filterStatus === 'all') {
+          return this.applications;
+        }
+        return this.applications.filter(app => app.application_status === this.filterStatus);
+      },
+
+      getPendingCount() {
+        return this.applications.filter(a => a.application_status === 'pending').length;
+      },
+
+      getUnderReviewCount() {
+        return this.applications.filter(a => a.application_status === 'under_review').length;
+      },
+
+      getApprovedCount() {
+        return this.applications.filter(a => a.application_status === 'approved').length;
+      },
+
+      getRejectedCount() {
+        return this.applications.filter(a => a.application_status === 'rejected').length;
+      },
+
+      getStatusColor(status) {
+        const colors = {
+          'pending': 'warning',
+          'under_review': 'info',
+          'approved': 'success',
+          'rejected': 'danger'
+        };
+        return colors[status] || 'secondary';
+      },
+
+      formatDate(date) {
+        return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+      },
+
+      getTimeAgo(date) {
+        const now = new Date();
+        const submitted = new Date(date);
+        const diff = Math.floor((now - submitted) / 1000);
+        
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return `${Math.floor(diff / 86400)}d ago`;
+      },
+
+      viewApplication(id) {
+        this.selectedApp = this.applications.find(a => a.id === id);
+        $('#applicationModal').modal('show');
+      },
+
+      async approveApplication(id) {
+        if (confirm('Are you sure you want to approve this application?')) {
+          try {
+            // Make API call to approve
+            alert('Application approved successfully!');
+            await this.loadApplications();
+          } catch (error) {
+            alert('Error approving application: ' + error.message);
+          }
+        }
+      },
+
+      async reviewApplication(id) {
+        try {
+          // Make API call to mark as under review
+          alert('Application marked as under review.');
+          await this.loadApplications();
+        } catch (error) {
+          alert('Error updating application: ' + error.message);
+        }
+      },
+
+      async rejectApplication(id) {
+        const reason = prompt('Enter rejection reason:');
+        if (reason) {
+          try {
+            // Make API call to reject
+            alert('Application rejected.');
+            await this.loadApplications();
+          } catch (error) {
+            alert('Error rejecting application: ' + error.message);
+          }
+        }
+      }
+    };
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,1866 @@
+{% extends "user/base.html" %}
+
+{% block title %}Merchant Application - PetSona{% endblock %}
+
+{% block content %}
+<div x-data="merchantApplication()" @mount="init()" x-cloak class="min-h-screen bg-gradient-to-br from-purple-50 to-white">
+
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg">
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold">Become Our Partner</h1>
+          <p class="text-purple-100 text-sm mt-2">Join the Petsona network of trusted pet services</p>
+        </div>
+        <a href="{{ url_for('user.dashboard') }}" class="text-purple-100 hover:text-white transition-colors flex-shrink-0">
+          <i class="fas fa-times text-3xl"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+    <!-- Form -->
+    <form method="POST" enctype="multipart/form-data" @submit="validateForm($event)" novalidate class="space-y-8">
+      {{ form.hidden_tag() }}
+
+      <!-- SECTION 1: BUSINESS INFORMATION -->
+      <div x-show="currentSection === 1" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            1
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Business Information</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Business Name -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-building text-purple-500 mr-2"></i>Business Name
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_name(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400") }}
+            <div data-error-for="business_name" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.business_name.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">
+                {{ form.business_name.errors[0] }}
+              </div>
+            {% endif %}
+            <p class="text-gray-500 text-xs mt-2">
+              <i class="fas fa-info-circle mr-1"></i>Enter your official business name as it appears in your registration documents
+            </p>
+          </div>
+
+          <!-- Business Type -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-tags text-purple-500 mr-2"></i>Business Type
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_type(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="business_type" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.business_type.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">
+                {{ form.business_type.errors[0] }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Years in Operation -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-calendar text-purple-500 mr-2"></i>Years in Operation (Optional)
+            </label>
+            {{ form.years_in_operation(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <p class="text-gray-500 text-xs mt-2">How long have you been operating?</p>
+          </div>
+
+          <!-- Business Description -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-align-left text-purple-500 mr-2"></i>Business Description
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_description(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400 resize-vertical") }}
+            <div data-error-for="business_description" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.business_description.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">
+                {{ form.business_description.errors[0] }}
+              </div>
+            {% endif %}
+            <p class="text-gray-500 text-xs mt-2">
+              <i class="fas fa-info-circle mr-1"></i>Describe your services, experience, and what makes you unique
+            </p>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 2: CONTACT PERSON -->
+      <div x-show="currentSection === 2" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            2
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Contact Person</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Owner/Manager Name -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-user text-purple-500 mr-2"></i>Owner / Manager Full Name
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.owner_manager_name(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="owner_manager_name" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.owner_manager_name.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">
+                {{ form.owner_manager_name.errors[0] }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Contact Email -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-envelope text-purple-500 mr-2"></i>Contact Email
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.contact_email(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="contact_email" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.contact_email.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">
+                {{ form.contact_email.errors[0] }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Contact Phone -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-phone text-purple-500 mr-2"></i>Contact Phone
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.contact_phone(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="contact_phone" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.contact_phone.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">
+                {{ form.contact_phone.errors[0] }}
+              </div>
+            {% endif %}
+            <p class="text-gray-500 text-xs mt-2">
+              <i class="fas fa-info-circle mr-1"></i>Use format: 09XX-XXX-XXXX or +63XXXXXXXXXX
+            </p>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 3: LOCATION -->
+      <div x-show="currentSection === 3" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            3
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Business Location</h2>
+        </div>
+
+        <!-- Hidden inputs to sync Alpine.js values with form fields -->
+        <input type="hidden" name="province" x-model="selectedProvince">
+        <input type="hidden" name="city" x-model="selectedCity">
+        <input type="hidden" name="barangay" x-model="selectedBarangay">
+        <input type="hidden" name="full_address" x-model="fullAddress">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <!-- Province -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-map text-purple-500 mr-2"></i>Province
+              <span class="text-red-500">*</span>
+            </label>
+            <select @change="loadCities()" x-model="selectedProvince" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800">
+              <option value="">-- Select Province --</option>
+              <template x-for="province in provinces" :key="province.code">
+                <option :value="province.code" x-text="province.name"></option>
+              </template>
+            </select>
+            <div data-error-for="province" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.province.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">{{ form.province.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- City/Municipality -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-city text-purple-500 mr-2"></i>City / Municipality
+              <span class="text-red-500">*</span>
+            </label>
+            <select @change="loadBarangays()" x-model="selectedCity" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800" :disabled="!selectedProvince">
+              <option value="">-- Select City/Municipality --</option>
+              <template x-for="city in cities" :key="city.code">
+                <option :value="city.code" x-text="city.name"></option>
+              </template>
+            </select>
+            <div data-error-for="city" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.city.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">{{ form.city.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Barangay -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-location-dot text-purple-500 mr-2"></i>Barangay (Optional)
+            </label>
+            <select x-model="selectedBarangay" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800" :disabled="!selectedCity">
+              <option value="">-- Select Barangay --</option>
+              <template x-for="brgy in barangays" :key="brgy.code">
+                <option :value="brgy.code" x-text="brgy.name"></option>
+              </template>
+            </select>
+            <div data-error-for="barangay" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+          </div>
+
+          <!-- Postal Code -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-envelope text-purple-500 mr-2"></i>Postal Code
+            </label>
+            {{ form.postal_code(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+          </div>
+        </div>
+
+        <!-- Google Maps Link -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-link text-purple-500 mr-2"></i>Google Maps Link (Optional)
+          </label>
+          {{ form.google_maps_link(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+        </div>
+
+        <!-- Full Address (Auto-populated from map) -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-address-card text-purple-500 mr-2"></i>Full Address
+            <span class="text-red-500">*</span>
+          </label>
+          {{ form.full_address(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-gray-100 text-gray-700", placeholder="Auto-populated from map location") }}
+          <p class="text-xs text-gray-500 mt-2">
+            <i class="fas fa-info-circle mr-1"></i>This will be automatically filled when you pin your location on the map below.
+          </p>
+          {% if form.full_address.errors %}
+            <div class="text-red-500 text-sm mt-2 animate-pulse">{{ form.full_address.errors[0] }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Map Section -->
+        <div class="bg-gradient-to-br from-purple-50 to-white rounded-lg p-6 border-2 border-purple-200 mt-8">
+          <h3 class="font-semibold text-gray-700 mb-4 text-lg">
+            <i class="fas fa-map-location-dot text-purple-500 mr-2"></i>Pin Your Business Location
+          </h3>
+          <div id="map" style="width: 100%; height: 500px; min-height: 500px; border-radius: 0.5rem; border: 2px solid #d1d5db; position: relative; background-color: #e5e3df;"></div>
+          <div data-error-for="map" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+          <p class="text-sm text-gray-600 mt-4">
+            <i class="fas fa-info-circle text-blue-500 mr-2"></i>Click on the map to pin your exact business location. Hover over the map to access search and location tools.
+          </p>
+          {{ form.latitude() }}
+          {{ form.longitude() }}
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 4: SERVICES OFFERED -->
+      <div x-show="currentSection === 4" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            4
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Services Offered</h2>
+        </div>
+
+        <p class="text-gray-600 mb-4">
+          <i class="fas fa-info-circle text-blue-500 mr-2"></i>Select all services that your business provides
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% for field in form.services_offered %}
+            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-purple-400 cursor-pointer transition-all hover:bg-purple-50 group">
+              {{ field(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer group-hover:ring-2 group-hover:ring-purple-300") }}
+              <span class="ml-3 text-gray-700 font-medium group-hover:text-purple-700">
+                {{ field.label.text }}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div data-error-for="services_offered" class="text-red-500 text-sm mt-3 flex items-center hidden animate-pulse"></div>
+
+        {% if form.services_offered.errors %}
+          <div class="text-red-500 text-sm mt-3 animate-pulse">{{ form.services_offered.errors[0] }}</div>
+        {% endif %}
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 5: PETS ACCEPTED -->
+      <div x-show="currentSection === 5" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            5
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Pets Accepted</h2>
+        </div>
+
+        <p class="text-gray-600 mb-4">
+          <i class="fas fa-info-circle text-blue-500 mr-2"></i>Select all pet types that your business can accommodate
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% for field in form.pets_accepted %}
+            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-purple-400 cursor-pointer transition-all hover:bg-purple-50 group">
+              {{ field(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer group-hover:ring-2 group-hover:ring-purple-300") }}
+              <span class="ml-3 text-gray-700 font-medium group-hover:text-purple-700">
+                {{ field.label.text }}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div data-error-for="pets_accepted" class="text-red-500 text-sm mt-3 flex items-center hidden animate-pulse"></div>
+
+        {% if form.pets_accepted.errors %}
+          <div class="text-red-500 text-sm mt-3 animate-pulse">{{ form.pets_accepted.errors[0] }}</div>
+        {% endif %}
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 6: CAPACITY & PRICING -->
+      <div x-show="currentSection === 6" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            6
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Capacity & Pricing</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Max Pets Per Day -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-pets text-purple-500 mr-2"></i>Maximum Pets Per Day
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.max_pets_per_day(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="max_pets_per_day" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.max_pets_per_day.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">{{ form.max_pets_per_day.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Min Price -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-peso text-purple-500 mr-2"></i>Minimum Price Per Day
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.min_price_per_day(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="min_price_per_day" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.min_price_per_day.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">{{ form.min_price_per_day.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Max Price -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-peso text-purple-500 mr-2"></i>Maximum Price Per Day
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.max_price_per_day(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="max_price_per_day" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.max_price_per_day.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">{{ form.max_price_per_day.errors[0] }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mt-6 rounded">
+          <p class="text-sm text-blue-800">
+            <i class="fas fa-lightbulb text-blue-500 mr-2"></i>
+            <strong>Pricing Tip:</strong> Be competitive! Pets owners often compare prices. Our data shows businesses with clear pricing get more bookings.
+          </p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 7: OPERATING SCHEDULE -->
+      <div x-show="currentSection === 7" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            7
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Operating Schedule</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <!-- Opening Time -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-door-open text-purple-500 mr-2"></i>Opening Time
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.opening_time(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="opening_time" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.opening_time.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">{{ form.opening_time.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Closing Time -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-door-closed text-purple-500 mr-2"></i>Closing Time
+              <span class="text-red-500">*</span>
+            </label>
+            {{ form.closing_time(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800") }}
+            <div data-error-for="closing_time" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+            {% if form.closing_time.errors %}
+              <div class="text-red-500 text-sm mt-1 animate-pulse">{{ form.closing_time.errors[0] }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Operating Days -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-4">
+            <i class="fas fa-calendar-days text-purple-500 mr-2"></i>Operating Days
+            <span class="text-red-500">*</span>
+          </label>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {% for field in form.operating_days %}
+              <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-purple-400 cursor-pointer transition-all hover:bg-purple-50 group">
+                {{ field(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
+                <span class="ml-3 text-gray-700 font-medium group-hover:text-purple-700">{{ field.label.text }}</span>
+              </label>
+            {% endfor %}
+          </div>
+
+          <div data-error-for="operating_days" class="text-red-500 text-sm mt-3 flex items-center hidden animate-pulse"></div>
+
+          {% if form.operating_days.errors %}
+            <div class="text-red-500 text-sm mt-3 animate-pulse">{{ form.operating_days.errors[0] }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 8: POLICIES -->
+      <div x-show="currentSection === 8" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            8
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Policies</h2>
+        </div>
+
+        <div class="mb-6">
+          <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-purple-400 cursor-pointer transition-all hover:bg-purple-50 group">
+            {{ form.vaccination_required(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
+            <span class="ml-3 text-gray-700 font-medium group-hover:text-purple-700">
+              Vaccination Required for All Pets
+            </span>
+          </label>
+          <p class="text-gray-500 text-xs mt-2 ml-2">
+            <i class="fas fa-info-circle mr-1"></i>Help protect pets and build trust by requiring vaccination
+          </p>
+        </div>
+
+        <!-- Cancellation Policy -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-ban text-purple-500 mr-2"></i>Cancellation Policy
+          </label>
+          {{ form.cancellation_policy(class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400 resize-vertical", rows="4") }}
+          <p class="text-gray-500 text-xs mt-2">
+            <i class="fas fa-info-circle mr-1"></i>Clear cancellation policies build customer confidence
+          </p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 9: VERIFICATION UPLOADS -->
+      <div x-show="currentSection === 9" x-transition class="bg-white rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            9
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Verification Documents</h2>
+        </div>
+
+        <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded">
+          <p class="text-sm text-amber-800">
+            <i class="fas fa-exclamation-triangle text-amber-500 mr-2"></i>
+            <strong>Important:</strong> All documents must be clear and legible. Blurry or incomplete documents may delay approval.
+          </p>
+        </div>
+
+        <!-- Government ID -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-id-card text-purple-500 mr-2"></i>Government-Issued ID
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" name="government_id" accept=".jpg,.jpeg,.png,.pdf" class="hidden" id="gov_id_input" @change="updateFileName($event, 'gov_id_name')">
+            <label for="gov_id_input" class="block px-4 py-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 cursor-pointer transition-colors bg-purple-50 hover:bg-purple-100 text-center">
+              <div class="flex flex-col items-center">
+                <i class="fas fa-cloud-arrow-up text-purple-400 text-3xl mb-2"></i>
+                <span class="text-sm font-medium text-gray-700">Click to upload or drag file</span>
+                <span class="text-xs text-gray-500 mt-1">JPG, PNG, or PDF (Max 5MB)</span>
+                <span x-text="gov_id_name" x-show="gov_id_name" class="text-sm text-green-600 font-semibold mt-2"></span>
+              </div>
+            </label>
+          </div>
+          <div data-error-for="government_id" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+          {% if form.government_id.errors %}
+            <div class="text-red-500 text-sm mt-2 animate-pulse">{{ form.government_id.errors[0] }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Business Permit -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-certificate text-purple-500 mr-2"></i>Business Permit / License
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" name="business_permit" accept=".jpg,.jpeg,.png,.pdf" class="hidden" id="permit_input" @change="updateFileName($event, 'permit_name')">
+            <label for="permit_input" class="block px-4 py-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 cursor-pointer transition-colors bg-purple-50 hover:bg-purple-100 text-center">
+              <div class="flex flex-col items-center">
+                <i class="fas fa-cloud-arrow-up text-purple-400 text-3xl mb-2"></i>
+                <span class="text-sm font-medium text-gray-700">Click to upload or drag file</span>
+                <span class="text-xs text-gray-500 mt-1">JPG, PNG, or PDF (Max 5MB)</span>
+                <span x-text="permit_name" x-show="permit_name" class="text-sm text-green-600 font-semibold mt-2"></span>
+              </div>
+            </label>
+          </div>
+          <div data-error-for="business_permit" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+          {% if form.business_permit.errors %}
+            <div class="text-red-500 text-sm mt-2 animate-pulse">{{ form.business_permit.errors[0] }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Facility Photos -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-image text-purple-500 mr-2"></i>Facility Photos (Minimum 3)
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" name="facility_photos" accept="image/*" multiple class="hidden" id="photos_input" @change="updateFileNames($event)">
+            <label for="photos_input" class="block px-4 py-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 cursor-pointer transition-colors bg-purple-50 hover:bg-purple-100 text-center">
+              <div class="flex flex-col items-center">
+                <i class="fas fa-cloud-arrow-up text-purple-400 text-3xl mb-2"></i>
+                <span class="text-sm font-medium text-gray-700">Click to upload or drag files</span>
+                <span class="text-xs text-gray-500 mt-1">PNG, JPG (Min 3, Max 5MB each)</span>
+                <span x-text="`${photo_count} file(s) selected`" x-show="photo_count > 0" class="text-sm text-green-600 font-semibold mt-2"></span>
+              </div>
+            </label>
+          </div>
+          <div data-error-for="facility_photos" class="text-red-500 text-sm mt-2 flex items-center hidden animate-pulse"></div>
+          {% if form.facility_photos.errors %}
+            <div class="text-red-500 text-sm mt-2 animate-pulse">{{ form.facility_photos.errors[0] }}</div>
+          {% endif %}
+          <p class="text-gray-500 text-xs mt-2">
+            <i class="fas fa-info-circle mr-1"></i>Upload clear photos of your facility's exterior, interior, and key areas
+          </p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button type="button" @click="nextSection()" 
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 10: REVIEW & SUBMIT -->
+      <div x-show="currentSection === 10" x-transition class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-300 rounded-lg shadow-md p-6 sm:p-8 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+            <i class="fas fa-check"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Review & Submit</h2>
+        </div>
+
+        <div class="space-y-4 mb-6">
+          <div class="flex items-start">
+            <i class="fas fa-check-circle text-green-500 text-lg mt-1 mr-3"></i>
+            <span class="text-gray-700">All required information has been provided</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle text-green-500 text-lg mt-1 mr-3"></i>
+            <span class="text-gray-700">Documents have been uploaded and verified</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle text-green-500 text-lg mt-1 mr-3"></i>
+            <span class="text-gray-700">Business location has been pinned on the map</span>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mb-6">
+          <p class="text-sm text-blue-800">
+            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+            <strong>Next Steps:</strong> After submission, our team will review your application within 5-7 business days. We'll contact you via email or phone with our decision.
+          </p>
+        </div>
+
+        <!-- Terms & Conditions -->
+        <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg hover:border-purple-400 cursor-pointer transition-all hover:bg-purple-50">
+          <input type="checkbox" x-model="agreedToTerms" class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer mt-1">
+          <span class="ml-3 text-sm text-gray-700">
+            I agree to Petsona's Partner Terms & Conditions and confirm that all information provided is accurate and truthful.
+          </span>
+        </label>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <!-- Previous Button -->
+          <button type="button" @click="previousSection()" 
+                  class="flex-1 px-8 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+
+          <!-- Submit Button -->
+          <button type="submit" 
+                  :disabled="!agreedToTerms"
+                  class="flex-1 px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2">
+            <i class="fas fa-check-circle"></i> Submit Application
+          </button>
+        </div>
+
+        {% if form.errors %}
+          <div class="mt-6 bg-red-50 border-l-4 border-red-400 p-4 rounded">
+            <p class="font-semibold text-red-800 mb-2">Please fix the following errors:</p>
+            <ul class="text-sm text-red-700 space-y-1">
+              {% for field, errors in form.errors.items() %}
+                {% for error in errors %}
+                  <li><i class="fas fa-times-circle mr-2"></i>{{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- Axios for API calls -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+  function merchantApplication() {
+    return {
+      currentSection: 1,
+      selectedProvince: '',
+      selectedCity: '',
+      selectedBarangay: '',
+      fullAddress: '',
+      provinces: [],
+      cities: [],
+      barangays: [],
+      map: null,
+      marker: null,
+      gov_id_name: '',
+      permit_name: '',
+      photo_count: 0,
+      agreedToTerms: false,
+      mapInitialized: false,
+      loadingLocation: false,
+      showMapControls: false,
+      sectionErrors: {},
+
+      async init() {
+        // Load provinces immediately
+        await this.loadProvinces();
+        
+        // Watch for section 3 to initialize map
+        this.$watch('currentSection', (newVal) => {
+          if (newVal === 3 && !this.mapInitialized) {
+            console.log('Section 3 activated, initializing map...');
+            // Multiple attempts with increasing delays to handle different render scenarios
+            this.initializeMap();
+            
+            // Retry after visual confirmation
+            setTimeout(() => {
+              if (!this.mapInitialized) {
+                console.log('First attempt may have failed, retrying...');
+                this.initializeMap();
+              }
+            }, 500);
+          }
+        });
+      },
+
+      initializeMap() {
+        console.log('=== INITIALIZING MAP ===');
+        
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+          console.error('❌ Leaflet library not loaded');
+          return;
+        }
+        console.log('✓ Leaflet library loaded');
+
+        // Check if map element exists
+        const mapElement = document.getElementById('map');
+        if (!mapElement) {
+          console.error('❌ Map element with id="map" not found in DOM');
+          return;
+        }
+        console.log('✓ Map element found:', mapElement);
+
+        // Check visibility and size
+        const rect = mapElement.getBoundingClientRect();
+        console.log('Map element position:', { top: rect.top, left: rect.left, width: rect.width, height: rect.height });
+        console.log('Map element display:', window.getComputedStyle(mapElement).display);
+        console.log('Map element visibility:', window.getComputedStyle(mapElement).visibility);
+        
+        if (mapElement.offsetWidth === 0 || mapElement.offsetHeight === 0) {
+          console.warn('⚠️ Map element has zero dimensions, forcing dimensions...');
+          mapElement.style.width = '100%';
+          mapElement.style.height = '500px';
+        }
+        console.log('Map element final size:', mapElement.offsetWidth, 'x', mapElement.offsetHeight);
+
+        if (this.mapInitialized && this.map) {
+          console.log('ℹ️ Map already initialized, refreshing...');
+          this.map.invalidateSize();
+          return;
+        }
+
+        try {
+          // Set default center to Philippines (Metro Manila)
+          const defaultLat = 14.5994;
+          const defaultLng = 120.9842;
+
+          console.log('Creating Leaflet map instance on container...');
+          this.map = L.map('map', {
+            center: [defaultLat, defaultLng],
+            zoom: 10,
+            scrollWheelZoom: true,
+            dragging: true,
+            tap: true,
+            zoomControl: true,
+            attributionControl: true,
+            preferCanvas: false
+          });
+
+          console.log('✓ Map instance created:', this.map);
+          console.log('Adding OpenStreetMap tile layer (Leaflet Street Map)...');
+          
+          const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+            minZoom: 5,
+            tms: false,
+            opacity: 1
+          });
+          
+          tileLayer.addTo(this.map);
+          console.log('✓ Tile layer added to map');
+
+          // Verify tiles are loading
+          tileLayer.on('loading', () => console.log('🔄 Tiles loading...'));
+          tileLayer.on('load', () => console.log('✓ Tiles loaded successfully'));
+          tileLayer.on('tileerror', (err) => console.error('❌ Tile loading error:', err));
+
+          console.log('Adding click handler...');
+          this.map.on('click', (e) => {
+            console.log('Map clicked at:', e.latlng.lat, e.latlng.lng);
+            this.placeMarker(e.latlng.lat, e.latlng.lng);
+          });
+
+          this.mapInitialized = true;
+          console.log('✓ Map initialized successfully');
+
+          // Force multiple size invalidations
+          const invalidateSeq = [50, 150, 300, 500];
+          invalidateSeq.forEach(delay => {
+            setTimeout(() => {
+              if (this.map) {
+                console.log(`Invalidating map size at ${delay}ms...`);
+                this.map.invalidateSize(true);
+              }
+            }, delay);
+          });
+
+          // Add custom map controls
+          this.addMapControls();
+          
+          console.log('=== MAP INITIALIZATION COMPLETE ===');
+        } catch (error) {
+          console.error('❌ Error initializing map:', error);
+          this.mapInitialized = false;
+        }
+      },
+
+      addMapControls() {
+        const self = this;
+        
+        // Create main control container (always visible)
+        const controlContainer = document.createElement('div');
+        controlContainer.id = 'map-controls-container';
+        controlContainer.style.cssText = `
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          z-index: 1000;
+          display: flex;
+          gap: 8px;
+          flex-direction: column;
+          align-items: flex-end;
+        `;
+
+        // Search icon button (always visible)
+        const searchIconBtn = document.createElement('button');
+        searchIconBtn.innerHTML = '<i class="fas fa-search"></i>';
+        searchIconBtn.title = 'Search location';
+        searchIconBtn.style.cssText = `
+          width: 44px;
+          height: 44px;
+          background: white;
+          color: #a855f7;
+          border: 2px solid #a855f7;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          transition: all 0.2s;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          flex-shrink: 0;
+        `;
+        searchIconBtn.onmouseover = () => { 
+          searchIconBtn.style.background = '#a855f7';
+          searchIconBtn.style.color = 'white';
+        };
+        searchIconBtn.onmouseout = () => { 
+          searchIconBtn.style.background = 'white';
+          searchIconBtn.style.color = '#a855f7';
+        };
+
+        // Location icon button (always visible)
+        const locIconBtn = document.createElement('button');
+        locIconBtn.innerHTML = '<i class="fas fa-location-arrow"></i>';
+        locIconBtn.title = 'Use current location';
+        locIconBtn.style.cssText = `
+          width: 44px;
+          height: 44px;
+          background: white;
+          color: #3b82f6;
+          border: 2px solid #3b82f6;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          transition: all 0.2s;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          flex-shrink: 0;
+        `;
+        locIconBtn.onmouseover = () => { 
+          locIconBtn.style.background = '#3b82f6';
+          locIconBtn.style.color = 'white';
+        };
+        locIconBtn.onmouseout = () => { 
+          locIconBtn.style.background = 'white';
+          locIconBtn.style.color = '#3b82f6';
+        };
+        locIconBtn.onclick = (e) => {
+          e.preventDefault();
+          self.getCurrentLocation();
+        };
+
+        // Expanded panel (hidden by default)
+        const expandedPanel = document.createElement('div');
+        expandedPanel.id = 'map-controls-panel';
+        expandedPanel.style.cssText = `
+          position: absolute;
+          top: 60px;
+          right: 0;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          padding: 12px;
+          display: none;
+          flex-direction: column;
+          gap: 10px;
+          animation: slideIn 0.2s ease-out;
+          min-width: 280px;
+        `;
+
+        // Search input in expanded panel
+        const searchInput = document.createElement('input');
+        searchInput.id = 'map-search-input';
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Search location...';
+        searchInput.style.cssText = `
+          padding: 10px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 13px;
+          outline: none;
+          transition: border-color 0.2s;
+          width: 100%;
+          box-sizing: border-box;
+        `;
+        searchInput.onkeyup = (e) => {
+          if (e.key === 'Enter') {
+            self.searchLocation();
+          }
+        };
+        searchInput.onmouseover = () => {
+          searchInput.style.borderColor = '#a855f7';
+        };
+        searchInput.onmouseout = () => {
+          searchInput.style.borderColor = '#d1d5db';
+        };
+
+        // Search results container
+        const resultsContainer = document.createElement('div');
+        resultsContainer.id = 'map-search-results';
+        resultsContainer.style.cssText = `
+          display: none;
+          flex-direction: column;
+          gap: 0;
+          max-height: 300px;
+          overflow-y: auto;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          background: white;
+        `;
+
+        // Search button in expanded panel
+        const searchBtn = document.createElement('button');
+        searchBtn.innerHTML = '<i class="fas fa-search mr-2"></i>Search';
+        searchBtn.style.cssText = `
+          width: 100%;
+          padding: 10px 12px;
+          background: #a855f7;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 500;
+          transition: background 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        `;
+        searchBtn.onmouseover = () => { searchBtn.style.background = '#9333ea'; };
+        searchBtn.onmouseout = () => { searchBtn.style.background = '#a855f7'; };
+        searchBtn.onclick = (e) => {
+          e.preventDefault();
+          self.searchLocation();
+        };
+
+        // Location button in expanded panel
+        const locBtn = document.createElement('button');
+        locBtn.innerHTML = '<i class="fas fa-location-arrow mr-2"></i>My Location';
+        locBtn.style.cssText = `
+          width: 100%;
+          padding: 10px 12px;
+          background: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 500;
+          transition: background 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        `;
+        locBtn.onmouseover = () => { locBtn.style.background = '#2563eb'; };
+        locBtn.onmouseout = () => { locBtn.style.background = '#3b82f6'; };
+        locBtn.onclick = (e) => {
+          e.preventDefault();
+          self.getCurrentLocation();
+        };
+
+        expandedPanel.appendChild(searchInput);
+        expandedPanel.appendChild(resultsContainer);
+        expandedPanel.appendChild(searchBtn);
+        expandedPanel.appendChild(locBtn);
+
+        // Toggle expanded panel
+        searchIconBtn.onclick = (e) => {
+          e.preventDefault();
+          const isVisible = expandedPanel.style.display === 'flex';
+          expandedPanel.style.display = isVisible ? 'none' : 'flex';
+          if (!isVisible) {
+            setTimeout(() => {
+              searchInput.focus();
+            }, 100);
+          }
+        };
+
+        // Show panel on hover
+        controlContainer.addEventListener('mouseenter', () => {
+          expandedPanel.style.display = 'flex';
+        });
+        controlContainer.addEventListener('mouseleave', () => {
+          expandedPanel.style.display = 'none';
+        });
+
+        // Add to container
+        controlContainer.appendChild(searchIconBtn);
+        controlContainer.appendChild(locIconBtn);
+        controlContainer.appendChild(expandedPanel);
+
+        // Add to map
+        const mapElement = document.getElementById('map');
+        mapElement.parentElement.style.position = 'relative';
+        mapElement.parentElement.appendChild(controlContainer);
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      },
+
+      placeMarker(lat, lng) {
+        if (this.marker) {
+          this.marker.setLatLng([lat, lng]);
+        } else {
+          this.marker = L.marker([lat, lng], {
+            draggable: true,
+          }).addTo(this.map);
+
+          this.marker.on('dragend', () => {
+            const pos = this.marker.getLatLng();
+            this.updateCoordinates(pos.lat, pos.lng);
+          });
+        }
+
+        this.updateCoordinates(lat, lng);
+        this.map.setView([lat, lng], 15);
+      },
+
+      updateCoordinates(lat, lng) {
+        document.querySelector('input[name="latitude"]').value = lat;
+        document.querySelector('input[name="longitude"]').value = lng;
+        
+        // Reverse geocode to get the full address
+        this.reverseGeocode(lat, lng);
+      },
+
+      async reverseGeocode(lat, lng) {
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+          const data = await response.json();
+          
+          // Extract a readable address from the response
+          const address = data.address || {};
+          let fullAddress = '';
+          
+          // Build address from components
+          if (address.house_number && address.road) {
+            fullAddress = `${address.house_number} ${address.road}`;
+          } else if (address.road) {
+            fullAddress = address.road;
+          } else if (address.place) {
+            fullAddress = address.place;
+          } else if (address.town) {
+            fullAddress = address.town;
+          } else if (address.city) {
+            fullAddress = address.city;
+          }
+          
+          // Add barangay if available
+          if (address.village) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.village}` : address.village;
+          }
+          
+          // Add city/municipality
+          if (address.municipality && !fullAddress.includes(address.municipality)) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.municipality}` : address.municipality;
+          } else if (address.city && !fullAddress.includes(address.city)) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.city}` : address.city;
+          }
+          
+          // Add province
+          if (address.state && !fullAddress.includes(address.state)) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.state}` : address.state;
+          }
+          
+          // Add postal code if available
+          if (address.postcode) {
+            fullAddress = fullAddress ? `${fullAddress} ${address.postcode}` : address.postcode;
+          }
+          
+          // Update the full address field
+          document.querySelector('input[name="full_address"]').value = fullAddress;
+          this.fullAddress = fullAddress;
+          
+          console.log('Address geocoded:', fullAddress);
+        } catch (error) {
+          console.error('Error during reverse geocoding:', error);
+          // Set a basic address if reverse geocoding fails
+          const basicAddress = `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`;
+          document.querySelector('input[name="full_address"]').value = basicAddress;
+          this.fullAddress = basicAddress;
+        }
+      },
+
+      getCurrentLocation() {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser');
+          return;
+        }
+
+        this.loadingLocation = true;
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            console.log('Current location obtained:', { lat, lng });
+            this.placeMarker(lat, lng);
+            this.loadingLocation = false;
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            let message = 'Unable to get your location. ';
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                message += 'Permission denied. Please enable location access.';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                message += 'Location information is unavailable.';
+                break;
+              case error.TIMEOUT:
+                message += 'The request timed out.';
+                break;
+              default:
+                message += 'An error occurred.';
+            }
+            alert(message);
+            this.loadingLocation = false;
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      },
+
+      async searchLocation() {
+        const searchInput = document.getElementById('map-search-input');
+        if (!searchInput) return;
+        
+        const query = searchInput.value.trim();
+        
+        if (!query) {
+          alert('Please enter a location to search');
+          return;
+        }
+
+        try {
+          console.log('Searching location:', query);
+          
+          const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+            params: {
+              q: query,
+              format: 'json',
+              limit: 8,
+              countrycodes: 'ph'
+            },
+            headers: {
+              'User-Agent': 'Petsona-App'
+            }
+          });
+
+          if (response.data && response.data.length > 0) {
+            console.log('Search results found:', response.data.length);
+            this.displaySearchResults(response.data);
+          } else {
+            alert('No locations found. Please try another search.');
+          }
+        } catch (error) {
+          console.error('Search error:', error);
+          alert('Error searching location. Please try again.');
+        }
+      },
+
+      displaySearchResults(results) {
+        const self = this;
+        const resultsContainer = document.getElementById('map-search-results');
+        
+        if (!resultsContainer) return;
+        
+        resultsContainer.innerHTML = '';
+        resultsContainer.style.display = 'flex';
+
+        results.forEach((result, index) => {
+          const resultItem = document.createElement('div');
+          resultItem.style.cssText = `
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          `;
+          
+          resultItem.onmouseover = () => {
+            resultItem.style.background = '#f3f4f6';
+          };
+          resultItem.onmouseout = () => {
+            resultItem.style.background = 'transparent';
+          };
+
+          const name = document.createElement('div');
+          name.style.cssText = `
+            font-weight: 600;
+            font-size: 13px;
+            color: #1f2937;
+          `;
+          name.textContent = result.name;
+
+          const address = document.createElement('div');
+          address.style.cssText = `
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.4;
+          `;
+          address.textContent = result.display_name;
+
+          resultItem.appendChild(name);
+          resultItem.appendChild(address);
+
+          resultItem.onclick = () => {
+            const lat = parseFloat(result.lat);
+            const lng = parseFloat(result.lon);
+            console.log('Selected location:', { lat, lng, name: result.name });
+            
+            self.placeMarker(lat, lng);
+            
+            // Close results and reset search
+            resultsContainer.style.display = 'none';
+            document.getElementById('map-search-input').value = '';
+          };
+
+          resultsContainer.appendChild(resultItem);
+        });
+      },
+
+      async loadProvinces() {
+        try {
+          console.log('Loading provinces...');
+          const response = await axios.get('{{ url_for("merchant.get_provinces") }}');
+          console.log('Provinces loaded:', response.data);
+          this.provinces = Array.isArray(response.data) ? response.data : [];
+          if (this.provinces.length === 0) {
+            console.warn('No provinces returned from API');
+          }
+        } catch (error) {
+          console.error('Error loading provinces:', error);
+          this.provinces = [];
+        }
+      },
+
+      async loadCities() {
+        if (!this.selectedProvince) {
+          console.warn('No province selected');
+          return;
+        }
+
+        try {
+          console.log('Loading cities for province:', this.selectedProvince);
+          const url = '{{ url_for("merchant.get_cities", province_code="PLACEHOLDER") }}'.replace('PLACEHOLDER', this.selectedProvince);
+          const response = await axios.get(url);
+          console.log('Cities loaded:', response.data);
+          this.cities = Array.isArray(response.data) ? response.data : [];
+          this.barangays = [];
+          this.selectedCity = '';
+          this.selectedBarangay = '';
+        } catch (error) {
+          console.error('Error loading cities:', error);
+          this.cities = [];
+        }
+      },
+
+      async loadBarangays() {
+        if (!this.selectedCity) {
+          console.warn('No city selected');
+          return;
+        }
+
+        try {
+          console.log('Loading barangays for city:', this.selectedCity);
+          const url = '{{ url_for("merchant.get_barangays", city_code="PLACEHOLDER") }}'.replace('PLACEHOLDER', this.selectedCity);
+          const response = await axios.get(url);
+          console.log('Barangays loaded:', response.data);
+          this.barangays = Array.isArray(response.data) ? response.data : [];
+          this.selectedBarangay = '';
+        } catch (error) {
+          console.error('Error loading barangays:', error);
+          this.barangays = [];
+        }
+      },
+
+      updateFileName(event, fieldName) {
+        const file = event.target.files[0];
+        if (file) {
+          this[fieldName] = `✓ ${file.name}`;
+        }
+      },
+
+      updateFileNames(event) {
+        this.photo_count = event.target.files.length;
+      },
+
+      validateForm(event) {
+        // Basic validation before submission
+        if (!this.agreedToTerms) {
+          event.preventDefault();
+          alert('Please agree to the Terms & Conditions to submit your application.');
+          return false;
+        }
+
+        // Validate final section (10)
+        if (!this.isSection10Valid()) {
+          event.preventDefault();
+          return false;
+        }
+
+        // Allow form submission to proceed - don't prevent default
+        return true;
+      },
+
+      scrollToSection(section) {
+        this.currentSection = section;
+        this.$nextTick(() => {
+          document.querySelectorAll('[class*="ring-2 ring-purple-400"]')[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      },
+
+      // Validation methods for each section
+      isSection1Valid() {
+        const businessName = document.querySelector('input[name="business_name"]')?.value?.trim();
+        const businessType = document.querySelector('select[name="business_type"]')?.value?.trim();
+        const businessDesc = document.querySelector('textarea[name="business_description"]')?.value?.trim();
+        
+        this.sectionErrors = {};
+        
+        if (!businessName) {
+          this.sectionErrors.business_name = 'Business name is required';
+        }
+        if (!businessType) {
+          this.sectionErrors.business_type = 'Business type is required';
+        }
+        if (!businessDesc) {
+          this.sectionErrors.business_description = 'Business description is required';
+        }
+        
+        this.displaySectionErrors(1);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection2Valid() {
+        const managerName = document.querySelector('input[name="owner_manager_name"]')?.value?.trim();
+        const email = document.querySelector('input[name="contact_email"]')?.value?.trim();
+        const phone = document.querySelector('input[name="contact_phone"]')?.value?.trim();
+        
+        this.sectionErrors = {};
+        
+        if (!managerName) {
+          this.sectionErrors.owner_manager_name = 'Owner/Manager name is required';
+        }
+        if (!email) {
+          this.sectionErrors.contact_email = 'Email is required';
+        } else if (!this.isValidEmail(email)) {
+          this.sectionErrors.contact_email = 'Please enter a valid email address';
+        }
+        if (!phone) {
+          this.sectionErrors.contact_phone = 'Phone number is required';
+        } else if (!this.isValidPhone(phone)) {
+          this.sectionErrors.contact_phone = 'Please enter a valid Philippine phone number';
+        }
+        
+        this.displaySectionErrors(2);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection3Valid() {
+        const province = this.selectedProvince?.trim();
+        const city = this.selectedCity?.trim();
+        const barangay = this.selectedBarangay?.trim();
+        const latitude = document.querySelector('input[name="latitude"]')?.value;
+        const longitude = document.querySelector('input[name="longitude"]')?.value;
+        
+        this.sectionErrors = {};
+        
+        if (!province) {
+          this.sectionErrors.province = 'Province is required';
+        }
+        if (!city) {
+          this.sectionErrors.city = 'City/Municipality is required';
+        }
+        if (!barangay) {
+          this.sectionErrors.barangay = 'Barangay is required';
+        }
+        if (!latitude || !longitude) {
+          this.sectionErrors.map = 'Please pin your location on the map';
+        }
+        
+        this.displaySectionErrors(3);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection4Valid() {
+        const servicesChecked = document.querySelectorAll('input[name="services_offered"]:checked').length > 0;
+        
+        this.sectionErrors = {};
+        
+        if (!servicesChecked) {
+          this.sectionErrors.services_offered = 'Please select at least one service';
+        }
+        
+        this.displaySectionErrors(4);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection5Valid() {
+        const petsChecked = document.querySelectorAll('input[name="pets_accepted"]:checked').length > 0;
+        
+        this.sectionErrors = {};
+        
+        if (!petsChecked) {
+          this.sectionErrors.pets_accepted = 'Please select at least one pet type';
+        }
+        
+        this.displaySectionErrors(5);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection6Valid() {
+        const maxPets = document.querySelector('input[name="max_pets_per_day"]')?.value?.trim();
+        const minPrice = document.querySelector('input[name="min_price_per_day"]')?.value?.trim();
+        const maxPrice = document.querySelector('input[name="max_price_per_day"]')?.value?.trim();
+        
+        this.sectionErrors = {};
+        
+        if (!maxPets) {
+          this.sectionErrors.max_pets_per_day = 'Maximum pets per day is required';
+        } else if (parseInt(maxPets) <= 0) {
+          this.sectionErrors.max_pets_per_day = 'Must be greater than 0';
+        }
+        
+        if (!minPrice) {
+          this.sectionErrors.min_price_per_day = 'Minimum price is required';
+        } else if (parseFloat(minPrice) <= 0) {
+          this.sectionErrors.min_price_per_day = 'Must be greater than 0';
+        }
+        
+        if (!maxPrice) {
+          this.sectionErrors.max_price_per_day = 'Maximum price is required';
+        } else if (parseFloat(maxPrice) <= 0) {
+          this.sectionErrors.max_price_per_day = 'Must be greater than 0';
+        }
+        
+        if (minPrice && maxPrice && parseFloat(maxPrice) < parseFloat(minPrice)) {
+          this.sectionErrors.max_price_per_day = 'Max price must be >= min price';
+        }
+        
+        this.displaySectionErrors(6);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection7Valid() {
+        const openingTime = document.querySelector('input[name="opening_time"]')?.value?.trim();
+        const closingTime = document.querySelector('input[name="closing_time"]')?.value?.trim();
+        const daysChecked = document.querySelectorAll('input[name="operating_days"]:checked').length > 0;
+        
+        this.sectionErrors = {};
+        
+        if (!openingTime) {
+          this.sectionErrors.opening_time = 'Opening time is required';
+        }
+        if (!closingTime) {
+          this.sectionErrors.closing_time = 'Closing time is required';
+        }
+        if (!daysChecked) {
+          this.sectionErrors.operating_days = 'Please select at least one operating day';
+        }
+        
+        this.displaySectionErrors(7);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection8Valid() {
+        // Section 8 is optional (policies), so always valid
+        this.sectionErrors = {};
+        return true;
+      },
+
+      isSection9Valid() {
+        const govIdUploaded = this.gov_id_name.includes('✓');
+        const permitUploaded = this.permit_name.includes('✓');
+        const photosUploaded = this.photo_count >= 3;
+        
+        this.sectionErrors = {};
+        
+        if (!govIdUploaded) {
+          this.sectionErrors.government_id = 'Government ID is required';
+        }
+        if (!permitUploaded) {
+          this.sectionErrors.business_permit = 'Business permit is required';
+        }
+        if (!photosUploaded) {
+          this.sectionErrors.facility_photos = `Please upload at least 3 facility photos (${this.photo_count}/3)`;
+        }
+        
+        this.displaySectionErrors(9);
+        return !Object.keys(this.sectionErrors).length;
+      },
+
+      isSection10Valid() {
+        // Section 10 is review, only check terms on submission
+        return true;
+      },
+
+      displaySectionErrors(section) {
+        // Clear previous errors
+        document.querySelectorAll(`[data-error-for]`).forEach(el => {
+          el.style.display = 'none';
+          el.innerHTML = '';
+        });
+        
+        // Display new errors
+        Object.keys(this.sectionErrors).forEach(field => {
+          const errorElement = document.querySelector(`[data-error-for="${field}"]`);
+          if (errorElement) {
+            errorElement.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${this.sectionErrors[field]}`;
+            errorElement.style.display = 'block';
+          }
+        });
+        
+        // Scroll to first error
+        if (Object.keys(this.sectionErrors).length > 0) {
+          const firstErrorField = Object.keys(this.sectionErrors)[0];
+          const firstErrorElement = document.querySelector(`[name="${firstErrorField}"], [data-error-for="${firstErrorField}"]`);
+          if (firstErrorElement) {
+            firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      },
+
+      previousSection() {
+        if (this.currentSection > 1) {
+          this.currentSection--;
+          this.$nextTick(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+      },
+
+      isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      },
+
+      isValidPhone(phone) {
+        const re = /^(\+63|0)[0-9]{9,}$/;
+        return re.test(phone.replace(/[-\s]/g, ''));
+      },
+
+      isSectionComplete(section) {
+        switch(section) {
+          case 1: return this.isSection1Valid();
+          case 2: return this.isSection2Valid();
+          case 3: return this.isSection3Valid();
+          case 4: return this.isSection4Valid();
+          case 5: return this.isSection5Valid();
+          case 6: return this.isSection6Valid();
+          case 7: return this.isSection7Valid();
+          case 8: return this.isSection8Valid();
+          case 9: return this.isSection9Valid();
+          case 10: return true; // Section 10 complete status is based on submit
+          default: return false;
+        }
+      },
+
+      nextSection() {
+        const isValid = this.validateSection(this.currentSection);
+        if (isValid && this.currentSection < 10) {
+          this.currentSection++;
+          this.$nextTick(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+      },
+
+      validateSection(section) {
+        switch(section) {
+          case 1: return this.isSection1Valid();
+          case 2: return this.isSection2Valid();
+          case 3: return this.isSection3Valid();
+          case 4: return this.isSection4Valid();
+          case 5: return this.isSection5Valid();
+          case 6: return this.isSection6Valid();
+          case 7: return this.isSection7Valid();
+          case 8: return this.isSection8Valid();
+          case 9: return this.isSection9Valid();
+          default: return true;
+        }
+      }
+    };
+  }
+</script>
+
+<style>
+  #map {
+    z-index: 1;
+    position: relative;
+    width: 100%;
+    height: 500px;
+    min-height: 500px;
+    background-color: #e5e3df;
+    border-radius: 0.5rem;
+  }
+
+  .leaflet-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    z-index: 1;
+  }
+
+  .leaflet-marker-icon {
+    filter: hue-rotate(260deg) saturate(1.5);
+  }
+
+  .leaflet-control-zoom {
+    border: 2px solid #d1d5db;
+    border-radius: 0.5rem;
+  }
+
+  .leaflet-control-zoom a {
+    background-color: white;
+    color: #333;
+  }
+
+  .leaflet-control-zoom a:hover {
+    background-color: #f3f4f6;
+  }
+
+  .leaflet-pane {
+    z-index: auto;
+  }
+
+  .leaflet-tile-pane {
+    z-index: 2;
+  }
+
+  .leaflet-shadow-pane {
+    z-index: 3;
+  }
+
+  .leaflet-overlay-pane {
+    z-index: 4;
+  }
+
+  .leaflet-marker-pane {
+    z-index: 5;
+  }
+
+  .leaflet-popup-pane {
+    z-index: 7;
+  }
+
+  /* Error message styling - responsive */
+  [data-error-for] {
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    background-color: #fee2e2;
+    border-left: 4px solid #dc2626;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    color: #991b1b;
+    animation: slideDown 0.3s ease-out;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  [data-error-for] i {
+    color: #dc2626;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(2rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    [data-error-for] {
+      padding: 0.625rem;
+      font-size: 0.8125rem;
+      margin-top: 0.375rem;
+    }
+
+    [data-error-for] i {
+      margin-right: 0.375rem;
+    }
+  }
+
+  /* Focus states with error indication */
+  input:invalid,
+  select:invalid,
+  textarea:invalid {
+    border-color: #fca5a5 !important;
+  }
+
+  input.has-error,
+  select.has-error,
+  textarea.has-error {
+    border-color: #fca5a5 !important;
+    background-color: #fef2f2;
+  }
+</style>
+{% endblock %}

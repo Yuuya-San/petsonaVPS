@@ -27,10 +27,10 @@
     }
 
     body {
-      padding-top: 80px; /* offset for fixed navbar */
+      padding-top: 80px;
     }
 
-    /* NAVBAR */
+    /* ================= NAVBAR ================= */
     .navbar {
       position: fixed;
       top: 0;
@@ -101,6 +101,16 @@
       width: 100%;
     }
 
+    /* ===== ACTIVE LINK ===== */
+    .nav-links a.active {
+      color: var(--lavender-dark);
+      font-weight: 600;
+    }
+
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
     /* LOGIN BUTTON */
     .nav-auth a {
       padding: 0.5rem 1.2rem;
@@ -135,8 +145,12 @@
       transition: all 0.3s ease;
     }
 
-    /* MOBILE */
+    /* ================= MOBILE ================= */
     @media (max-width: 768px) {
+      body {
+        padding-top: 70px;
+      }
+
       .navbar {
         height: 70px;
       }
@@ -176,12 +190,21 @@
         font-size: 0.9rem;
       }
 
+      .nav-links a::after {
+        display: none;
+      }
+
+      .nav-links a.active {
+        background: var(--lavender-soft);
+        border-radius: 12px;
+      }
+
       .nav-links.active {
         display: flex;
       }
 
       .nav-auth {
-        padding: 0.75rem 1.5rem !important;
+        padding: 0.75rem 1.5rem;
         border-top: 1px solid #f0f0f0;
         margin-top: 0.5rem;
       }
@@ -200,14 +223,6 @@
       .nav-links {
         gap: 1.5rem;
       }
-    }
-
-    /* DEMO CONTENT */
-    .content {
-      max-width: 1000px;
-      margin: auto;
-      padding: 2rem;
-      color: #555;
     }
   </style>
 </head>
@@ -229,11 +244,41 @@
       </button>
 
       <ul class="nav-links">
-        <li><a href="{{ url_for('auth.home') }}">Home</a></li>
-        <li><a href="{{ url_for('auth.feature') }}">Features</a></li>
-        <li><a href="{{ url_for('auth.about') }}">About</a></li>
-        <li><a href="{{ url_for('auth.contact') }}">Contact</a></li>
-        <li class="nav-auth"><a href="{{ url_for('auth.login') }}">Login</a></li>
+        <li>
+          <a href="{{ url_for('auth.home') }}"
+             class="{% if request.endpoint == 'auth.home' %}active{% endif %}">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a href="{{ url_for('auth.feature') }}"
+             class="{% if request.endpoint == 'auth.feature' %}active{% endif %}">
+            Features
+          </a>
+        </li>
+
+        <li>
+          <a href="{{ url_for('auth.about') }}"
+             class="{% if request.endpoint == 'auth.about' %}active{% endif %}">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a href="{{ url_for('auth.contact') }}"
+             class="{% if request.endpoint == 'auth.contact' %}active{% endif %}">
+            Contact
+          </a>
+        </li>
+
+
+        <li class="nav-auth">
+          <a href="{{ url_for('auth.login') }}"
+             class="{% if request.endpoint == 'auth.login' %}active{% endif %}">
+            Login
+          </a>
+        </li>
       </ul>
 
     </div>

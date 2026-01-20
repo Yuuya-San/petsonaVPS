@@ -51,6 +51,9 @@ class SocketManager {
       
       // Re-register watchers after reconnection
       this.rewatchAllSpecies();
+      
+      // Notify listeners that socket is ready
+      window.dispatchEvent(new CustomEvent('socket-ready', { detail: this.socket }));
     });
 
     // Connection lost
@@ -173,3 +176,6 @@ class SocketManager {
 
 // Create global instance
 const socketManager = new SocketManager();
+
+// Also expose socket globally for backward compatibility with inline scripts
+window.socket = socketManager.socket;

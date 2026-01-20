@@ -159,95 +159,341 @@
 .links .divider {
   opacity: 0.6;
 }
+
+/* ===============================
+   SOCIAL LOGIN (ICON ONLY)
+================================ */
+
+.social-login {
+  margin-top: 1.4rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.social-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(245, 245, 250, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border: 1px solid rgba(230, 225, 255, 0.28);
+  box-shadow: 0 10px 25px rgba(0,0,0,.25);
+
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.social-btn i {
+  font-size: 1.05rem;
+  color: #fafaff;
+}
+
+/* Hover */
+.social-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(245, 245, 250, 0.35);
+}
+
+/* Active */
+.social-btn:active {
+  transform: translateY(0);
+}
+
+/* Brand hints (subtle, not loud) */
+.social-btn.google i {
+  color: #f5f2ff;
+}
+
+.social-btn.facebook i {
+  color: #e4e0ff;
+}
+
+/* ===============================
+   AUTH SEPARATOR
+================================ */
+
+.auth-separator {
+  margin: 1.6rem 0 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-size: 0.75rem;
+  color: #d8d4ea;
+  text-transform: lowercase;
+  letter-spacing: 0.4px;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(220, 215, 255, 0.45),
+    transparent
+  );
+}
+
+.auth-separator span {
+  white-space: nowrap;
+  padding: 0 0.4rem;
+}
+
+/* ===============================
+   SMART FORM COMPRESSION (SMALL DEVICES)
+================================ */
+
+/* Phones & small tablets */
+@media (max-width: 480px) {
+
+  .auth-card {
+    padding: 1.5rem 1.4rem;
+    border-radius: 18px;
+  }
+
+  .title {
+    font-size: 1.55rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .auth-form {
+    gap: 1.1rem;
+  }
+
+  .input-group {
+    padding-bottom: 0.25rem;
+  }
+
+  .btn-primary {
+    margin-top: 0.9rem;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .auth-separator {
+    margin: 1.2rem 0 1rem;
+    font-size: 0.7rem;
+  }
+
+  .social-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .links {
+    margin-top: 1.2rem;
+    font-size: 0.8rem;
+  }
+}
+
 </style>
 
 <div class="auth-bg">
-<div class="auth-card fade-in">
+  <div class="auth-card fade-in">
 
-<h2 class="title">Create Account</h2>
-<p class="subtitle">Join our pet community</p>
+    <h2 class="title">Create Account</h2>
+    <p class="subtitle">Join our pet community</p>
 
-<form method="post" novalidate class="auth-form" id="register-form">
-{{ form.hidden_tag() }}
+    <form method="post" novalidate class="auth-form" id="register-form">
+      {{ form.hidden_tag() }}
 
-<!-- PERSONAL INFO -->
-<div class="form-section personal-info-section" id="personal-info-section">
-<h3 class="section-title themed-title">Personal Info</h3>
+      <!-- PERSONAL INFO -->
+      <div class="form-section personal-info-section" id="personal-info-section">
+        <h3 class="section-title themed-title">Personal Info</h3>
 
-<div class="input-group">
-<span class="icon"><i class="fas fa-user"></i></span>
-{{ form.first_name(class_='input-field', placeholder="First Name", required=true, id="first_name", pattern="[A-Za-z]+", maxlength="50", oninput="this.value=this.value.replace(/[^A-Za-z]/g,'')") }}
-<span class="input-status" id="first-name-status"></span>
+        <div class="input-group">
+          <span class="icon">
+            <i class="fas fa-user"></i>
+          </span>
+          {{ form.first_name(
+              class_='input-field',
+              placeholder="First Name",
+              required=true,
+              id="first_name",
+              pattern="[A-Za-z]+",
+              maxlength="50",
+              oninput="this.value=this.value.replace(/[^A-Za-z]/g,'')"
+          ) }}
+          <span class="input-status" id="first-name-status"></span>
+        </div>
+
+        <div class="input-group">
+          <span class="icon">
+            <i class="fas fa-user"></i>
+          </span>
+          {{ form.last_name(
+              class_='input-field',
+              placeholder="Last Name",
+              required=true,
+              id="last_name",
+              pattern="[A-Za-z]+",
+              maxlength="50",
+              oninput="this.value=this.value.replace(/[^A-Za-z]/g,'')"
+          ) }}
+          <span class="input-status" id="last-name-status"></span>
+        </div>
+
+        <div class="input-group">
+          <span class="icon">
+            <i class="fas fa-envelope"></i>
+          </span>
+          {{ form.email(
+              class_='input-field',
+              placeholder="Email Address",
+              required=true,
+              id="email"
+          ) }}
+          <span class="input-status" id="email-status"></span>
+        </div>
+
+        <button
+          class="themed-btn next-btn"
+          type="button"
+          id="to-password-section">
+          Next
+        </button>
+      </div>
+
+      <!-- PASSWORD -->
+      <div
+        class="form-section password-section"
+        id="password-section"
+        style="display:none;">
+
+        <h3 class="section-title themed-title">Password</h3>
+
+        <div class="input-group password-group">
+          <span class="icon">
+            <i class="fas fa-lock"></i>
+          </span>
+          {{ form.password(
+              class_='input-field',
+              placeholder="Password",
+              required=true,
+              id="password"
+          ) }}
+          <button
+            type="button"
+            class="toggle-password"
+            id="toggle-password">
+            <i class="fas fa-eye"></i>
+          </button>
+          <span class="input-status" id="password-status"></span>
+        </div>
+
+        <!-- 🔒 VALIDATOR DEPENDENCIES -->
+        <div class="password-requirements" id="password-requirements">
+          <div class="requirement" id="req-length">
+            <i class="fas fa-times-circle"></i>
+            <span>At least 8 characters</span>
+          </div>
+          <div class="requirement" id="req-uppercase">
+            <i class="fas fa-times-circle"></i>
+            <span>One uppercase letter</span>
+          </div>
+          <div class="requirement" id="req-lowercase">
+            <i class="fas fa-times-circle"></i>
+            <span>One lowercase letter</span>
+          </div>
+          <div class="requirement" id="req-number">
+            <i class="fas fa-times-circle"></i>
+            <span>One number</span>
+          </div>
+          <div class="requirement" id="req-special">
+            <i class="fas fa-times-circle"></i>
+            <span>One special character</span>
+          </div>
+        </div>
+
+        <div class="password-strength-meter" id="password-strength-meter">
+          <div class="strength-bar" id="strength-bar"></div>
+          <span class="strength-text" id="strength-text"></span>
+        </div>
+
+        <div class="input-group password-group">
+          <span class="icon">
+            <i class="fas fa-shield-alt"></i>
+          </span>
+          {{ form.password2(
+              class_='input-field',
+              placeholder="Confirm Password",
+              required=true,
+              id="password2"
+          ) }}
+          <button
+            type="button"
+            class="toggle-password"
+            id="toggle-password2">
+            <i class="fas fa-eye"></i>
+          </button>
+          <span class="input-status" id="password2-status"></span>
+        </div>
+
+        <div class="section-nav">
+          <button
+            class="themed-btn prev-btn"
+            type="button"
+            id="back-to-personal-info">
+            Back
+          </button>
+
+          <button
+            class="themed-btn loading-btn"
+            type="submit"
+            disabled>
+            Create Account
+          </button>
+        </div>
+      </div>
+
+      <!-- Separator -->
+      <div class="auth-separator">
+        <span>or sign up as</span>
+      </div>
+
+      <!-- Social login -->
+      <div class="social-login">
+        <button
+          type="button"
+          class="social-btn google"
+          aria-label="Login with Google">
+          <i class="fab fa-google"></i>
+        </button>
+
+        <button
+          type="button"
+          class="social-btn facebook"
+          aria-label="Login with Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </button>
+      </div>
+
+    </form>
+
+    <div class="links">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}">Login here</a>
+    </div>
+
+  </div>
 </div>
 
-<div class="input-group">
-<span class="icon"><i class="fas fa-user"></i></span>
-{{ form.last_name(class_='input-field', placeholder="Last Name", required=true, id="last_name", pattern="[A-Za-z]+", maxlength="50", oninput="this.value=this.value.replace(/[^A-Za-z]/g,'')") }}
-<span class="input-status" id="last-name-status"></span>
-</div>
-
-<div class="input-group">
-<span class="icon"><i class="fas fa-envelope"></i></span>
-{{ form.email(class_='input-field', placeholder="Email Address", required=true, id="email") }}
-<span class="input-status" id="email-status"></span>
-</div>
-
-<button class="themed-btn next-btn" type="button" id="to-password-section">
-Next
-</button>
-</div>
-
-<!-- PASSWORD -->
-<div class="form-section password-section" id="password-section" style="display:none;">
-<h3 class="section-title themed-title">Password</h3>
-
-<div class="input-group password-group">
-<span class="icon"><i class="fas fa-lock"></i></span>
-{{ form.password(class_='input-field', placeholder="Password", required=true, id="password") }}
-<button type="button" class="toggle-password" id="toggle-password">
-<i class="fas fa-eye"></i>
-</button>
-<span class="input-status" id="password-status"></span>
-</div>
-
-<!-- 🔒 VALIDATOR DEPENDENCIES (UNCHANGED) -->
-<div class="password-requirements" id="password-requirements">
-<div class="requirement" id="req-length"><i class="fas fa-times-circle"></i><span>At least 8 characters</span></div>
-<div class="requirement" id="req-uppercase"><i class="fas fa-times-circle"></i><span>One uppercase letter</span></div>
-<div class="requirement" id="req-lowercase"><i class="fas fa-times-circle"></i><span>One lowercase letter</span></div>
-<div class="requirement" id="req-number"><i class="fas fa-times-circle"></i><span>One number</span></div>
-<div class="requirement" id="req-special"><i class="fas fa-times-circle"></i><span>One special character</span></div>
-</div>
-
-<div class="password-strength-meter" id="password-strength-meter">
-<div class="strength-bar" id="strength-bar"></div>
-<span class="strength-text" id="strength-text"></span>
-</div>
-
-<div class="input-group password-group">
-<span class="icon"><i class="fas fa-shield-alt"></i></span>
-{{ form.password2(class_='input-field', placeholder="Confirm Password", required=true, id="password2") }}
-<button type="button" class="toggle-password" id="toggle-password2">
-<i class="fas fa-eye"></i>
-</button>
-<span class="input-status" id="password2-status"></span>
-</div>
-
-<div class="section-nav">
-<button class="themed-btn prev-btn" type="button" id="back-to-personal-info">Back</button>
-<button class="themed-btn loading-btn" type="submit" disabled>Create Account</button>
-</div>
-</div>
-
-</form>
-
-<div class="links">
-Already have an account?
-<a href="{{ url_for('auth.login') }}">Login here</a>
-</div>
-
-</div>
-</div>
 
 <script>
 const personalSection = document.getElementById('personal-info-section');

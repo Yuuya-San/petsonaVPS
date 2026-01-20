@@ -216,6 +216,148 @@
 .links a:hover {
   color: #e4e0ff;
 }
+
+/* ===============================
+   SOCIAL LOGIN (ICON ONLY)
+================================ */
+
+.social-login {
+  margin-top: 1.4rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.social-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(245, 245, 250, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border: 1px solid rgba(230, 225, 255, 0.28);
+  box-shadow: 0 10px 25px rgba(0,0,0,.25);
+
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.social-btn i {
+  font-size: 1.05rem;
+  color: #fafaff;
+}
+
+/* Hover */
+.social-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(245, 245, 250, 0.35);
+}
+
+/* Active */
+.social-btn:active {
+  transform: translateY(0);
+}
+
+/* Brand hints (subtle, not loud) */
+.social-btn.google i {
+  color: #f5f2ff;
+}
+
+.social-btn.facebook i {
+  color: #e4e0ff;
+}
+
+/* ===============================
+   AUTH SEPARATOR
+================================ */
+
+.auth-separator {
+  margin: 1.6rem 0 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-size: 0.75rem;
+  color: #d8d4ea;
+  text-transform: lowercase;
+  letter-spacing: 0.4px;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(220, 215, 255, 0.45),
+    transparent
+  );
+}
+
+.auth-separator span {
+  white-space: nowrap;
+  padding: 0 0.4rem;
+}
+
+/* ===============================
+   SMART FORM COMPRESSION (SMALL DEVICES)
+================================ */
+
+/* Phones & small tablets */
+@media (max-width: 480px) {
+
+  .auth-card {
+    padding: 1.5rem 1.4rem;
+    border-radius: 18px;
+  }
+
+  .title {
+    font-size: 1.55rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .auth-form {
+    gap: 1.1rem;
+  }
+
+  .input-group {
+    padding-bottom: 0.25rem;
+  }
+
+  .btn-primary {
+    margin-top: 0.9rem;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .auth-separator {
+    margin: 1.2rem 0 1rem;
+    font-size: 0.7rem;
+  }
+
+  .social-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .links {
+    margin-top: 1.2rem;
+    font-size: 0.8rem;
+  }
+}
 </style>
 
 <div class="auth-bg">
@@ -250,6 +392,22 @@
         <span class="loader"></span>
       </button>
     </form>
+
+    <!-- Separator -->
+    <div class="auth-separator">
+      <span>or sign in as</span>
+    </div>
+
+    <!-- Social login -->
+    <div class="social-login">
+      <button type="button" class="social-btn google" aria-label="Login with Google">
+        <i class="fab fa-google"></i>
+      </button>
+
+      <button type="button" class="social-btn facebook" aria-label="Login with Facebook">
+        <i class="fab fa-facebook-f"></i>
+      </button>
+    </div>
 
     <div class="links">
       <a href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>

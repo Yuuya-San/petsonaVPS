@@ -12,6 +12,45 @@ from flask import Blueprint, request, jsonify
 @login_required
 @user_required
 def dashboard():
+    from app.models.breed import Breed
+    from datetime import datetime, timedelta
+    
+    # Get top 3 species by vote count
+    top_species = Species.query.filter(
+        Species.deleted_at.is_(None)
+    ).order_by(Species.heart_vote_count.desc()).limit(3).all()
+    
+    # Get top 8 breeds by vote count
+    top_breeds = Breed.query.filter(
+        Breed.deleted_at.is_(None)
+    ).order_by(Breed.heart_vote_count.desc()).limit(8).all()
+    
+    # Get recently added species (last 7 days)
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    recent_species = Species.query.filter(
+        Species.deleted_at.is_(None),
+        Species.created_at >= week_ago
+    ).order_by(Species.created_at.desc()).limit(8).all()
+    
+    # Get recently updated species (last 7 days)
+    updated_species = Species.query.filter(
+        Species.deleted_at.is_(None),
+        Species.updated_at >= week_ago
+    ).order_by(Species.updated_at.desc()).limit(8).all()
+    
+    return render_template(
+        'user/dashboard.html',
+        page_title="User Dashboard",
+        top_species=top_species,
+        top_breeds=top_breeds,
+        recent_species=recent_species,
+        updated_species=updated_species
+    )
+
+@bp.route('/species')
+@login_required
+@user_required
+def species_index():
     page = request.args.get('page', 1, type=int)
 
     # Paginate active species
@@ -24,7 +63,7 @@ def dashboard():
     species_list = pagination.items
 
     return render_template(
-        'user/dashboard.html',
+        'user/species_index.html',
         species_list=species_list,
         pagination=pagination,
         page_title="Pet Species"

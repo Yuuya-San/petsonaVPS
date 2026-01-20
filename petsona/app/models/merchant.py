@@ -49,7 +49,6 @@ class Merchant(db.Model):
     max_pets_per_day = db.Column(db.Integer, nullable=False)
     min_price_per_day = db.Column(db.Float, nullable=False)
     max_price_per_day = db.Column(db.Float, nullable=False)
-    currency = db.Column(db.String(10), default='PHP')
 
     # ========== SECTION 7: OPERATING SCHEDULE ==========
     opening_time = db.Column(db.String(5), nullable=False)  # HH:MM format
@@ -57,7 +56,6 @@ class Merchant(db.Model):
     operating_days = db.Column(JSON, nullable=False, default=[])  # Array of days: ['Mon', 'Tue', ...]
 
     # ========== SECTION 8: POLICIES ==========
-    vaccination_required = db.Column(db.Boolean, default=False)
     cancellation_policy = db.Column(LONGTEXT, nullable=True)
 
     # ========== SECTION 9: VERIFICATION UPLOADS ==========

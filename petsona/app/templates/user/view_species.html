@@ -4,9 +4,55 @@
 <!-- Parent Alpine for View Modal -->
 <div x-data="{
         viewModal: false,
-        selectedBreed: null
+        selectedBreed: null,
+        userBreedVotes: {},
+        breedVoteCounts: {},
+        loadingBreedVotes: {},
+        async initBreedVotes() {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          const breedItems = document.querySelectorAll('.breed-item');
+          const breedIds = Array.from(breedItems).map(el => {
+            const heart = el.querySelector('.breed-heart-btn');
+            return parseInt(heart?.getAttribute('data-breed-id'));
+          }).filter(Boolean);
+          if (breedIds.length > 0) {
+            try {
+              const response = await fetch('/api/votes/breed/check-votes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({breed_ids: breedIds})
+              });
+              const data = await response.json();
+              if (data.success) {
+                Object.entries(data.votes).forEach(([id, voteData]) => {
+                  this.userBreedVotes[id] = voteData.user_voted;
+                  this.breedVoteCounts[id] = voteData.total_votes;
+                });
+              }
+            } catch (error) {
+              console.error('Error loading breed votes:', error);
+            }
+          }
+        }
       }"
+     @load="initBreedVotes()" x-init="$nextTick(() => initBreedVotes())"
      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
+
+  <style>
+    .breed-heart-btn { background: rgba(243, 244, 246, 0.85); backdrop-filter: blur(16px); border: 1.5px solid rgba(129, 140, 248, 0.25); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.6rem 0.8rem; border-radius: 50px; cursor: pointer; }
+    .breed-heart-btn:hover { background: rgba(255, 255, 255, 0.95); border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 12px 30px rgba(239, 68, 68, 0.15); }
+    .breed-heart-btn.liked { background: rgba(254, 226, 226, 0.9); border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 12px 35px rgba(239, 68, 68, 0.25); }
+    .breed-heart-icon { font-size: 1.1rem; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
+    .breed-heart-count { font-size: 0.85rem; font-weight: 600; min-width: 1.5rem; text-align: center; transition: all 0.3s ease; }
+    .breed-heart-btn.liked .breed-heart-count { color: #dc2626; }
+    .breed-heart-btn:not(.liked) .breed-heart-count { color: #6b7280; }
+    @keyframes heartPulse { 0% { transform: scale(1); } 25% { transform: scale(1.3) rotate(-10deg); } 50% { transform: scale(1.1) rotate(0deg); } 75% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1); } }
+    .breed-heart-btn:active .breed-heart-icon { animation: heartPulse 0.6s ease-out; }
+    @keyframes votePulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+    .heart-firework { position: fixed; font-size: 1.5rem; pointer-events: none; z-index: 9999; }
+    @keyframes heartFirework { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); } }
+    .heart-firework { animation: heartFirework 0.8s ease-out forwards; }
+  </style>
 
   <!-- 🔷 BREEDS SECTION -->
   <div>
@@ -39,7 +85,18 @@
       {% for breed in breeds %}
       <!-- Each breed card has its own Alpine.js state for menu/delete -->
       <div x-data="{ menu: false, confirm: false }"
-           class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative">
+           class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative breed-item">
+
+        <!-- HEART BUTTON - TOP RIGHT (TOGGLE VOTE) -->
+        <button @click="toggleBreedHeart($event, {{ breed.id }});"
+                :class="userBreedVotes['{{ breed.id }}'] ? 'liked' : ''"
+                data-breed-id="{{ breed.id }}"
+                class="breed-heart-btn absolute top-3 right-3 z-10 group"
+                :title="userBreedVotes['{{ breed.id }}'] ? 'Remove your vote' : 'Vote for this breed'"
+                :disabled="loadingBreedVotes['{{ breed.id }}']">
+          <i :class="userBreedVotes['{{ breed.id }}'] ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" class="breed-heart-icon" :style="userBreedVotes['{{ breed.id }}'] ? 'color: #dc2626' : 'color: #9ca3af'"></i>
+          <span class="breed-heart-count" x-text="breedVoteCounts['{{ breed.id }}'] || 0"></span>
+        </button>
 
         <!-- IMAGE -->
         <img src="{{ url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') }}"
@@ -500,5 +557,175 @@
 
     </div>
   </div>
+
+<!-- SOCKET.IO BREED VOTE UPDATES - LISTEN FOR REAL-TIME UPDATES -->
+<script>
+  // Store current user ID to avoid duplicate fireworks
+  window.currentUserId = Number('{{ current_user.id }}');
+  
+  // Setup breed vote listener
+  function setupBreedVoteListener() {
+    // Check if socket exists from socketManager
+    const sock = window.socket || (typeof socketManager !== 'undefined' ? socketManager.socket : null);
+    
+    if (!sock) {
+      console.warn('⚠️ Socket.IO not available yet, will retry...');
+      setTimeout(setupBreedVoteListener, 500);
+      return;
+    }
+    
+    console.log('✅ Socket.IO ready, registering breed_vote_update listener');
+    
+    sock.off('breed_vote_update'); // Remove old listeners
+    sock.on('breed_vote_update', function(data) {
+      console.log('🔄 Breed vote update received:', data);
+      const breedId = data.breed_id;
+      const totalVotes = data.total_votes;
+      const button = document.querySelector('[data-breed-id="' + breedId + '"]');
+      
+      if (button) {
+        console.log('📋 Found breed button for breed', breedId);
+        
+        // Find the Alpine root component
+        let alpineEl = button.closest('[x-data*="breedVoteCounts"]');
+        if (!alpineEl) {
+          alpineEl = document.querySelector('[x-data*="breedVoteCounts"]');
+        }
+        
+        // Update Alpine reactive data
+        if (alpineEl && alpineEl._x_dataStack && alpineEl._x_dataStack[0]) {
+          console.log('🔄 Updating Alpine data for breed', breedId);
+          alpineEl._x_dataStack[0].breedVoteCounts[breedId] = totalVotes;
+        }
+        
+        // Also update DOM as fallback
+        const countSpan = button.querySelector('.breed-heart-count');
+        if (countSpan) {
+          countSpan.textContent = totalVotes;
+          console.log('✅ Updated vote count to', totalVotes);
+        }
+        
+        // Show animation pulse when OTHER users vote
+        if (data.user_id !== window.currentUserId) {
+          console.log('👥 Other user voted - showing animation for user', data.user_id);
+          button.style.animation = 'none';
+          setTimeout(() => {
+            button.style.animation = 'votePulse 0.6s ease-out';
+          }, 10);
+          
+          // Create subtle firework effect for other users' votes
+          setTimeout(() => {
+            createBreedHeartFireworkFromButton(button);
+          }, 150);
+        }
+      }
+    });
+  }
+  
+  // Start listening when socket is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupBreedVoteListener);
+  } else {
+    setupBreedVoteListener();
+  }
+  
+  // Also listen for socket-ready event in case it fires after script loads
+  window.addEventListener('socket-ready', setupBreedVoteListener);
+</script>
+
+<!-- BREED HEART TOGGLE API SCRIPT -->
+<script>
+  function toggleBreedHeart(event, breedId) {
+    event.preventDefault();
+    event.stopPropagation();
+    const button = event.target.closest('button');
+    if (!button || button.disabled) return;
+    
+    button.disabled = true;
+    console.log('🖱️ Heart button clicked for breed:', breedId);
+    
+    fetch(`/api/votes/breed/${breedId}`, { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'} 
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('✅ Breed vote API response:', data);
+      if (data.success) {
+        const heartCount = button.querySelector('.breed-heart-count');
+        if (heartCount) {
+          heartCount.textContent = data.total_votes;
+        }
+        
+        // Update liked state
+        if (data.voted) { 
+          button.classList.add('liked'); 
+          createBreedHeartFireworkFromButton(button);
+        } else { 
+          button.classList.remove('liked'); 
+        }
+        
+        // Update heart icon
+        const icon = button.querySelector('.breed-heart-icon');
+        if (icon) {
+          if (data.voted) { 
+            icon.classList.remove('fa-regular'); 
+            icon.classList.add('fa-solid'); 
+            icon.style.color = '#dc2626'; 
+          } else { 
+            icon.classList.remove('fa-solid'); 
+            icon.classList.add('fa-regular'); 
+            icon.style.color = '#9ca3af'; 
+          }
+        }
+      } else { 
+        alert(data.error || 'Vote failed.'); 
+      }
+    })
+    .catch(error => { 
+      console.error('Error:', error); 
+      alert('An error occurred.'); 
+    })
+    .finally(() => { 
+      button.disabled = false; 
+    });
+  }
+  
+  function createBreedHeartFireworkFromButton(button) {
+    if (!button) return;
+    
+    const rect = button.getBoundingClientRect();
+    const startX = rect.left + rect.width / 2;
+    const startY = rect.top + rect.height / 2;
+    
+    const hearts = ['❤️', '💗', '💕', '💓', '💖'];
+    const heartCount = 8;
+    
+    for (let i = 0; i < heartCount; i++) {
+      const heart = document.createElement('div');
+      heart.classList.add('heart-firework');
+      heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+      
+      // Random angle for spread
+      const angle = (Math.PI * 2 * i) / heartCount + (Math.random() - 0.5) * 0.4;
+      const distance = 80 + Math.random() * 60;
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance - Math.random() * 40;
+      
+      heart.style.setProperty('--tx', tx + 'px');
+      heart.style.setProperty('--ty', ty + 'px');
+      heart.style.left = startX + 'px';
+      heart.style.top = startY + 'px';
+      heart.style.transform = 'translate(-50%, -50%)';
+      
+      document.body.appendChild(heart);
+      
+      // Remove after animation completes
+      setTimeout(() => {
+        heart.remove();
+      }, 800);
+    }
+  }
+</script>
 
 {% endblock %}

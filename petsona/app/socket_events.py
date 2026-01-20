@@ -94,3 +94,21 @@ def broadcast_vote_update(species_id, new_vote_count):
         )
     except Exception as e:
         logger.error(f"Error broadcasting vote update: {str(e)}")
+
+
+def broadcast_breed_vote_update(breed_id, total_votes, voted, user_id):
+    """Broadcast breed vote update to all connected clients"""
+    try:
+        logger.info(f"📡 Broadcasting breed vote update for breed {breed_id}: {total_votes} votes")
+        socketio.emit(
+            'breed_vote_update',
+            {
+                'breed_id': breed_id,
+                'total_votes': total_votes,
+                'voted': voted,
+                'user_id': user_id,
+                'timestamp': __import__('datetime').datetime.utcnow().isoformat()
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error broadcasting breed vote update: {str(e)}")

@@ -10,7 +10,7 @@ from app.decorators import merchant_required
 from app.models.breed import Breed
 from app.models.species import Species
 from app.models.merchant import Merchant
-from app.extensions import db
+from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm
 import logging
 
@@ -79,7 +79,12 @@ def dashboard():
     # Check if merchant has completed application
     merchant = Merchant.query.filter_by(user_id=current_user.id).first()
     
-    return render_template('merchant/dashboard.html', merchant=merchant)
+    # Get top 3 species by vote count
+    top_species = Species.query.filter(
+        Species.deleted_at.is_(None)
+    ).order_by(Species.heart_vote_count.desc()).limit(3).all()
+    
+    return render_template('merchant/dashboard.html', merchant=merchant, top_species=top_species)
 
 
 
@@ -418,4 +423,110 @@ def geocode():
         logger.error(f"Error geocoding address: {str(e)}")
     
     return jsonify({'error': 'Failed to geocode address'}), 500
+
+
+@bp.route('/api/search-location', methods=['POST'])
+def search_location():
+    """Search for locations using Nominatim"""
+    data = request.get_json()
+    query = data.get('q', '').strip()
+    
+    if not query:
+        return jsonify({'error': 'Query is required'}), 400
+    
+    try:
+        response = requests.get(
+            'https://nominatim.openstreetmap.org/search',
+            params={
+                'q': query,
+                'format': 'json',
+                'limit': 8,
+                'countrycodes': 'ph'
+            },
+            headers={'User-Agent': 'PetsonaApp/1.0'},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({'error': 'Search failed'}), response.status_code
+    except Exception as e:
+        logger.error(f"Error searching location: {str(e)}")
+        return jsonify({'error': 'Failed to search location'}), 500
+
+
+@bp.route('/api/reverse-geocode', methods=['POST', 'OPTIONS'])
+@csrf.exempt
+def reverse_geocode():
+    """Reverse geocode coordinates to get address"""
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        # Try to get JSON data with multiple fallbacks
+        data = None
+        
+        # First try: standard get_json()
+        if request.is_json:
+            data = request.get_json()
+        
+        # Second try: force JSON parsing
+        if data is None:
+            try:
+                data = request.get_json(force=True, silent=True)
+            except:
+                pass
+        
+        # Third try: check request.data
+        if data is None and request.data:
+            try:
+                import json as json_module
+                data = json_module.loads(request.data.decode())
+            except:
+                pass
+        
+        # Fourth try: form data
+        if data is None:
+            data = request.form.to_dict()
+        
+        # Extract coordinates
+        lat = data.get('lat') if data else None
+        lon = data.get('lon') if data else None
+        
+        # Debug logging
+        logger.info(f"Reverse geocode request - Content-Type: {request.content_type}, Data: {data}")
+        
+        if lat is None or lon is None:
+            logger.error(f"Missing coordinates - lat: {lat}, lon: {lon}, data: {data}")
+            return jsonify({'error': 'Latitude and longitude are required', 'data': data}), 400
+        
+        # Convert to float
+        try:
+            lat = float(lat)
+            lon = float(lon)
+        except (ValueError, TypeError) as e:
+            logger.error(f"Invalid coordinate format - lat: {lat}, lon: {lon}, error: {str(e)}")
+            return jsonify({'error': 'Latitude and longitude must be numbers'}), 400
+        
+        response = requests.get(
+            'https://nominatim.openstreetmap.org/reverse',
+            params={
+                'format': 'json',
+                'lat': lat,
+                'lon': lon
+            },
+            headers={'User-Agent': 'PetsonaApp/1.0'},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            logger.error(f"Nominatim error: {response.status_code}")
+            return jsonify({'error': 'Reverse geocoding failed'}), response.status_code
+    except Exception as e:
+        logger.error(f"Error reverse geocoding: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Failed to reverse geocode', 'details': str(e)}), 500
 

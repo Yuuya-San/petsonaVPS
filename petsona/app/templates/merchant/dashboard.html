@@ -1,6 +1,444 @@
 {% extends "merchant/base.html" %}
 
 {% block content %}
-<h1>Merchant Dashboard Works!</h1>
-{% endblock %}
+<style>
+/* ================================
+   GLASS LEADERBOARD CONTAINER
+================================ */
+.leaderboard-container {
+  max-width: 1320px;
+  margin: 0 auto 64px auto;
+  padding: 48px;
 
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  border-radius: 28px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+
+  box-shadow:
+    0 8px 32px rgba(31, 38, 135, 0.15),
+    0 30px 80px rgba(0, 0, 0, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+/* ================================
+   HEADER
+================================ */
+.leaderboard-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.leaderboard-subtitle {
+  text-align: center;
+  font-size: 15px;
+  color: #6b7280;
+  margin-bottom: 40px;
+  font-weight: 500;
+}
+
+/* ================================
+   GRID (MARKETPLACE STYLE)
+================================ */
+.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 28px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ================================
+   CARD (PRODUCT STYLE)
+================================ */
+.rank-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+
+  border-radius: 22px;
+  padding: 18px;
+
+  border: 1.2px solid rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+.rank-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 16px 40px rgba(79, 70, 229, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* ================================
+   RANK LABEL
+================================ */
+.rank-number {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ================================
+   MEDAL (SUBTLE & PREMIUM)
+================================ */
+.medal-wrapper {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+.medal {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  box-shadow:
+    inset 0 0 8px rgba(255, 255, 255, 0.7),
+    0 8px 20px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* Gold */
+.medal.gold {
+  background: linear-gradient(135deg, #f6d365, #fda085);
+  color: #3b2f00;
+}
+
+/* Silver */
+.medal.silver {
+  background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+  color: #1f2937;
+}
+
+/* Bronze */
+.medal.bronze {
+  background: linear-gradient(135deg, #d6a371, #9c6644);
+  color: #2c1810;
+}
+
+/* Crystal */
+.medal.crystal,
+.medal.crystal-2 {
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  color: #075985;
+}
+
+/* ================================
+   IMAGE (PRODUCT FIRST)
+================================ */
+.species-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ================================
+   NAME
+================================ */
+.species-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+/* ================================
+   VOTES (SOCIAL PROOF)
+================================ */
+.vote-info {
+  margin-top: auto;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(79, 70, 229, 0.05));
+  border: 1px solid rgba(79, 70, 229, 0.15);
+}
+
+.vote-info i {
+  font-size: 15px;
+  color: #e74c3c;
+}
+
+.vote-count {
+  font-size: 16px;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.vote-label {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+/* ================================
+   EMPTY STATE
+================================ */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+@media (max-width: 900px) {
+  .leaderboard-container {
+    max-width: 95%;
+    padding: 36px 28px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .leaderboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 100%;
+  }
+
+  .leaderboard-title {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 640px) {
+  .leaderboard-container {
+    padding: 28px 20px;
+  }
+
+  .leaderboard-title {
+    font-size: 22px;
+  }
+
+  .leaderboard-subtitle {
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+
+  .leaderboard-grid {
+    gap: 16px;
+  }
+
+  .rank-card {
+    padding: 14px;
+  }
+
+  .medal {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
+
+</style>
+
+<div class="container-fluid py-5">
+
+  <!-- Top 3 Species Leaderboard -->
+  <div class="leaderboard-container">
+    <div class="leaderboard-title">
+      <i class="fas fa-crown"></i>
+      Top Voted Species
+    </div>
+    <div class="leaderboard-subtitle">
+      🔥 Most loved pets by the community
+    </div>
+
+    {% if top_species %}
+      <div class="leaderboard-grid">
+        {% for species in top_species %}
+          {% set rank = loop.index %}
+          <div class="rank-card" data-species-id="{{ species.id }}">
+            <!-- Rank Number -->
+            <div class="rank-number">
+              {% if rank == 1 %}
+                🥇 1st Place
+              {% elif rank == 2 %}
+                🥈 2nd Place
+              {% else %}
+                🥉 3rd Place
+              {% endif %}
+            </div>
+
+            <!-- Medal -->
+            <div class="medal-wrapper">
+              {% if rank == 1 %}
+                <div class="medal gold">👑</div>
+              {% elif rank == 2 %}
+                <div class="medal silver">🌟</div>
+              {% else %}
+                <div class="medal bronze">⭐</div>
+              {% endif %}
+            </div>
+
+            <!-- Species Image -->
+            {% if species.image_url %}
+              <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
+                   alt="{{ species.name }}" class="species-image">
+            {% else %}
+              <div class="species-image" style="background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 36px;">
+                <i class="fas fa-paw"></i>
+              </div>
+            {% endif %}
+
+            <!-- Species Name -->
+            <div class="species-name">{{ species.name }}</div>
+
+            <!-- Vote Count -->
+            <div class="vote-info">
+              <i class="fas fa-heart" style="color: #e74c3c;"></i>
+              <span class="vote-count">{{ species.heart_vote_count or 0 }}</span>
+              <span class="vote-label">votes</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>No species with votes yet</p>
+        <small>Species will appear here as the community votes for them</small>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">🏆 Community Favorites</div>
+      <div class="stat-value">
+        {{ top_species|length if top_species else 0 }}/3 Ranked
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">❤️ Top Species Votes</div>
+      <div class="stat-value">
+        {% if top_species %}
+          {{ top_species[0].heart_vote_count or 0 }}
+        {% else %}
+          0
+        {% endif %}
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">📈 Total Community Votes</div>
+      <div class="stat-value">
+        {% set total = 0 %}
+        {% for s in top_species %}
+          {% set total = total + (s.heart_vote_count or 0) %}
+        {% endfor %}
+        {{ total }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Featured CTA Section -->
+  <div class="row mt-5 mb-5">
+    <div class="col-12 col-md-6">
+      <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-radius: 12px; padding: 30px;">
+        <h5 class="font-weight-bold mb-3">
+          <i class="fas fa-search text-primary mr-2"></i>
+          Explore All Species
+        </h5>
+        <p class="text-muted mb-4">
+          Browse our complete catalog of pet species and find detailed information about each one.
+        </p>
+        <a href="{{ url_for('merchant.species_index') }}" class="cta-button">
+          <i class="fas fa-arrow-right mr-2"></i>
+          Explore Now
+        </a>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 mt-4 mt-md-0">
+      <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(16, 185, 129, 0.1)); border-radius: 12px; padding: 30px;">
+        <h5 class="font-weight-bold mb-3">
+          <i class="fas fa-wand-magic-sparkles text-success mr-2"></i>
+          Find Your Perfect Pet
+        </h5>
+        <p class="text-muted mb-4">
+          Not sure which pet suits you? Take our compatibility quiz to discover your perfect match!
+        </p>
+        <a href="{{ url_for('matching.quiz') }}" class="cta-button" style="background: linear-gradient(135deg, #10b981, #059669);">
+          <i class="fas fa-arrow-right mr-2"></i>
+          Take Quiz
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fun Facts Section -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <div class="alert alert-light border-0 rounded-lg" style="background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border-left: 4px solid #667eea;">
+        <h6 class="font-weight-bold mb-3">
+          <i class="fas fa-lightbulb mr-2 text-warning"></i> Tips for Finding Your Perfect Pet
+        </h6>
+        <ul class="mb-0" style="font-size: 14px; color: #555; line-height: 1.8;">
+          <li><strong>Consider Your Lifestyle:</strong> Some pets need more exercise and attention than others.</li>
+          <li><strong>Check Care Requirements:</strong> Make sure you can meet the pet's needs (food, shelter, vet care).</li>
+          <li><strong>Vote for Your Favorites:</strong> Help the community by voting for species you love!</li>
+          <li><strong>Read Species Profiles:</strong> Learn about unique traits, care requirements, and more.</li>
+          <li><strong>Take Our Quiz:</strong> Get personalized recommendations based on your preferences.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Socket.IO Integration for Real-Time Updates -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Listen for Socket.IO vote updates to refresh leaderboard
+    if (typeof socketManager !== 'undefined') {
+      console.log('📊 Dashboard watching for vote updates...');
+      
+      // Add click handlers to cards
+      document.querySelectorAll('.rank-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const speciesId = card.getAttribute('data-species-id');
+          if (speciesId) {
+            window.location.href = `/merchant/species/${speciesId}`;
+          }
+        });
+      });
+    }
+  });
+</script>
+
+{% endblock %}

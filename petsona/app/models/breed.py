@@ -43,6 +43,11 @@ class Breed(db.Model):
     min_enclosure_size = db.Column(db.String(100),comment="Minimum recommended enclosure size for the breed")
 
     # --------------------------
+    # Voting & Engagement
+    # --------------------------
+    heart_vote_count = db.Column(db.Integer, default=0, comment="Total heart votes from all users")
+
+    # --------------------------
     # Status & timestamps
     # --------------------------
     is_active = db.Column(db.Boolean, default=True)

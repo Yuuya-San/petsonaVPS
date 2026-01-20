@@ -1,369 +1,1475 @@
 {% extends "admin/base.html" %}
 
-{% block page_content %}
-<div class="container-fluid" x-data="merchantApplications()">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="h3 mb-0 text-gray-800">
-        <i class="fas fa-store text-purple-500 mr-2"></i>Partner Applications
-      </h1>
-      <p class="text-muted small mt-1">Manage and review merchant partner applications</p>
-    </div>
-    <div class="btn-group" role="group">
-      <button type="button" class="btn btn-outline-primary" :class="{ active: filterStatus === 'all' }" @click="filterStatus = 'all'; loadApplications()">
-        All <span class="badge badge-secondary ml-2" x-text="applications.length"></span>
-      </button>
-      <button type="button" class="btn btn-outline-warning" :class="{ active: filterStatus === 'pending' }" @click="filterStatus = 'pending'; loadApplications()">
-        Pending <span class="badge badge-warning ml-2" x-text="getPendingCount()"></span>
-      </button>
-      <button type="button" class="btn btn-outline-info" :class="{ active: filterStatus === 'under_review' }" @click="filterStatus = 'under_review'; loadApplications()">
-        Under Review <span class="badge badge-info ml-2" x-text="getUnderReviewCount()"></span>
-      </button>
-      <button type="button" class="btn btn-outline-success" :class="{ active: filterStatus === 'approved' }" @click="filterStatus = 'approved'; loadApplications()">
-        Approved <span class="badge badge-success ml-2" x-text="getApprovedCount()"></span>
-      </button>
-      <button type="button" class="btn btn-outline-danger" :class="{ active: filterStatus === 'rejected' }" @click="filterStatus = 'rejected'; loadApplications()">
-        Rejected <span class="badge badge-danger ml-2" x-text="getRejectedCount()"></span>
-      </button>
+{% block content %}
+<div class="merchant-container" x-data="merchantApplications()">
+<style>
+/* ================= ROOT ================= */
+:root {
+  --primary-lavender: #5A4B7D;
+  --dark-lavender: #3F3555;
+  --light-lavender: #9B8BC9;
+  --white: #FFFFFF;
+  --black: #000000;
+  --dark-text: #1a1a1a;
+  --light-gray: #F5F5F5;
+  --border-color: #E0E0E0;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* ================= GLOBAL ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #F5F5F5;
+}
+
+.merchant-container {
+  max-width: 1400px;
+  margin: auto;
+  padding: clamp(1rem, 4vw, 2.5rem);
+}
+
+/* ================= CARD BASE ================= */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ================= HEADER ================= */
+.merchant-header {
+  margin-bottom: 3rem;
+  animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.merchant-header h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  color: var(--dark-text);
+  font-weight: 900;
+  margin-bottom: 0.65rem;
+  letter-spacing: 0.4px;
+}
+
+.merchant-header h1 i {
+  color: var(--primary-lavender);
+  font-size: 2.4rem;
+}
+
+.merchant-header p {
+  color: var(--dark-text);
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ================= STATS ================= */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.75rem;
+  margin: 2.5rem 0 3.5rem;
+}
+
+.stat-card {
+  padding: 2.25rem 2rem;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out forwards;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-lavender);
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  color: var(--dark-text);
+  margin-bottom: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.stat-label i {
+  color: var(--primary-lavender);
+  font-size: 1.1rem;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-lavender);
+  line-height: 1;
+}
+
+/* ================= TABLE ================= */
+.applications-card {
+  overflow: hidden;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  padding: 1.75rem 2.25rem;
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 700;
+  color: var(--dark-text);
+  background: linear-gradient(135deg, var(--primary-lavender), var(--dark-lavender));
+  color: var(--white);
+}
+
+.search-box {
+  position: relative;
+  min-width: 260px;
+  flex: 1;
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.85rem 1.15rem 0.85rem 2.75rem;
+  border-radius: 0.6rem;
+  border: 2px solid var(--border-color);
+  background: var(--white);
+  color: var(--dark-text);
+  font-size: 0.92rem;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary-lavender);
+  box-shadow: 0 0 0 3px rgba(90, 75, 125, 0.1), var(--shadow-md);
+  background: var(--white);
+}
+
+.search-box i {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  color: var(--dark-text);
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.card-body {
+  overflow-x: auto;
+}
+
+.merchant-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.merchant-table th {
+  text-align: left;
+  padding: 1.15rem 1.25rem;
+  font-size: 0.87rem;
+  text-transform: uppercase;
+  color: var(--dark-text);
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  background: var(--light-gray);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.merchant-table td {
+  padding: 1.2rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--dark-text);
+  font-weight: 500;
+}
+
+.merchant-table tbody tr {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: var(--white);
+}
+
+.merchant-table tbody tr:hover {
+  background: var(--light-gray);
+  box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+.merchant-name {
+  font-weight: 800;
+  color: var(--primary-lavender);
+  letter-spacing: 0.2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.merchant-contact {
+  font-size: 0.85rem;
+  color: var(--dark-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.merchant-contact strong {
+  color: var(--dark-text);
+  display: block;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ================= STATUS ================= */
+.status-badge {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.status-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.status-pending {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
+.status-pending:hover {
+  box-shadow: 0 4px 12px rgba(253, 211, 77, 0.3);
+}
+
+.status-under-review {
+  background: #DBEAFE;
+  color: #1E40AF;
+  border: 1px solid #93C5FD;
+}
+
+.status-under-review:hover {
+  box-shadow: 0 4px 12px rgba(147, 197, 253, 0.3);
+}
+
+.status-approved {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+}
+
+.status-approved:hover {
+  box-shadow: 0 4px 12px rgba(134, 239, 172, 0.3);
+}
+
+.status-rejected {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.status-rejected:hover {
+  box-shadow: 0 4px 12px rgba(254, 202, 202, 0.3);
+}
+
+/* ================= ACTIONS ================= */
+.action-buttons {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.6rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 800;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.65px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: left 0.35s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.action-btn:hover::before {
+  left: 100%;
+}
+
+.action-btn-secondary {
+  background: var(--light-gray);
+  color: var(--primary-lavender);
+  border: 2px solid var(--primary-lavender);
+  font-weight: 800;
+}
+
+.action-btn-secondary:hover {
+  background: var(--primary-lavender);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(90, 75, 125, 0.2);
+}
+
+.action-btn-success {
+  background: #10b981;
+  color: white;
+  font-weight: 800;
+}
+
+.action-btn-success:hover {
+  background: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.action-btn-warning {
+  background: #f59e0b;
+  color: white;
+  font-weight: 800;
+}
+
+.action-btn-warning:hover {
+  background: #d97706;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+.action-btn-danger {
+  background: #ef4444;
+  color: white;
+  font-weight: 800;
+}
+
+.action-btn-danger:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+/* ================= EMPTY STATE ================= */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--dark-text);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: var(--primary-lavender);
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  color: var(--dark-text);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+/* ================= LOADING ================= */
+.loading-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-lavender);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--dark-text);
+}
+
+/* ================= MOBILE CARD TABLE ================= */
+@media (max-width: 768px) {
+  .merchant-container {
+    padding: 1rem;
+  }
+
+  .merchant-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .search-box {
+    min-width: 100%;
+  }
+
+  .merchant-table thead { display:none; }
+
+  .merchant-table,
+  .merchant-table tbody,
+  .merchant-table tr,
+  .merchant-table td {
+    display:block;
+    width:100%;
+  }
+
+  .merchant-table tr {
+    background: var(--white);
+    border-radius: 0.6rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+  }
+
+  .merchant-table td {
+    border:none;
+    padding:.5rem 0;
+  }
+
+  .merchant-table td::before {
+    content: attr(data-label);
+    display:block;
+    font-size:.7rem;
+    font-weight:700;
+    color: var(--dark-text);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+
+  .action-buttons {
+    margin-top:.75rem;
+    gap: 0.3rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .modal-content {
+    max-width: 100%;
+    width: 95%;
+  }
+
+  .modal-body {
+    max-height: 70vh;
+    padding: 1.5rem;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .photos-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .merchant-container {
+    padding: 0.75rem;
+  }
+
+  .merchant-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .card-header {
+    padding: 1rem 1.25rem;
+    flex-direction: column;
+  }
+
+  .merchant-table tr {
+    padding: 0.75rem;
+  }
+
+  .action-btn {
+    padding: 0.45rem 0.4rem;
+    font-size: 0.65rem;
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.3rem;
+  }
+
+  .photos-gallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+/* ================= MODAL ================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-backdrop.show { display:flex; }
+
+.modal-content {
+  max-width: 900px;
+  width: 92%;
+  animation: scaleIn .35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: var(--white) !important;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  border-radius: 1rem;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from {opacity:0; transform:scale(.92) translateY(15px);}
+  to {opacity:1; transform:scale(1);}
+}
+
+.modal-header {
+  padding: 2.5rem;
+  background: linear-gradient(135deg, var(--primary-lavender), var(--dark-lavender)) !important;
+  color: var(--white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.5px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  flex-wrap: wrap;
+  max-width: 100%;
+  color: var(--white);
+}
+
+.modal-title i {
+  font-size: 2.2rem;
+  opacity: 0.98;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.6rem;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: rotate(90deg) scale(1.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.modal-body {
+  padding: 2.5rem;
+  max-height: 65vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--white) !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--light-gray);
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary-lavender);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-lavender);
+}
+
+.detail-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detail-section-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--primary-lavender);
+  margin-bottom: 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.65px;
+}
+
+.detail-section-title i {
+  font-size: 1.5rem;
+  color: var(--primary-lavender);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.detail-label {
+  font-size: 0.78rem;
+  color: var(--dark-text);
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  font-weight: 800;
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.detail-value {
+  font-size: 1.08rem;
+  color: var(--dark-text);
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.detail-value.text-muted {
+  color: var(--dark-text);
+  font-weight: 500;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.detail-value a {
+  color: var(--primary-lavender);
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-bottom: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.detail-value a:hover {
+  color: var(--dark-lavender);
+  border-bottom-color: var(--primary-lavender);
+  transform: translateX(2px);
+}
+
+.form-group {
+  margin-bottom: 1.75rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.93rem;
+  font-weight: 800;
+  color: var(--dark-text);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 1.1rem 1.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.6rem;
+  background: var(--white) !important;
+  color: var(--dark-text);
+  font-size: 0.98rem;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  box-shadow: var(--shadow-sm);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-lavender);
+  box-shadow: 0 0 0 3px rgba(90, 75, 125, 0.1), var(--shadow-md);
+  background: var(--white) !important;
+}
+
+.form-control::placeholder {
+  color: var(--dark-text);
+  font-weight: 500;
+}
+
+.modal-footer {
+  padding: 2.25rem 2.5rem;
+  background: var(--white) !important;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 1.35rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+}
+  align-items: center;
+}
+
+.service-list,
+.pet-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.service-item,
+.pet-item {
+  background: #DCFCE7;
+  color: #15803D;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid #86EFAC;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  letter-spacing: 0.3px;
+}
+
+.service-item i,
+.pet-item i {
+  font-size: 0.9rem;
+}
+
+.service-item:hover,
+.pet-item:hover {
+  background: #BBF7D0;
+  border-color: #16A34A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+}
+
+/* ================= FACILITY PHOTOS ================= */
+.photos-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.photo-item-wrapper {
+  position: relative;
+}
+
+.photo-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border-color);
+  aspect-ratio: 1;
+  background: var(--light-gray);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.photo-item:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary-lavender);
+}
+
+.photo-item:hover img {
+  transform: scale(1.05);
+}
+
+.photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 0.6rem;
+}
+
+.photo-item:hover .photo-overlay {
+  opacity: 1;
+}
+
+.photo-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  background: var(--primary-lavender);
+  color: var(--white);
+  border-radius: 50%;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.photo-download-btn:hover {
+  background: var(--dark-lavender);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  color: var(--white);
+  text-decoration: none;
+}
+
+.photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--light-gray);
+  color: var(--dark-text);
+}
+
+.photo-placeholder i {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+/* ================= DOCUMENT LINKS ================= */
+.document-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.2rem;
+  background: linear-gradient(135deg, var(--primary-lavender), var(--dark-lavender));
+  color: var(--white);
+  text-decoration: none;
+  border-radius: 0.6rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.document-link i {
+  font-size: 1.1rem;
+}
+
+.document-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  color: var(--white);
+}
+
+</style>
+
+<!-- HEADER -->
+<div class="merchant-header">
+  <h1><i class="fas fa-store"></i> Partner Applications</h1>
+  <p>Manage and review merchant partner applications</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card card">
+    <div class="stat-label"><i class="fas fa-inbox"></i> Total</div>
+    <div class="stat-value" x-text="getTotalCount()"></div>
+  </div>
+  <div class="stat-card card">
+    <div class="stat-label"><i class="fas fa-hourglass-half"></i> Pending</div>
+    <div class="stat-value" x-text="getPendingCount()"></div>
+  </div>
+  <div class="stat-card card">
+    <div class="stat-label"><i class="fas fa-check"></i> Approved</div>
+    <div class="stat-value" x-text="getApprovedCount()"></div>
+  </div>
+  <div class="stat-card card">
+    <div class="stat-label"><i class="fas fa-ban"></i> Rejected</div>
+    <div class="stat-value" x-text="getRejectedCount()"></div>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="applications-card card">
+  <div class="card-header">
+    <strong style="flex-shrink: 0;"><i class="fas fa-list"></i> Applications</strong>
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input placeholder="Search by business, owner..." x-model="searchTerm">
     </div>
   </div>
 
-  <!-- Statistics Cards -->
-  <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="card border-left-primary shadow">
-        <div class="card-body">
-          <div class="text-primary font-weight-bold text-uppercase mb-1">Total Applications</div>
-          <div class="h3 mb-0 text-gray-800" x-text="applications.length"></div>
-        </div>
+  <div class="card-body">
+    <template x-if="isLoading">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 1rem;">Loading applications...</p>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-left-warning shadow">
-        <div class="card-body">
-          <div class="text-warning font-weight-bold text-uppercase mb-1">Pending Review</div>
-          <div class="h3 mb-0 text-gray-800" x-text="getPendingCount()"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-left-success shadow">
-        <div class="card-body">
-          <div class="text-success font-weight-bold text-uppercase mb-1">Approved</div>
-          <div class="h3 mb-0 text-gray-800" x-text="getApprovedCount()"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-left-danger shadow">
-        <div class="card-body">
-          <div class="text-danger font-weight-bold text-uppercase mb-1">Rejected</div>
-          <div class="h3 mb-0 text-gray-800" x-text="getRejectedCount()"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+    </template>
 
-  <!-- Applications Table -->
-  <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">
-        <i class="fas fa-list mr-2"></i>Partner Applications List
-      </h6>
-    </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover" id="dataTable">
-          <thead class="bg-light">
+    <template x-if="!isLoading && getFilteredApplications().length === 0">
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>No Applications Found</h3>
+        <p>No merchant applications match your criteria</p>
+      </div>
+    </template>
+
+    <template x-if="!isLoading && getFilteredApplications().length > 0">
+      <table class="merchant-table">
+        <thead>
+          <tr>
+            <th>Business</th>
+            <th>Owner</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="app in getFilteredApplications()" :key="app.id">
             <tr>
-              <th>Business Name</th>
-              <th>Owner</th>
-              <th>Business Type</th>
-              <th>Contact</th>
-              <th>Location</th>
-              <th>Submitted</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template x-for="app in filteredApplications()" :key="app.id">
-              <tr>
-                <td class="font-weight-bold">
-                  <i class="fas fa-store text-purple-500 mr-2"></i>
-                  <span x-text="app.business_name"></span>
-                </td>
-                <td>
-                  <div x-text="app.owner_manager_name" class="font-weight-bold"></div>
-                  <small class="text-muted" x-text="app.contact_email"></small>
-                </td>
-                <td>
-                  <span class="badge badge-secondary" x-text="app.business_type"></span>
-                </td>
-                <td>
-                  <small>
-                    <i class="fas fa-phone text-success mr-1"></i>
-                    <span x-text="app.contact_phone"></span><br>
-                    <i class="fas fa-envelope text-info mr-1"></i>
-                    <span x-text="app.contact_email"></span>
-                  </small>
-                </td>
-                <td>
-                  <small>
-                    <i class="fas fa-map-marker-alt text-danger mr-1"></i>
-                    <span x-text="`${app.city}, ${app.province}`"></span>
-                  </small>
-                </td>
-                <td>
-                  <small>
-                    <span x-text="formatDate(app.submitted_at)"></span><br>
-                    <span class="text-muted" x-text="getTimeAgo(app.submitted_at)"></span>
-                  </small>
-                </td>
-                <td>
-                  <span :class="`badge badge-${getStatusColor(app.application_status)}`" x-text="app.application_status.toUpperCase()"></span>
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-primary" @click="viewApplication(app.id)" title="View Details">
-                    <i class="fas fa-eye mr-1"></i>View
+              <td data-label="Business">
+                <div class="merchant-name">
+                  <i class="fas fa-store" style="opacity: 0.5;"></i> <span x-text="app.business_name"></span>
+                </div>
+              </td>
+              <td data-label="Owner">
+                <div class="merchant-contact">
+                  <strong x-text="app.owner_manager_name"></strong>
+                  <span x-text="app.contact_email"></span>
+                </div>
+              </td>
+              <td data-label="Status">
+                <span class="status-badge" :class="getStatusClass(app.application_status)">
+                  <span x-text="app.application_status.replace('_',' ').toUpperCase()"></span>
+                </span>
+              </td>
+              <td data-label="Actions">
+                <div class="action-buttons">
+                  <button class="action-btn action-btn-secondary" @click="viewApplication(app.id)" title="View Details">
+                    <i class="fas fa-eye"></i> View
                   </button>
-                  <div class="btn-group btn-group-sm" role="group" x-show="app.application_status === 'pending'">
-                    <button type="button" class="btn btn-success" @click="approveApplication(app.id)" title="Approve">
-                      <i class="fas fa-check"></i>
-                    </button>
-                    <button type="button" class="btn btn-warning" @click="reviewApplication(app.id)" title="Review">
-                      <i class="fas fa-search"></i>
-                    </button>
-                    <button type="button" class="btn btn-danger" @click="rejectApplication(app.id)" title="Reject">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-    </div>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </template>
   </div>
+</div>
 
-  <!-- Application Detail Modal -->
-  <div class="modal fade" id="applicationModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">
-            <i class="fas fa-store mr-2"></i>
-            <span x-text="selectedApp?.business_name || 'Application Details'"></span>
-          </h5>
-          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+<!-- MODAL -->
+<div class="modal-backdrop" :class="{ show: showDetailModal }" @click.self="closeModal()">
+  <div class="modal-content">
+    <template x-if="selectedApp">
+      <div>
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-title">
+            <i class="fas fa-store"></i>
+            <span x-text="selectedApp.business_name"></span>
+          </div>
+          <button class="modal-close" @click="closeModal()">
+            <i class="fas fa-times"></i>
           </button>
         </div>
-        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-          <template x-if="selectedApp">
-            <!-- Status Badge -->
-            <div class="mb-3">
-              <span :class="`badge badge-${getStatusColor(selectedApp.application_status)} badge-lg`" x-text="selectedApp.application_status.toUpperCase()"></span>
-              <span class="badge badge-secondary ml-2">Submitted <span x-text="getTimeAgo(selectedApp.submitted_at)"></span> ago</span>
-            </div>
 
-            <!-- Business Information -->
-            <div class="card mb-3">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-building text-purple-500 mr-2"></i>Business Information</h6>
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- Status -->
+          <div style="margin-bottom: 1.5rem;">
+            <span class="status-badge" :class="getStatusClass(selectedApp.application_status)">
+              <span x-text="selectedApp.application_status.replace('_',' ').toUpperCase()"></span>
+            </span>
+            <span class="status-badge" style="background: var(--light-gray); color: var(--dark-text); margin-left: 0.5rem;">
+              <i class="fas fa-calendar"></i>
+              Submitted <span x-text="getTimeAgo(selectedApp.submitted_at)"></span> ago
+            </span>
+          </div>
+
+          <!-- Business Information -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <i class="fas fa-building"></i> Business Information
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Business Name</span>
+                <span class="detail-value" x-text="selectedApp.business_name"></span>
               </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-6">
-                    <small class="text-muted">Business Name</small>
-                    <div x-text="selectedApp.business_name" class="font-weight-bold"></div>
-                  </div>
-                  <div class="col-md-6">
-                    <small class="text-muted">Business Type</small>
-                    <div x-text="selectedApp.business_type" class="font-weight-bold"></div>
-                  </div>
-                  <div class="col-md-6 mt-2">
-                    <small class="text-muted">Years in Operation</small>
-                    <div x-text="selectedApp.years_in_operation || 'N/A'" class="font-weight-bold"></div>
-                  </div>
-                </div>
-                <div class="mt-3">
-                  <small class="text-muted">Description</small>
-                  <div x-text="selectedApp.business_description" class="border-left-4 border-primary pl-3 text-justify text-muted"></div>
-                </div>
+              <div class="detail-item">
+                <span class="detail-label">Business Type</span>
+                <span class="detail-value" x-text="selectedApp.business_type"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Years in Operation</span>
+                <span class="detail-value" x-text="selectedApp.years_in_operation || 'N/A'"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Postal Code</span>
+                <span class="detail-value" x-text="selectedApp.postal_code || 'N/A'"></span>
               </div>
             </div>
-
-            <!-- Contact & Location -->
-            <div class="card mb-3">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-user text-success mr-2"></i>Contact Information</h6>
+            <template x-if="selectedApp.business_description">
+              <div class="detail-item" style="margin-top: 1rem;">
+                <span class="detail-label">Description</span>
+                <span class="detail-value text-muted" x-text="selectedApp.business_description"></span>
               </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-6">
-                    <small class="text-muted">Manager Name</small>
-                    <div x-text="selectedApp.owner_manager_name" class="font-weight-bold"></div>
-                  </div>
-                  <div class="col-md-6">
-                    <small class="text-muted">Email</small>
-                    <div>
-                      <a :href="`mailto:${selectedApp.contact_email}`" x-text="selectedApp.contact_email" class="font-weight-bold text-primary"></a>
+            </template>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <i class="fas fa-user"></i> Contact Information
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Manager Name</span>
+                <span class="detail-value" x-text="selectedApp.owner_manager_name"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Email</span>
+                <span class="detail-value">
+                  <a :href="`mailto:${selectedApp.contact_email}`" x-text="selectedApp.contact_email"></a>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Phone</span>
+                <span class="detail-value">
+                  <a :href="`tel:${selectedApp.contact_phone}`" x-text="selectedApp.contact_phone"></a>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <i class="fas fa-map-marker-alt"></i> Location
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Province</span>
+                <span class="detail-value" x-text="selectedApp.province"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">City</span>
+                <span class="detail-value" x-text="selectedApp.city"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Barangay</span>
+                <span class="detail-value" x-text="selectedApp.barangay || 'N/A'"></span>
+              </div>
+            </div>
+            <div class="detail-item" style="margin-top: 1rem;">
+              <span class="detail-label">Full Address</span>
+              <span class="detail-value text-muted" x-text="selectedApp.full_address"></span>
+            </div>
+            <template x-if="selectedApp.google_maps_link">
+              <div class="detail-item" style="margin-top: 1rem;">
+                <a :href="selectedApp.google_maps_link" target="_blank" class="document-link">
+                  <i class="fas fa-map"></i> View on Google Maps
+                </a>
+              </div>
+            </template>
+          </div>
+
+          <!-- Services & Pets -->
+          <template x-if="selectedApp.services_offered && selectedApp.services_offered.length > 0">
+            <div class="detail-section">
+              <div class="detail-section-title">
+                <i class="fas fa-briefcase"></i> Services Offered
+              </div>
+              <div class="service-list">
+                <template x-for="service in selectedApp.services_offered" :key="service">
+                  <span class="service-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span x-text="service"></span>
+                  </span>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <template x-if="selectedApp.pets_accepted && selectedApp.pets_accepted.length > 0">
+            <div class="detail-section">
+              <div class="detail-section-title">
+                <i class="fas fa-paw"></i> Pets Accepted
+              </div>
+              <div class="pet-list">
+                <template x-for="pet in selectedApp.pets_accepted" :key="pet">
+                  <span class="pet-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span x-text="pet"></span>
+                  </span>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- Pricing & Capacity -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <i class="fas fa-money-bill"></i> Pricing & Capacity
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Max Pets/Day</span>
+                <span class="detail-value" x-text="selectedApp.max_pets_per_day"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Min Price/Day</span>
+                <span class="detail-value">₱<span x-text="selectedApp.min_price_per_day.toFixed(2)"></span></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Max Price/Day</span>
+                <span class="detail-value">₱<span x-text="selectedApp.max_price_per_day.toFixed(2)"></span></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Currency</span>
+                <span class="detail-value" x-text="selectedApp.currency || 'PHP'"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Operating Hours & Days -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <i class="fas fa-clock"></i> Operating Hours & Days
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Opening Time</span>
+                <span class="detail-value" x-text="selectedApp.opening_time || 'N/A'"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Closing Time</span>
+                <span class="detail-value" x-text="selectedApp.closing_time || 'N/A'"></span>
+              </div>
+            </div>
+            <template x-if="selectedApp.operating_days && selectedApp.operating_days.length > 0">
+              <div class="detail-item" style="margin-top: 1rem;">
+                <span class="detail-label">Operating Days</span>
+                <div class="service-list">
+                  <template x-for="day in selectedApp.operating_days" :key="day">
+                    <span class="service-item">
+                      <i class="fas fa-circle-check"></i>
+                      <span x-text="day"></span>
+                    </span>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Policies -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <i class="fas fa-shield-alt"></i> Policies
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Vaccination Required</span>
+                <span class="detail-value">
+                  <span x-text="selectedApp.vaccination_required ? 'Yes' : 'No'"></span>
+                </span>
+              </div>
+            </div>
+            <template x-if="selectedApp.cancellation_policy">
+              <div class="detail-item" style="margin-top: 1rem;">
+                <span class="detail-label">Cancellation Policy</span>
+                <span class="detail-value text-muted" x-text="selectedApp.cancellation_policy"></span>
+              </div>
+            </template>
+          </div>
+
+          <!-- Facility Photos -->
+          <template x-if="selectedApp.facility_photos_paths && selectedApp.facility_photos_paths.length > 0">
+            <div class="detail-section">
+              <div class="detail-section-title">
+                <i class="fas fa-images"></i> Facility Photos
+              </div>
+              <div class="photos-gallery">
+                <template x-for="(photo, idx) in selectedApp.facility_photos_paths" :key="idx">
+                  <div class="photo-item-wrapper">
+                    <div class="photo-item">
+                      <img :src="photo" :alt="selectedApp.business_name + ' ' + (idx + 1)" loading="lazy">
+                      <div class="photo-overlay">
+                        <a :href="photo" download class="photo-download-btn" title="Download">
+                          <i class="fas fa-download"></i>
+                        </a>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-md-12 mt-2">
-                    <small class="text-muted">Phone</small>
-                    <div>
-                      <a :href="`tel:${selectedApp.contact_phone}`" x-text="selectedApp.contact_phone" class="font-weight-bold text-success"></a>
-                    </div>
-                  </div>
-                </div>
+                </template>
               </div>
             </div>
+          </template>
 
-            <!-- Services & Pets -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="card mb-3">
-                  <div class="card-header bg-light">
-                    <h6 class="mb-0"><i class="fas fa-briefcase text-info mr-2"></i>Services Offered</h6>
-                  </div>
-                  <div class="card-body">
-                    <ul class="list-unstyled">
-                      <template x-for="service in selectedApp.services_offered" :key="service">
-                        <li class="mb-2">
-                          <i class="fas fa-check-circle text-success mr-2"></i>
-                          <span x-text="service"></span>
-                        </li>
-                      </template>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="card mb-3">
-                  <div class="card-header bg-light">
-                    <h6 class="mb-0"><i class="fas fa-paw text-danger mr-2"></i>Pets Accepted</h6>
-                  </div>
-                  <div class="card-body">
-                    <ul class="list-unstyled">
-                      <template x-for="pet in selectedApp.pets_accepted" :key="pet">
-                        <li class="mb-2">
-                          <i class="fas fa-check-circle text-success mr-2"></i>
-                          <span x-text="pet"></span>
-                        </li>
-                      </template>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+          <!-- Documents & Verification -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <i class="fas fa-file-alt"></i> Documents & Verification
             </div>
-
-            <!-- Pricing & Capacity -->
-            <div class="card mb-3">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-money-bill text-warning mr-2"></i>Pricing & Capacity</h6>
-              </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-4">
-                    <small class="text-muted">Max Pets/Day</small>
-                    <div x-text="selectedApp.max_pets_per_day" class="font-weight-bold h5 text-primary"></div>
-                  </div>
-                  <div class="col-md-4">
-                    <small class="text-muted">Min Price</small>
-                    <div>₱<span x-text="selectedApp.min_price_per_day.toFixed(2)"></span></div>
-                  </div>
-                  <div class="col-md-4">
-                    <small class="text-muted">Max Price</small>
-                    <div>₱<span x-text="selectedApp.max_price_per_day.toFixed(2)"></span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Location -->
-            <div class="card mb-3">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-map text-danger mr-2"></i>Location</h6>
-              </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-4">
-                    <small class="text-muted">Province</small>
-                    <div x-text="selectedApp.province" class="font-weight-bold"></div>
-                  </div>
-                  <div class="col-md-4">
-                    <small class="text-muted">City</small>
-                    <div x-text="selectedApp.city" class="font-weight-bold"></div>
-                  </div>
-                  <div class="col-md-4">
-                    <small class="text-muted">Barangay</small>
-                    <div x-text="selectedApp.barangay || 'N/A'" class="font-weight-bold"></div>
-                  </div>
-                </div>
-                <div class="mt-3">
-                  <small class="text-muted">Full Address</small>
-                  <div x-text="selectedApp.full_address" class="border-left-4 border-warning pl-3"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Documents -->
-            <div class="card">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-file-upload text-secondary mr-2"></i>Verification Documents</h6>
-              </div>
-              <div class="card-body">
-                <div class="alert alert-info" x-show="!selectedApp.government_id_path && !selectedApp.business_permit_path">
-                  <i class="fas fa-info-circle mr-2"></i>No documents uploaded yet.
-                </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Government ID</span>
                 <template x-if="selectedApp.government_id_path">
-                  <div class="mb-3">
-                    <small class="text-muted">Government ID</small>
-                    <div>
-                      <a :href="`{{ url_for('static', filename='') }}${selectedApp.government_id_path}`" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-download mr-1"></i>View Document
-                      </a>
-                    </div>
+                  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <a :href="selectedApp.government_id_path" target="_blank" class="document-link">
+                      <i class="fas fa-file-pdf"></i> View ID
+                    </a>
+                    <a :href="selectedApp.government_id_path" download class="document-link" style="background: linear-gradient(135deg, var(--dark-lavender), #2a1f40);">
+                      <i class="fas fa-download"></i> Download
+                    </a>
                   </div>
                 </template>
+                <template x-if="!selectedApp.government_id_path">
+                  <span class="detail-value">Not Provided</span>
+                </template>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Business Permit</span>
                 <template x-if="selectedApp.business_permit_path">
-                  <div class="mb-3">
-                    <small class="text-muted">Business Permit</small>
-                    <div>
-                      <a :href="`{{ url_for('static', filename='') }}${selectedApp.business_permit_path}`" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-download mr-1"></i>View Document
-                      </a>
-                    </div>
+                  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <a :href="selectedApp.business_permit_path" target="_blank" class="document-link">
+                      <i class="fas fa-file-pdf"></i> View Permit
+                    </a>
+                    <a :href="selectedApp.business_permit_path" download class="document-link" style="background: linear-gradient(135deg, var(--dark-lavender), #2a1f40);">
+                      <i class="fas fa-download"></i> Download
+                    </a>
                   </div>
                 </template>
+                <template x-if="!selectedApp.business_permit_path">
+                  <span class="detail-value">Not Provided</span>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Information -->
+          <template x-if="selectedApp.reviewed_at">
+            <div class="detail-section">
+              <div class="detail-section-title">
+                <i class="fas fa-check-double"></i> Review Information
+              </div>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">Reviewed At</span>
+                  <span class="detail-value" x-text="formatDate(selectedApp.reviewed_at)"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Rejection Reason (if rejected) -->
+          <template x-if="selectedApp.application_status === 'rejected' && selectedApp.rejection_reason">
+            <div class="detail-section">
+              <div class="detail-section-title" style="color: #DC2626;">
+                <i class="fas fa-times-circle"></i> Rejection Reason
+              </div>
+              <span class="detail-value text-muted" x-text="selectedApp.rejection_reason"></span>
+            </div>
+          </template>
+
+          <!-- Rejection Form (if pending) -->
+          <template x-if="selectedApp.application_status === 'pending'">
+            <div class="detail-section">
+              <div class="detail-section-title">
+                <i class="fas fa-comment"></i> Rejection Reason (if rejecting)
+              </div>
+              <div class="form-group">
+                <textarea class="form-control" x-model="rejectionReason" placeholder="Enter reason for rejection..." rows="3"></textarea>
               </div>
             </div>
           </template>
         </div>
+
+        <!-- Modal Footer -->
         <div class="modal-footer">
-          <template x-if="selectedApp?.application_status === 'pending'">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-warning" @click="reviewApplication(selectedApp.id); $('#applicationModal').modal('hide');">
-              <i class="fas fa-search mr-1"></i>Mark as Under Review
+          <button class="action-btn action-btn-secondary" @click="closeModal()">
+            <i class="fas fa-times"></i> Close
+          </button>
+          <template x-if="selectedApp.application_status === 'pending'">
+            <button class="action-btn action-btn-success" @click="approveApplication(selectedApp.id); closeModal();">
+              <i class="fas fa-check"></i> Approve
             </button>
-            <button type="button" class="btn btn-success" @click="approveApplication(selectedApp.id); $('#applicationModal').modal('hide');">
-              <i class="fas fa-check mr-1"></i>Approve
+            <button class="action-btn action-btn-danger" @click="rejectApplication(selectedApp.id); closeModal();">
+              <i class="fas fa-times"></i> Reject
             </button>
-            <button type="button" class="btn btn-danger" @click="rejectApplication(selectedApp.id); $('#applicationModal').modal('hide');">
-              <i class="fas fa-times mr-1"></i>Reject
-            </button>
-          </template>
-          <template x-if="selectedApp?.application_status !== 'pending'">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </template>
         </div>
       </div>
-    </div>
+    </template>
   </div>
+</div>
 </div>
 
 <script>
@@ -371,31 +1477,55 @@
     return {
       applications: [],
       selectedApp: null,
-      filterStatus: 'all',
+      searchTerm: '',
+      isLoading: false,
+      showDetailModal: false,
+      rejectionReason: '',
 
       async init() {
         await this.loadApplications();
       },
 
       async loadApplications() {
-        // In production, fetch from API
-        // This is placeholder data structure
-        this.applications = [];
+        this.isLoading = true;
+        try {
+          const response = await fetch(`/admin/api/merchants?status=all`);
+          if (!response.ok) throw new Error('Failed to load applications');
+          
+          const data = await response.json();
+          this.applications = data.merchants || [];
+        } catch (error) {
+          console.error('Error loading applications:', error);
+          alert('Failed to load merchant applications');
+        } finally {
+          this.isLoading = false;
+        }
       },
 
-      filteredApplications() {
-        if (this.filterStatus === 'all') {
-          return this.applications;
+      getFilteredApplications() {
+        let filtered = this.applications;
+
+        // Search filter
+        if (this.searchTerm.trim()) {
+          const term = this.searchTerm.toLowerCase();
+          filtered = filtered.filter(app =>
+            app.business_name.toLowerCase().includes(term) ||
+            app.owner_manager_name.toLowerCase().includes(term) ||
+            app.city.toLowerCase().includes(term) ||
+            app.province.toLowerCase().includes(term) ||
+            app.business_type.toLowerCase().includes(term)
+          );
         }
-        return this.applications.filter(app => app.application_status === this.filterStatus);
+
+        return filtered;
+      },
+
+      getTotalCount() {
+        return this.applications.length;
       },
 
       getPendingCount() {
         return this.applications.filter(a => a.application_status === 'pending').length;
-      },
-
-      getUnderReviewCount() {
-        return this.applications.filter(a => a.application_status === 'under_review').length;
       },
 
       getApprovedCount() {
@@ -406,68 +1536,102 @@
         return this.applications.filter(a => a.application_status === 'rejected').length;
       },
 
-      getStatusColor(status) {
-        const colors = {
-          'pending': 'warning',
-          'under_review': 'info',
-          'approved': 'success',
-          'rejected': 'danger'
+      getStatusClass(status) {
+        const classes = {
+          'pending': 'status-pending',
+          'under_review': 'status-under-review',
+          'approved': 'status-approved',
+          'rejected': 'status-rejected'
         };
-        return colors[status] || 'secondary';
+        return classes[status] || 'status-pending';
       },
 
-      formatDate(date) {
-        return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+      getStatusIcon(status) {
+        const icons = {
+          'pending': 'fas fa-hourglass-half',
+          'under_review': 'fas fa-magnifying-glass',
+          'approved': 'fas fa-check-circle',
+          'rejected': 'fas fa-times-circle'
+        };
+        return icons[status] || 'fas fa-question-circle';
       },
 
-      getTimeAgo(date) {
+      formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('en-PH', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      },
+
+      getTimeAgo(dateString) {
         const now = new Date();
-        const submitted = new Date(date);
-        const diff = Math.floor((now - submitted) / 1000);
-        
+        const date = new Date(dateString);
+        const diff = Math.floor((now - date) / 1000);
+
         if (diff < 60) return 'just now';
-        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-        return `${Math.floor(diff / 86400)}d ago`;
+        if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+        return `${Math.floor(diff / 604800)}w`;
+      },
+
+      handlePhotoError(event) {
+        event.target.innerHTML = '<div class="photo-placeholder"><i class="fas fa-image"></i></div>';
       },
 
       viewApplication(id) {
         this.selectedApp = this.applications.find(a => a.id === id);
-        $('#applicationModal').modal('show');
+        this.rejectionReason = '';
+        this.showDetailModal = true;
+      },
+
+      closeModal() {
+        this.showDetailModal = false;
+        this.selectedApp = null;
+        this.rejectionReason = '';
       },
 
       async approveApplication(id) {
-        if (confirm('Are you sure you want to approve this application?')) {
-          try {
-            // Make API call to approve
-            alert('Application approved successfully!');
-            await this.loadApplications();
-          } catch (error) {
-            alert('Error approving application: ' + error.message);
-          }
-        }
-      },
+        if (!confirm('Are you sure you want to approve this application?')) return;
 
-      async reviewApplication(id) {
         try {
-          // Make API call to mark as under review
-          alert('Application marked as under review.');
+          const response = await fetch(`/admin/api/merchants/${id}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (!response.ok) throw new Error('Failed to approve');
+
+          alert('Application approved successfully!');
           await this.loadApplications();
         } catch (error) {
-          alert('Error updating application: ' + error.message);
+          console.error('Error:', error);
+          alert('Error approving application: ' + error.message);
         }
       },
 
       async rejectApplication(id) {
-        const reason = prompt('Enter rejection reason:');
-        if (reason) {
-          try {
-            // Make API call to reject
-            alert('Application rejected.');
-            await this.loadApplications();
-          } catch (error) {
-            alert('Error rejecting application: ' + error.message);
-          }
+        const reason = this.rejectionReason.trim();
+        if (!reason) {
+          alert('Please enter a rejection reason');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/admin/api/merchants/${id}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason })
+          });
+
+          if (!response.ok) throw new Error('Failed to reject');
+
+          alert('Application rejected.');
+          await this.loadApplications();
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error rejecting application: ' + error.message);
         }
       }
     };

@@ -1,0 +1,798 @@
+{% extends "user/base.html" %}
+{% block content %}
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slideDown {
+    animation: slideDown 0.4s ease-out;
+  }
+
+  /* Glass Morphism Styles */
+  .glass-search {
+    background: rgba(243, 244, 246, 0.85);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(129, 140, 248, 0.3);
+    box-shadow: 0 15px 40px rgba(31, 38, 135, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .glass-search:hover {
+    background: rgba(243, 244, 246, 0.95);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 20px 50px rgba(31, 38, 135, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .glass-search:focus-within {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 25px 60px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .glass-card {
+    background: rgba(243, 244, 246, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 30px 70px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translateY(-8px);
+  }
+
+  .search-input::placeholder {
+    color: rgba(107, 114, 128, 0.6);
+  }
+
+  .species-item {
+    transition: all 0.3s ease;
+  }
+
+  .species-item.hidden {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-card,
+    .glass-search {
+      transition: none;
+    }
+  }
+
+  /* Heart Button Styles */
+  .heart-btn {
+    background: rgba(243, 244, 246, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 50px;
+    cursor: pointer;
+  }
+
+  .heart-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 12px 30px rgba(239, 68, 68, 0.15);
+  }
+
+  .heart-btn.liked {
+    background: rgba(254, 226, 226, 0.9);
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 12px 35px rgba(239, 68, 68, 0.25);
+  }
+
+  .heart-icon {
+    font-size: 1.1rem;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+  }
+
+  .heart-btn:active .heart-icon {
+    animation: heartPulse 0.6s ease-out;
+  }
+
+  .heart-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .heart-btn.liked .heart-count {
+    color: #dc2626;
+  }
+
+  .heart-btn:not(.liked) .heart-count {
+    color: #6b7280;
+  }
+
+  @keyframes heartPulse {
+    0% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(1.3) rotate(-10deg);
+    }
+    50% {
+      transform: scale(1.1) rotate(0deg);
+    }
+    75% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes heartFill {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Heart Firework Animation */
+  @keyframes heartFirework {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--tx), var(--ty)) scale(0);
+    }
+  }
+
+  .heart-firework {
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.5rem;
+    z-index: 9999;
+    will-change: transform, opacity;
+    animation: heartFirework 0.8s ease-out forwards;
+  }
+
+</style>
+
+<div x-data="{
+  speciesModal: false, 
+  editingSpecies: null, 
+  imagePreview: null, 
+  viewModal: false, 
+  viewSpecies: null,
+  selectedBreed: null,
+  searchQuery: '',
+  userVotes: {},
+  voteCounts: {},
+  loadingVotes: {},
+  async initVotes() {
+    // Wait for DOM to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const speciesItems = document.querySelectorAll('.species-item');
+    console.log('🔍 Found species items:', speciesItems.length);
+    
+    const speciesIds = Array.from(speciesItems).map(el => {
+      const heart = el.querySelector('.heart-btn');
+      return parseInt(heart?.getAttribute('data-species-id'));
+    }).filter(Boolean);
+    
+    console.log('📋 Species IDs to load votes for:', speciesIds);
+    
+    if (speciesIds.length > 0) {
+      try {
+        const response = await fetch('/api/votes/heart/check-votes', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({species_ids: speciesIds})
+        });
+        const data = await response.json();
+        console.log('✅ Votes API response:', data);
+        
+        if (data.success) {
+          Object.entries(data.votes).forEach(([id, voteData]) => {
+            this.userVotes[id] = voteData.user_voted;
+            this.voteCounts[id] = voteData.total_votes;
+            console.log(`📊 Set votes for species ${id}:`, voteData.total_votes);
+          });
+          console.log('✔️ Vote counts loaded:', this.voteCounts);
+          
+          // Now set up socket watchers for each species
+          this.setupSocketWatchers(speciesIds);
+        }
+      } catch (error) {
+        console.error('❌ Error loading votes:', error);
+      }
+    } else {
+      console.warn('⚠️ No species items found to load votes for');
+    }
+  },
+  setupSocketWatchers(speciesIds) {
+    // Wait for socketManager to be ready
+    if (typeof socketManager === 'undefined' || !socketManager) {
+      console.log('⏳ SocketManager not ready, retrying in 100ms...');
+      setTimeout(() => this.setupSocketWatchers(speciesIds), 100);
+      return;
+    }
+    
+    if (!socketManager.isConnected()) {
+      console.log('⏳ Socket not connected yet, retrying in 100ms...');
+      setTimeout(() => this.setupSocketWatchers(speciesIds), 100);
+      return;
+    }
+    
+    console.log('✅ Setting up Socket.IO watchers for', speciesIds.length, 'species');
+    
+    speciesIds.forEach(speciesId => {
+      const speciesIdStr = String(speciesId);
+      console.log(`👁️ Watching species ${speciesId}...`);
+      
+      socketManager.watchSpecies(speciesId, (newCount) => {
+        console.log(`📡 Socket update for species ${speciesId}: ${newCount} votes`);
+        this.voteCounts[speciesIdStr] = newCount;
+      });
+    });
+  }
+}" @load="initVotes()" x-init="$nextTick(() => initVotes())" class="w-full bg-gray-50/50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
+
+    <!-- HEADER -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">Pet Species</h1>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <!-- FIND ME PET BUTTON - LINKS TO GLOBAL QUIZ -->
+        <a href="{{ url_for('matching.quiz') }}"
+           class="bg-emerald-800 hover:bg-emerald-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-semibold shadow-sm transition flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base whitespace-nowrap"
+        >
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span class="hidden sm:inline">Find Me Pet</span>
+          <span class="sm:hidden">Find Pet</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- SEARCH BAR WITH GLASS EFFECT -->
+    <div class="animate-slideDown">
+      <div class="glass-search rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-3 sm:py-4">
+        <div class="flex items-center gap-3 sm:gap-4">
+          <i class="fa-solid fa-magnifying-glass text-indigo-800 text-lg sm:text-xl flex-shrink-0"></i>
+          <input 
+            type="text" 
+            x-model="searchQuery"
+            placeholder="Search by species name..."
+            class="search-input w-full bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none text-sm sm:text-base font-medium"
+          >
+          <template x-if="searchQuery">
+            <button 
+              @click="searchQuery = ''"
+              class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+              title="Clear search"
+            >
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </template>
+        </div>
+      </div>
+      <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery">
+        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} species`"></span>
+      </div>
+    </div>
+
+    <!-- SPECIES GRID -->
+    <div id="species-grid"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+
+    {% for species in species_list %}
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full glass-card species-item animate-fadeIn"
+         :class="searchQuery && !('{{ species.name }}'.toLowerCase().includes(searchQuery.toLowerCase())) ? 'hidden' : ''"
+         x-data="{ menu:false, confirm:false }">
+
+      <!-- HEART BUTTON - TOP RIGHT (TOGGLE VOTE) -->
+      <button @click="toggleHeart($event, {{ species.id }});"
+              :class="userVotes['{{ species.id }}'] ? 'liked' : ''"
+              data-species-id="{{ species.id }}"
+              class="heart-btn absolute top-3 right-3 z-10 group"
+              :title="userVotes['{{ species.id }}'] ? 'Remove your vote' : 'Vote for this species'"
+              :disabled="loadingVotes['{{ species.id }}']">
+        <i :class="userVotes['{{ species.id }}'] ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" class="heart-icon" :style="userVotes['{{ species.id }}'] ? 'color: #dc2626' : 'color: #9ca3af'"></i>
+        <span class="heart-count" x-text="voteCounts['{{ species.id }}'] || 0"></span>
+      </button>
+
+      <!-- IMAGE -->
+      <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
+           class="w-full h-40 sm:h-44 md:h-48 object-cover">
+
+      <!-- CONTENT -->
+      <div class="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 gap-4">
+
+        <!-- TITLE -->
+        <div class="flex items-center gap-2 sm:gap-3 min-h-fit">
+          <span>
+            <i class="{{ species.display_icon }} text-indigo-800 text-base sm:text-lg"></i>
+          </span>
+          <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 line-clamp-2">{{ species.name }}</h3>
+        </div>
+
+        <!-- BADGES -->
+        <div class="flex items-center justify-between w-full min-h-fit">
+          <span class="bg-indigo-100 text-indigo-800 px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
+            <i class="fa-solid fa-paw text-xs mr-1"></i>{{ species.active_breed_count }} Breeds
+          </span>
+
+          <span 
+            class="px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap
+                  {{ 'bg-teal-50 text-teal-700' if species.beginner_friendly else 'bg-red-100 text-red-700' }}">
+            <i class="fa-solid fa-seedling text-xs"></i>
+            {{ 'Beginner' if species.beginner_friendly else 'Advanced' }}
+          </span>
+        </div>
+
+        <!-- CTA BUTTONS -->
+        <div class="mt-auto flex flex-col gap-2 pt-2">
+          <button type="button" @click="viewSpecies = JSON.parse($el.getAttribute('data-species')); viewModal = true; menu=false"
+                  data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
+                  class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
+            View Details
+          </button>
+          <a href="{{ url_for('user.view_species', id=species.id) }}"
+             class="w-full text-center bg-indigo-800 hover:bg-indigo-900 text-white py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
+            Explore Breeds
+          </a>
+        </div>
+
+      </div>
+
+
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+
+<!-- 🔷 VIEW SPECIES MODAL - INSTAGRAM + RECEIPT PROFILE STYLE -->
+<div x-show="viewModal" x-transition.opacity
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl border border-gray-200 flex flex-col max-h-[80vh] overflow-hidden transition-all duration-300">
+
+    <!-- HEADER -->
+    <div class="sticky top-0 bg-gradient-to-r from-indigo-500 to-indigo-900 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-3xl">
+      <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-microscope"></i> Species Profile
+      </h3>
+    </div>
+
+    <!-- SCROLLABLE CONTENT -->
+    <div class="overflow-y-auto flex-1 px-4 sm:px-6 py-6 space-y-5">
+
+      <!-- HERO IMAGE SECTION -->
+      <div class="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden shadow-md">
+        <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
+             alt="Species Image"
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+      </div>
+
+      <!-- SPECIES NAME & BASIC INFO - RECEIPT STYLE HEADER -->
+      <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-2xl p-4 sm:p-5 border border-indigo-200">
+        <div class="flex items-start justify-between gap-4 mb-3">
+          <div class="flex items-center gap-3">
+            <span class="bg-white rounded-full p-2.5 shadow-sm">
+              <i :class="viewSpecies?.icon" class="text-indigo-800 text-lg"></i>
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
+          </div>
+        </div>
+        <div class="border-t border-indigo-200 pt-3 mt-3">
+          <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.description || 'No description available.'"></p>
+        </div>
+      </div>
+
+      <!-- DIVIDER LINE (Receipt Style) -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
+
+      <!-- QUICK STATS SECTION - 3 COLUMNS ON DESKTOP, 2 ON MOBILE -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-1 text-indigo-800"></i> Quick Stats
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          
+          <!-- Beginner Friendly -->
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-blue-700 uppercase">Difficulty</span>
+              <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-blue-600' : 'fa-solid fa-star text-blue-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-blue-600 font-medium" x-text="viewSpecies?.beginner_friendly ? '✓ Beginner' : '⭐ Advanced'"></p>
+          </div>
+
+          <!-- Predatory -->
+          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-orange-700 uppercase">Type</span>
+              <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-orange-600' : 'fa-solid fa-leaf text-orange-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-orange-600 font-medium" x-text="viewSpecies?.predatory_species ? 'Predatory' : 'Non-predatory'"></p>
+          </div>
+
+          <!-- Fragile -->
+          <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-pink-700 uppercase">Durability</span>
+              <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-heart-crack text-pink-600' : 'fa-solid fa-shield text-pink-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-pink-600 font-medium" x-text="viewSpecies?.fragile_species ? 'Fragile' : 'Hardy'"></p>
+          </div>
+
+          <!-- Permit -->
+          <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 border border-yellow-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-yellow-700 uppercase">Legal</span>
+              <i :class="viewSpecies?.requires_permit ? 'fa-solid fa-file-contract text-yellow-600' : 'fa-solid fa-check text-yellow-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-yellow-600 font-medium" x-text="viewSpecies?.requires_permit ? 'Permit Needed' : 'No Permit Needed'"></p>
+          </div>
+
+          <!-- Vet Care -->
+          <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 border border-red-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-red-700 uppercase">Vet</span>
+              <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-red-600' : 'fa-solid fa-check text-red-600'" class="text-sm"></i>
+            </div>
+            <p class="text-xs text-red-600 font-medium" x-text="viewSpecies?.special_vet_required ? 'Specialist' : 'Standard'"></p>
+          </div>
+
+          <!-- Breed Count -->
+          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-green-700 uppercase">Breeds</span>
+              <i class="fa-solid fa-paw text-green-600 text-sm"></i>
+            </div>
+              <p class="text-xs text-green-600 font-medium" 
+                x-text="viewSpecies ? (viewSpecies.active_breed_count || 0) + ' Available' : '0 Available'">
+              </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DIVIDER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
+
+      <!-- CARE REQUIREMENTS - RECEIPT STYLE -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
+        </h3>
+        <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.['requires_exercise'] ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Exercise</span>
+            </div>
+            <span :class="viewSpecies?.['requires_exercise'] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.['requires_exercise'] ? 'YES' : 'NO'"></span>
+          </div>
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.requires_training ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Training</span>
+            </div>
+            <span :class="viewSpecies?.requires_training ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_training ? 'YES' : 'NO'"></span>
+          </div>
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.requires_grooming ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Grooming</span>
+            </div>
+            <span :class="viewSpecies?.requires_grooming ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_grooming ? 'YES' : 'NO'"></span>
+          </div>
+          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-2">
+              <i :class="viewSpecies?.requires_enclosure ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
+              <span class="text-sm font-medium text-gray-700">Requires Enclosure</span>
+            </div>
+            <span :class="viewSpecies?.requires_enclosure ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_enclosure ? 'YES' : 'NO'"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIVIDER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
+
+      <!-- RISK ASSESSMENT SECTION -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-3 text-orange-600"></i> Risk Assessment
+        </h3>
+
+        <!-- Abandonment Risk -->
+        <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200 mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-orange-600"></i> Abandonment Risk Level
+            </span>
+            <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'bg-green-500' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'"
+                  class="inline-block w-3 h-3 rounded-full"></span>
+          </div>
+          <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'text-green-700 bg-green-100' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'text-yellow-700 bg-yellow-100' : 'text-red-700 bg-red-100'"
+                class="inline-block px-3 py-1 rounded-full font-bold text-sm"
+                x-text="viewSpecies?.abandonment_risk_level || 'Unknown'"></span>
+        </div>
+      </div>
+
+      <!-- DIVIDER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300"></div>
+
+      <!-- ETHICAL NOTES SECTION -->
+      <template x-if="viewSpecies?.ethical_notes && viewSpecies?.ethical_notes.trim()">
+        <div>
+          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-circle-4 text-indigo-800"></i> Ethical Considerations
+          </h3>
+          <div class="bg-gradient-to-r from-indigo-50 to-pink-50 rounded-xl p-4 border border-indigo-200 border-l-4 border-l-indigo-800">
+            <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
+          </div>
+        </div>
+      </template>
+
+      <!-- RECEIPT FOOTER LINE -->
+      <div class="border-t-2 border-dashed border-gray-300 pt-2">
+        <p class="text-center text-xs text-gray-500">
+          <i class="fa-solid fa-paw"></i> End of Species Profile <i class="fa-solid fa-paw"></i>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- FOOTER BUTTONS - STICKY -->
+    <div class="sticky bottom-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end rounded-b-3xl">
+      <button @click="viewModal=false; viewSpecies=null"
+              class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition">Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- HEART TOGGLE API SCRIPT WITH REAL-TIME UPDATES -->
+<script>
+  function toggleHeart(event, speciesId) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('🖱️ Heart button clicked for species:', speciesId);
+    
+    const button = event.target.closest('button');
+    if (!button) {
+      console.error('❌ Button not found');
+      return;
+    }
+    
+    if (button.disabled) {
+      console.warn('⏸️ Request in progress');
+      return;
+    }
+
+    button.disabled = true;
+    console.log('📤 Sending request to /api/votes/heart/' + speciesId);
+
+    fetch(`/api/votes/heart/${speciesId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => {
+      console.log('📥 Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('✅ API Response:', data);
+      
+      if (data.success) {
+        // Access Alpine instance from the button's closest element with x-data
+        const alpineComponent = button.closest('[x-data]')?._x_dataStack?.[0];
+        const speciesIdStr = String(speciesId);
+        
+        // Update Alpine's voteCounts if available
+        if (alpineComponent && alpineComponent.voteCounts !== undefined) {
+          console.log('📊 Updating Alpine voteCounts for species', speciesIdStr, 'to', data.total_votes);
+          alpineComponent.voteCounts[speciesIdStr] = data.total_votes;
+          alpineComponent.userVotes[speciesIdStr] = data.voted;
+        }
+        
+        // Also update the heart count DOM directly as fallback
+        const heartCount = button.querySelector('.heart-count');
+        if (heartCount) {
+          console.log('📊 Updating count from', heartCount.textContent, 'to', data.total_votes);
+          heartCount.textContent = data.total_votes;
+        }
+        
+        // Update liked state
+        if (data.voted) {
+          button.classList.add('liked');
+          console.log('❤️ Vote cast!');
+          createHeartFirework(event);
+        } else {
+          button.classList.remove('liked');
+          console.log('🤍 Vote removed!');
+        }
+        
+        // Update the icon
+        const icon = button.querySelector('.heart-icon');
+        if (icon) {
+          if (data.voted) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+            icon.style.color = '#dc2626';
+          } else {
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+            icon.style.color = '#9ca3af';
+          }
+        }
+      } else {
+        // Vote failed - show error message
+        console.error('❌ Vote failed:', data.error);
+        alert(data.error || 'Vote failed. Please try again.');
+      }
+    })
+    .catch(error => {
+      console.error('❌ Fetch error:', error);
+      alert('An error occurred. Please try again.');
+    })
+    .finally(() => {
+      button.disabled = false;
+      console.log('✔️ Request completed');
+    });
+  }
+</script>
+
+<!-- HEART FIREWORK EFFECT SCRIPT -->
+<script>
+  function createHeartFirework(event) {
+    const button = event.target.closest('button');
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const startX = rect.left + rect.width / 2;
+    const startY = rect.top + rect.height / 2;
+
+    const hearts = ['❤️', '💗', '💕', '💓', '💖'];
+    const heartCount = 8;
+
+    for (let i = 0; i < heartCount; i++) {
+      const heart = document.createElement('div');
+      heart.classList.add('heart-firework');
+      heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+
+      // Random angle for spread
+      const angle = (Math.PI * 2 * i) / heartCount + (Math.random() - 0.5) * 0.4;
+      const distance = 80 + Math.random() * 60;
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance - Math.random() * 40;
+
+      heart.style.setProperty('--tx', tx + 'px');
+      heart.style.setProperty('--ty', ty + 'px');
+      heart.style.left = startX + 'px';
+      heart.style.top = startY + 'px';
+      heart.style.transform = 'translate(-50%, -50%)';
+
+      document.body.appendChild(heart);
+
+      // Remove after animation completes
+      setTimeout(() => {
+        heart.remove();
+      }, 800);
+    }
+  }
+</script>
+
+<!-- SEARCH FILTER SCRIPT -->
+<script>
+  document.addEventListener('alpine:initialized', () => {
+    const handleSearch = (searchQuery) => {
+      const items = document.querySelectorAll('.species-item');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
+        const matches = speciesName.includes((searchQuery || '').toLowerCase());
+        
+        if (matches || !searchQuery) {
+          item.classList.remove('hidden');
+          item.style.animation = 'fadeIn 0.3s ease-out';
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    };
+
+    window.addEventListener('input', (e) => {
+      if (e.target.classList.contains('search-input')) {
+        handleSearch(e.target.value);
+      }
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput && !window.Alpine) {
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.species-item');
+
+        items.forEach(item => {
+          const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
+          if (speciesName.includes(query)) {
+            item.classList.remove('hidden');
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+      });
+    }
+  });
+</script>
+
+<style>
+  .vote-highlight {
+    background-color: #fff3cd !important;
+    animation: pulse 0.5s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: #fff3cd; }
+  }
+</style>
+
+{% endblock %}

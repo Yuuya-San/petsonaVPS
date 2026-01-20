@@ -137,12 +137,16 @@ class MerchantApplicationForm(FlaskForm):
         'Postal Code',
         validators=[
             Optional(),
-            Regexp(r'^\d{4}$', message='Please provide a valid 4-digit postal code')
+            Length(min=4, max=4, message='Postal code must be exactly 4 digits'),
+            Regexp(r'^\d{4}$', message='Postal code must contain only numbers')
         ],
         render_kw={
             'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400',
             'placeholder': 'e.g., 1200',
-            'type': 'text'
+            'inputmode': 'numeric',   
+            'pattern': '[0-9]{4}',   
+            'maxlength': '4',
+            'minlength': '4'
         }
     )
 

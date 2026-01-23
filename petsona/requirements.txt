@@ -16,3 +16,4 @@ qrcode
 pytz
 requests
 Flask-SocketIO
+authlib

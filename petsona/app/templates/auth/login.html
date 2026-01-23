@@ -406,11 +406,11 @@
 
     <!-- Social login -->
     <div class="social-login">
-      <button type="button" class="social-btn google" aria-label="Login with Google">
+      <a href="{{ url_for('auth.login_google') }}" class="social-btn google" aria-label="Sign in with Google" title="Sign in with Google">
         <i class="fab fa-google"></i>
-      </button>
+      </a>
 
-      <button type="button" class="social-btn facebook" aria-label="Login with Facebook">
+      <button type="button" class="social-btn facebook" aria-label="Sign in with Facebook">
         <i class="fab fa-facebook-f"></i>
       </button>
     </div>

@@ -1,7 +1,6 @@
-# app/config.py
 import os
 from datetime import timedelta
-from dotenv import load_dotenv # pyright: ignore[reportMissingImports]
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -35,9 +34,30 @@ class Config:
     MAIL_PASSWORD = "dvwj yvbl kqxu rbya"  # your Gmail app password
     MAIL_DEFAULT_SENDER = "jeysalas05@gmail.com"
 
+    # =========================
+    # GOOGLE OAUTH CONFIG
+    # =========================
+    GOOGLE_CLIENT_ID = "465984026247-mcqjo45k0dqcrsn9rmf1o9dp0vaqjbbn.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET = "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"
+    
+    # OAuth Settings
+    AUTHLIB_INSECURE_TRANSPORT = True  # Allow HTTP for development
+
     @staticmethod
     def init_app(app):
-        pass
+        """Initialize extensions with the app"""
+        from app.extensions import oauth
+        
+        # Register Google OAuth
+        oauth.register(
+            name="google",
+            client_id=app.config.get("GOOGLE_CLIENT_ID"),
+            client_secret=app.config.get("GOOGLE_CLIENT_SECRET"),
+            server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+            client_kwargs={
+                "scope": "openid email profile"
+            }
+        )
 
     
 class DevelopmentConfig(Config):

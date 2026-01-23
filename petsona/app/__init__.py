@@ -1,7 +1,7 @@
 """Application factory. Initializes extensions, registers blueprints."""
 from flask import Flask, redirect, url_for
 from .config import Config
-from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman, socketio
+from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman, socketio, oauth
 from app.utils.db_init import ensure_database_exists, create_tables
 
 # Import User model for login manager
@@ -20,10 +20,8 @@ def create_app(config_class: type = Config):
     env = os.getenv("FLASK_ENV", "development")
     if env == "production":
         app.config.from_object(ProductionConfig)
-        ProductionConfig.init_app(app)
     else:
         app.config.from_object(DevelopmentConfig)
-        DevelopmentConfig.init_app(app)
 
     # Initialize extensions
 
@@ -37,6 +35,10 @@ def create_app(config_class: type = Config):
     from app.extensions import csrf
     csrf.init_app(app)
     socketio.init_app(app)
+    oauth.init_app(app)
+    
+    # Initialize config (including OAuth registration)
+    config_class.init_app(app)
 
     # Flask-Login user loader
     @login_manager.user_loader

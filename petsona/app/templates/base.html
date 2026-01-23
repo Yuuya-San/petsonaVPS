@@ -7,7 +7,14 @@
 
   <title>{% block title %}PetSona{% endblock %}</title>
 
-  <link rel="icon" href="{{ url_for('static', filename='images/logo/petsona-logo.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="{{ url_for('static', filename='images/logo/petsona-fav-icon.png') }}">
+
+  <link rel="icon" type="image/png" sizes="48x48"
+        href="{{ url_for('static', filename='images/logo/petsona-fav-icon.png') }}">
+
+  <link rel="apple-touch-icon" sizes="180x180"
+        href="{{ url_for('static', filename='images/logo/petsona-fav-icon.png') }}">
 
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"

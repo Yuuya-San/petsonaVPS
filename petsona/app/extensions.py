@@ -8,6 +8,7 @@ from flask_limiter.util import get_remote_address # pyright: ignore[reportMissin
 from flask_talisman import Talisman # pyright: ignore[reportMissingImports]
 from flask_wtf import CSRFProtect
 from flask_socketio import SocketIO # pyright: ignore[reportMissingImports]
+from authlib.integrations.flask_client import OAuth # pyright: ignore[reportMissingImports]
 
 # Database + migrations
 db = SQLAlchemy()
@@ -40,3 +41,6 @@ csrf = CSRFProtect()
 
 # Socket.IO for real-time updates
 socketio = SocketIO(cors_allowed_origins="*", ping_timeout=10, ping_interval=5)
+
+# OAuth for social login
+oauth = OAuth()

@@ -7,7 +7,7 @@ from flask_login import login_user, logout_user, login_required, current_user # 
 from . import bp
 from .forms import RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
 from ..models import User, AuditLog
-from ..extensions import db
+from ..extensions import db, oauth
 from itsdangerous import URLSafeTimedSerializer
 import random
 from datetime import datetime, timedelta
@@ -16,6 +16,8 @@ from .emails import send_password_reset_email
 from app.utils.audit import log_event, user_snapshot
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 import pyotp
+import secrets
+
 
 
 DEFAULT_AVATARS = [
@@ -168,6 +170,109 @@ def resend_otp():
     send_email('Your Registration OTP', [reg['email']], html)
     flash('A new OTP has been sent to your email.', 'info')
     return redirect(url_for('auth.verify_otp'))
+
+@bp.route("/login/google")
+def login_google():
+    # For LOGIN: Always ask permission (prompt='consent' forces Google to ask)
+    session['google_intent'] = 'login'
+    session['google_action'] = 'Sign in'
+    redirect_uri = url_for("auth.google_callback", _external=True)
+    print(f"DEBUG: Login - Asking Google for permission")
+    current_app.logger.info(f"Google OAuth - User attempting sign in")
+    return oauth.google.authorize_redirect(redirect_uri, prompt='consent')
+
+
+@bp.route("/register/google")
+def register_google():
+    # For REGISTER: Always ask permission (prompt='consent' forces Google to ask)
+    session['google_intent'] = 'register'
+    session['google_action'] = 'Sign up'
+    redirect_uri = url_for("auth.google_callback", _external=True)
+    print(f"DEBUG: Register - Asking Google for permission")
+    current_app.logger.info(f"Google OAuth - User attempting sign up")
+    return oauth.google.authorize_redirect(redirect_uri, prompt='consent')
+
+
+@bp.route("/google/callback")
+def google_callback():
+    try:
+        token = oauth.google.authorize_access_token()
+        user_info = token.get('userinfo')
+        
+        if not user_info:
+            flash('Failed to retrieve user information from Google.', 'danger')
+            return redirect(url_for('auth.login'))
+        
+        email = user_info.get('email', '').lower()
+        name = user_info.get('name', '')
+        
+        if not email:
+            flash('Email not provided by Google. Please try again.', 'danger')
+            return redirect(url_for('auth.login'))
+        
+        # Check if user exists
+        user = User.query.filter_by(email=email).first()
+        intent = session.pop('google_intent', 'login')  # Default to login
+        action = session.pop('google_action', 'Sign in')
+        
+        if not user:
+            # User doesn't exist - Create account (user already gave permission)
+            # Handle both formats:
+            # Format 1: "John Smith" or "John Michael Smith"
+            # Format 2: "Smith, John M." or "Smith, John"
+            
+            if ',' in name:
+                # Format 2: "LastName, FirstName MiddleInitial"
+                parts = name.split(',')
+                last_name = parts[0].strip()
+                first_name_part = parts[1].strip() if len(parts) > 1 else ''
+                # Take only first word from first_name_part
+                first_name = first_name_part.split()[0] if first_name_part else ''
+            else:
+                # Format 1: "FirstName MiddleName LastName"
+                name_parts = name.strip().split()
+                if len(name_parts) == 0:
+                    first_name = ''
+                    last_name = ''
+                elif len(name_parts) == 1:
+                    first_name = name_parts[0]
+                    last_name = ''
+                else:
+                    first_name = name_parts[0]
+                    last_name = name_parts[-1]  # Take last word only
+            
+            avatar_url = random.choice(DEFAULT_AVATARS)
+            user = User(
+                email=email,
+                first_name=first_name.strip(),
+                last_name=last_name.strip(),
+                photo_url=avatar_url,
+                role='user'
+            )
+            user.set_password(secrets.token_urlsafe(32))
+            db.session.add(user)
+            db.session.commit()
+            log_event('user.register_google', details={'user': user_snapshot(user)})
+            flash(f'✓ Account created with {email}. Welcome to Petsona!', 'success')
+        else:
+            # User exists - just login
+            log_event('user.login_google', details={'email': email})
+        
+        # Log in the user
+        login_user(user)
+        
+        # Redirect based on role (same as regular login)
+        if user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        else:
+            return redirect(url_for('auth.home'))
+        
+    except Exception as e:
+        current_app.logger.error(f"Google OAuth error: {str(e)}")
+        flash('Google login failed. Please try again.', 'danger')
+        return redirect(url_for('auth.login'))
 
 @bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")

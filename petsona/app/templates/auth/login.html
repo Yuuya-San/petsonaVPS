@@ -245,6 +245,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.6rem;
 
   background: rgba(245, 245, 250, 0.22);
   backdrop-filter: blur(12px);
@@ -255,6 +256,18 @@
 
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.social-btn.google-wide {
+  width: 100%;
+  height: auto;
+  padding: 0.9rem;
+}
+
+.social-btn.google-wide span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #fafaff;
 }
 
 .social-btn i {
@@ -275,7 +288,11 @@
 
 /* Brand hints (subtle, not loud) */
 .social-btn.google i {
-  color: #f5f2ff;
+  background: linear-gradient(135deg, #c6bcff, #8C00FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.2rem;
 }
 
 .social-btn.facebook i {
@@ -406,13 +423,10 @@
 
     <!-- Social login -->
     <div class="social-login">
-      <a href="{{ url_for('auth.login_google') }}" class="social-btn google" aria-label="Sign in with Google" title="Sign in with Google">
+      <a href="{{ url_for('auth.login_google') }}" class="social-btn google google-wide" aria-label="Continue with Google" title="Continue with Google">
         <i class="fab fa-google"></i>
+        <span>Continue with Google</span>
       </a>
-
-      <button type="button" class="social-btn facebook" aria-label="Sign in with Facebook">
-        <i class="fab fa-facebook-f"></i>
-      </button>
     </div>
 
     <div class="links">

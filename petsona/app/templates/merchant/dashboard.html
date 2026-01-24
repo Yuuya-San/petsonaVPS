@@ -3,207 +3,274 @@
 {% block content %}
 <style>
 /* ================================
-   GLASS LEADERBOARD CONTAINER
+   DASHBOARD LAYOUT & SPACING
 ================================ */
-.leaderboard-container {
-  max-width: 1320px;
-  margin: 0 auto 64px auto;
-  padding: 48px;
-
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-
-  border-radius: 28px;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-
-  box-shadow:
-    0 8px 32px rgba(31, 38, 135, 0.15),
-    0 30px 80px rgba(0, 0, 0, 0.08),
-    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+.merchant-dashboard {
+  padding: 2.5rem 1rem;
+  background: #f5f5f7;
+  min-height: 100vh;
 }
 
-/* ================================
-   HEADER
-================================ */
-.leaderboard-title {
-  text-align: center;
-  font-size: 32px;
-  font-weight: 800;
-  color: #1f2937;
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
-}
-
-.leaderboard-subtitle {
-  text-align: center;
-  font-size: 15px;
-  color: #6b7280;
-  margin-bottom: 40px;
-  font-weight: 500;
-}
-
-/* ================================
-   GRID (MARKETPLACE STYLE)
-================================ */
-.leaderboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 28px;
-  max-width: 900px;
+.dashboard-container {
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 /* ================================
-   CARD (PRODUCT STYLE)
+   PAGE HEADER
 ================================ */
-.rank-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-
-  border-radius: 22px;
-  padding: 18px;
-
-  border: 1.2px solid rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+.dashboard-header {
+  margin-bottom: 2.5rem;
 }
 
-.rank-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 
-    0 16px 40px rgba(79, 70, 229, 0.15),
-    inset 0 1px 1px rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.95);
+.dashboard-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 /* ================================
-   RANK LABEL
+   METRICS GRID
 ================================ */
-.rank-number {
-  font-size: 11px;
-  font-weight: 700;
-  color: #9ca3af;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
 
-/* ================================
-   MEDAL (SUBTLE & PREMIUM)
-================================ */
-.medal-wrapper {
-  position: absolute;
-  top: 14px;
-  right: 14px;
+.metric-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
-.medal {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+.metric-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
 
+.metric-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  font-size: 20px;
-  font-weight: 700;
-
-  box-shadow:
-    inset 0 0 8px rgba(255, 255, 255, 0.7),
-    0 8px 20px rgba(0, 0, 0, 0.18),
-    0 0 0 1px rgba(255, 255, 255, 0.5);
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
 }
 
-/* Gold */
-.medal.gold {
-  background: linear-gradient(135deg, #f6d365, #fda085);
-  color: #3b2f00;
+.metric-icon.pending {
+  background: rgba(251, 191, 36, 0.1);
+  color: #f59e0b;
 }
 
-/* Silver */
-.medal.silver {
-  background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+.metric-icon.approved {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.metric-icon.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.metric-icon.rating {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 800;
   color: #1f2937;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
-/* Bronze */
-.medal.bronze {
-  background: linear-gradient(135deg, #d6a371, #9c6644);
-  color: #2c1810;
+.metric-value .unit {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
-/* Crystal */
-.medal.crystal,
-.medal.crystal-2 {
-  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-  color: #075985;
+.metric-change {
+  font-size: 0.85rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #f3f4f6;
+  color: #6b7280;
+}
+
+.metric-change.positive {
+  color: #22c55e;
+}
+
+.metric-change.negative {
+  color: #ef4444;
 }
 
 /* ================================
-   IMAGE (PRODUCT FIRST)
+   SECTION TITLE
 ================================ */
-.species-image {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* ================================
-   NAME
-================================ */
-.species-name {
-  font-size: 16px;
+.section-title {
+  font-size: 1.4rem;
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 12px;
-  line-height: 1.35;
-}
-
-/* ================================
-   VOTES (SOCIAL PROOF)
-================================ */
-.vote-info {
-  margin-top: auto;
-
+  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  padding: 10px 12px;
-  border-radius: 12px;
-
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(79, 70, 229, 0.05));
-  border: 1px solid rgba(79, 70, 229, 0.15);
+  gap: 0.8rem;
 }
 
-.vote-info i {
-  font-size: 15px;
-  color: #e74c3c;
+.section-title i {
+  color: #8b5cf6;
+  font-size: 1.3rem;
 }
 
-.vote-count {
-  font-size: 16px;
-  font-weight: 700;
-  color: #4f46e5;
+/* ================================
+   BOOKINGS TABLE
+================================ */
+.bookings-section {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.vote-label {
-  font-size: 12px;
-  color: #9ca3af;
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bookings-table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.bookings-table th {
+  padding: 1rem;
+  text-align: left;
   font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bookings-table td {
+  padding: 1.2rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #4b5563;
+}
+
+.bookings-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.booking-id {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.pet-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.customer-name {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status-pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #b45309;
+}
+
+.status-approved {
+  background: rgba(34, 197, 94, 0.15);
+  color: #166534;
+}
+
+.status-rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+}
+
+.booking-date {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.booking-amount {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.action-btn.view {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.action-btn.view:hover {
+  background: rgba(139, 92, 246, 0.1);
 }
 
 /* ================================
@@ -211,233 +278,338 @@
 ================================ */
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 4rem 2rem;
   color: #6b7280;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* ================================
+   TWO COLUMN LAYOUT
+================================ */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+/* ================================
+   STATS BOX
+================================ */
+.stats-box {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stats-box h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1f2937;
 }
 
 /* ================================
    RESPONSIVE
 ================================ */
-@media (max-width: 900px) {
-  .leaderboard-container {
-    max-width: 95%;
-    padding: 36px 28px;
-    margin-left: auto;
-    margin-right: auto;
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
 
-  .leaderboard-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    max-width: 100%;
-  }
-
-  .leaderboard-title {
-    font-size: 26px;
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
 }
 
-@media (max-width: 640px) {
-  .leaderboard-container {
-    padding: 28px 20px;
+@media (max-width: 768px) {
+  .merchant-dashboard {
+    padding: 1.5rem 0.75rem;
   }
 
-  .leaderboard-title {
-    font-size: 22px;
+  .bookings-section {
+    padding: 1.5rem;
   }
 
-  .leaderboard-subtitle {
-    font-size: 13px;
-    margin-bottom: 28px;
+  .dashboard-title {
+    font-size: 1.8rem;
   }
 
-  .leaderboard-grid {
-    gap: 16px;
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
   }
 
-  .rank-card {
-    padding: 14px;
+  .metric-card {
+    padding: 1.5rem;
   }
 
-  .medal {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
+  .bookings-table th,
+  .bookings-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
   }
 }
 
 </style>
 
-<div class="container-fluid py-5">
-
-  <!-- Top 3 Species Leaderboard -->
-  <div class="leaderboard-container">
-    <div class="leaderboard-title">
-      <i class="fas fa-crown"></i>
-      Top Voted Species
-    </div>
-    <div class="leaderboard-subtitle">
-      🔥 Most loved pets by the community
+<div class="merchant-dashboard">
+  <div class="dashboard-container">
+    
+    <!-- Header -->
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">Store Dashboard</h1>
+      <p class="dashboard-subtitle">Welcome back! Here's your store performance overview.</p>
     </div>
 
-    {% if top_species %}
-      <div class="leaderboard-grid">
-        {% for species in top_species %}
-          {% set rank = loop.index %}
-          <div class="rank-card" data-species-id="{{ species.id }}">
-            <!-- Rank Number -->
-            <div class="rank-number">
-              {% if rank == 1 %}
-                🥇 1st Place
-              {% elif rank == 2 %}
-                🥈 2nd Place
-              {% else %}
-                🥉 3rd Place
-              {% endif %}
-            </div>
-
-            <!-- Medal -->
-            <div class="medal-wrapper">
-              {% if rank == 1 %}
-                <div class="medal gold">👑</div>
-              {% elif rank == 2 %}
-                <div class="medal silver">🌟</div>
-              {% else %}
-                <div class="medal bronze">⭐</div>
-              {% endif %}
-            </div>
-
-            <!-- Species Image -->
-            {% if species.image_url %}
-              <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
-                   alt="{{ species.name }}" class="species-image">
-            {% else %}
-              <div class="species-image" style="background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 36px;">
-                <i class="fas fa-paw"></i>
-              </div>
-            {% endif %}
-
-            <!-- Species Name -->
-            <div class="species-name">{{ species.name }}</div>
-
-            <!-- Vote Count -->
-            <div class="vote-info">
-              <i class="fas fa-heart" style="color: #e74c3c;"></i>
-              <span class="vote-count">{{ species.heart_vote_count or 0 }}</span>
-              <span class="vote-label">votes</span>
-            </div>
-          </div>
-        {% endfor %}
+    <!-- Key Metrics -->
+    <div class="metrics-grid">
+      <!-- Pending Bookings -->
+      <div class="metric-card">
+        <div class="metric-icon pending">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="metric-label">Pending Bookings</div>
+        <div class="metric-value">
+          <span>{{ pending_count | default(8, true) }}</span>
+        </div>
+        <div class="metric-change">
+          <i class="fas fa-arrow-up"></i> 2 this week
+        </div>
       </div>
-    {% else %}
-      <div class="empty-state">
-        <i class="fas fa-inbox"></i>
-        <p>No species with votes yet</p>
-        <small>Species will appear here as the community votes for them</small>
-      </div>
-    {% endif %}
-  </div>
 
-  <!-- Quick Stats -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">🏆 Community Favorites</div>
-      <div class="stat-value">
-        {{ top_species|length if top_species else 0 }}/3 Ranked
+      <!-- Approved Bookings -->
+      <div class="metric-card">
+        <div class="metric-icon approved">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="metric-label">Approved Bookings</div>
+        <div class="metric-value">
+          <span>{{ approved_count | default(42, true) }}</span>
+        </div>
+        <div class="metric-change positive">
+          <i class="fas fa-arrow-up"></i> +12 this month
+        </div>
+      </div>
+
+      <!-- Rejected Bookings -->
+      <div class="metric-card">
+        <div class="metric-icon rejected">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="metric-label">Rejected Bookings</div>
+        <div class="metric-value">
+          <span>{{ rejected_count | default(3, true) }}</span>
+        </div>
+        <div class="metric-change negative">
+          <i class="fas fa-arrow-down"></i> 1 this week
+        </div>
+      </div>
+
+      <!-- Store Rating -->
+      <div class="metric-card">
+        <div class="metric-icon rating">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="metric-label">Store Rating</div>
+        <div class="metric-value">
+          <span>{{ store_rating | default(4.8, true) }}</span>
+          <span class="unit">/5.0</span>
+        </div>
+        <div class="metric-change positive">
+          <i class="fas fa-arrow-up"></i> +0.2 this month
+        </div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">❤️ Top Species Votes</div>
-      <div class="stat-value">
-        {% if top_species %}
-          {{ top_species[0].heart_vote_count or 0 }}
-        {% else %}
-          0
-        {% endif %}
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">📈 Total Community Votes</div>
-      <div class="stat-value">
-        {% set total = 0 %}
-        {% for s in top_species %}
-          {% set total = total + (s.heart_vote_count or 0) %}
-        {% endfor %}
-        {{ total }}
-      </div>
-    </div>
-  </div>
 
-  <!-- Featured CTA Section -->
-  <div class="row mt-5 mb-5">
-    <div class="col-12 col-md-6">
-      <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-radius: 12px; padding: 30px;">
-        <h5 class="font-weight-bold mb-3">
-          <i class="fas fa-search text-primary mr-2"></i>
-          Explore All Species
-        </h5>
-        <p class="text-muted mb-4">
-          Browse our complete catalog of pet species and find detailed information about each one.
-        </p>
-        <a href="{{ url_for('merchant.species_index') }}" class="cta-button">
-          <i class="fas fa-arrow-right mr-2"></i>
-          Explore Now
-        </a>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 mt-4 mt-md-0">
-      <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(16, 185, 129, 0.1)); border-radius: 12px; padding: 30px;">
-        <h5 class="font-weight-bold mb-3">
-          <i class="fas fa-wand-magic-sparkles text-success mr-2"></i>
-          Find Your Perfect Pet
-        </h5>
-        <p class="text-muted mb-4">
-          Not sure which pet suits you? Take our compatibility quiz to discover your perfect match!
-        </p>
-        <a href="{{ url_for('matching.quiz') }}" class="cta-button" style="background: linear-gradient(135deg, #10b981, #059669);">
-          <i class="fas fa-arrow-right mr-2"></i>
-          Take Quiz
-        </a>
-      </div>
-    </div>
-  </div>
+    <!-- Main Grid: Bookings + Quick Stats -->
+    <div class="dashboard-grid">
+      <!-- Recent Bookings -->
+      <div class="bookings-section">
+        <div class="section-title">
+          <i class="fas fa-calendar-check"></i>
+          Recent Bookings
+        </div>
 
-  <!-- Fun Facts Section -->
-  <div class="row mt-5">
-    <div class="col-12">
-      <div class="alert alert-light border-0 rounded-lg" style="background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border-left: 4px solid #667eea;">
-        <h6 class="font-weight-bold mb-3">
-          <i class="fas fa-lightbulb mr-2 text-warning"></i> Tips for Finding Your Perfect Pet
-        </h6>
-        <ul class="mb-0" style="font-size: 14px; color: #555; line-height: 1.8;">
-          <li><strong>Consider Your Lifestyle:</strong> Some pets need more exercise and attention than others.</li>
-          <li><strong>Check Care Requirements:</strong> Make sure you can meet the pet's needs (food, shelter, vet care).</li>
-          <li><strong>Vote for Your Favorites:</strong> Help the community by voting for species you love!</li>
-          <li><strong>Read Species Profiles:</strong> Learn about unique traits, care requirements, and more.</li>
-          <li><strong>Take Our Quiz:</strong> Get personalized recommendations based on your preferences.</li>
-        </ul>
+        {% set sample_bookings = [
+          {
+            'id': 'BK001234',
+            'pet_name': 'Buddy',
+            'customer': 'John Doe',
+            'date': '2026-01-24',
+            'time': '10:00 AM',
+            'status': 'approved'
+          },
+          {
+            'id': 'BK001235',
+            'pet_name': 'Max',
+            'customer': 'Sarah Smith',
+            'date': '2026-01-24',
+            'time': '2:00 PM',
+            'status': 'pending'
+          },
+          {
+            'id': 'BK001236',
+            'pet_name': 'Luna',
+            'customer': 'Mike Johnson',
+            'date': '2026-01-23',
+            'time': '11:30 AM',
+            'status': 'approved'
+          },
+          {
+            'id': 'BK001237',
+            'pet_name': 'Charlie',
+            'customer': 'Emily Brown',
+            'date': '2026-01-23',
+            'time': '3:45 PM',
+            'status': 'rejected'
+          },
+          {
+            'id': 'BK001238',
+            'pet_name': 'Bella',
+            'customer': 'Robert Lee',
+            'date': '2026-01-22',
+            'time': '9:00 AM',
+            'status': 'approved'
+          }
+        ] %}
+
+        <div class="table-wrapper">
+          <table class="bookings-table">
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Pet Name</th>
+                <th>Customer</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for booking in sample_bookings %}
+              <tr>
+                <td><span class="booking-id">#{{ booking.id }}</span></td>
+                <td><span class="pet-name">{{ booking.pet_name }}</span></td>
+                <td><span class="customer-name">{{ booking.customer }}</span></td>
+                <td><span class="booking-date">{{ booking.date }}<br>{{ booking.time }}</span></td>
+                <td>
+                  <span class="status-badge status-{{ booking.status }}">
+                    {% if booking.status == 'pending' %}
+                      <i class="fas fa-clock"></i> Pending
+                    {% elif booking.status == 'approved' %}
+                      <i class="fas fa-check"></i> Approved
+                    {% else %}
+                      <i class="fas fa-times"></i> Rejected
+                    {% endif %}
+                  </span>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn view" title="View Details">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Stats Sidebar -->
+      <div class="stats-box">
+        <h4>Monthly Overview</h4>
+        
+        <div class="stat-item">
+          <span class="stat-label">Total Bookings</span>
+          <span class="stat-value">{{ total_bookings | default(53, true) }}</span>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Avg. Rating</span>
+          <span class="stat-value">
+            {{ store_rating | default(4.8, true) }}<i class="fas fa-star" style="color: #f59e0b; margin-left: 0.3rem;"></i>
+          </span>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Completion Rate</span>
+          <span class="stat-value">{{ completion_rate | default(89, true) }}%</span>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Response Time</span>
+          <span class="stat-value">{{ response_time | default('2h', true) }}</span>
+        </div>
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- Socket.IO Integration for Real-Time Updates -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // Listen for Socket.IO vote updates to refresh leaderboard
-    if (typeof socketManager !== 'undefined') {
-      console.log('📊 Dashboard watching for vote updates...');
-      
-      // Add click handlers to cards
-      document.querySelectorAll('.rank-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const speciesId = card.getAttribute('data-species-id');
-          if (speciesId) {
-            window.location.href = `/merchant/species/${speciesId}`;
-          }
-        });
+    // Add interactivity to action buttons
+    document.querySelectorAll('.action-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const bookingId = this.closest('tr').querySelector('.booking-id').textContent;
+        console.log('Viewing booking:', bookingId);
+        // TODO: Implement booking detail modal or redirect
       });
-    }
+    });
+
+    // Animate metric cards on load
+    document.querySelectorAll('.metric-card').forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        card.style.transition = 'all 0.5s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
   });
 </script>
 

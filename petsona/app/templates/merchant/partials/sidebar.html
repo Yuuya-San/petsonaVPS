@@ -1,6 +1,7 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
   <a href="{{ url_for('merchant.dashboard') }}" class="brand-link">
-    <span class="brand-text font-weight-light">My Merchant</span>
+    <img src="{{ url_for('static', filename='images/logo/petsona-logo.png') }}" alt="PetSona Logo" class="brand-logo">
+    <span class="brand-text font-weight-light">Merchant</span>
   </a>
 
   <div class="sidebar">
@@ -25,6 +26,13 @@
           <a href="{{ url_for('merchant.species_index') }}" class="nav-link">
             <i class="fas fa-dog nav-icon"></i>
             <p>Pet Database</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('merchant.store') if True else '#' }}" class="nav-link">
+            <i class="nav-icon fas fa-store"></i>
+            <p>Store</p>
           </a>
         </li>
 

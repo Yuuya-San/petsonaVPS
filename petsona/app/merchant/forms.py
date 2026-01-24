@@ -375,3 +375,105 @@ class MerchantApplicationForm(FlaskForm):
         """Ensure at least one operating day is selected"""
         if not field.data or len(field.data) == 0:
             raise ValidationError('Please select at least one operating day')
+
+class MerchantStoreUpdateForm(FlaskForm):
+    """Form for updating merchant store information"""
+    
+    business_name = StringField(
+        'Store Name',
+        validators=[
+            DataRequired(message='Store name is required'),
+            Length(min=3, max=255, message='Store name must be between 3 and 255 characters')
+        ],
+        render_kw={'class': 'form-control', 'placeholder': 'e.g., PawsCare Pet Services'}
+    )
+    
+    business_description = TextAreaField(
+        'Store Description',
+        validators=[
+            DataRequired(message='Store description is required'),
+            Length(min=20, max=1000, message='Description must be between 20 and 1000 characters')
+        ],
+        render_kw={
+            'class': 'form-control',
+            'placeholder': 'Describe your store, services, and what makes you special...',
+            'rows': 5
+        }
+    )
+    
+    contact_email = StringField(
+        'Store Email',
+        validators=[
+            DataRequired(message='Email is required'),
+            Email(message='Invalid email address')
+        ],
+        render_kw={'class': 'form-control', 'placeholder': 'contact@store.com'}
+    )
+    
+    contact_phone = StringField(
+        'Store Phone',
+        validators=[
+            DataRequired(message='Phone is required'),
+            Length(min=10, max=20, message='Phone must be between 10 and 20 characters')
+        ],
+        render_kw={'class': 'form-control', 'placeholder': '+63 9XX XXX XXXX'}
+    )
+    
+    full_address = StringField(
+        'Full Address',
+        validators=[
+            DataRequired(message='Address is required'),
+            Length(min=10, max=500, message='Address must be between 10 and 500 characters')
+        ],
+        render_kw={'class': 'form-control', 'placeholder': 'Street address'}
+    )
+    
+    city = StringField(
+        'City',
+        validators=[
+            DataRequired(message='City is required'),
+            Length(min=2, max=100)
+        ],
+        render_kw={'class': 'form-control', 'placeholder': 'City'}
+    )
+    
+    province = StringField(
+        'Province',
+        validators=[
+            DataRequired(message='Province is required'),
+            Length(min=2, max=100)
+        ],
+        render_kw={'class': 'form-control', 'placeholder': 'Province'}
+    )
+    
+    postal_code = StringField(
+        'Postal Code',
+        validators=[
+            Optional(),
+            Length(max=10)
+        ],
+        render_kw={'class': 'form-control', 'placeholder': 'Postal Code'}
+    )
+    
+    opening_time = StringField(
+        'Opening Time',
+        validators=[
+            DataRequired(message='Opening time is required'),
+            Regexp(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', message='Please enter time in HH:MM format')
+        ],
+        render_kw={'class': 'form-control', 'type': 'time'}
+    )
+    
+    closing_time = StringField(
+        'Closing Time',
+        validators=[
+            DataRequired(message='Closing time is required'),
+            Regexp(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', message='Please enter time in HH:MM format')
+        ],
+        render_kw={'class': 'form-control', 'type': 'time'}
+    )
+    
+    submit = SubmitField(
+        'Submit for Approval',
+        render_kw={'class': 'btn btn-primary btn-block'}
+    )

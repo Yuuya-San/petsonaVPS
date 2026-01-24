@@ -1,0 +1,592 @@
+{% extends "merchant/base.html" %}
+
+{% block content %}
+<style>
+  /* ================================
+     EDIT STORE PAGE
+  ================================ */
+  .edit-store-page {
+    padding: 2.5rem 1.5rem;
+    background: #f5f5f7;
+    min-height: 100vh;
+  }
+
+  .edit-store-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ================================
+     PAGE HEADER
+  ================================ */
+  .page-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .page-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .back-link:hover {
+    gap: 0.75rem;
+    color: #6d28d9;
+  }
+
+  /* ================================
+     FORM CARD
+  ================================ */
+  .form-card {
+    background: white;
+    border-radius: 18px;
+    padding: 2.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+
+  /* ================================
+     FORM SECTIONS
+  ================================ */
+  .form-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .form-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-title i {
+    color: #8b5cf6;
+    font-size: 1.4rem;
+  }
+
+  /* ================================
+     FORM ROWS
+  ================================ */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-row.full {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.6rem;
+  }
+
+  .form-group label .required {
+    color: #ef4444;
+    margin-left: 0.3rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 0.8rem 1rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    background: white;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  /* ================================
+     FORM HINTS
+  ================================ */
+  .form-hint {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+  }
+
+  /* ================================
+     FORM ERRORS
+  ================================ */
+  .form-group.has-error input,
+  .form-group.has-error textarea {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+  }
+
+  .error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  ul.errors {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+  }
+
+  ul.errors li {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+  }
+
+  /* ================================
+     ACTION BUTTONS
+  ================================ */
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f3f4f6;
+  }
+
+  .btn-submit {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-submit:active {
+    transform: translateY(0);
+  }
+
+  .btn-cancel {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background: #f3f4f6;
+    color: #1f2937;
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+
+  .btn-cancel:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+  }
+
+  /* ================================
+     INFO BOX
+  ================================ */
+  .info-box {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(108, 45, 217, 0.05));
+    border-left: 4px solid #8b5cf6;
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+  }
+
+  .info-box-icon {
+    font-size: 1.5rem;
+    color: #8b5cf6;
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .info-box-content h4 {
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.3rem 0;
+  }
+
+  .info-box-content p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  /* ================================
+     RESPONSIVE
+  ================================ */
+  @media (max-width: 1024px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .edit-store-page {
+      padding: 1.5rem 0.75rem;
+    }
+
+    .form-card {
+      padding: 1.5rem;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<div class="edit-store-page">
+  <div class="edit-store-container">
+    
+    <!-- Back Link -->
+    <a href="{{ url_for('merchant.store') }}" class="back-link">
+      <i class="fas fa-arrow-left"></i>
+      Back to Store Info
+    </a>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">
+        <i class="fas fa-pen-to-square"></i>
+        Edit Store Information
+      </h1>
+      <p class="page-subtitle">Update your store details and settings. All changes will be submitted for approval.</p>
+    </div>
+
+    <!-- Info Box -->
+    <div class="info-box">
+      <div class="info-box-icon">
+        <i class="fas fa-info-circle"></i>
+      </div>
+      <div class="info-box-content">
+        <h4>Changes Under Review</h4>
+        <p>Once you submit your changes, they will be reviewed by our admin team. You'll be notified when they're approved or if we need more information.</p>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <form method="POST" class="form-card" novalidate>
+      {{ form.hidden_tag() }}
+
+      <!-- Business Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-store"></i>
+          Business Information
+        </h3>
+
+        <div class="form-row">
+          <div class="form-group {% if form.business_name.errors %}has-error{% endif %}">
+            <label for="business_name">
+              Store Name
+              <span class="required">*</span>
+            </label>
+            {{ form.business_name(id='business_name') }}
+            {% if form.business_name.errors %}
+              <ul class="errors">
+                {% for error in form.business_name.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group {% if form.business_description.errors %}has-error{% endif %}">
+            <label for="business_description">
+              Store Description
+              <span class="required">*</span>
+            </label>
+            {{ form.business_description(id='business_description') }}
+            <div class="form-hint">
+              Describe your store, services offered, and what makes you special. This will be visible to customers.
+            </div>
+            {% if form.business_description.errors %}
+              <ul class="errors">
+                {% for error in form.business_description.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-phone"></i>
+          Contact Information
+        </h3>
+
+        <div class="form-row">
+          <div class="form-group {% if form.contact_email.errors %}has-error{% endif %}">
+            <label for="contact_email">
+              Store Email
+              <span class="required">*</span>
+            </label>
+            {{ form.contact_email(id='contact_email', type='email') }}
+            {% if form.contact_email.errors %}
+              <ul class="errors">
+                {% for error in form.contact_email.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+          <div class="form-group {% if form.contact_phone.errors %}has-error{% endif %}">
+            <label for="contact_phone">
+              Store Phone
+              <span class="required">*</span>
+            </label>
+            {{ form.contact_phone(id='contact_phone') }}
+            {% if form.contact_phone.errors %}
+              <ul class="errors">
+                {% for error in form.contact_phone.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-map-marker-alt"></i>
+          Location
+        </h3>
+
+        <div class="form-row full">
+          <div class="form-group {% if form.full_address.errors %}has-error{% endif %}">
+            <label for="full_address">
+              Full Address
+              <span class="required">*</span>
+            </label>
+            {{ form.full_address(id='full_address') }}
+            {% if form.full_address.errors %}
+              <ul class="errors">
+                {% for error in form.full_address.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group {% if form.city.errors %}has-error{% endif %}">
+            <label for="city">
+              City
+              <span class="required">*</span>
+            </label>
+            {{ form.city(id='city') }}
+            {% if form.city.errors %}
+              <ul class="errors">
+                {% for error in form.city.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+          <div class="form-group {% if form.province.errors %}has-error{% endif %}">
+            <label for="province">
+              Province
+              <span class="required">*</span>
+            </label>
+            {{ form.province(id='province') }}
+            {% if form.province.errors %}
+              <ul class="errors">
+                {% for error in form.province.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group {% if form.postal_code.errors %}has-error{% endif %}">
+            <label for="postal_code">Postal Code</label>
+            {{ form.postal_code(id='postal_code') }}
+            {% if form.postal_code.errors %}
+              <ul class="errors">
+                {% for error in form.postal_code.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Operating Hours Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-clock"></i>
+          Operating Hours
+        </h3>
+
+        <div class="form-row">
+          <div class="form-group {% if form.opening_time.errors %}has-error{% endif %}">
+            <label for="opening_time">
+              Opening Time
+              <span class="required">*</span>
+            </label>
+            {{ form.opening_time(id='opening_time') }}
+            <div class="form-hint">Format: HH:MM (e.g., 09:00)</div>
+            {% if form.opening_time.errors %}
+              <ul class="errors">
+                {% for error in form.opening_time.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+          <div class="form-group {% if form.closing_time.errors %}has-error{% endif %}">
+            <label for="closing_time">
+              Closing Time
+              <span class="required">*</span>
+            </label>
+            {{ form.closing_time(id='closing_time') }}
+            <div class="form-hint">Format: HH:MM (e.g., 18:00)</div>
+            {% if form.closing_time.errors %}
+              <ul class="errors">
+                {% for error in form.closing_time.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-check"></i>
+          Submit for Approval
+        </button>
+        <a href="{{ url_for('merchant.store') }}" class="btn-cancel">
+          <i class="fas fa-times"></i>
+          Cancel
+        </a>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Animate form on load
+    const formCard = document.querySelector('.form-card');
+    if (formCard) {
+      formCard.style.opacity = '0';
+      formCard.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        formCard.style.transition = 'all 0.5s ease';
+        formCard.style.opacity = '1';
+        formCard.style.transform = 'translateY(0)';
+      }, 100);
+    }
+
+    // Focus effects on inputs
+    document.querySelectorAll('input, textarea').forEach(input => {
+      input.addEventListener('blur', () => {
+        if (input.value.trim() === '') {
+          input.parentElement.classList.remove('has-value');
+        } else {
+          input.parentElement.classList.add('has-value');
+        }
+      });
+
+      // Check initial value
+      if (input.value.trim() !== '') {
+        input.parentElement.classList.add('has-value');
+      }
+    });
+  });
+</script>
+
+{% endblock %}

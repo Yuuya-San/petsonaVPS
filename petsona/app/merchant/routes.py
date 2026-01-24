@@ -11,7 +11,8 @@ from app.models.breed import Breed
 from app.models.species import Species
 from app.models.merchant import Merchant
 from app.extensions import db, csrf
-from app.merchant.forms import MerchantApplicationForm
+from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
+from app.models.audit_log import AuditLog
 import logging
 
 logger = logging.getLogger(__name__)
@@ -85,6 +86,148 @@ def dashboard():
     ).order_by(Species.heart_vote_count.desc()).limit(3).all()
     
     return render_template('merchant/dashboard.html', merchant=merchant, top_species=top_species)
+
+
+@bp.route('/store')
+@login_required
+@merchant_required
+def store():
+    """Display merchant store information"""
+    if current_user.role != 'merchant':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    merchant = Merchant.query.filter_by(user_id=current_user.id).first()
+    
+    if not merchant:
+        flash('Store information not found. Please complete your merchant application first.', 'warning')
+        return redirect(url_for('merchant.apply'))
+    
+    # TODO: Replace with real database queries when implementing actual metrics
+    # Real implementation would query:
+    # - MatchHistory.query.filter_by(merchant_id=merchant.id).count()
+    # - Review.query.filter_by(merchant_id=merchant.id).avg(rating)
+    # - Calculate response time from message history
+    # - Calculate completion rate from booking status
+    
+    # Mock data for UI demonstration
+    store_stats = {
+        'booking_count': 142,          # Replace: count from MatchHistory
+        'store_rating': 4.8,           # Replace: average from reviews
+        'total_reviews': 56,           # Replace: count from Review model
+        'avg_response_time': '2h',     # Replace: calculate from messages
+        'completion_rate': 89          # Replace: calculate from completed bookings
+    }
+    
+    return render_template(
+        'merchant/store.html',
+        merchant=merchant,
+        **store_stats
+    )
+
+
+@bp.route('/store/edit', methods=['GET', 'POST'])
+@login_required
+@merchant_required
+def store_edit():
+    """Edit merchant store information"""
+    if current_user.role != 'merchant':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    merchant = Merchant.query.filter_by(user_id=current_user.id).first()
+    
+    if not merchant:
+        flash('Store information not found. Please complete your merchant application first.', 'warning')
+        return redirect(url_for('merchant.apply'))
+    
+    form = MerchantStoreUpdateForm()
+    
+    if form.validate_on_submit():
+        try:
+            # Store previous values for audit log
+            previous_values = {
+                'business_name': merchant.business_name,
+                'business_description': merchant.business_description,
+                'contact_email': merchant.contact_email,
+                'contact_phone': merchant.contact_phone,
+                'full_address': merchant.full_address,
+                'city': merchant.city,
+                'province': merchant.province,
+                'postal_code': merchant.postal_code,
+                'opening_time': merchant.opening_time,
+                'closing_time': merchant.closing_time
+            }
+            
+            # Update merchant information
+            merchant.business_name = form.business_name.data
+            merchant.business_description = form.business_description.data
+            merchant.contact_email = form.contact_email.data
+            merchant.contact_phone = form.contact_phone.data
+            merchant.full_address = form.full_address.data
+            merchant.city = form.city.data
+            merchant.province = form.province.data
+            merchant.postal_code = form.postal_code.data or ''
+            merchant.opening_time = form.opening_time.data
+            merchant.closing_time = form.closing_time.data
+            merchant.updated_at = datetime.utcnow()
+            
+            # Mark as pending approval if it was approved
+            if merchant.application_status == 'approved':
+                merchant.application_status = 'pending'
+            
+            db.session.commit()
+            
+            # Log the update
+            audit_log = AuditLog(
+                event='merchant_store_updated',
+                actor_id=current_user.id,
+                actor_email=current_user.email,
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                timestamp=datetime.utcnow()
+            )
+            audit_log.set_details({
+                'merchant_id': merchant.id,
+                'previous_values': previous_values,
+                'new_values': {
+                    'business_name': merchant.business_name,
+                    'business_description': merchant.business_description,
+                    'contact_email': merchant.contact_email,
+                    'contact_phone': merchant.contact_phone,
+                    'full_address': merchant.full_address,
+                    'city': merchant.city,
+                    'province': merchant.province,
+                    'postal_code': merchant.postal_code,
+                    'opening_time': merchant.opening_time,
+                    'closing_time': merchant.closing_time
+                }
+            })
+            db.session.add(audit_log)
+            db.session.commit()
+            
+            flash('Store information updated! Your changes are pending admin approval.', 'success')
+            return redirect(url_for('merchant.store'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error updating store: {str(e)}", exc_info=True)
+            flash(f'Error updating store information: {str(e)}', 'danger')
+    
+    elif request.method == 'GET':
+        # Pre-fill form with existing data
+        form.business_name.data = merchant.business_name
+        form.business_description.data = merchant.business_description
+        form.contact_email.data = merchant.contact_email
+        form.contact_phone.data = merchant.contact_phone
+        form.full_address.data = merchant.full_address
+        form.city.data = merchant.city
+        form.province.data = merchant.province
+        form.postal_code.data = merchant.postal_code
+        form.opening_time.data = merchant.opening_time
+        form.closing_time.data = merchant.closing_time
+    
+    return render_template('merchant/store_edit.html', form=form, merchant=merchant)
 
 
 

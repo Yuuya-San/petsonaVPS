@@ -1,0 +1,706 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<style>
+  /* ================================
+     NEARBY SERVICES PAGE
+  ================================ */
+  .nearby-page {
+    padding: 2rem 1rem;
+    background: #f5f5f7;
+    min-height: 100vh;
+  }
+
+  .nearby-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ================================
+     PAGE HEADER WITH SEARCH
+  ================================ */
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .page-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ================================
+     SEARCH & FILTER BAR
+  ================================ */
+  .search-filter-bar {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    align-items: end;
+  }
+
+  .search-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .search-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .search-input {
+    padding: 0.8rem 1rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+  }
+
+  .search-input:focus {
+    outline: none;
+    background: white;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  }
+
+  .filter-btn {
+    padding: 0.8rem 1.2rem;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+  }
+
+  .location-btn {
+    padding: 0.8rem 1.2rem;
+    background: #f3f4f6;
+    color: #1f2937;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .location-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+  }
+
+  /* ================================
+     RESULTS SECTION
+  ================================ */
+  .results-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .results-count {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .sort-dropdown {
+    padding: 0.6rem 1rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .sort-dropdown:focus {
+    outline: none;
+    border-color: #8b5cf6;
+  }
+
+  /* ================================
+     MERCHANT GRID
+  ================================ */
+  .merchants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  /* ================================
+     MERCHANT CARD
+  ================================ */
+  .merchant-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .merchant-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Card Header/Banner */
+  .merchant-banner {
+    height: 140px;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 1rem;
+  }
+
+  .merchant-banner-icon {
+    font-size: 2.5rem;
+    color: white;
+    opacity: 0.3;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 1;
+  }
+
+  .status-badge.open {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.closed {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Card Content */
+  .merchant-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .merchant-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .merchant-city {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  /* Rating and Reviews */
+  .rating-section {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .rating-stars {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .star {
+    color: #f59e0b;
+    font-size: 0.9rem;
+  }
+
+  .rating-value {
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .review-count {
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  /* Metrics */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+
+  .metric-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .metric-value.rate {
+    color: #22c55e;
+  }
+
+  /* Services Tags */
+  .services-section {
+    margin-bottom: 1rem;
+  }
+
+  .services-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .services-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .service-tag {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    background: #f3f4f6;
+    color: #1f2937;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* Price Range */
+  .price-range {
+    font-size: 0.95rem;
+    color: #8b5cf6;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  /* View Button */
+  .view-btn {
+    width: 100%;
+    padding: 0.8rem;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: auto;
+  }
+
+  .view-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+  }
+
+  /* ================================
+     DISTANCE BADGE
+  ================================ */
+  .distance-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #8b5cf6;
+    z-index: 1;
+  }
+
+  /* ================================
+     EMPTY STATE
+  ================================ */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+  }
+
+  .empty-text h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-text p {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ================================
+     RESPONSIVE
+  ================================ */
+  @media (max-width: 1024px) {
+    .merchants-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .search-filter-bar {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .nearby-page {
+      padding: 1rem 0.75rem;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+    }
+
+    .merchants-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .results-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .search-filter-bar {
+      grid-template-columns: 1fr;
+    }
+
+    .merchant-card {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+    }
+
+    .merchant-banner {
+      height: auto;
+      min-height: 140px;
+    }
+
+    .distance-badge {
+      position: static;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .services-tags {
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
+<div class="nearby-page">
+  <div class="nearby-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">
+        <i class="fas fa-map-marker-alt"></i>
+        Nearby Pet Services
+      </h1>
+      <p class="page-subtitle">Find trusted pet services near you - grooming, boarding, veterinary, and more</p>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="search-filter-bar">
+      <div class="search-group">
+        <label class="search-label">Search Services</label>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by service name or type...">
+      </div>
+      <button class="filter-btn">
+        <i class="fas fa-sliders-h"></i>
+        Filters
+      </button>
+      <button class="location-btn">
+        <i class="fas fa-location-dot"></i>
+        My Location
+      </button>
+    </div>
+
+    <!-- Results Header -->
+    {% if nearby_merchants %}
+      <div class="results-header">
+        <div class="results-count">
+          <i class="fas fa-check-circle" style="color: #8b5cf6;"></i>
+          Found {{ nearby_merchants | length }} services nearby
+        </div>
+        <select class="sort-dropdown" id="sortDropdown">
+          <option value="distance">Sort by Distance</option>
+          <option value="rating">Sort by Rating</option>
+          <option value="reviews">Sort by Reviews</option>
+          <option value="response">Sort by Response Time</option>
+        </select>
+      </div>
+
+      <!-- Merchants Grid -->
+      <div class="merchants-grid">
+        {% for merchant in nearby_merchants %}
+          <div class="merchant-card" data-merchant-id="{{ merchant.id }}">
+            <!-- Banner -->
+            <div class="merchant-banner">
+              <i class="merchant-banner-icon fas fa-store"></i>
+              <span class="distance-badge">
+                <i class="fas fa-location-dot"></i> {{ merchant.distance }} km
+              </span>
+              <span class="status-badge {% if merchant.is_open %}open{% else %}closed{% endif %}">
+                {% if merchant.is_open %}
+                  <i class="fas fa-check-circle"></i> Open
+                {% else %}
+                  <i class="fas fa-circle"></i> Closed
+                {% endif %}
+              </span>
+            </div>
+
+            <!-- Content -->
+            <div class="merchant-content">
+              <h3 class="merchant-name">{{ merchant.business_name }}</h3>
+              <div class="merchant-city">
+                <i class="fas fa-map-pin"></i>
+                {{ merchant.city }}
+              </div>
+
+              <!-- Rating -->
+              <div class="rating-section">
+                <div class="rating-stars">
+                  {% for i in range(5) %}
+                    {% if i < merchant.rating | int %}
+                      <span class="star">★</span>
+                    {% elif i < merchant.rating %}
+                      <span class="star">⭐</span>
+                    {% else %}
+                      <span class="star" style="color: #e5e7eb;">★</span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <span class="rating-value">{{ merchant.rating }}</span>
+                <span class="review-count">({{ merchant.reviews }} reviews)</span>
+              </div>
+
+              <!-- Metrics Grid -->
+              <div class="metrics-grid">
+                <div class="metric">
+                  <span class="metric-label">Response</span>
+                  <span class="metric-value">
+                    <i class="fas fa-clock" style="color: #8b5cf6;"></i>
+                    {{ merchant.response_time }}
+                  </span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Completion</span>
+                  <span class="metric-value rate">
+                    <i class="fas fa-check"></i>
+                    {{ merchant.completion_rate }}%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Services -->
+              <div class="services-section">
+                <span class="services-label">Services</span>
+                <div class="services-tags">
+                  {% for service in merchant.services_offered[:2] %}
+                    <span class="service-tag">{{ service }}</span>
+                  {% endfor %}
+                  {% if merchant.services_offered | length > 2 %}
+                    <span class="service-tag">+{{ merchant.services_offered | length - 2 }} more</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Price Range -->
+              <div class="price-range">
+                ₱{{ "{:,.0f}".format(merchant.min_price) }} - ₱{{ "{:,.0f}".format(merchant.max_price) }}
+              </div>
+
+              <!-- View Button -->
+              <button class="view-btn" onclick="viewMerchantDetails('{{ merchant.id }}')">
+                <i class="fas fa-arrow-right"></i>
+                View Details
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-inbox"></i>
+        </div>
+        <div class="empty-text">
+          <h3>No Services Found</h3>
+          <p>Try adjusting your search filters or expanding your search area.</p>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  // Format numbers with commas
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  // View merchant details
+  function viewMerchantDetails(merchantId) {
+    // TODO: Replace with actual route to merchant detail page
+    alert(`Loading details for merchant ${merchantId}...`);
+    // window.location.href = `/user/merchant/${merchantId}`;
+  }
+
+  // Search functionality
+  document.getElementById('searchInput')?.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll('.merchant-card');
+    
+    cards.forEach(card => {
+      const merchantName = card.querySelector('.merchant-name').textContent.toLowerCase();
+      const services = Array.from(card.querySelectorAll('.service-tag'))
+        .map(tag => tag.textContent.toLowerCase())
+        .join(' ');
+      
+      const isMatch = merchantName.includes(searchTerm) || services.includes(searchTerm);
+      card.style.display = isMatch ? '' : 'none';
+    });
+  });
+
+  // Sort functionality
+  document.getElementById('sortDropdown')?.addEventListener('change', (e) => {
+    const sortBy = e.target.value;
+    const grid = document.querySelector('.merchants-grid');
+    const cards = Array.from(document.querySelectorAll('.merchant-card'));
+    
+    cards.sort((a, b) => {
+      const aData = a.dataset;
+      const bData = b.dataset;
+      
+      switch(sortBy) {
+        case 'distance':
+          const aDistance = parseFloat(a.querySelector('.distance-badge').textContent);
+          const bDistance = parseFloat(b.querySelector('.distance-badge').textContent);
+          return aDistance - bDistance;
+        case 'rating':
+          const aRating = parseFloat(a.querySelector('.rating-value').textContent);
+          const bRating = parseFloat(b.querySelector('.rating-value').textContent);
+          return bRating - aRating;
+        case 'reviews':
+          const aReviews = parseInt(a.querySelector('.review-count').textContent);
+          const bReviews = parseInt(b.querySelector('.review-count').textContent);
+          return bReviews - aReviews;
+        default:
+          return 0;
+      }
+    });
+    
+    cards.forEach(card => grid.appendChild(card));
+  });
+
+  // Animate cards on load
+  document.querySelectorAll('.merchant-card').forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.5s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 50);
+  });
+</script>
+
+{% endblock %}

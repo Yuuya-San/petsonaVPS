@@ -1,1640 +1,967 @@
 {% extends "admin/base.html" %}
 
+{% block title %}Partner Applications - Admin{% endblock %}
+
 {% block content %}
-<div class="merchant-container" x-data="merchantApplications()">
-<style>
-/* ================= ROOT ================= */
-:root {
-  --primary-lavender: #5A4B7D;
-  --dark-lavender: #3F3555;
-  --light-lavender: #9B8BC9;
-  --white: #FFFFFF;
-  --black: #000000;
-  --dark-text: #1a1a1a;
-  --light-gray: #F5F5F5;
-  --border-color: #E0E0E0;
-
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-/* ================= GLOBAL ================= */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: #F5F5F5;
-}
-
-.merchant-container {
-  max-width: 1400px;
-  margin: auto;
-  padding: clamp(1rem, 4vw, 2.5rem);
-}
-
-/* ================= CARD BASE ================= */
-.card {
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-sm);
-}
-
-/* ================= HEADER ================= */
-.merchant-header {
-  margin-bottom: 3rem;
-  animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.merchant-header h1 {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  display: flex;
-  align-items: center;
-  gap: 0.95rem;
-  color: var(--dark-text);
-  font-weight: 900;
-  margin-bottom: 0.65rem;
-  letter-spacing: 0.4px;
-}
-
-.merchant-header h1 i {
-  color: var(--primary-lavender);
-  font-size: 2.4rem;
-}
-
-.merchant-header p {
-  color: var(--dark-text);
-  font-size: 1rem;
-  margin: 0;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
-/* ================= STATS ================= */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.75rem;
-  margin: 2.5rem 0 3.5rem;
-}
-
-.stat-card {
-  padding: 2.25rem 2rem;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-  overflow: hidden;
-  animation: fadeInUp 0.6s ease-out forwards;
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-lavender);
-}
-
-.stat-label {
-  font-size: 0.82rem;
-  text-transform: uppercase;
-  color: var(--dark-text);
-  margin-bottom: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0.7px;
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.stat-label i {
-  color: var(--primary-lavender);
-  font-size: 1.1rem;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--primary-lavender);
-  line-height: 1;
-}
-
-/* ================= TABLE ================= */
-.applications-card {
-  overflow: hidden;
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.card-header {
-  padding: 1.75rem 2.25rem;
-  display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border-color);
-  font-weight: 700;
-  color: var(--dark-text);
-  background: linear-gradient(135deg, var(--primary-lavender), var(--dark-lavender));
-  color: var(--white);
-}
-
-.search-box {
-  position: relative;
-  min-width: 260px;
-  flex: 1;
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
-}
-
-.search-box input {
-  width: 100%;
-  padding: 0.85rem 1.15rem 0.85rem 2.75rem;
-  border-radius: 0.6rem;
-  border: 2px solid var(--border-color);
-  background: var(--white);
-  color: var(--dark-text);
-  font-size: 0.92rem;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  font-weight: 500;
-  box-shadow: var(--shadow-sm);
-}
-
-.search-box input:focus {
-  outline: none;
-  border-color: var(--primary-lavender);
-  box-shadow: 0 0 0 3px rgba(90, 75, 125, 0.1), var(--shadow-md);
-  background: var(--white);
-}
-
-.search-box i {
-  position: absolute;
-  top: 50%;
-  left: 1rem;
-  transform: translateY(-50%);
-  color: var(--dark-text);
-  pointer-events: none;
-  font-size: 1rem;
-}
-
-.card-body {
-  overflow-x: auto;
-}
-
-.merchant-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.merchant-table th {
-  text-align: left;
-  padding: 1.15rem 1.25rem;
-  font-size: 0.87rem;
-  text-transform: uppercase;
-  color: var(--dark-text);
-  font-weight: 800;
-  letter-spacing: 0.6px;
-  background: var(--light-gray);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.merchant-table td {
-  padding: 1.2rem 1.25rem;
-  border-top: 1px solid var(--border-color);
-  color: var(--dark-text);
-  font-weight: 500;
-}
-
-.merchant-table tbody tr {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background: var(--white);
-}
-
-.merchant-table tbody tr:hover {
-  background: var(--light-gray);
-  box-shadow: inset 0 0 0 1px var(--border-color);
-}
-
-.merchant-name {
-  font-weight: 800;
-  color: var(--primary-lavender);
-  letter-spacing: 0.2px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  max-width: 100%;
-}
-
-.merchant-contact {
-  font-size: 0.85rem;
-  color: var(--dark-text);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  max-width: 100%;
-}
-
-.merchant-contact strong {
-  color: var(--dark-text);
-  display: block;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-/* ================= STATUS ================= */
-.status-badge {
-  display: inline-flex;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.6rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.status-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.status-pending {
-  background: #FEF3C7;
-  color: #92400E;
-  border: 1px solid #FCD34D;
-}
-
-.status-pending:hover {
-  box-shadow: 0 4px 12px rgba(253, 211, 77, 0.3);
-}
-
-.status-under-review {
-  background: #DBEAFE;
-  color: #1E40AF;
-  border: 1px solid #93C5FD;
-}
-
-.status-under-review:hover {
-  box-shadow: 0 4px 12px rgba(147, 197, 253, 0.3);
-}
-
-.status-approved {
-  background: #DCFCE7;
-  color: #15803D;
-  border: 1px solid #86EFAC;
-}
-
-.status-approved:hover {
-  box-shadow: 0 4px 12px rgba(134, 239, 172, 0.3);
-}
-
-.status-rejected {
-  background: #FEE2E2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
-}
-
-.status-rejected:hover {
-  box-shadow: 0 4px 12px rgba(254, 202, 202, 0.3);
-}
-
-/* ================= ACTIONS ================= */
-.action-buttons {
-  display: flex;
-  gap: .4rem;
-  flex-wrap: wrap;
-}
-
-.action-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.6rem;
-  border: none;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 800;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.65px;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-}
-
-.action-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
-  transition: left 0.35s ease;
-}
-
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.action-btn:hover::before {
-  left: 100%;
-}
-
-.action-btn-secondary {
-  background: var(--light-gray);
-  color: var(--primary-lavender);
-  border: 2px solid var(--primary-lavender);
-  font-weight: 800;
-}
-
-.action-btn-secondary:hover {
-  background: var(--primary-lavender);
-  color: var(--white);
-  box-shadow: 0 4px 12px rgba(90, 75, 125, 0.2);
-}
-
-.action-btn-success {
-  background: #10b981;
-  color: white;
-  font-weight: 800;
-}
-
-.action-btn-success:hover {
-  background: #059669;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
-}
-
-.action-btn-warning {
-  background: #f59e0b;
-  color: white;
-  font-weight: 800;
-}
-
-.action-btn-warning:hover {
-  background: #d97706;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
-}
-
-.action-btn-danger {
-  background: #ef4444;
-  color: white;
-  font-weight: 800;
-}
-
-.action-btn-danger:hover {
-  background: #dc2626;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
-}
-
-/* ================= EMPTY STATE ================= */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--dark-text);
-}
-
-.empty-state i {
-  font-size: 3rem;
-  color: var(--primary-lavender);
-  margin-bottom: 1rem;
-  opacity: 0.7;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  color: var(--dark-text);
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-}
-
-/* ================= LOADING ================= */
-.loading-spinner {
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid var(--border-color);
-  border-top-color: var(--primary-lavender);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--dark-text);
-}
-
-/* ================= MOBILE CARD TABLE ================= */
-@media (max-width: 768px) {
-  .merchant-container {
-    padding: 1rem;
-  }
-
-  .merchant-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .search-box {
-    min-width: 100%;
-  }
-
-  .merchant-table thead { display:none; }
-
-  .merchant-table,
-  .merchant-table tbody,
-  .merchant-table tr,
-  .merchant-table td {
-    display:block;
-    width:100%;
-  }
-
-  .merchant-table tr {
-    background: var(--white);
-    border-radius: 0.6rem;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
-  }
-
-  .merchant-table td {
-    border:none;
-    padding:.5rem 0;
-  }
-
-  .merchant-table td::before {
-    content: attr(data-label);
-    display:block;
-    font-size:.7rem;
-    font-weight:700;
-    color: var(--dark-text);
-    text-transform: uppercase;
-    margin-bottom: 0.25rem;
-  }
-
-  .action-buttons {
-    margin-top:.75rem;
-    gap: 0.3rem;
-  }
-
-  .action-btn {
-    flex: 1;
-    justify-content: center;
-    padding: 0.5rem 0.5rem;
-    font-size: 0.7rem;
-  }
-
-  .modal-content {
-    max-width: 100%;
-    width: 95%;
-  }
-
-  .modal-body {
-    max-height: 70vh;
-    padding: 1.5rem;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .photos-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .merchant-container {
-    padding: 0.75rem;
-  }
-
-  .merchant-header h1 {
-    font-size: 1.25rem;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .stat-card {
-    padding: 1.25rem;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-  }
-
-  .card-header {
-    padding: 1rem 1.25rem;
-    flex-direction: column;
-  }
-
-  .merchant-table tr {
-    padding: 0.75rem;
-  }
-
-  .action-btn {
-    padding: 0.45rem 0.4rem;
-    font-size: 0.65rem;
-  }
-
-  .modal-header {
-    padding: 1.5rem;
-  }
-
-  .modal-title {
-    font-size: 1.3rem;
-  }
-
-  .photos-gallery {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-}
-
-/* ================= MODAL ================= */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.25s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-backdrop.show { display:flex; }
-
-.modal-content {
-  max-width: 900px;
-  width: 92%;
-  animation: scaleIn .35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background: var(--white) !important;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-lg);
-  border-radius: 1rem;
-  overflow: hidden;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-  from {opacity:0; transform:scale(.92) translateY(15px);}
-  to {opacity:1; transform:scale(1);}
-}
-
-.modal-header {
-  padding: 2.5rem;
-  background: linear-gradient(135deg, var(--primary-lavender), var(--dark-lavender)) !important;
-  color: var(--white);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-title {
-  font-size: 1.8rem;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  position: relative;
-  z-index: 1;
-  letter-spacing: 0.5px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  flex-wrap: wrap;
-  max-width: 100%;
-  color: var(--white);
-}
-
-.modal-title i {
-  font-size: 2.2rem;
-  opacity: 0.98;
-}
-
-.modal-close {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  color: white;
-  font-size: 1.4rem;
-  cursor: pointer;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.6rem;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-  z-index: 2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.modal-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.6);
-  transform: rotate(90deg) scale(1.15);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
-
-.modal-body {
-  padding: 2.5rem;
-  max-height: 65vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: var(--white) !important;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.modal-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-  background: var(--light-gray);
-  border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-  background: var(--primary-lavender);
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-  background: var(--dark-lavender);
-}
-
-.detail-section {
-  margin-bottom: 2.5rem;
-  padding-bottom: 2.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.detail-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.detail-section-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--primary-lavender);
-  margin-bottom: 1.35rem;
-  display: flex;
-  align-items: center;
-  gap: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.65px;
-}
-
-.detail-section-title i {
-  font-size: 1.5rem;
-  color: var(--primary-lavender);
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  max-width: 100%;
-}
-
-.detail-label {
-  font-size: 0.78rem;
-  color: var(--dark-text);
-  text-transform: uppercase;
-  letter-spacing: 0.75px;
-  font-weight: 800;
-  margin-bottom: 0.65rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.detail-value {
-  font-size: 1.08rem;
-  color: var(--dark-text);
-  font-weight: 700;
-  line-height: 1.6;
-  letter-spacing: 0.2px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  max-width: 100%;
-}
-
-.detail-value.text-muted {
-  color: var(--dark-text);
-  font-weight: 500;
-  font-size: 0.98rem;
-  line-height: 1.65;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-}
-
-.detail-value a {
-  color: var(--primary-lavender);
-  text-decoration: none;
-  font-weight: 700;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border-bottom: 2px solid transparent;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.detail-value a:hover {
-  color: var(--dark-lavender);
-  border-bottom-color: var(--primary-lavender);
-  transform: translateX(2px);
-}
-
-.form-group {
-  margin-bottom: 1.75rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.93rem;
-  font-weight: 800;
-  color: var(--dark-text);
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.form-control {
-  width: 100%;
-  padding: 1.1rem 1.35rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.6rem;
-  background: var(--white) !important;
-  color: var(--dark-text);
-  font-size: 0.98rem;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  font-family: inherit;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  box-shadow: var(--shadow-sm);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: var(--primary-lavender);
-  box-shadow: 0 0 0 3px rgba(90, 75, 125, 0.1), var(--shadow-md);
-  background: var(--white) !important;
-}
-
-.form-control::placeholder {
-  color: var(--dark-text);
-  font-weight: 500;
-}
-
-.modal-footer {
-  padding: 2.25rem 2.5rem;
-  background: var(--white) !important;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  gap: 1.35rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  align-items: center;
-}
-  align-items: center;
-}
-
-.service-list,
-.pet-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-}
-
-.service-item,
-.pet-item {
-  background: #DCFCE7;
-  color: #15803D;
-  padding: 0.6rem 1.1rem;
-  border-radius: 0.5rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  border: 1px solid #86EFAC;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  letter-spacing: 0.3px;
-}
-
-.service-item i,
-.pet-item i {
-  font-size: 0.9rem;
-}
-
-.service-item:hover,
-.pet-item:hover {
-  background: #BBF7D0;
-  border-color: #16A34A;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
-}
-
-/* ================= FACILITY PHOTOS ================= */
-.photos-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.photo-item-wrapper {
-  position: relative;
-}
-
-.photo-item {
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.6rem;
-  border: 1px solid var(--border-color);
-  aspect-ratio: 1;
-  background: var(--light-gray);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.photo-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: all 0.3s ease;
-  display: block;
-}
-
-.photo-item:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  border-color: var(--primary-lavender);
-}
-
-.photo-item:hover img {
-  transform: scale(1.05);
-}
-
-.photo-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 0.6rem;
-}
-
-.photo-item:hover .photo-overlay {
-  opacity: 1;
-}
-
-.photo-download-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 45px;
-  height: 45px;
-  background: var(--primary-lavender);
-  color: var(--white);
-  border-radius: 50%;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.photo-download-btn:hover {
-  background: var(--dark-lavender);
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-  color: var(--white);
-  text-decoration: none;
-}
-
-.photo-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  background: var(--light-gray);
-  color: var(--dark-text);
-}
-
-.photo-placeholder i {
-  font-size: 2rem;
-  opacity: 0.5;
-}
-
-/* ================= DOCUMENT LINKS ================= */
-.document-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.8rem 1.2rem;
-  background: linear-gradient(135deg, var(--primary-lavender), var(--dark-lavender));
-  color: var(--white);
-  text-decoration: none;
-  border-radius: 0.6rem;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
-}
-
-.document-link i {
-  font-size: 1.1rem;
-}
-
-.document-link:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  color: var(--white);
-}
-
-</style>
-
-<!-- HEADER -->
-<div class="merchant-header">
-  <h1><i class="fas fa-store"></i> Partner Applications</h1>
-  <p>Manage and review merchant partner applications</p>
-</div>
-
-<!-- STATS -->
-<div class="stats-grid">
-  <div class="stat-card card">
-    <div class="stat-label"><i class="fas fa-inbox"></i> Total</div>
-    <div class="stat-value" x-text="getTotalCount()"></div>
-  </div>
-  <div class="stat-card card">
-    <div class="stat-label"><i class="fas fa-hourglass-half"></i> Pending</div>
-    <div class="stat-value" x-text="getPendingCount()"></div>
-  </div>
-  <div class="stat-card card">
-    <div class="stat-label"><i class="fas fa-check"></i> Approved</div>
-    <div class="stat-value" x-text="getApprovedCount()"></div>
-  </div>
-  <div class="stat-card card">
-    <div class="stat-label"><i class="fas fa-ban"></i> Rejected</div>
-    <div class="stat-value" x-text="getRejectedCount()"></div>
-  </div>
-</div>
-
-<!-- TABLE -->
-<div class="applications-card card">
-  <div class="card-header">
-    <strong style="flex-shrink: 0;"><i class="fas fa-list"></i> Applications</strong>
-    <div class="search-box">
-      <i class="fas fa-search"></i>
-      <input placeholder="Search by business, owner..." x-model="searchTerm">
-    </div>
-  </div>
-
-  <div class="card-body">
-    <template x-if="isLoading">
-      <div class="loading-state">
-        <div class="loading-spinner"></div>
-        <p style="margin-top: 1rem;">Loading applications...</p>
-      </div>
-    </template>
-
-    <template x-if="!isLoading && getFilteredApplications().length === 0">
-      <div class="empty-state">
-        <i class="fas fa-inbox"></i>
-        <h3>No Applications Found</h3>
-        <p>No merchant applications match your criteria</p>
-      </div>
-    </template>
-
-    <template x-if="!isLoading && getFilteredApplications().length > 0">
-      <table class="merchant-table">
-        <thead>
-          <tr>
-            <th>Business</th>
-            <th>Owner</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <template x-for="app in getFilteredApplications()" :key="app.id">
-            <tr>
-              <td data-label="Business">
-                <div class="merchant-name">
-                  <i class="fas fa-store" style="opacity: 0.5;"></i> <span x-text="app.business_name"></span>
+<div x-data="merchantApplications()" @mount="init()" x-cloak class="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="mb-12">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="p-3 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl shadow-lg">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
-              </td>
-              <td data-label="Owner">
-                <div class="merchant-contact">
-                  <strong x-text="app.owner_manager_name"></strong>
-                  <span x-text="app.contact_email"></span>
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent">Partner Applications</h1>
+                    <p class="text-gray-600 mt-2">Review and manage merchant partnership applications</p>
                 </div>
-              </td>
-              <td data-label="Status">
-                <span class="status-badge" :class="getStatusClass(app.application_status)">
-                  <span x-text="app.application_status.replace('_',' ').toUpperCase()"></span>
-                </span>
-              </td>
-              <td data-label="Actions">
-                <div class="action-buttons">
-                  <button class="action-btn action-btn-secondary" @click="viewApplication(app.id)" title="View Details">
-                    <i class="fas fa-eye"></i> View
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </template>
-        </tbody>
-      </table>
-    </template>
-  </div>
-</div>
-
-<!-- MODAL -->
-<div class="modal-backdrop" :class="{ show: showDetailModal }" @click.self="closeModal()">
-  <div class="modal-content">
-    <template x-if="selectedApp">
-      <div>
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <div class="modal-title">
-            <i class="fas fa-store"></i>
-            <span x-text="selectedApp.business_name"></span>
-          </div>
-          <button class="modal-close" @click="closeModal()">
-            <i class="fas fa-times"></i>
-          </button>
+            </div>
         </div>
 
-        <!-- Modal Body -->
-        <div class="modal-body">
-          <!-- Status -->
-          <div style="margin-bottom: 1.5rem;">
-            <span class="status-badge" :class="getStatusClass(selectedApp.application_status)">
-              <span x-text="selectedApp.application_status.replace('_',' ').toUpperCase()"></span>
-            </span>
-            <span class="status-badge" style="background: var(--light-gray); color: var(--dark-text); margin-left: 0.5rem;">
-              <i class="fas fa-calendar"></i>
-              Submitted <span x-text="getTimeAgo(selectedApp.submitted_at)"></span> ago
-            </span>
-          </div>
-
-          <!-- Business Information -->
-          <div class="detail-section">
-            <div class="detail-section-title">
-              <i class="fas fa-building"></i> Business Information
-            </div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Business Name</span>
-                <span class="detail-value" x-text="selectedApp.business_name"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Business Type</span>
-                <span class="detail-value" x-text="selectedApp.business_type"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Years in Operation</span>
-                <span class="detail-value" x-text="selectedApp.years_in_operation || 'N/A'"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Postal Code</span>
-                <span class="detail-value" x-text="selectedApp.postal_code || 'N/A'"></span>
-              </div>
-            </div>
-            <template x-if="selectedApp.business_description">
-              <div class="detail-item" style="margin-top: 1rem;">
-                <span class="detail-label">Description</span>
-                <span class="detail-value text-muted" x-text="selectedApp.business_description"></span>
-              </div>
-            </template>
-          </div>
-
-          <!-- Contact Information -->
-          <div class="detail-section">
-            <div class="detail-section-title">
-              <i class="fas fa-user"></i> Contact Information
-            </div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Manager Name</span>
-                <span class="detail-value" x-text="selectedApp.owner_manager_name"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Email</span>
-                <span class="detail-value">
-                  <a :href="`mailto:${selectedApp.contact_email}`" x-text="selectedApp.contact_email"></a>
-                </span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Phone</span>
-                <span class="detail-value">
-                  <a :href="`tel:${selectedApp.contact_phone}`" x-text="selectedApp.contact_phone"></a>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Location -->
-          <div class="detail-section">
-            <div class="detail-section-title">
-              <i class="fas fa-map-marker-alt"></i> Location
-            </div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Province</span>
-                <span class="detail-value" x-text="selectedApp.province"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">City</span>
-                <span class="detail-value" x-text="selectedApp.city"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Barangay</span>
-                <span class="detail-value" x-text="selectedApp.barangay || 'N/A'"></span>
-              </div>
-            </div>
-            <div class="detail-item" style="margin-top: 1rem;">
-              <span class="detail-label">Full Address</span>
-              <span class="detail-value text-muted" x-text="selectedApp.full_address"></span>
-            </div>
-            <template x-if="selectedApp.google_maps_link">
-              <div class="detail-item" style="margin-top: 1rem;">
-                <a :href="selectedApp.google_maps_link" target="_blank" class="document-link">
-                  <i class="fas fa-map"></i> View on Google Maps
-                </a>
-              </div>
-            </template>
-          </div>
-
-          <!-- Services & Pets -->
-          <template x-if="selectedApp.services_offered && selectedApp.services_offered.length > 0">
-            <div class="detail-section">
-              <div class="detail-section-title">
-                <i class="fas fa-briefcase"></i> Services Offered
-              </div>
-              <div class="service-list">
-                <template x-for="service in selectedApp.services_offered" :key="service">
-                  <span class="service-item">
-                    <i class="fas fa-check-circle"></i>
-                    <span x-text="service"></span>
-                  </span>
-                </template>
-              </div>
-            </div>
-          </template>
-
-          <template x-if="selectedApp.pets_accepted && selectedApp.pets_accepted.length > 0">
-            <div class="detail-section">
-              <div class="detail-section-title">
-                <i class="fas fa-paw"></i> Pets Accepted
-              </div>
-              <div class="pet-list">
-                <template x-for="pet in selectedApp.pets_accepted" :key="pet">
-                  <span class="pet-item">
-                    <i class="fas fa-check-circle"></i>
-                    <span x-text="pet"></span>
-                  </span>
-                </template>
-              </div>
-            </div>
-          </template>
-
-          <!-- Pricing & Capacity -->
-          <div class="detail-section">
-            <div class="detail-section-title">
-              <i class="fas fa-money-bill"></i> Pricing & Capacity
-            </div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Max Pets/Day</span>
-                <span class="detail-value" x-text="selectedApp.max_pets_per_day"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Min Price/Day</span>
-                <span class="detail-value">₱<span x-text="selectedApp.min_price_per_day.toFixed(2)"></span></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Max Price/Day</span>
-                <span class="detail-value">₱<span x-text="selectedApp.max_price_per_day.toFixed(2)"></span></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Currency</span>
-                <span class="detail-value" x-text="selectedApp.currency || 'PHP'"></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Operating Hours & Days -->
-          <div class="detail-section">
-            <div class="detail-section-title">
-              <i class="fas fa-clock"></i> Operating Hours & Days
-            </div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Opening Time</span>
-                <span class="detail-value" x-text="selectedApp.opening_time || 'N/A'"></span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Closing Time</span>
-                <span class="detail-value" x-text="selectedApp.closing_time || 'N/A'"></span>
-              </div>
-            </div>
-            <template x-if="selectedApp.operating_days && selectedApp.operating_days.length > 0">
-              <div class="detail-item" style="margin-top: 1rem;">
-                <span class="detail-label">Operating Days</span>
-                <div class="service-list">
-                  <template x-for="day in selectedApp.operating_days" :key="day">
-                    <span class="service-item">
-                      <i class="fas fa-circle-check"></i>
-                      <span x-text="day"></span>
-                    </span>
-                  </template>
-                </div>
-              </div>
-            </template>
-          </div>
-
-          <!-- Policies -->
-          <div class="detail-section">
-            <div class="detail-section-title">
-              <i class="fas fa-shield-alt"></i> Policies
-            </div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Vaccination Required</span>
-                <span class="detail-value">
-                  <span x-text="selectedApp.vaccination_required ? 'Yes' : 'No'"></span>
-                </span>
-              </div>
-            </div>
-            <template x-if="selectedApp.cancellation_policy">
-              <div class="detail-item" style="margin-top: 1rem;">
-                <span class="detail-label">Cancellation Policy</span>
-                <span class="detail-value text-muted" x-text="selectedApp.cancellation_policy"></span>
-              </div>
-            </template>
-          </div>
-
-          <!-- Facility Photos -->
-          <template x-if="selectedApp.facility_photos_paths && selectedApp.facility_photos_paths.length > 0">
-            <div class="detail-section">
-              <div class="detail-section-title">
-                <i class="fas fa-images"></i> Facility Photos
-              </div>
-              <div class="photos-gallery">
-                <template x-for="(photo, idx) in selectedApp.facility_photos_paths" :key="idx">
-                  <div class="photo-item-wrapper">
-                    <div class="photo-item">
-                      <img :src="photo" :alt="selectedApp.business_name + ' ' + (idx + 1)" loading="lazy">
-                      <div class="photo-overlay">
-                        <a :href="photo" download class="photo-download-btn" title="Download">
-                          <i class="fas fa-download"></i>
-                        </a>
-                      </div>
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-lg border-2 border-purple-200 p-7 hover:shadow-xl transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-600 text-sm font-semibold uppercase tracking-wide">Total</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.total">0</p>
                     </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </template>
-
-          <!-- Documents & Verification -->
-          <div class="detail-section">
-            <div class="detail-section-title">
-              <i class="fas fa-file-alt"></i> Documents & Verification
-            </div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Government ID</span>
-                <template x-if="selectedApp.government_id_path">
-                  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                    <a :href="selectedApp.government_id_path" target="_blank" class="document-link">
-                      <i class="fas fa-file-pdf"></i> View ID
-                    </a>
-                    <a :href="selectedApp.government_id_path" download class="document-link" style="background: linear-gradient(135deg, var(--dark-lavender), #2a1f40);">
-                      <i class="fas fa-download"></i> Download
-                    </a>
-                  </div>
-                </template>
-                <template x-if="!selectedApp.government_id_path">
-                  <span class="detail-value">Not Provided</span>
-                </template>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Business Permit</span>
-                <template x-if="selectedApp.business_permit_path">
-                  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                    <a :href="selectedApp.business_permit_path" target="_blank" class="document-link">
-                      <i class="fas fa-file-pdf"></i> View Permit
-                    </a>
-                    <a :href="selectedApp.business_permit_path" download class="document-link" style="background: linear-gradient(135deg, var(--dark-lavender), #2a1f40);">
-                      <i class="fas fa-download"></i> Download
-                    </a>
-                  </div>
-                </template>
-                <template x-if="!selectedApp.business_permit_path">
-                  <span class="detail-value">Not Provided</span>
-                </template>
-              </div>
-            </div>
-          </div>
-
-          <!-- Review Information -->
-          <template x-if="selectedApp.reviewed_at">
-            <div class="detail-section">
-              <div class="detail-section-title">
-                <i class="fas fa-check-double"></i> Review Information
-              </div>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="detail-label">Reviewed At</span>
-                  <span class="detail-value" x-text="formatDate(selectedApp.reviewed_at)"></span>
+                    <div class="p-4 bg-purple-100 rounded-xl">
+                        <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
                 </div>
-              </div>
             </div>
-          </template>
 
-          <!-- Rejection Reason (if rejected) -->
-          <template x-if="selectedApp.application_status === 'rejected' && selectedApp.rejection_reason">
-            <div class="detail-section">
-              <div class="detail-section-title" style="color: #DC2626;">
-                <i class="fas fa-times-circle"></i> Rejection Reason
-              </div>
-              <span class="detail-value text-muted" x-text="selectedApp.rejection_reason"></span>
+            <div class="bg-gradient-to-br from-white to-amber-50 rounded-2xl shadow-lg border-2 border-amber-200 p-7 hover:shadow-xl transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-amber-600 text-sm font-semibold uppercase tracking-wide">Pending</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.pending">0</p>
+                    </div>
+                    <div class="p-4 bg-amber-100 rounded-xl">
+                        <svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
-          </template>
 
-          <!-- Rejection Form (if pending) -->
-          <template x-if="selectedApp.application_status === 'pending'">
-            <div class="detail-section">
-              <div class="detail-section-title">
-                <i class="fas fa-comment"></i> Rejection Reason (if rejecting)
-              </div>
-              <div class="form-group">
-                <textarea class="form-control" x-model="rejectionReason" placeholder="Enter reason for rejection..." rows="3"></textarea>
-              </div>
+            <div class="bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-lg border-2 border-green-200 p-7 hover:shadow-xl transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-600 text-sm font-semibold uppercase tracking-wide">Approved</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.approved">0</p>
+                    </div>
+                    <div class="p-4 bg-green-100 rounded-xl">
+                        <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
-          </template>
+
+            <div class="bg-gradient-to-br from-white to-red-50 rounded-2xl shadow-lg border-2 border-red-200 p-7 hover:shadow-xl transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-red-600 text-sm font-semibold uppercase tracking-wide">Rejected</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.rejected">0</p>
+                    </div>
+                    <div class="p-4 bg-red-100 rounded-xl">
+                        <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-          <button class="action-btn action-btn-secondary" @click="closeModal()">
-            <i class="fas fa-times"></i> Close
-          </button>
-          <template x-if="selectedApp.application_status === 'pending'">
-            <button class="action-btn action-btn-success" @click="approveApplication(selectedApp.id); closeModal();">
-              <i class="fas fa-check"></i> Approve
-            </button>
-            <button class="action-btn action-btn-danger" @click="rejectApplication(selectedApp.id); closeModal();">
-              <i class="fas fa-times"></i> Reject
-            </button>
-          </template>
+        <!-- Search and Filter Section -->
+        <div class="bg-white rounded-2xl shadow-lg border border-purple-100 p-8 mb-10">
+            <div class="flex flex-col sm:flex-row gap-6">
+                <div class="flex-1">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Search Applications</label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            x-model="searchTerm"
+                            placeholder="Search by business name, owner, ID, or location..."
+                            class="w-full px-5 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-gray-900 placeholder-gray-400"
+                        >
+                        <svg class="absolute left-4 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="w-full sm:w-64">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Filter Status</label>
+                    <select 
+                        x-model="statusFilter"
+                        class="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all font-medium"
+                    >
+                        <option value="all">All Applications</option>
+                        <option value="pending">Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- Applications List -->
+        <div x-show="!isLoading" class="space-y-5">
+            <template x-for="(app, index) in getFilteredApplications()" :key="app.id">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all border-2 border-gray-100 overflow-hidden group"
+                     x-data="{}"
+                     @click="console.log('Clicked app:', app.id, app.business_name)">
+                    <div class="p-7">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <div class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" 
+                                        :class="{
+                                            'bg-amber-100 text-amber-700': app.status === 'pending',
+                                            'bg-green-100 text-green-700': app.status === 'approved',
+                                            'bg-red-100 text-red-700': app.status === 'rejected'
+                                        }">
+                                        <span x-text="app.status"></span>
+                                    </div>
+                                    <span class="text-xs text-gray-500 font-mono">ID: <span x-text="'MC-2026-' + app.id"></span></span>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-900 mb-3" x-text="app.business_name">Business</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                        <p class="text-gray-500 text-xs font-semibold uppercase">Submitted By</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="app.user_name || 'N/A'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 text-xs font-semibold uppercase">Email</p>
+                                        <p class="text-gray-900 font-medium mt-1 break-all" x-text="app.user_email"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 text-xs font-semibold uppercase">Location</p>
+                                        <p class="text-gray-900 font-medium mt-1">
+                                            <span x-text="app.city || 'N/A'"></span>, <span x-text="app.province || 'N/A'"></span>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 text-xs font-semibold uppercase">Type</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="app.business_type"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button 
+                                @click="viewApplication(app)"
+                                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all hover:from-purple-700 hover:to-purple-800 flex items-center justify-center gap-2 whitespace-nowrap"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Empty State -->
+            <template x-if="getFilteredApplications().length === 0 && !isLoading">
+                <div class="bg-white rounded-2xl shadow-lg p-16 text-center border-2 border-dashed border-purple-200">
+                    <svg class="w-20 h-20 text-gray-300 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">
+                        <template x-if="applications.length === 0">No Applications Found</template>
+                        <template x-if="applications.length > 0">No Matching Applications</template>
+                    </h3>
+                    <p class="text-gray-600">
+                        <template x-if="applications.length === 0">There are no merchant applications yet. Merchants will appear here when they submit their applications.</template>
+                        <template x-if="applications.length > 0">Try adjusting your search or filter criteria to see more results.</template>
+                    </p>
+                </div>
+            </template>
+        </div>
+
+        <!-- Loading State -->
+        <template x-if="isLoading">
+            <div class="bg-white rounded-2xl shadow-lg p-16 text-center">
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto mb-4"></div>
+                    <p class="text-gray-600 font-medium">Loading applications...</p>
+                    <p class="text-gray-400 text-sm mt-2">Please wait while we fetch the merchant applications from the database.</p>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Premium Detail Modal -->
+    <template x-if="selectedApp">
+        <div class="absolute inset-0 bg-black bg-opacity-60 z-40 flex items-center justify-center p-2 sm:p-4 lg:p-6 backdrop-blur-sm" style="position: fixed;" @click.self="selectedApp = null">
+            <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-[calc(100%-16px)] sm:w-[calc(100%-32px)] lg:w-[calc(100%-48px)] max-w-xs sm:max-w-xl lg:max-w-2xl xl:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" @click.stop>
+                
+                <!-- Modal Header with Gradient -->
+                <div class="sticky top-0 bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-between z-10 gap-4">
+                    <div class="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                        <div class="p-2 sm:p-3 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex-shrink-0 overflow-hidden min-w-fit">
+                        <template x-if="selectedApp.logo_url">
+                            <img :src="selectedApp.logo_url" alt="Merchant Logo" class="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                            <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </template>
+                        <template x-if="!selectedApp.logo_url">
+                            <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </template>
+                    </div>
+                        <div class="flex-1 min-w-0">
+                            <h2 class="text-lg sm:text-3xl font-bold text-white truncate" x-text="selectedApp.business_name"></h2>
+                            <p class="text-purple-100 text-xs sm:text-sm mt-0.5 sm:mt-1 truncate">Submitted by: <span class="font-semibold" x-text="selectedApp.user_email"></span></p>
+                        </div>
+                    </div>
+                    <button 
+                        @click="selectedApp = null"
+                        class="text-white hover:bg-white hover:bg-opacity-20 p-2 sm:p-3 rounded-lg sm:rounded-xl transition flex-shrink-0"
+                    >
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="overflow-y-auto flex-1">
+                    <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+                        
+                        <!-- Quick Info Bar -->
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                            <div class="flex-1 bg-gradient-to-br from-purple-50 to-white border-2 border-purple-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                <p class="text-gray-600 text-xs font-semibold uppercase">Status</p>
+                                <p class="text-base sm:text-lg font-bold text-gray-900 mt-1 sm:mt-2" 
+                                    :class="{
+                                        'text-amber-600': selectedApp.status === 'pending',
+                                        'text-green-600': selectedApp.status === 'approved',
+                                        'text-red-600': selectedApp.status === 'rejected'
+                                    }"
+                                    x-text="selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)"></p>
+                            </div>
+                            <div class="flex-1 bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                <p class="text-gray-600 text-xs font-semibold uppercase">Submitted</p>
+                                <p class="text-xs sm:text-sm font-bold text-gray-900 mt-1 sm:mt-2" x-text="new Date(selectedApp.submitted_at).toLocaleDateString()"></p>
+                            </div>
+                            <div class="flex-1 bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                <p class="text-gray-600 text-xs font-semibold uppercase">Type</p>
+                                <p class="text-xs sm:text-sm font-bold text-gray-900 mt-1 sm:mt-2 truncate" x-text="selectedApp.business_type"></p>
+                            </div>
+                            <div class="flex-1 bg-gradient-to-br from-green-50 to-white border-2 border-green-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                <p class="text-gray-600 text-xs font-semibold uppercase">ID</p>
+                                <p class="text-xs sm:text-sm font-bold text-gray-900 mt-1 sm:mt-2 font-mono" x-text="'MC-2026-' + selectedApp.id"></p>
+                            </div>
+                        </div>
+
+                        <!-- Business Information -->
+                        <section>
+                            <h3 class="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
+                                <div class="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m5.581 0a2 2 0 100-4 2 2 0 000 4m0 0a2 2 0 100-4 2 2 0 000 4m-6 0a2 2 0 100-4 2 2 0 000 4m0 0H4m9.581 0H9"/>
+                                    </svg>
+                                </div>
+                                Business Details
+                            </h3>
+                            <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6 space-y-4 sm:space-y-5">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">Business Name</p>
+                                        <p class="text-gray-900 font-bold text-sm sm:text-lg mt-1 sm:mt-2" x-text="selectedApp.business_name"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">Years in Operation</p>
+                                        <p class="text-gray-900 font-bold text-sm sm:text-lg mt-1 sm:mt-2" x-text="selectedApp.years_in_operation || 'N/A'"></p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase mb-2">Description</p>
+                                    <p class="text-gray-900 mt-1 sm:mt-2 leading-relaxed text-xs sm:text-sm" x-text="selectedApp.business_description"></p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Contact & Location Information -->
+                        <section>
+                            <h3 class="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
+                                <div class="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                Contact & Location
+                            </h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6 space-y-3 sm:space-y-4">
+                                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm">Contact Details</h4>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">Owner/Manager</p>
+                                        <p class="text-gray-900 font-bold text-xs sm:text-sm mt-1" x-text="selectedApp.owner_name || 'N/A'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">Email</p>
+                                        <p class="text-gray-900 font-bold text-xs sm:text-sm mt-1 break-all" x-text="selectedApp.contact_email || 'N/A'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">Phone</p>
+                                        <p class="text-gray-900 font-bold text-xs sm:text-sm mt-1" x-text="selectedApp.phone || 'N/A'"></p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6 space-y-3 sm:space-y-4">
+                                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm">Location Details</h4>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">Province</p>
+                                        <p class="text-gray-900 font-bold text-xs sm:text-sm mt-1" x-text="selectedApp.province || 'N/A'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">City/Municipality</p>
+                                        <p class="text-gray-900 font-bold text-xs sm:text-sm mt-1" x-text="selectedApp.city || 'N/A'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold uppercase">Barangay</p>
+                                        <p class="text-gray-900 font-bold text-xs sm:text-sm mt-1" x-text="selectedApp.barangay || 'N/A'"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 sm:mt-6 bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                <p class="text-gray-600 text-xs font-semibold uppercase mb-2">Full Address</p>
+                                <p class="text-gray-900 text-xs sm:text-sm leading-relaxed" x-text="selectedApp.full_address || 'N/A'"></p>
+                            </div>
+                            <div class="mt-3 sm:mt-4 bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                <p class="text-gray-600 text-xs font-semibold uppercase mb-2">Maps Link</p>
+                                <template x-if="selectedApp.google_maps_link">
+                                    <a :href="selectedApp.google_maps_link" target="_blank" class="text-blue-600 hover:text-blue-700 font-semibold text-xs sm:text-sm break-all">Open in Google Maps</a>
+                                </template>
+                                <template x-if="!selectedApp.google_maps_link">
+                                    <p class="text-gray-500 text-xs">No maps link provided</p>
+                                </template>
+                            </div>
+                            <div class="mt-3 sm:mt-4 bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                <p class="text-gray-600 text-xs font-semibold uppercase mb-2">Postal Code</p>
+                                <p class="text-gray-900 font-bold text-xs sm:text-sm" x-text="selectedApp.postal_code || 'N/A'"></p>
+                            </div>
+                        </section>
+
+                        <!-- Services & Operations -->
+                        <section>
+                            <h3 class="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
+                                <div class="p-1.5 sm:p-2 bg-green-100 rounded-lg">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7 8a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                Services & Operations
+                            </h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                    <h4 class="font-semibold text-gray-900 mb-3 sm:mb-4 text-xs sm:text-sm">Services Offered</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="service in (selectedApp.services || [])">
+                                            <span class="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-100 text-green-800 rounded-full text-xs font-semibold" x-text="service"></span>
+                                        </template>
+                                        <template x-if="(!selectedApp.services || selectedApp.services.length === 0)">
+                                            <span class="text-gray-500 text-xs">No services listed</span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                    <h4 class="font-semibold text-gray-900 mb-3 sm:mb-4 text-xs sm:text-sm">Pets Accepted</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="pet in (selectedApp.pets_accepted || [])">
+                                            <span class="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold" x-text="pet"></span>
+                                        </template>
+                                        <template x-if="(!selectedApp.pets_accepted || selectedApp.pets_accepted.length === 0)">
+                                            <span class="text-gray-500 text-xs">No pets listed</span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                    <h4 class="font-semibold text-gray-900 mb-3 sm:mb-4 text-xs sm:text-sm">Operating Hours</h4>
+                                    <div class="space-y-2 text-xs sm:text-sm">
+                                        <p><span class="text-gray-600 font-semibold">Opens:</span> <span class="text-gray-900 font-bold" x-text="selectedApp.opening_time || 'N/A'"></span></p>
+                                        <p><span class="text-gray-600 font-semibold">Closes:</span> <span class="text-gray-900 font-bold" x-text="selectedApp.closing_time || 'N/A'"></span></p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                    <h4 class="font-semibold text-gray-900 mb-3 sm:mb-4 text-xs sm:text-sm">Pricing & Capacity</h4>
+                                    <div class="space-y-2 text-xs sm:text-sm">
+                                        <p><span class="text-gray-600 font-semibold">Max Pets/Day:</span> <span class="text-gray-900 font-bold" x-text="selectedApp.max_pets_per_day"></span></p>
+                                        <p><span class="text-gray-600 font-semibold">₱<span x-text="selectedApp.min_price_per_day"></span></span> - <span class="text-gray-900 font-bold">₱<span x-text="selectedApp.max_price_per_day"></span></span>/day</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Operating Days -->
+                        <section>
+                            <h3 class="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
+                                <div class="p-1.5 sm:p-2 bg-cyan-100 rounded-lg">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                Operating Days
+                            </h3>
+                            <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="day in (selectedApp.operating_days || [])">
+                                        <span class="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-cyan-100 text-cyan-800 rounded-full text-xs sm:text-sm font-semibold" x-text="day"></span>
+                                    </template>
+                                    <template x-if="(!selectedApp.operating_days || selectedApp.operating_days.length === 0)">
+                                        <span class="text-gray-500 text-xs">No operating days listed</span>
+                                    </template>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Cancellation Policy -->
+                        <template x-if="selectedApp.cancellation_policy">
+                            <section>
+                                <h3 class="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
+                                    <div class="p-1.5 sm:p-2 bg-orange-100 rounded-lg">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    Cancellation Policy
+                                </h3>
+                                <div class="bg-gradient-to-br from-orange-50 to-white rounded-lg sm:rounded-2xl border-2 border-orange-100 p-4 sm:p-6">
+                                    <p class="text-gray-900 text-xs sm:text-sm leading-relaxed" x-text="selectedApp.cancellation_policy"></p>
+                                </div>
+                            </section>
+                        </template>
+
+                        <!-- Documents Section -->
+                        <section>
+                            <h3 class="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
+                                <div class="p-1.5 sm:p-2 bg-indigo-100 rounded-lg">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                Documents & Verification
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                    <div class="p-2 sm:p-4 bg-red-100 rounded-lg sm:rounded-xl inline-flex mb-3 sm:mb-4">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v10a2 2 0 002 2h5m0 0h5a2 2 0 002-2V8a2 2 0 00-2-2h-5m0 0V4a2 2 0 00-2-2H9a2 2 0 00-2 2v2"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm mb-2 sm:mb-3">Government ID</h4>
+                                    <template x-if="selectedApp.government_id_path">
+                                        <a :href="'/static/uploads/' + selectedApp.government_id_path" target="_blank" class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-lg transition-all text-xs sm:text-sm">
+                                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View
+                                        </a>
+                                    </template>
+                                    <template x-if="!selectedApp.government_id_path">
+                                        <p class="text-xs text-gray-600">Not uploaded</p>
+                                    </template>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                    <div class="p-2 sm:p-4 bg-blue-100 rounded-lg sm:rounded-xl inline-flex mb-3 sm:mb-4">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm mb-2 sm:mb-3">Business Permit</h4>
+                                    <template x-if="selectedApp.business_permit_path">
+                                        <a :href="'/static/uploads/' + selectedApp.business_permit_path" target="_blank" class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold rounded-lg transition-all text-xs sm:text-sm">
+                                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View
+                                        </a>
+                                    </template>
+                                    <template x-if="!selectedApp.business_permit_path">
+                                        <p class="text-xs text-gray-600">Not uploaded</p>
+                                    </template>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-2xl border-2 border-gray-100 p-4 sm:p-6">
+                                    <div class="p-2 sm:p-4 bg-purple-100 rounded-lg sm:rounded-xl inline-flex mb-3 sm:mb-4">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm mb-2 sm:mb-3">Facility Photos</h4>
+                                    <template x-if="(selectedApp.facility_photos_paths || []).length > 0">
+                                        <div class="space-y-1">
+                                            <template x-for="(photo, idx) in (selectedApp.facility_photos_paths || [])">
+                                                <a :href="'/static/uploads/' + photo" target="_blank" class="block text-xs text-purple-700 font-semibold hover:text-purple-900 hover:underline truncate" x-text="'Photo ' + (idx + 1)"></a>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="(!selectedApp.facility_photos_paths || selectedApp.facility_photos_paths.length === 0)">
+                                        <p class="text-xs text-gray-600">No photos uploaded</p>
+                                    </template>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Rejection Reason (if rejected) -->
+                        <template x-if="selectedApp.status === 'rejected' && selectedApp.rejection_reason">
+                            <section>
+                                <div class="bg-red-50 border-2 border-red-200 rounded-lg sm:rounded-2xl p-4 sm:p-6">
+                                    <h4 class="font-bold text-red-900 mb-3 flex items-center gap-2 text-sm sm:text-base">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                                        </svg>
+                                        Rejection Reason
+                                    </h4>
+                                    <p class="text-red-900 text-xs sm:text-sm leading-relaxed" x-text="selectedApp.rejection_reason"></p>
+                                </div>
+                            </section>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Modal Footer with Actions -->
+                <template x-if="selectedApp.status === 'pending'">
+                    <div class="sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent border-t-2 border-gray-100 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex gap-2 sm:gap-4 flex-col sm:flex-row">
+                        <button 
+                            @click="selectedApp = null"
+                            class="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold text-sm sm:text-base rounded-lg sm:rounded-xl transition-all"
+                        >
+                            Close
+                        </button>
+                        <button 
+                            @click="confirmReject(selectedApp.id)"
+                            class="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm sm:text-base rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            <span class="hidden xs:inline">Reject</span>
+                        </button>
+                        <button 
+                            @click="confirmApprove(selectedApp.id)"
+                            class="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm sm:text-base rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span class="hidden xs:inline">Approve</span>
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
     </template>
-  </div>
-</div>
+
+    <!-- Confirmation Modal (Tailwind Styled) -->
+    <template x-if="showConfirmModal">
+        <div class="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm" @click.self="cancelConfirm()">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-md w-full" @click.stop>
+                <!-- Modal Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between gap-4">
+                    <h3 class="text-base sm:text-xl font-bold text-white" x-text="confirmTitle"></h3>
+                    <button @click="cancelConfirm()" class="text-white hover:bg-white hover:bg-opacity-20 p-1.5 sm:p-2 rounded-lg transition flex-shrink-0">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="px-4 sm:px-6 py-4 sm:py-6">
+                    <p class="text-gray-700 text-sm sm:text-base text-center mb-4 sm:mb-5" x-text="confirmMessage"></p>
+                    
+                    <!-- Rejection Reason Input (only for reject action) -->
+                    <template x-if="confirmAction === 'reject'">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Reason for Rejection</label>
+                            <textarea 
+                                x-model="rejectionReason"
+                                placeholder="Provide a detailed reason for rejection..."
+                                class="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all resize-none text-xs sm:text-sm"
+                                rows="4"
+                            ></textarea>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
+                    <button 
+                        @click="cancelConfirm()"
+                        class="flex-1 px-3 sm:px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold text-xs sm:text-sm rounded-lg transition-all"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        @click="executeConfirmedAction()"
+                        :disabled="confirmAction === 'reject' && !rejectionReason.trim()"
+                        :class="{
+                            'bg-green-600 hover:bg-green-700': confirmAction === 'approve',
+                            'bg-red-600 hover:bg-red-700': confirmAction === 'reject',
+                            'disabled:opacity-50 disabled:cursor-not-allowed': !rejectionReason.trim() && confirmAction === 'reject'
+                        }"
+                        class="flex-1 px-3 sm:px-4 py-2 text-white font-semibold text-xs sm:text-sm rounded-lg transition-all"
+                    >
+                        <span x-show="confirmAction === 'approve'">Approve</span>
+                        <span x-show="confirmAction === 'reject'">Reject</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 
 <script>
-  function merchantApplications() {
+// Get CSRF token from Flask
+function getCSRFToken() {
+    // Try to get from meta tag first (if available)
+    const token = document.querySelector('meta[name="csrf-token"]');
+    if (token) return token.getAttribute('content');
+    
+    // Fallback: try to get from cookie
+    const name = 'csrf_token';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function merchantApplications() {
     return {
-      applications: [],
-      selectedApp: null,
-      searchTerm: '',
-      isLoading: false,
-      showDetailModal: false,
-      rejectionReason: '',
+        applications: [],
+        filteredApplications: [],
+        selectedApp: null,
+        searchTerm: '',
+        statusFilter: 'all',
+        isLoading: true,
+        showConfirmModal: false,
+        confirmAction: null,
+        confirmTitle: '',
+        confirmMessage: '',
+        confirmMerchantId: null,
+        rejectionReason: '',
+        totalStats: {
+            total: 0,
+            pending: 0,
+            approved: 0,
+            rejected: 0
+        },
 
-      async init() {
-        await this.loadApplications();
-      },
+        init() {
+            console.log('Initializing merchant applications component');
+            // Watch for search/filter changes
+            this.$watch('searchTerm', () => {
+                console.log('Search term changed:', this.searchTerm);
+                this.filterApplications();
+            });
+            this.$watch('statusFilter', () => {
+                console.log('Status filter changed:', this.statusFilter);
+                this.filterApplications();
+            });
+            this.loadApplications();
+        },
 
-      async loadApplications() {
-        this.isLoading = true;
-        try {
-          const response = await fetch(`/admin/api/merchants?status=all`);
-          if (!response.ok) throw new Error('Failed to load applications');
-          
-          const data = await response.json();
-          this.applications = data.merchants || [];
-        } catch (error) {
-          console.error('Error loading applications:', error);
-          alert('Failed to load merchant applications');
-        } finally {
-          this.isLoading = false;
+        confirmApprove(merchantId) {
+            this.showConfirmModal = true;
+            this.confirmAction = 'approve';
+            this.confirmTitle = 'Approve Application?';
+            this.confirmMessage = 'Are you sure you want to approve this merchant application? This action cannot be undone.';
+            this.confirmMerchantId = merchantId;
+        },
+
+        confirmReject(merchantId) {
+            this.showConfirmModal = true;
+            this.confirmAction = 'reject';
+            this.confirmTitle = 'Reject Application?';
+            this.confirmMessage = 'Are you sure you want to reject this merchant application?';
+            this.confirmMerchantId = merchantId;
+        },
+
+        async executeConfirmedAction() {
+            if (this.confirmAction === 'approve') {
+                await this.approveApplication(this.confirmMerchantId);
+            } else if (this.confirmAction === 'reject') {
+                await this.rejectApplication(this.confirmMerchantId, this.rejectionReason);
+            }
+            this.showConfirmModal = false;
+            this.confirmAction = null;
+            this.confirmMerchantId = null;
+        },
+
+        cancelConfirm() {
+            this.showConfirmModal = false;
+            this.confirmAction = null;
+            this.confirmMerchantId = null;
+            this.rejectionReason = '';
+        },
+
+        async loadApplications() {
+            this.isLoading = true;
+            try {
+                console.log('Fetching merchants from API...');
+                const response = await fetch('/admin/api/merchants?status=all');
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    alert('Error loading applications: ' + data.error);
+                    return;
+                }
+                
+                const merchants = data.merchants || [];
+                console.log(`Loaded ${merchants.length} merchants from API`);
+                
+                if (merchants.length === 0) {
+                    console.warn('No merchants returned from API');
+                }
+                
+                // Normalize field names to match template expectations
+                this.applications = merchants.map(m => {
+                    console.log('Processing merchant:', m.id, m.business_name, m.application_status);
+                    return {
+                        id: m.id,
+                        business_name: m.business_name,
+                        business_type: m.business_type,
+                        owner_name: m.owner_manager_name,
+                        contact_email: m.contact_email,
+                        user_email: m.user_email,
+                        user_name: m.user_name,
+                        phone: m.contact_phone,
+                        city: m.city,
+                        province: m.province,
+                        barangay: m.barangay,
+                        postal_code: m.postal_code,
+                        full_address: m.full_address,
+                        services: m.services_offered,
+                        pets_accepted: m.pets_accepted,
+                        max_pets_per_day: m.max_pets_per_day,
+                        min_price_per_day: m.min_price_per_day,
+                        max_price_per_day: m.max_price_per_day,
+                        cancellation_policy: m.cancellation_policy,
+                        government_id_path: m.government_id_path,
+                        business_permit_path: m.business_permit_path,
+                        facility_photos_paths: m.facility_photos_paths,
+                        submitted_at: m.submitted_at,
+                        rejection_reason: m.rejection_reason,
+                        years_in_operation: m.years_in_operation,
+                        status: m.application_status,
+                        business_description: m.business_description,
+                        opening_time: m.opening_time,
+                        closing_time: m.closing_time,
+                        operating_days: m.operating_days,
+                        google_maps_link: m.google_maps_link,
+                        logo_url: m.logo_path ? '/static/' + m.logo_path : ''
+                    };
+                });
+                
+                console.log('Processed applications:', this.applications);
+                this.updateStats();
+                this.filterApplications();
+            } catch (error) {
+                console.error('Error loading applications:', error);
+                alert('Failed to load applications. Please try again. Error: ' + error.message);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        updateStats() {
+            this.totalStats = {
+                total: this.applications.length,
+                pending: this.applications.filter(a => a.status === 'pending').length,
+                approved: this.applications.filter(a => a.status === 'approved').length,
+                rejected: this.applications.filter(a => a.status === 'rejected').length
+            };
+            console.log('Stats updated:', this.totalStats);
+        },
+
+        filterApplications() {
+            console.log('Filtering applications with:', {
+                statusFilter: this.statusFilter,
+                searchTerm: this.searchTerm,
+                totalApplications: this.applications.length
+            });
+            
+            this.filteredApplications = this.applications.filter(app => {
+                const matchesStatus = this.statusFilter === 'all' || app.status === this.statusFilter;
+                const searchLower = this.searchTerm.toLowerCase();
+                const matchesSearch = !this.searchTerm || 
+                    app.business_name.toLowerCase().includes(searchLower) ||
+                    (app.owner_name && app.owner_name.toLowerCase().includes(searchLower)) ||
+                    (app.city && app.city.toLowerCase().includes(searchLower)) ||
+                    (app.province && app.province.toLowerCase().includes(searchLower)) ||
+                    app.id.toString().includes(searchLower);
+                
+                return matchesStatus && matchesSearch;
+            });
+            
+            console.log('Filtered results:', this.filteredApplications.length, 'items');
+        },
+
+        getFilteredApplications() {
+            this.filterApplications();
+            console.log('Returning filtered applications:', this.filteredApplications.length);
+            return this.filteredApplications;
+        },
+
+        viewApplication(app) {
+            this.selectedApp = app;
+            this.rejectionReason = '';
+        },
+
+        async approveApplication(merchantId) {
+            try {
+                console.log('Approving merchant:', merchantId);
+                const response = await fetch(`/admin/api/merchants/${merchantId}/approve`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                });
+
+                console.log('Approve response status:', response.status);
+                console.log('Response content type:', response.headers.get('content-type'));
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.error('Response is not JSON, received:', await response.text());
+                    alert('Server error: Invalid response format. Please check your permissions.');
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Approval response data:', data);
+
+                if (response.ok && data.success) {
+                    console.log('Application approved successfully');
+                    this.selectedApp = null;
+                    // Redirect to show flash message
+                    setTimeout(() => {
+                        window.location.href = '/admin/merchants/applications';
+                    }, 500);
+                } else {
+                    console.error('Approval error:', data);
+                    alert(`Error: ${data.message || 'Failed to approve application'}`);
+                }
+            } catch (error) {
+                console.error('Error approving application:', error);
+                alert('An error occurred while approving the application: ' + error.message);
+            }
+        },
+
+        async rejectApplication(merchantId, reason) {
+            if (!reason.trim()) {
+                alert('Please provide a reason for rejection.');
+                return;
+            }
+
+            try {
+                console.log('Rejecting merchant:', merchantId, 'Reason:', reason);
+                const response = await fetch(`/admin/api/merchants/${merchantId}/reject`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({ reason: reason.trim() })
+                });
+
+                console.log('Reject response status:', response.status);
+                console.log('Response content type:', response.headers.get('content-type'));
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.error('Response is not JSON, received:', await response.text());
+                    alert('Server error: Invalid response format. Please check your permissions.');
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Rejection response data:', data);
+
+                if (response.ok && data.success) {
+                    console.log('Application rejected successfully');
+                    this.selectedApp = null;
+                    this.rejectionReason = '';
+                    // Redirect to show flash message
+                    setTimeout(() => {
+                        window.location.href = '/admin/merchants/applications';
+                    }, 500);
+                } else {
+                    console.error('Rejection error:', data);
+                    alert(`Error: ${data.message || 'Failed to reject application'}`);
+                }
+            } catch (error) {
+                console.error('Error rejecting application:', error);
+                alert('An error occurred while rejecting the application: ' + error.message);
+            }
         }
-      },
-
-      getFilteredApplications() {
-        let filtered = this.applications;
-
-        // Search filter
-        if (this.searchTerm.trim()) {
-          const term = this.searchTerm.toLowerCase();
-          filtered = filtered.filter(app =>
-            app.business_name.toLowerCase().includes(term) ||
-            app.owner_manager_name.toLowerCase().includes(term) ||
-            app.city.toLowerCase().includes(term) ||
-            app.province.toLowerCase().includes(term) ||
-            app.business_type.toLowerCase().includes(term)
-          );
-        }
-
-        return filtered;
-      },
-
-      getTotalCount() {
-        return this.applications.length;
-      },
-
-      getPendingCount() {
-        return this.applications.filter(a => a.application_status === 'pending').length;
-      },
-
-      getApprovedCount() {
-        return this.applications.filter(a => a.application_status === 'approved').length;
-      },
-
-      getRejectedCount() {
-        return this.applications.filter(a => a.application_status === 'rejected').length;
-      },
-
-      getStatusClass(status) {
-        const classes = {
-          'pending': 'status-pending',
-          'under_review': 'status-under-review',
-          'approved': 'status-approved',
-          'rejected': 'status-rejected'
-        };
-        return classes[status] || 'status-pending';
-      },
-
-      getStatusIcon(status) {
-        const icons = {
-          'pending': 'fas fa-hourglass-half',
-          'under_review': 'fas fa-magnifying-glass',
-          'approved': 'fas fa-check-circle',
-          'rejected': 'fas fa-times-circle'
-        };
-        return icons[status] || 'fas fa-question-circle';
-      },
-
-      formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('en-PH', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric' 
-        });
-      },
-
-      getTimeAgo(dateString) {
-        const now = new Date();
-        const date = new Date(dateString);
-        const diff = Math.floor((now - date) / 1000);
-
-        if (diff < 60) return 'just now';
-        if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-        if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
-        return `${Math.floor(diff / 604800)}w`;
-      },
-
-      handlePhotoError(event) {
-        event.target.innerHTML = '<div class="photo-placeholder"><i class="fas fa-image"></i></div>';
-      },
-
-      viewApplication(id) {
-        this.selectedApp = this.applications.find(a => a.id === id);
-        this.rejectionReason = '';
-        this.showDetailModal = true;
-      },
-
-      closeModal() {
-        this.showDetailModal = false;
-        this.selectedApp = null;
-        this.rejectionReason = '';
-      },
-
-      async approveApplication(id) {
-        if (!confirm('Are you sure you want to approve this application?')) return;
-
-        try {
-          const response = await fetch(`/admin/api/merchants/${id}/approve`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-          });
-
-          if (!response.ok) throw new Error('Failed to approve');
-
-          alert('Application approved successfully!');
-          await this.loadApplications();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Error approving application: ' + error.message);
-        }
-      },
-
-      async rejectApplication(id) {
-        const reason = this.rejectionReason.trim();
-        if (!reason) {
-          alert('Please enter a rejection reason');
-          return;
-        }
-
-        try {
-          const response = await fetch(`/admin/api/merchants/${id}/reject`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason })
-          });
-
-          if (!response.ok) throw new Error('Failed to reject');
-
-          alert('Application rejected.');
-          await this.loadApplications();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Error rejecting application: ' + error.message);
-        }
-      }
     };
-  }
+}
 </script>
+
+<style>
+[x-cloak] { display: none !important; }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+[x-show] {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+}
+</style>
 {% endblock %}

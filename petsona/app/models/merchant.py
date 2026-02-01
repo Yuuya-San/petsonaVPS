@@ -60,6 +60,7 @@ class Merchant(db.Model):
 
     # ========== SECTION 9: VERIFICATION UPLOADS ==========
     # File paths stored in storage/uploads/merchants/{merchant_id}/
+    logo_path = db.Column(db.String(255), nullable=True)  # Store logo file path
     government_id_path = db.Column(db.String(255), nullable=True)
     business_permit_path = db.Column(db.String(255), nullable=True)
     facility_photos_paths = db.Column(JSON, nullable=True, default=[])  # Array of file paths
@@ -117,12 +118,44 @@ class Merchant(db.Model):
         return self.pets_accepted if isinstance(self.pets_accepted, list) else []
 
     def get_operating_days(self):
-        """Returns operating days as list"""
+        """Returns operating days as list of integers (0-6, Monday-Sunday)"""
+        day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        if isinstance(self.operating_days, list):
+            try:
+                result = []
+                for day in self.operating_days:
+                    try:
+                        # Try to treat as string day name first
+                        if isinstance(day, str):
+                            day_lower = day.strip().lower()
+                            day_names_lower = [d.lower() for d in day_names]
+                            if day_lower in day_names_lower:
+                                result.append(day_names_lower.index(day_lower))
+                        else:
+                            # Try to treat as integer
+                            day_int = int(day)
+                            if 0 <= day_int <= 6:
+                                result.append(day_int)
+                    except (ValueError, TypeError, AttributeError):
+                        continue
+                return result if result else self.operating_days
+            except Exception:
+                pass
         return self.operating_days if isinstance(self.operating_days, list) else []
 
     def get_facility_photos(self):
         """Returns facility photos as list"""
         return self.facility_photos_paths if isinstance(self.facility_photos_paths, list) else []
+
+    def get_logo_url(self):
+        """Returns logo URL or placeholder"""
+        from flask import url_for
+        if self.logo_path:
+            return url_for('static', filename=f'uploads/merchants/{self.id}/{self.logo_path}')
+        # Return placeholder with business initials
+        initials = ''.join([word[0].upper() for word in self.business_name.split()[:2]])
+        return f"https://via.placeholder.com/300x300?text={initials}"
 
     def to_dict(self):
         """Converts merchant to dictionary for JSON response"""

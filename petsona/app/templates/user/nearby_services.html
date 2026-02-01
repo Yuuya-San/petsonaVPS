@@ -1,706 +1,503 @@
 {% extends "user/base.html" %}
 
-{% block content %}
+<!-- FontAwesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
-  /* ================================
-     NEARBY SERVICES PAGE
-  ================================ */
-  .nearby-page {
-    padding: 2rem 1rem;
-    background: #f5f5f7;
-    min-height: 100vh;
+  /* Premium Animations */
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  .nearby-container {
-    max-width: 1400px;
-    margin: 0 auto;
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
-  /* ================================
-     PAGE HEADER WITH SEARCH
-  ================================ */
-  .page-header {
-    margin-bottom: 2rem;
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
   }
 
-  .page-title {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
   }
 
-  .page-subtitle {
-    font-size: 1rem;
-    color: #6b7280;
-    margin-bottom: 1.5rem;
+  .animate-slide-in {
+    animation: slideInUp 0.6s cubic-bezier(0.23, 1, 0.320, 1);
   }
 
-  /* ================================
-     SEARCH & FILTER BAR
-  ================================ */
-  .search-filter-bar {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    margin-bottom: 2rem;
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 1rem;
-    align-items: end;
+  .animate-fade-scale {
+    animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .search-group {
-    display: flex;
-    flex-direction: column;
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
   }
 
-  .search-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #6b7280;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .search-input {
-    padding: 0.8rem 1rem;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: #f9fafb;
-  }
-
-  .search-input:focus {
-    outline: none;
-    background: white;
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-  }
-
-  .filter-btn {
-    padding: 0.8rem 1.2rem;
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .filter-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
-  }
-
-  .location-btn {
-    padding: 0.8rem 1.2rem;
-    background: #f3f4f6;
-    color: #1f2937;
-    border: 1.5px solid #d1d5db;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .location-btn:hover {
-    background: #e5e7eb;
-    border-color: #9ca3af;
-  }
-
-  /* ================================
-     RESULTS SECTION
-  ================================ */
-  .results-header {
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .results-count {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1f2937;
-  }
-
-  .sort-dropdown {
-    padding: 0.6rem 1rem;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    background: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .sort-dropdown:focus {
-    outline: none;
-    border-color: #8b5cf6;
-  }
-
-  /* ================================
-     MERCHANT GRID
-  ================================ */
-  .merchants-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  /* ================================
-     MERCHANT CARD
-  ================================ */
-  .merchant-card {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .merchant-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-  }
-
-  /* Card Header/Banner */
-  .merchant-banner {
-    height: 140px;
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  /* Premium Card Styling */
+  .premium-card {
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
+    background: linear-gradient(135deg, #ffffff 0%, #fafbff 95%, #f5f3ff 100%);
+    border: 1px solid rgba(168, 139, 250, 0.3);
     position: relative;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    padding: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 30px rgba(139, 92, 246, 0.08);
+    backdrop-filter: blur(10px);
   }
 
-  .merchant-banner-icon {
-    font-size: 2.5rem;
-    color: white;
-    opacity: 0.3;
+  .premium-card::before {
+    content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    z-index: 1;
-  }
-
-  .status-badge.open {
-    background: #dcfce7;
-    color: #166534;
-  }
-
-  .status-badge.closed {
-    background: #fee2e2;
-    color: #991b1b;
-  }
-
-  /* Card Content */
-  .merchant-content {
-    padding: 1.5rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .merchant-name {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-  }
-
-  .merchant-city {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  /* Rating and Reviews */
-  .rating-section {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #f3f4f6;
-  }
-
-  .rating-stars {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
-
-  .star {
-    color: #f59e0b;
-    font-size: 0.9rem;
-  }
-
-  .rating-value {
-    font-weight: 700;
-    color: #1f2937;
-  }
-
-  .review-count {
-    font-size: 0.85rem;
-    color: #6b7280;
-  }
-
-  /* Metrics */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #f3f4f6;
-  }
-
-  .metric {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .metric-label {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    font-weight: 500;
-    text-transform: uppercase;
-    margin-bottom: 0.3rem;
-  }
-
-  .metric-value {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1f2937;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .metric-value.rate {
-    color: #22c55e;
-  }
-
-  /* Services Tags */
-  .services-section {
-    margin-bottom: 1rem;
-  }
-
-  .services-label {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    font-weight: 500;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-
-  .services-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .service-tag {
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
-    background: #f3f4f6;
-    color: #1f2937;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  /* Price Range */
-  .price-range {
-    font-size: 0.95rem;
-    color: #8b5cf6;
-    font-weight: 700;
-    margin-bottom: 1rem;
-  }
-
-  /* View Button */
-  .view-btn {
+    top: 0;
+    left: -100%;
     width: 100%;
-    padding: 0.8rem;
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: auto;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.6s ease;
   }
 
-  .view-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+  .premium-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.5);
   }
 
-  /* ================================
-     DISTANCE BADGE
-  ================================ */
+  .premium-card:hover::before {
+    left: 100%;
+  }
+
+  /* Distance Badge Premium */
   .distance-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0.5rem 0.8rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+  }
+
+  .distance-badge:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
+  }
+
+  /* Status Badge */
+  .status-badge {
     font-weight: 700;
-    color: #8b5cf6;
-    z-index: 1;
+    letter-spacing: 0.5px;
+    border: 1.5px solid;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
   }
 
-  /* ================================
-     EMPTY STATE
-  ================================ */
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  .status-open {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.12));
+    border-color: #22c55e !important;
+    color: #166534;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
   }
 
-  .empty-icon {
-    font-size: 4rem;
-    color: #d1d5db;
-    margin-bottom: 1rem;
+  .status-open:hover {
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+    transform: translateY(-2px);
   }
 
-  .empty-text h3 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
+  .status-closed {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.12));
+    border-color: #ef4444 !important;
+    color: #7f1d1d;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
   }
 
-  .empty-text p {
-    color: #6b7280;
-    margin-bottom: 1.5rem;
+  .status-closed:hover {
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+    transform: translateY(-2px);
   }
 
-  /* ================================
-     RESPONSIVE
-  ================================ */
-  @media (max-width: 1024px) {
-    .merchants-grid {
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    }
-
-    .search-filter-bar {
-      grid-template-columns: 1fr;
-    }
+  /* Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
   }
 
-  @media (max-width: 768px) {
-    .nearby-page {
-      padding: 1rem 0.75rem;
-    }
+  ::-webkit-scrollbar-track {
+    background: #f9f8ff;
+  }
 
-    .page-title {
-      font-size: 1.8rem;
-    }
+  ::-webkit-scrollbar-thumb {
+    background: #ddd6fe;
+    border-radius: 4px;
+  }
 
-    .merchants-grid {
-      grid-template-columns: 1fr;
-    }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #c4b5fd;
+  }
 
-    .results-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
+  /* Link Styling */
+  a.premium-card {
+    text-decoration: none;
+    color: inherit;
+  }
 
-    .search-filter-bar {
-      grid-template-columns: 1fr;
-    }
-
-    .merchant-card {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-    }
-
-    .merchant-banner {
-      height: auto;
-      min-height: 140px;
-    }
-
-    .distance-badge {
-      position: static;
-      display: inline-block;
-      margin-top: 0.5rem;
-    }
-
-    .metrics-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .services-tags {
-      margin-bottom: 1rem;
-    }
+  /* Alpine Cloak */
+  [x-cloak] {
+    display: none !important;
   }
 </style>
 
-<div class="nearby-page">
-  <div class="nearby-container">
-
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1 class="page-title">
-        <i class="fas fa-map-marker-alt"></i>
-        Nearby Pet Services
-      </h1>
-      <p class="page-subtitle">Find trusted pet services near you - grooming, boarding, veterinary, and more</p>
-    </div>
-
-    <!-- Search & Filter Bar -->
-    <div class="search-filter-bar">
-      <div class="search-group">
-        <label class="search-label">Search Services</label>
-        <input type="text" class="search-input" id="searchInput" placeholder="Search by service name or type...">
-      </div>
-      <button class="filter-btn">
-        <i class="fas fa-sliders-h"></i>
-        Filters
-      </button>
-      <button class="location-btn">
-        <i class="fas fa-location-dot"></i>
-        My Location
-      </button>
-    </div>
-
-    <!-- Results Header -->
-    {% if nearby_merchants %}
-      <div class="results-header">
-        <div class="results-count">
-          <i class="fas fa-check-circle" style="color: #8b5cf6;"></i>
-          Found {{ nearby_merchants | length }} services nearby
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-white py-6 lg:py-8 px-3 sm:px-4" x-data="premiumNearbyServices()" x-cloak @mount="init()">
+  <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    
+    <!-- Simple Hero Section -->
+    <div class="mb-6 lg:mb-8 animate-slide-in">
+      <div class="flex items-center gap-3 lg:gap-4 mb-2">
+        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center text-white shadow-lg animate-float flex-shrink-0">
+          <i class="fas fa-location-dot text-base lg:text-lg"></i>
         </div>
-        <select class="sort-dropdown" id="sortDropdown">
-          <option value="distance">Sort by Distance</option>
-          <option value="rating">Sort by Rating</option>
-          <option value="reviews">Sort by Reviews</option>
-          <option value="response">Sort by Response Time</option>
-        </select>
+        <div>
+          <h1 class="text-2xl sm:text-3xl lg:text-5xl font-black text-slate-900 tracking-tight">Nearby Pet Services</h1>
+          <p class="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">Find the perfect care around you</p>
+        </div>
       </div>
+      <div class="flex items-center justify-between mt-4">
 
-      <!-- Merchants Grid -->
-      <div class="merchants-grid">
-        {% for merchant in nearby_merchants %}
-          <div class="merchant-card" data-merchant-id="{{ merchant.id }}">
-            <!-- Banner -->
-            <div class="merchant-banner">
-              <i class="merchant-banner-icon fas fa-store"></i>
-              <span class="distance-badge">
-                <i class="fas fa-location-dot"></i> {{ merchant.distance }} km
-              </span>
-              <span class="status-badge {% if merchant.is_open %}open{% else %}closed{% endif %}">
-                {% if merchant.is_open %}
-                  <i class="fas fa-check-circle"></i> Open
-                {% else %}
-                  <i class="fas fa-circle"></i> Closed
-                {% endif %}
-              </span>
+        <!-- Current Location Badge -->
+        <div x-show="hasLocation" class="inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-white border-2 border-purple-200 rounded-full text-xs lg:text-sm font-bold text-slate-900 shadow-sm">
+          <i class="fas fa-location-dot text-purple-600"></i>
+          <span>📍 Current location</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Request Location Banner -->
+    <div x-show="!hasLocation && !locationRequested" class="mb-6 lg:mb-8 animate-slide-in">
+      <div class="premium-card rounded-2xl lg:rounded-3xl p-6 lg:p-8 border-2 border-purple-200">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 lg:gap-8 justify-between">
+          <div class="flex items-start gap-4 lg:gap-6 flex-1">
+            <div class="text-4xl sm:text-5xl lg:text-6xl text-purple-500 flex-shrink-0 animate-float">
+              <i class="fas fa-location-crosshairs"></i>
             </div>
-
-            <!-- Content -->
-            <div class="merchant-content">
-              <h3 class="merchant-name">{{ merchant.business_name }}</h3>
-              <div class="merchant-city">
-                <i class="fas fa-map-pin"></i>
-                {{ merchant.city }}
-              </div>
-
-              <!-- Rating -->
-              <div class="rating-section">
-                <div class="rating-stars">
-                  {% for i in range(5) %}
-                    {% if i < merchant.rating | int %}
-                      <span class="star">★</span>
-                    {% elif i < merchant.rating %}
-                      <span class="star">⭐</span>
-                    {% else %}
-                      <span class="star" style="color: #e5e7eb;">★</span>
-                    {% endif %}
-                  {% endfor %}
-                </div>
-                <span class="rating-value">{{ merchant.rating }}</span>
-                <span class="review-count">({{ merchant.reviews }} reviews)</span>
-              </div>
-
-              <!-- Metrics Grid -->
-              <div class="metrics-grid">
-                <div class="metric">
-                  <span class="metric-label">Response</span>
-                  <span class="metric-value">
-                    <i class="fas fa-clock" style="color: #8b5cf6;"></i>
-                    {{ merchant.response_time }}
-                  </span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Completion</span>
-                  <span class="metric-value rate">
-                    <i class="fas fa-check"></i>
-                    {{ merchant.completion_rate }}%
-                  </span>
-                </div>
-              </div>
-
-              <!-- Services -->
-              <div class="services-section">
-                <span class="services-label">Services</span>
-                <div class="services-tags">
-                  {% for service in merchant.services_offered[:2] %}
-                    <span class="service-tag">{{ service }}</span>
-                  {% endfor %}
-                  {% if merchant.services_offered | length > 2 %}
-                    <span class="service-tag">+{{ merchant.services_offered | length - 2 }} more</span>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Price Range -->
-              <div class="price-range">
-                ₱{{ "{:,.0f}".format(merchant.min_price) }} - ₱{{ "{:,.0f}".format(merchant.max_price) }}
-              </div>
-
-              <!-- View Button -->
-              <button class="view-btn" onclick="viewMerchantDetails('{{ merchant.id }}')">
-                <i class="fas fa-arrow-right"></i>
-                View Details
-              </button>
+            <div>
+              <h3 class="font-black text-slate-900 mb-2 lg:mb-3 text-lg lg:text-2xl tracking-tight">Enable Location</h3>
+              <p class="text-slate-600 leading-relaxed text-sm lg:text-base font-medium">Show pet services near you. <span class="text-slate-900 font-bold">Private & secure.</span></p>
+              <p class="text-slate-500 text-xs lg:text-sm mt-2 flex items-center gap-2">
+                <i class="fas fa-shield-alt text-emerald-600"></i>
+                Encrypted
+              </p>
             </div>
           </div>
-        {% endfor %}
-      </div>
-
-    {% else %}
-      <!-- Empty State -->
-      <div class="empty-state">
-        <div class="empty-icon">
-          <i class="fas fa-inbox"></i>
-        </div>
-        <div class="empty-text">
-          <h3>No Services Found</h3>
-          <p>Try adjusting your search filters or expanding your search area.</p>
+          <div class="flex flex-col sm:flex-row gap-2.5 lg:gap-3 w-full sm:w-auto flex-shrink-0">
+            <button @click="requestLocation()" class="px-5 lg:px-8 py-2.5 lg:py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:shadow-2xl transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base">
+              <i class="fas fa-check-circle text-base lg:text-lg"></i> Allow
+            </button>
+            <button @click="skipLocation()" class="px-5 lg:px-8 py-2.5 lg:py-4 bg-white hover:bg-purple-50 text-slate-900 rounded-xl lg:rounded-2xl font-bold border-2 border-slate-300 hover:border-purple-300 transition-all duration-300 flex items-center justify-center gap-2 text-sm lg:text-base">
+              <i class="fas fa-times"></i> Skip
+            </button>
+          </div>
         </div>
       </div>
-    {% endif %}
+    </div>
 
+    <!-- Premium Search & Filter Bar -->
+    <div class="mb-6 lg:mb-8 animate-slide-in">
+      <div class="premium-card rounded-2xl lg:rounded-3xl p-4 lg:p-6 border-2 border-purple-100">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+          <!-- Search Input -->
+          <div class="lg:col-span-2">
+            <div class="relative group">
+              <input type="text" 
+                     x-model="searchQuery"
+                     @input="fetchMerchants()"
+                     placeholder="Search services..."
+                     class="w-full px-4 lg:px-5 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 placeholder-slate-400 transition-all duration-300 font-medium shadow-sm focus:shadow-md text-sm lg:text-base">
+              <i class="fas fa-search absolute right-3 lg:right-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors text-xs lg:text-sm"></i>
+            </div>
+          </div>
+
+          <!-- Service Filter -->
+          <div>
+            <select x-model="selectedService" @change="fetchMerchants()" class="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 font-medium cursor-pointer transition-all duration-300 shadow-sm focus:shadow-md appearance-none text-sm lg:text-base">
+              <option value="">All services</option>
+              <option value="grooming">✂️ Grooming</option>
+              <option value="boarding">🏠 Boarding</option>
+              <option value="veterinary">⚕️ Vet</option>
+              <option value="training">🎓 Training</option>
+              <option value="transport">🚗 Transport</option>
+            </select>
+          </div>
+
+          <!-- Distance Filter -->
+          <div>
+            <select x-model="maxDistance" @change="fetchMerchants()" class="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 font-medium cursor-pointer transition-all duration-300 shadow-sm focus:shadow-md appearance-none text-sm lg:text-base">
+              <option value="5">5 km</option>
+              <option value="10">10 km</option>
+              <option value="25">25 km</option>
+              <option value="50">50 km</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Simple Results & Sort -->
+    <div class="mb-6 lg:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 lg:gap-4 animate-slide-in">
+      <p class="font-bold text-sm lg:text-base text-slate-900" x-text="merchants.length + ' service provider' + (merchants.length !== 1 ? 's found' : ' found')"></p>
+      <select x-model="sortBy" @change="fetchMerchants()" class="px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg border-2 border-purple-200 bg-white text-slate-900 font-semibold text-sm lg:text-base cursor-pointer transition-all focus:outline-none focus:border-purple-500 appearance-none w-full sm:w-auto">
+        <option value="distance">📍 Distance</option>
+        <option value="rating">⭐ Rating</option>
+        <option value="name">🔤 Name</option>
+      </select>
+    </div>
+
+    <!-- Loading State -->
+    <div x-show="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8 lg:mb-12">
+      <template x-for="i in 6" :key="i">
+        <div class="premium-card rounded-xl lg:rounded-3xl overflow-hidden h-80 lg:h-96 border-2 border-purple-200">
+          <div class="h-24 sm:h-28 lg:h-40 bg-gradient-to-r from-purple-200 via-purple-100 to-purple-50 animate-pulse"></div>
+          <div class="p-3 lg:p-6 space-y-3 lg:space-y-4">
+            <div class="h-3 lg:h-4 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg w-3/4 animate-pulse"></div>
+            <div class="h-2 lg:h-3 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg w-1/2 animate-pulse"></div>
+            <div class="grid grid-cols-3 gap-2 lg:gap-3">
+              <div class="h-12 lg:h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg animate-pulse"></div>
+              <div class="h-12 lg:h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg animate-pulse"></div>
+              <div class="h-12 lg:h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Premium Services Grid -->
+    <div x-show="!isLoading && merchants.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mb-12">
+      <template x-for="merchant in merchants" :key="merchant.id">
+        <a :href="'/merchant/store-public/' + merchant.id" class="premium-card rounded-xl lg:rounded-3xl overflow-hidden cursor-pointer group flex flex-col hover:no-underline transition-all border-2">
+          
+          <!-- Premium Image/Banner -->
+          <div class="relative h-24 sm:h-28 lg:h-40 bg-gradient-to-br from-purple-300 via-purple-200 to-purple-100 overflow-hidden flex items-center justify-center border-b-2 border-purple-200 group-hover:from-purple-400 group-hover:via-purple-300 transition-all duration-300">
+            <i class="fas fa-store text-5xl sm:text-6xl lg:text-7xl opacity-20 group-hover:opacity-30 transition-opacity"></i>
+            
+            <!-- Distance Badge - Premium Position -->
+            <div class="absolute top-2 right-2 lg:top-3 lg:right-3">
+              <div class="distance-badge rounded-full px-2.5 lg:px-4 py-1 lg:py-2 text-white text-xs lg:text-xs font-black shadow-xl flex items-center gap-1.5">
+                <i class="fas fa-location-arrow text-xs"></i>
+                <span x-text="merchant.distance.toFixed(1) + 'km'"></span>
+              </div>
+            </div>
+
+            <!-- Status Badge - Premium -->
+            <div class="absolute top-2 left-2 lg:top-3 lg:left-3 rounded-full px-2.5 lg:px-3.5 py-1 lg:py-1.5 flex items-center gap-1 status-badge text-xs lg:text-xs"
+                 :class="merchant.is_open ? 'status-open' : 'status-closed'">
+              <i :class="merchant.is_open ? 'fas fa-check-circle' : 'fas fa-circle-xmark'" class="text-xs"></i>
+              <span x-text="merchant.is_open ? 'Open' : 'Closed'" class="font-bold hidden sm:inline"></span>
+            </div>
+
+            <!-- Rating Badge - Bottom Right -->
+            <div class="absolute bottom-2 right-2 lg:bottom-3 lg:right-3 bg-white/95 backdrop-blur-sm rounded-full px-2 lg:px-3 py-0.5 lg:py-1 flex items-center gap-0.5 border-2 border-purple-300 text-xs shadow-lg">
+              <i class="fas fa-star text-amber-400 text-xs"></i>
+              <span class="font-bold text-slate-900" x-text="merchant.rating.toFixed(1)"></span>
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="p-3 lg:p-4 flex flex-col flex-grow">
+            <!-- Business Name & Location in one line -->
+            <div class="mb-2.5 lg:mb-3">
+              <h3 class="font-bold text-sm lg:text-base text-slate-900 line-clamp-1 group-hover:text-purple-600 transition-colors duration-300"
+                  x-text="merchant.business_name"></h3>
+              <p class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                <i class="fas fa-map-pin text-purple-600 text-xs"></i>
+                <span x-text="merchant.city" class="truncate"></span>
+              </p>
+            </div>
+
+            <!-- Quick Stats - Compact -->
+            <div class="grid grid-cols-3 gap-1.5 mb-2.5 lg:mb-3">
+              <div class="bg-gradient-to-br from-purple-50 to-white rounded-lg p-1.5 lg:p-2 text-center border border-purple-200">
+                <i class="fas fa-clock text-purple-600 text-xs mb-0.5 block"></i>
+                <p class="font-bold text-slate-900 text-xs" x-text="merchant.response_time"></p>
+              </div>
+              <div class="bg-gradient-to-br from-emerald-50 to-white rounded-lg p-1.5 lg:p-2 text-center border border-emerald-200">
+                <i class="fas fa-check text-emerald-600 text-xs mb-0.5 block"></i>
+                <p class="font-bold text-emerald-700 text-xs" x-text="merchant.completion_rate + '%'"></p>
+              </div>
+              <div class="bg-gradient-to-br from-orange-50 to-white rounded-lg p-1.5 lg:p-2 text-center border border-orange-200">
+                <i class="fas fa-briefcase text-orange-600 text-xs mb-0.5 block"></i>
+                <p class="font-bold text-orange-700 text-xs" x-text="merchant.services_offered.length"></p>
+              </div>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-2.5 lg:mb-3 p-2 lg:p-2.5 bg-purple-50 rounded-lg border border-purple-200 text-center">
+              <p class="text-xs lg:text-sm text-purple-700 font-bold">
+                <i class="fas fa-peso-sign text-xs mr-0.5"></i><span x-text="(merchant.min_price/1000).toFixed(1) + 'k'" class="font-black"></span> - <span x-text="(merchant.max_price/1000).toFixed(1) + 'k'" class="font-black"></span>
+              </p>
+            </div>
+
+            <!-- Services Tag -->
+            <div class="mb-3 lg:mb-3">
+              <template x-for="(service, idx) in merchant.services_offered.slice(0, 1)" :key="idx">
+                <span class="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-lg border border-purple-300 line-clamp-1"
+                      x-text="service"></span>
+              </template>
+              <template x-if="merchant.services_offered.length > 1">
+                <span class="inline-block ml-1 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded-lg border border-slate-300"
+                      x-text="'+' + (merchant.services_offered.length - 1)"></span>
+              </template>
+            </div>
+
+            <!-- CTA Button -->
+            <button class="mt-auto w-full py-2 lg:py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold rounded-lg transition-all duration-300 hover:shadow-lg transform hover:scale-102 text-xs lg:text-sm flex items-center justify-center gap-1.5 shadow-md">
+              <i class="fas fa-arrow-right text-xs"></i>
+              <span>View</span>
+            </button>
+          </div>
+        </a>
+      </template>
+    </div>
+
+    <!-- Empty State - Premium -->
+    <div x-show="!isLoading && merchants.length === 0" class="premium-card rounded-2xl lg:rounded-3xl p-10 lg:p-20 text-center border-2 border-purple-200 animate-fade-scale">
+      <div class="text-7xl lg:text-9xl mb-6 lg:mb-8 inline-block text-gradient bg-gradient-to-r from-purple-300 to-purple-400 bg-clip-text text-transparent">
+        <i class="fas fa-inbox"></i>
+      </div>
+      <h3 class="text-3xl lg:text-5xl font-black text-slate-900 mb-3 lg:mb-4 tracking-tight">Nothing Found</h3>
+      <p class="text-slate-600 mb-6 lg:mb-10 text-base lg:text-lg max-w-lg mx-auto leading-relaxed font-medium">Try different filters or expand your search radius.</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <button @click="resetFilters()" class="px-6 lg:px-8 py-2.5 lg:py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold rounded-lg lg:rounded-2xl transition-all hover:shadow-2xl transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base">
+          <i class="fas fa-redo text-sm lg:text-base"></i> Reset
+        </button>
+        <a href="{{ url_for('user.dashboard') }}" class="px-6 lg:px-8 py-2.5 lg:py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold rounded-lg lg:rounded-2xl transition-all flex items-center justify-center gap-2 border-2 border-slate-300 hover:border-slate-400 text-sm lg:text-base">
+          <i class="fas fa-arrow-left text-sm lg:text-base"></i> Back
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
-  // Format numbers with commas
-  function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
+function premiumNearbyServices() {
+  return {
+    merchants: [],
+    searchQuery: '',
+    selectedService: '',
+    maxDistance: '25',
+    sortBy: 'distance',
+    userLocation: null,
+    hasLocation: false,
+    locationRequested: false,
+    isLoading: false,
 
-  // View merchant details
-  function viewMerchantDetails(merchantId) {
-    // TODO: Replace with actual route to merchant detail page
-    alert(`Loading details for merchant ${merchantId}...`);
-    // window.location.href = `/user/merchant/${merchantId}`;
-  }
+    init() {
+      console.log('Premium Nearby Services initialized');
+      this.requestLocation();
+    },
 
-  // Search functionality
-  document.getElementById('searchInput')?.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const cards = document.querySelectorAll('.merchant-card');
-    
-    cards.forEach(card => {
-      const merchantName = card.querySelector('.merchant-name').textContent.toLowerCase();
-      const services = Array.from(card.querySelectorAll('.service-tag'))
-        .map(tag => tag.textContent.toLowerCase())
-        .join(' ');
-      
-      const isMatch = merchantName.includes(searchTerm) || services.includes(searchTerm);
-      card.style.display = isMatch ? '' : 'none';
-    });
-  });
-
-  // Sort functionality
-  document.getElementById('sortDropdown')?.addEventListener('change', (e) => {
-    const sortBy = e.target.value;
-    const grid = document.querySelector('.merchants-grid');
-    const cards = Array.from(document.querySelectorAll('.merchant-card'));
-    
-    cards.sort((a, b) => {
-      const aData = a.dataset;
-      const bData = b.dataset;
-      
-      switch(sortBy) {
-        case 'distance':
-          const aDistance = parseFloat(a.querySelector('.distance-badge').textContent);
-          const bDistance = parseFloat(b.querySelector('.distance-badge').textContent);
-          return aDistance - bDistance;
-        case 'rating':
-          const aRating = parseFloat(a.querySelector('.rating-value').textContent);
-          const bRating = parseFloat(b.querySelector('.rating-value').textContent);
-          return bRating - aRating;
-        case 'reviews':
-          const aReviews = parseInt(a.querySelector('.review-count').textContent);
-          const bReviews = parseInt(b.querySelector('.review-count').textContent);
-          return bReviews - aReviews;
-        default:
-          return 0;
+    requestLocation() {
+      if (!navigator.geolocation) {
+        console.log('Geolocation not available');
+        this.fetchMerchants();
+        return;
       }
-    });
-    
-    cards.forEach(card => grid.appendChild(card));
-  });
 
-  // Animate cards on load
-  document.querySelectorAll('.merchant-card').forEach((card, index) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    setTimeout(() => {
-      card.style.transition = 'all 0.5s ease';
-      card.style.opacity = '1';
-      card.style.transform = 'translateY(0)';
-    }, index * 50);
-  });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('Location obtained:', position.coords);
+          this.userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          this.hasLocation = true;
+          this.locationRequested = true;
+          this.fetchMerchants();
+        },
+        (error) => {
+          console.log('Location error:', error);
+          this.locationRequested = true;
+          this.fetchMerchants();
+        }
+      );
+    },
+
+    skipLocation() {
+      this.locationRequested = true;
+      this.fetchMerchants();
+    },
+
+    async fetchMerchants() {
+      this.isLoading = true;
+      try {
+        const payload = {
+          latitude: this.userLocation?.lat || 14.5995,
+          longitude: this.userLocation?.lng || 120.9842,
+          max_distance: parseInt(this.maxDistance),
+          search: this.searchQuery,
+          service: this.selectedService,
+          sort_by: this.sortBy
+        };
+
+        console.log('Fetching with:', payload);
+
+        const response = await fetch('/user/api/merchants/nearby', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+          this.merchants = data.merchants;
+          console.log('Loaded merchants:', this.merchants.length);
+        } else {
+          this.merchants = [];
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        this.merchants = [];
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    resetFilters() {
+      this.searchQuery = '';
+      this.selectedService = '';
+      this.maxDistance = '25';
+      this.sortBy = this.hasLocation ? 'distance' : 'name';
+      this.fetchMerchants();
+    }
+  }
+}
 </script>
-
 {% endblock %}

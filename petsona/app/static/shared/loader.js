@@ -1,5 +1,5 @@
 // Global Loader Management
-const LoaderManager = {
+window.LoaderManager = window.LoaderManager || {
     overlay: null,
     timeout: null,
     maxWaitTime: 5000, // 5 second max timeout
@@ -204,9 +204,9 @@ const LoaderManager = {
 
 // Initialize loader when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => LoaderManager.init());
+    document.addEventListener('DOMContentLoaded', () => window.LoaderManager.init());
 } else {
-    LoaderManager.init();
+    window.LoaderManager.init();
 }
 
 // Expose for manual control if needed

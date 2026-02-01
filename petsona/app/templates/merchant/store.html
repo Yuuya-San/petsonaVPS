@@ -1,699 +1,623 @@
 {% extends "merchant/base.html" %}
 
 {% block content %}
-<style>
-/* ================================
-   STORE PAGE LAYOUT
-================================ */
-.store-page {
-  padding: 2.5rem 1.5rem;
-  background: #f5f5f7;
-  min-height: 100vh;
-}
-
-.store-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* ================================
-   PAGE HEADER
-================================ */
-.page-header {
-  margin-bottom: 2.5rem;
-}
-
-.page-title {
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-  font-size: 1rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-/* ================================
-   APPROVAL BANNER
-================================ */
-.approval-banner {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 146, 60, 0.1));
-  border-left: 4px solid #f59e0b;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.approval-banner.pending {
-  border-left-color: #f59e0b;
-}
-
-.approval-banner.approved {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
-  border-left-color: #22c55e;
-}
-
-.approval-banner.rejected {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(225, 29, 72, 0.1));
-  border-left-color: #ef4444;
-}
-
-.approval-icon {
-  font-size: 1.8rem;
-  min-width: 40px;
-  text-align: center;
-}
-
-.approval-icon.pending {
-  color: #f59e0b;
-}
-
-.approval-icon.approved {
-  color: #22c55e;
-}
-
-.approval-icon.rejected {
-  color: #ef4444;
-}
-
-.approval-content h3 {
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 0.3rem;
-  font-size: 1rem;
-}
-
-.approval-content p {
-  color: #6b7280;
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-/* ================================
-   TWO COLUMN LAYOUT
-================================ */
-.store-layout {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 2rem;
-  margin-bottom: 2.5rem;
-}
-
-/* ================================
-   STORE INFO CARD
-================================ */
-.store-info-section {
-  background: white;
-  border-radius: 18px;
-  padding: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-
-.store-header {
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  padding: 2rem;
-  color: white;
-  position: relative;
-}
-
-.store-banner {
-  width: 100%;
-  height: 150px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  border-radius: 12px;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  opacity: 0.9;
-}
-
-.store-logo-section {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-
-.store-logo {
-  width: 100px;
-  height: 100px;
-  border-radius: 16px;
-  background: white;
-  border: 3px solid #fff;
-  object-fit: cover;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.edit-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 35px;
-  height: 35px;
-  background: #22c55e;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  cursor: pointer;
-  border: 3px solid white;
-  transition: all 0.3s ease;
-}
-
-.edit-badge:hover {
-  background: #16a34a;
-  transform: scale(1.1);
-}
-
-.store-header h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 0 0.5rem 0;
-}
-
-.store-header .badge {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-/* ================================
-   STORE DETAILS
-================================ */
-.store-details {
-  padding: 2rem;
-}
-
-.detail-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.detail-label {
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.detail-value {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.detail-value.status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.status-dot.active {
-  background: #22c55e;
-}
-
-.status-dot.inactive {
-  background: #ef4444;
-}
-
-.detail-value a {
-  color: #8b5cf6;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.detail-value a:hover {
-  text-decoration: underline;
-}
-
-.description-item {
-  grid-column: 1 / -1;
-}
-
-.description-item .detail-value {
-  color: #6b7280;
-  font-weight: normal;
-  line-height: 1.6;
-}
-
-/* ================================
-   ACTION BUTTONS
-================================ */
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid #f3f4f6;
-}
-
-.btn-edit {
-  flex: 1;
-  padding: 0.95rem 1.5rem;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-}
-
-.btn-edit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.3);
-}
-
-.btn-view {
-  flex: 1;
-  padding: 0.95rem 1.5rem;
-  background: #f3f4f6;
-  color: #1f2937;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-}
-
-.btn-view:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
-}
-
-/* ================================
-   SIDEBAR STATS
-================================ */
-.store-stats {
-  background: white;
-  border-radius: 18px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  height: fit-content;
-}
-
-.stats-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-}
-
-.stat-block {
-  padding: 1.2rem 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.stat-block:last-child {
-  border-bottom: none;
-}
-
-.stat-block-label {
-  font-size: 0.85rem;
-  color: #9ca3af;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.stat-block-value {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #1f2937;
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.stat-block-unit {
-  font-size: 0.9rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.stat-block-change {
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-  color: #22c55e;
-}
-
-/* ================================
-   EMPTY STATE
-================================ */
-.empty-store {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.empty-store-icon {
-  font-size: 4rem;
-  color: #d1d5db;
-  margin-bottom: 1rem;
-}
-
-.empty-store-text h3 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
-}
-
-.empty-store-text p {
-  color: #6b7280;
-  margin-bottom: 1.5rem;
-}
-
-.btn-setup {
-  display: inline-block;
-  padding: 0.8rem 2rem;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-setup:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.3);
-}
-
-/* ================================
-   RESPONSIVE
-================================ */
-@media (max-width: 1024px) {
-  .store-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .store-stats {
-    height: auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .store-page {
-    padding: 1.5rem 0.75rem;
-  }
-
-  .page-title {
-    font-size: 1.8rem;
-  }
-
-  .store-header {
-    padding: 1.5rem;
-  }
-
-  .store-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .store-details {
-    padding: 1.5rem;
-  }
-
-  .detail-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .store-stats {
-    padding: 1.5rem;
-    margin-top: 2rem;
-  }
-}
-</style>
-
-<div class="store-page">
-  <div class="store-container">
-    
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1 class="page-title">Store Management</h1>
-      <p class="page-subtitle">Manage your online store information and settings</p>
+<!-- Icons Library - Remixicon CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.6.0/remixicon.min.css" />
+<!-- Global Loader -->
+<div id="loader-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden z-50 flex items-center justify-center">
+  <div class="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl max-w-sm mx-4 animate-fade-in border border-white/20">
+    <div class="flex flex-col items-center gap-4">
+      <div class="relative w-16 h-16">
+        <div class="text-4xl animate-bounce">🐾</div>
+        <div class="absolute inset-0 border-4 border-transparent border-t-purple-400 rounded-full animate-spin"></div>
+      </div>
+      <div class="text-center">
+        <p class="text-gray-700 font-semibold mb-3">Updating your store</p>
+        <div class="w-48 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
     </div>
-
-    <!-- Approval Status Banner -->
-    {% if merchant %}
-      {% if merchant.application_status == 'pending' %}
-        <div class="approval-banner pending">
-          <div class="approval-icon pending">
-            <i class="fas fa-hourglass-half"></i>
-          </div>
-          <div class="approval-content">
-            <h3>Pending Approval</h3>
-            <p>Your store information is under review. We'll notify you once it's approved.</p>
-          </div>
-        </div>
-      {% elif merchant.application_status == 'approved' %}
-        <div class="approval-banner approved">
-          <div class="approval-icon approved">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <div class="approval-content">
-            <h3>Store Approved</h3>
-            <p>Your store is live and visible to customers. You can make changes anytime.</p>
-          </div>
-        </div>
-      {% elif merchant.application_status == 'rejected' %}
-        <div class="approval-banner rejected">
-          <div class="approval-icon rejected">
-            <i class="fas fa-times-circle"></i>
-          </div>
-          <div class="approval-content">
-            <h3>Changes Required</h3>
-            <p>{{ merchant.rejection_reason or 'Please update the highlighted fields and resubmit for approval.' }}</p>
-          </div>
-        </div>
-      {% endif %}
-
-      <!-- Main Content -->
-      <div class="store-layout">
-        <!-- Store Information -->
-        <div class="store-info-section">
-          <!-- Store Header -->
-          <div class="store-header">
-            <div class="store-banner">
-              <i class="fas fa-store"></i>
-            </div>
-            
-            <div class="store-logo-section">
-              <img src="https://via.placeholder.com/100?text={{ merchant.business_name[:3] }}" alt="{{ merchant.business_name }}" class="store-logo">
-              <div class="edit-badge" title="Upload new logo">
-                <i class="fas fa-camera"></i>
-              </div>
-            </div>
-
-            <h2>{{ merchant.business_name }}</h2>
-            <span class="badge">
-              <i class="fas fa-circle"></i> Online
-            </span>
-          </div>
-
-          <!-- Store Details -->
-          <div class="store-details">
-            <div class="detail-row">
-              <div class="detail-item">
-                <span class="detail-label">Store ID</span>
-                <span class="detail-value">#STORE{{ merchant.id }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Status</span>
-                <span class="detail-value status">
-                  <span class="status-dot active"></span>
-                  Online
-                </span>
-              </div>
-            </div>
-
-            <div class="detail-row">
-              <div class="detail-item">
-                <span class="detail-label">Email</span>
-                <span class="detail-value">{{ merchant.contact_email }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Phone</span>
-                <span class="detail-value">{{ merchant.contact_phone }}</span>
-              </div>
-            </div>
-
-            <div class="detail-row">
-              <div class="detail-item">
-                <span class="detail-label">Location</span>
-                <span class="detail-value">{{ merchant.city }}, {{ merchant.province }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Full Address</span>
-                <span class="detail-value">{{ merchant.full_address }}</span>
-              </div>
-            </div>
-
-            <div class="detail-row description-item">
-              <div class="detail-item">
-                <span class="detail-label">Store Description</span>
-                <span class="detail-value">{{ merchant.business_description }}</span>
-              </div>
-            </div>
-
-            <div class="detail-row">
-              <div class="detail-item">
-                <span class="detail-label">Opening Time</span>
-                <span class="detail-value">{{ merchant.opening_time }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Closing Time</span>
-                <span class="detail-value">{{ merchant.closing_time }}</span>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-              <a href="{{ url_for('merchant.store_edit') }}" class="btn-edit">
-                <i class="fas fa-edit"></i>
-                Edit Store Info
-              </a>
-              <button class="btn-view" onclick="window.open('#', '_blank')">
-                <i class="fas fa-eye"></i>
-                View Public Page
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sidebar Stats -->
-        <div class="store-stats">
-          <h3 class="stats-title">Store Performance</h3>
-
-          <div class="stat-block">
-            <span class="stat-block-label">Total Bookings</span>
-            <div class="stat-block-value">
-              {{ booking_count }}
-              <span class="stat-block-unit">bookings</span>
-            </div>
-            <div class="stat-block-change">
-              <i class="fas fa-arrow-up"></i> 12 this month
-            </div>
-          </div>
-
-          <div class="stat-block">
-            <span class="stat-block-label">Store Rating</span>
-            <div class="stat-block-value">
-              {{ store_rating }}
-              <i class="fas fa-star" style="color: #f59e0b; font-size: 1.2rem;"></i>
-            </div>
-            <div class="stat-block-change">
-              From {{ total_reviews }} reviews
-            </div>
-          </div>
-
-          <div class="stat-block">
-            <span class="stat-block-label">Response Time</span>
-            <div class="stat-block-value">{{ avg_response_time }}</div>
-            <div class="stat-block-change">
-              <i class="fas fa-check-circle" style="color: #22c55e;"></i> Great
-            </div>
-          </div>
-
-          <div class="stat-block">
-            <span class="stat-block-label">Completion Rate</span>
-            <div class="stat-block-value">{{ completion_rate }}<span class="stat-block-unit">%</span></div>
-            <div class="stat-block-change">
-              <i class="fas fa-arrow-up" style="color: #22c55e;"></i> +5% vs last month
-            </div>
-          </div>
-        </div>
-      </div>
-    {% else %}
-      <div class="empty-store">
-        <div class="empty-store-icon">
-          <i class="fas fa-inbox"></i>
-        </div>
-        <div class="empty-store-text">
-          <h3>Store Information Not Found</h3>
-          <p>You need to complete your merchant application to set up your store.</p>
-          <a href="{{ url_for('merchant.apply') }}" class="btn-setup">
-            <i class="fas fa-plus"></i> Complete Application
-          </a>
-        </div>
-      </div>
-    {% endif %}
-
   </div>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Edit logo
-    document.querySelector('.edit-badge')?.addEventListener('click', () => {
-      alert('Logo upload feature coming soon!');
-      // Implement file upload modal
-    });
+<div class="min-h-screen bg-gradient-to-b from-white via-purple-50/20 to-white py-8 sm:py-12 lg:py-16 px-2 sm:px-3 lg:px-6">
+  <div class="max-w-full mx-auto">
+    
+    <!-- Page Header -->
+    <div class="mb-12 animate-fade-in">
+      <div class="flex items-start sm:items-center gap-6 mb-4">
+        <div class="w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl flex items-center justify-center text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 transform flex-shrink-0">
+          <i class="ri-store-2-line text-3xl"></i>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">Store Dashboard</h1>
+          <p class="text-gray-600 font-medium text-sm sm:text-base mt-2 flex items-center gap-2">
+            <i class="ri-bar-chart-line text-purple-600"></i> Manage your pet care business
+          </p>
+        </div>
+      </div>
+    </div>
 
-    // Animate on load
-    document.querySelectorAll('.store-info-section').forEach((el, index) => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      setTimeout(() => {
-        el.style.transition = 'all 0.5s ease';
-        el.style.opacity = '1';
-        el.style.transform = 'translateY(0)';
-      }, index * 100);
-    });
-  });
+    {% if merchant %}
+      <!-- Status Banner - Glass Morphism -->
+      <div class="mb-12 animate-fade-in" style="animation-delay: 0.1s">
+        <div class="relative overflow-hidden rounded-2xl bg-white/80 backdrop-blur-xl shadow-lg border border-white/60 p-6 group hover:shadow-xl transition-all duration-300">
+          <div class="absolute top-0 left-0 right-0 h-1 {% if merchant.application_status == 'approved' %}bg-emerald-500{% elif merchant.application_status == 'pending' %}bg-amber-500{% else %}bg-rose-500{% endif %} rounded-t-2xl"></div>
+          <div class="flex items-start sm:items-center gap-6">
+            <div class="text-5xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              {% if merchant.application_status == 'approved' %}<i class="ri-verified-badge-fill text-emerald-500"></i>{% elif merchant.application_status == 'pending' %}<i class="ri-time-line text-amber-500"></i>{% else %}<i class="ri-alert-line text-rose-500"></i>{% endif %}
+            </div>
+            <div class="flex-1">
+              {% if merchant.application_status == 'approved' %}
+                <h3 class="text-lg font-bold text-emerald-700">Store Verified & Live</h3>
+                <p class="text-gray-600 text-sm mt-1">Your store is verified and visible to customers worldwide</p>
+              {% elif merchant.application_status == 'pending' %}
+                <h3 class="text-lg font-bold text-amber-700">Pending Verification</h3>
+                <p class="text-gray-600 text-sm mt-1">Your store is under review. We'll notify you within 24-48 hours</p>
+              {% else %}
+                <h3 class="text-lg font-bold text-rose-700">Changes Required</h3>
+                <p class="text-gray-600 text-sm mt-1">{{ merchant.rejection_reason or 'Please update your store information' }}</p>
+              {% endif %}
+            </div>
+            <a href="{{ url_for('merchant.store_edit') }}" class="hidden sm:flex px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 items-center gap-2 flex-shrink-0">
+              <i class="ri-edit-line"></i>
+              <span>Edit</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Layout -->
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-10 sm:mb-12">
+        
+        <!-- Store Info Section (Main Content) -->
+        <div class="md:col-span-3 space-y-4 sm:space-y-5 lg:space-y-6 animate-fade-in" style="animation-delay: 0.2s">
+          
+          <!-- Store Header Card -->
+          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-white/60 hover:border-purple-200/60 transition-all duration-300 animate-fade-in hover:shadow-xl" style="animation-delay: 0.2s">
+            <!-- Banner -->
+            <div class="h-32 sm:h-40 bg-gradient-to-br from-purple-100 to-lavender-50 relative overflow-hidden">
+              <div class="absolute inset-0 opacity-10">
+                <svg class="w-full h-full" viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0,150 Q300,50 600,150 T1200,150" stroke="currentColor" fill="none" stroke-width="2" color="#9333ea"/>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Logo & Info -->
+            <div class="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
+              <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-24 sm:-mt-28 mb-6 sm:mb-8 relative z-10">
+                <!-- Logo -->
+                <div class="relative">
+                  <div class="w-32 h-32 sm:w-40 sm:h-40 bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl border-4 border-purple-200/60 shadow-lg flex items-center justify-center overflow-hidden group/logo hover:shadow-xl transition-all duration-300">
+                    {% if merchant.logo_path %}
+                      {% if merchant.logo_path.startswith('/') or merchant.logo_path.startswith('http') %}
+                        <img id="store-logo" 
+                             src="{{ merchant.logo_path }}" 
+                             alt="{{ merchant.business_name }}" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;text-6xl text-gray-300&quot;><i class=&quot;ri-shopping-bag-line&quot;></i></div>'"
+                             class="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-300">
+                      {% else %}
+                        <img id="store-logo" 
+                             src="{{ url_for('static', filename=merchant.logo_path) }}" 
+                             alt="{{ merchant.business_name }}" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;text-6xl text-gray-300&quot;><i class=&quot;ri-shopping-bag-line&quot;></i></div>'"
+                             class="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-300">
+                      {% endif %}
+                    {% else %}
+                      <div class="text-6xl text-gray-300 group-hover/logo:scale-125 transition-transform duration-300">
+                        <i class="ri-shopping-bag-line"></i>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <button onclick="openLogoUploadModal()" class="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 border-4 border-white active:scale-95 group/btn transform">
+                    <i class="ri-camera-fill text-lg"></i>
+                  </button>
+                </div>
+                
+                <!-- Store Name & Status -->
+                <div class="flex-1 w-full">
+                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">{{ merchant.business_name }}</h2>
+                  <div class="flex items-center gap-3 mb-6">
+                    <div class="flex items-center gap-2">
+                      <div class="w-4 h-4 {% if merchant.is_approved %}bg-emerald-500 shadow-lg shadow-emerald-500/50{% else %}bg-amber-500 shadow-lg shadow-amber-500/50{% endif %} rounded-full animate-pulse"></div>
+                      <span class="font-medium text-sm {% if merchant.is_approved %}text-emerald-700{% else %}text-amber-700{% endif %}">
+                        {% if merchant.is_approved %}<i class="ri-check-line"></i> Online & Verified{% else %}<i class="ri-time-line"></i> Pending{% endif %}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 sm:gap-3">
+                    <a href="{{ url_for('merchant.store_edit') }}" class="px-4 sm:px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm sm:text-base transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 flex items-center gap-2 inline-flex">
+                      <i class="ri-edit-line"></i>
+                      <span>Edit Store</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Info Cards -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6 sm:mb-8">
+                <!-- Email -->
+                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                  <div class="relative z-10">
+                    <div class="text-3xl mb-2 text-purple-600">📧</div>
+                    <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Email</p>
+                    <p class="text-xs font-semibold text-gray-900 break-all" title="{{ merchant.contact_email }}">{{ merchant.contact_email }}</p>
+                  </div>
+                </div>
+                
+                <!-- Phone -->
+                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                  <div class="relative z-10">
+                    <div class="text-3xl mb-2">📱</div>
+                    <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Phone</p>
+                    <p class="text-xs font-semibold text-gray-900 break-all">{{ merchant.contact_phone }}</p>
+                  </div>
+                </div>
+                
+                <!-- Location -->
+                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                  <div class="relative z-10">
+                    <div class="text-3xl mb-2">📍</div>
+                    <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Location</p>
+                    <p class="text-xs font-semibold text-gray-900 break-words">{% if merchant.barangay %}{{ merchant.barangay }}, {% endif %}{{ merchant.city }}, {{ merchant.province }}</p>
+                  </div>
+                </div>
+                
+                <!-- Hours -->
+                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                  <div class="relative z-10">
+                    <div class="text-3xl mb-2">🕐</div>
+                    <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Hours</p>
+                    <p class="text-xs font-semibold text-gray-900 break-words">{{ merchant.opening_time }} - {{ merchant.closing_time }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Details Sections -->
+              {% if merchant.get_services_list() %}
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4 w-full">
+                <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <i class="ri-briefcase-line text-purple-600 text-lg"></i> Services Offered
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
+                  {% for service in merchant.get_services_list() %}
+                    <div class="text-gray-700 text-xs sm:text-sm flex items-start gap-2">
+                      <span class="text-purple-500 flex-shrink-0">•</span><span class="break-words">{{ service }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              {% if merchant.get_pets_list() %}
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4 w-full">
+                <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <i class="ri-animal-paw-line text-rose-600 text-lg"></i> Pets Accepted
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
+                  {% for pet in merchant.get_pets_list() %}
+                    <div class="text-gray-700 text-xs sm:text-sm flex items-start gap-2">
+                      <span class="text-rose-500 flex-shrink-0">•</span><span class="break-words">{{ pet }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+                <h4 class="font-bold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
+                  <i class="ri-user-heart-line text-purple-600 text-lg"></i> Capacity & Pricing
+                </h4>
+                <div class="space-y-2 text-gray-700 text-sm">
+                  <p><strong>Max pets per day:</strong> {{ merchant.max_pets_per_day }}</p>
+                  <p><strong>Price per day:</strong> ₱{{ '%.2f'|format(merchant.min_price_per_day) }} - ₱{{ '%.2f'|format(merchant.max_price_per_day) }}</p>
+                </div>
+              </div>
+
+              {% if merchant.get_operating_days() %}
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+                <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <i class="ri-calendar-schedule-line text-amber-600 text-lg"></i> Operating Days
+                </h4>
+                <p class="text-gray-700 text-sm">{{ merchant.get_operating_days()|join(', ') }}</p>
+              </div>
+              {% endif %}
+
+              {% if merchant.business_description %}
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+                <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <i class="ri-file-text-line text-indigo-600 text-lg"></i> Store Description
+                </h4>
+                <p class="text-gray-700 leading-relaxed text-sm">{{ merchant.business_description }}</p>
+              </div>
+              {% endif %}
+
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+                <h4 class="font-bold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
+                  <i class="ri-map-pin-line text-purple-600 text-lg"></i> Full Address
+                </h4>
+                <p class="text-gray-700 text-sm">{{ merchant.full_address }}{% if merchant.postal_code %}, {{ merchant.postal_code }}{% endif %}</p>
+              </div>
+
+              {% if merchant.cancellation_policy %}
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-6 sm:mb-8">
+                <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <i class="ri-prohibition-line text-red-600 text-lg"></i> Cancellation Policy
+                </h4>
+                <p class="text-gray-700 leading-relaxed text-sm">{{ merchant.cancellation_policy }}</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Sidebar -->
+        <div class="md:col-span-2 space-y-2 sm:space-y-3 animate-fade-in" style="animation-delay: 0.3s">
+          <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+            <i class="ri-pie-chart-2-line text-purple-600 text-xl sm:text-2xl"></i> Performance
+          </h3>
+          
+          <!-- Stat Cards - Glass Morphism -->
+          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Bookings</p>
+                <p class="text-3xl font-bold text-purple-600 mt-2">{{ booking_count }}</p>
+              </div>
+              <div class="text-3xl text-purple-200">
+                <i class="ri-calendar-2-line"></i>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Store Rating</p>
+                <p class="text-3xl font-bold text-amber-600 mt-2">{{ store_rating }}<span class="text-xl">/5</span></p>
+              </div>
+              <div class="text-3xl text-amber-200">
+                <i class="ri-star-line"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Completion Rate</p>
+                <p class="text-3xl font-bold text-purple-600 mt-2">{{ completion_rate }}<span class="text-xl">%</span></p>
+              </div>
+              <div class="text-3xl text-purple-200">
+                <i class="ri-checkbox-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Avg Response</p>
+                <p class="text-3xl font-bold text-emerald-600 mt-2">{{ avg_response_time }}</p>
+              </div>
+              <div class="text-3xl text-emerald-200">
+                <i class="ri-lightning-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Earnings</p>
+                <p class="text-2xl font-bold text-rose-600 mt-2">{{ merchant_earnings }}</p>
+              </div>
+              <div class="text-3xl text-rose-200">
+                <i class="ri-money-dollar-circle-line"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">This Month</p>
+                <p class="text-3xl font-bold text-orange-600 mt-2">{{ bookings_this_month }}</p>
+              </div>
+              <div class="text-3xl text-orange-200">
+                <i class="ri-bar-chart-2-line"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Status Overview -->
+      <div class="mb-10 sm:mb-12 animate-fade-in w-full" style="animation-delay: 0.4s">
+        <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+          <i class="ri-pie-chart-line text-purple-600 text-xl sm:text-2xl"></i> Booking Status Overview
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-4 w-full">
+          <!-- Confirmed -->
+          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-emerald-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-start justify-between mb-3">
+              <div class="text-3xl text-emerald-500">
+                <i class="ri-check-line"></i>
+              </div>
+              <div class="text-3xl text-emerald-100">
+                <i class="ri-check-double-fill"></i>
+              </div>
+            </div>
+            <p class="text-3xl sm:text-4xl font-bold text-emerald-600 mb-1">{{ confirmed_bookings }}</p>
+            <p class="text-gray-600 font-medium text-sm">Confirmed</p>
+          </div>
+
+          <!-- Pending -->
+          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-amber-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-start justify-between mb-3">
+              <div class="text-3xl text-amber-500">
+                <i class="ri-time-line"></i>
+              </div>
+              <div class="text-3xl text-amber-100">
+                <i class="ri-timer-flash-fill"></i>
+              </div>
+            </div>
+            <p class="text-3xl sm:text-4xl font-bold text-amber-600 mb-1">{{ pending_bookings }}</p>
+            <p class="text-gray-600 font-medium text-sm">Pending</p>
+          </div>
+
+          <!-- Completed -->
+          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-cyan-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-start justify-between mb-3">
+              <div class="text-3xl text-cyan-500">
+                <i class="ri-verified-badge-line"></i>
+              </div>
+              <div class="text-3xl text-cyan-100">
+                <i class="ri-checkbox-circle-fill"></i>
+              </div>
+            </div>
+            <p class="text-3xl sm:text-4xl font-bold text-cyan-600 mb-1">{{ completed_bookings }}</p>
+            <p class="text-gray-600 font-medium text-sm">Completed</p>
+          </div>
+
+          <!-- Cancelled -->
+          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-rose-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-start justify-between mb-3">
+              <div class="text-3xl text-rose-500">
+                <i class="ri-close-line"></i>
+              </div>
+              <div class="text-3xl text-rose-100">
+                <i class="ri-error-warning-fill"></i>
+              </div>
+            </div>
+            <p class="text-4xl font-bold text-rose-600 mb-1">{{ cancelled_bookings }}</p>
+            <p class="text-gray-600 font-medium text-sm">Cancelled</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Bookings Table -->
+      <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/60 overflow-hidden animate-fade-in" style="animation-delay: 0.5s">
+        <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-white/40 bg-white/60 backdrop-blur-sm">
+          <h3 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-3">
+            <i class="ri-time-line text-purple-600 text-xl sm:text-2xl"></i> Recent Bookings
+          </h3>
+        </div>
+        
+        {% if recent_bookings %}
+          <div class="overflow-x-auto w-full">
+            <table class="w-full min-w-max">
+              <thead>
+                <tr class="border-b border-white/40 bg-white/40 backdrop-blur-sm">
+                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Booking ID</th>
+                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Customer</th>
+                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Dates</th>
+                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Status</th>
+                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Amount</th>
+                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-center text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/40">
+                {% for booking in recent_bookings %}
+                <tr class="hover:bg-purple-50/50 transition-colors duration-200 backdrop-blur-sm">
+                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4">
+                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200 whitespace-nowrap">
+                      {{ booking.booking_number }}
+                    </span>
+                  </td>
+                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4">
+                    <div>
+                      <p class="font-semibold text-gray-900 text-xs sm:text-sm break-words">{{ booking.customer_name }}</p>
+                      <p class="text-xs text-gray-500 break-all">{{ booking.customer_email }}</p>
+                    </div>
+                  </td>
+                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-gray-700 text-xs sm:text-sm whitespace-nowrap">
+                    {{ booking.check_in_date.strftime('%b %d') }} - {{ booking.check_out_date.strftime('%b %d, %Y') }}
+                  </td>
+                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4">
+                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold whitespace-nowrap
+                      {% if booking.status == 'confirmed' %}bg-emerald-100 text-emerald-700 border border-emerald-200{% elif booking.status == 'pending' %}bg-amber-100 text-amber-700 border border-amber-200{% elif booking.status == 'completed' %}bg-cyan-100 text-cyan-700 border border-cyan-200{% else %}bg-rose-100 text-rose-700 border border-rose-200{% endif %}">
+                      <i class="ri-{% if booking.status == 'confirmed' %}check-line{% elif booking.status == 'pending' %}time-line{% elif booking.status == 'completed' %}verified-badge-line{% else %}close-line{% endif %} mr-1"></i>
+                      {{ booking.status.capitalize() }}
+                    </span>
+                  </td>
+                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 font-semibold text-gray-900 text-xs sm:text-sm whitespace-nowrap">
+                    ₱{{ '%.2f'|format(booking.total_amount) }}
+                  </td>
+                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-center">
+                    <button class="inline-flex items-center justify-center w-8 sm:w-9 h-8 sm:h-9 rounded-lg bg-white/60 hover:bg-purple-600 text-gray-600 hover:text-white transition-all duration-300 border border-gray-200 hover:border-purple-600 shadow-sm hover:shadow-md transform hover:scale-110 active:scale-95 flex-shrink-0">
+                      <i class="ri-eye-line text-sm sm:text-base"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
+            <div class="text-4xl sm:text-5xl mb-4 text-purple-200">
+              <i class="ri-calendar-blank-line"></i>
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-gray-900 mb-2">No Bookings Yet</h4>
+            <p class="text-gray-600 text-xs sm:text-sm">Your first booking will appear here</p>
+          </div>
+        {% endif %}
+      </div>
+
+    {% else %}
+      <!-- No Store Information -->
+      <div class="flex flex-col items-center justify-center py-16 sm:py-24 px-4 sm:px-6">
+        <div class="text-6xl sm:text-8xl mb-4 sm:mb-6 text-purple-200">
+          <i class="ri-shopping-cart-2-line"></i>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">No Store Information Found</h2>
+        <p class="text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base max-w-sm text-center">Complete your merchant application to set up your store</p>
+        <a href="{{ url_for('merchant.apply') }}" class="bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold py-2 sm:py-3 px-6 sm:px-8 rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg text-sm sm:text-base">
+          <i class="ri-add-line text-base sm:text-lg"></i>
+          Start Application
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modern Logo Upload Modal -->
+<div id="logoUploadModal" class="fixed inset-0 bg-black/30 backdrop-blur-md hidden z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in" onclick="if(event.target === this) closeLogoUploadModal()">
+  <div class="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl max-w-md w-full animate-scale-in border border-white/60 overflow-hidden">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-white/40 bg-white/60 backdrop-blur-sm">
+      <h2 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+        <i class="ri-image-add-line text-purple-600 text-xl sm:text-2xl"></i> Upload Store Logo
+      </h2>
+      <button type="button" onclick="closeLogoUploadModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 text-lg sm:text-xl">
+        <i class="ri-close-line"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <form id="logoUploadForm" enctype="multipart/form-data" onsubmit="uploadLogo(event)">
+      <div class="p-4 sm:p-6">
+        <!-- Upload Area -->
+        <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50/50 transition-all duration-300">
+          <div class="text-4xl sm:text-5xl mb-3 sm:mb-4">☁️</div>
+          <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-2">Upload Your Logo</h3>
+          <p class="text-gray-600 mb-1 text-xs sm:text-sm">Click or drag your image here</p>
+          <p class="text-xs text-gray-500 mb-4 sm:mb-5">JPG, PNG • Max 5MB • Recommended: 300×300px</p>
+
+          <button type="button" id="chooseImageBtn" class="inline-flex items-center gap-2 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg hover:shadow-lg transition-all duration-300 shadow-md transform hover:scale-105 active:scale-95 text-sm sm:text-base">
+            <i class="ri-upload-cloud-2-line"></i> Choose Image
+          </button>
+
+          <input
+            type="file"
+            id="logoInput"
+            name="logo"
+            accept="image/jpeg,image/png,image/webp"
+            class="hidden"
+          >
+        </div>
+
+        <!-- Preview Section -->
+        <div id="preview" class="hidden mt-4 sm:mt-6">
+          <div class="relative bg-gray-100 rounded-lg overflow-hidden mb-3 sm:mb-4 border border-gray-200 shadow-md" style="max-height: 200px;">
+            <img id="previewImage" src="" alt="Preview" class="w-full h-full object-cover">
+          </div>
+          <div class="space-y-2 text-xs bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <p class="text-gray-600"><strong>File:</strong> <span id="fileName" class="text-gray-900 font-medium text-xs"></span></p>
+            <p class="text-gray-600"><strong>Size:</strong> <span id="fileSize" class="text-gray-900 font-medium text-xs"></span></p>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="uploadProgress" class="hidden mt-4 sm:mt-6">
+          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div id="progressFill" class="h-full bg-gradient-to-r from-purple-500 to-purple-700 transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <p class="text-center text-xs text-gray-600 mt-2 sm:mt-3">Uploading...</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-white/40 bg-white/60 backdrop-blur-sm">
+        <button type="button" onclick="closeLogoUploadModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-300 text-sm">
+          Cancel
+        </button>
+        <button type="submit" id="uploadBtn" class="flex-1 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-md transform hover:scale-105 active:scale-95 text-sm">
+          <i class="ri-upload-fill"></i>
+          <span>Upload</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Notification Container -->
+<div id="notificationContainer" class="fixed top-6 right-6 z-40 space-y-3 max-w-sm"></div>
+
+<!-- Enhanced Styles for animations and utilities -->
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out forwards;
+  }
+
+  #uploadArea.drag-over {
+    @apply border-purple-500 bg-purple-100/50;
+  }
+
+  .hidden { display: none; }
+
+  /* Glass morphism enhancements */
+  .glass-morphism {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+
+  /* Smooth transitions */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+</style>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
+<script>
+  // Global variables for modal
+  window.logoUploadUrl = "{{ url_for('merchant.upload_logo') }}";
+  window.currentMerchantId = "{{ merchant.id if merchant else 'null' }}";
 </script>
+<script src="{{ url_for('static', filename='merchant/js/store.js') }}"></script>
 
 {% endblock %}
-

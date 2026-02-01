@@ -7,7 +7,7 @@ from .forms import (
     EmailSettingsForm, APISettingsForm, BackupSettingsForm, ComplianceSettingsForm,
     AppearanceSettingsForm, AdminAddUserForm, AdminEditUserForm
 )
-from app.extensions import limiter
+from app.extensions import limiter, csrf
 from app.models import User, AuditLog, Merchant
 from app import db
 import random
@@ -440,191 +440,160 @@ def get_merchants():
     if current_user.role != "admin":
         abort(403)
     
-    status = request.args.get('status', 'all')
-    
-    query = Merchant.query.filter_by(deleted_at=None)
-    
-    # Filter by status if specified
-    if status and status != 'all':
-        query = query.filter_by(application_status=status)
-    
-    merchants = query.order_by(Merchant.submitted_at.desc()).all()
-    
-    merchants_data = []
-    for merchant in merchants:
-        merchants_data.append({
-            'id': merchant.id,
-            'business_name': merchant.business_name,
-            'business_type': merchant.business_type,
-            'owner_manager_name': merchant.owner_manager_name,
-            'contact_email': merchant.contact_email,
-            'contact_phone': merchant.contact_phone,
-            'city': merchant.city,
-            'province': merchant.province,
-            'barangay': merchant.barangay or '',
-            'postal_code': merchant.postal_code or '',
-            'latitude': float(merchant.latitude) if merchant.latitude else None,
-            'longitude': float(merchant.longitude) if merchant.longitude else None,
-            'full_address': merchant.full_address,
-            'services_offered': merchant.services_offered or [],
-            'pets_accepted': merchant.pets_accepted or [],
-            'max_pets_per_day': merchant.max_pets_per_day,
-            'min_price_per_day': float(merchant.min_price_per_day),
-            'max_price_per_day': float(merchant.max_price_per_day),
-            'vaccination_required': merchant.vaccination_required,
-            'cancellation_policy': merchant.cancellation_policy or '',
-            'government_id_path': merchant.government_id_path,
-            'business_permit_path': merchant.business_permit_path,
-            'facility_photos_paths': merchant.facility_photos_paths or [],
-            'submitted_at': merchant.submitted_at.isoformat(),
-            'reviewed_at': merchant.reviewed_at.isoformat() if merchant.reviewed_at else None,
-            'rejection_reason': merchant.rejection_reason or '',
-            'years_in_operation': merchant.years_in_operation or 0,
-            'application_status': merchant.application_status,
-            'business_description': merchant.business_description or '',
-            'opening_time': merchant.opening_time or '',
-            'closing_time': merchant.closing_time or '',
-            'operating_days': merchant.operating_days or [],
-            'currency': merchant.currency or 'PHP',
-            'google_maps_link': merchant.google_maps_link or '',
-            'is_verified': merchant.is_verified
-        })
-    
-    return jsonify({'merchants': merchants_data})
-
-@bp.route("/api/merchants/pending", methods=["GET"])
-@login_required
-@admin_required
-def get_pending_merchants():
-    """Get all pending merchant applications as JSON (deprecated, use /api/merchants?status=pending)"""
-    return redirect(url_for('admin.get_merchants', status='pending'))
+    try:
+        status = request.args.get('status', 'all')
+        
+        query = Merchant.query.filter(Merchant.deleted_at == None)
+        
+        if status and status != 'all':
+            query = query.filter_by(application_status=status)
+        
+        merchants = query.order_by(Merchant.submitted_at.desc()).all()
+        
+        merchants_data = []
+        for merchant in merchants:
+            try:
+                merchant_dict = {
+                    'id': merchant.id,
+                    'business_name': merchant.business_name or 'N/A',
+                    'business_type': merchant.business_type or 'N/A',
+                    'owner_manager_name': merchant.owner_manager_name or 'N/A',
+                    'contact_email': merchant.contact_email or 'N/A',
+                    'contact_phone': merchant.contact_phone or 'N/A',
+                    'user_email': merchant.user.email if merchant.user else 'N/A',
+                    'user_name': f"{merchant.user.first_name} {merchant.user.last_name}" if merchant.user else 'N/A',
+                    'city': merchant.city or 'N/A',
+                    'province': merchant.province or 'N/A',
+                    'barangay': merchant.barangay or 'N/A',
+                    'postal_code': merchant.postal_code or 'N/A',
+                    'latitude': float(merchant.latitude) if merchant.latitude else None,
+                    'longitude': float(merchant.longitude) if merchant.longitude else None,
+                    'full_address': merchant.full_address or 'N/A',
+                    'services_offered': merchant.services_offered or [],
+                    'pets_accepted': merchant.pets_accepted or [],
+                    'max_pets_per_day': merchant.max_pets_per_day or 0,
+                    'min_price_per_day': float(merchant.min_price_per_day) if merchant.min_price_per_day else 0.0,
+                    'max_price_per_day': float(merchant.max_price_per_day) if merchant.max_price_per_day else 0.0,
+                    'cancellation_policy': merchant.cancellation_policy or '',
+                    'government_id_path': merchant.government_id_path or '',
+                    'business_permit_path': merchant.business_permit_path or '',
+                    'facility_photos_paths': merchant.facility_photos_paths or [],
+                    'submitted_at': merchant.submitted_at.isoformat() if merchant.submitted_at else '',
+                    'reviewed_at': merchant.reviewed_at.isoformat() if merchant.reviewed_at else None,
+                    'rejection_reason': merchant.rejection_reason or '',
+                    'years_in_operation': merchant.years_in_operation or 0,
+                    'application_status': merchant.application_status or 'pending',
+                    'business_description': merchant.business_description or '',
+                    'opening_time': merchant.opening_time or '',
+                    'closing_time': merchant.closing_time or '',
+                    'operating_days': merchant.operating_days or [],
+                    'google_maps_link': merchant.google_maps_link or '',
+                    'is_verified': merchant.is_verified if hasattr(merchant, 'is_verified') else False,
+                    'user_id': merchant.user_id,
+                    'logo_path': merchant.logo_path or '',
+                    'logo_url': f"/static/{merchant.logo_path}" if merchant.logo_path else '',
+                    'created_at': merchant.created_at.isoformat() if merchant.created_at else '',
+                    'updated_at': merchant.updated_at.isoformat() if merchant.updated_at else ''
+                }
+                merchants_data.append(merchant_dict)
+            except Exception as e:
+                continue
+        
+        return jsonify({'merchants': merchants_data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @bp.route("/api/merchants/<int:merchant_id>/approve", methods=["POST"])
+@csrf.exempt
 @login_required
 @admin_required
 def approve_merchant(merchant_id):
     """Approve a merchant application"""
-    if current_user.role != "admin":
-        abort(403)
-    
-    merchant = Merchant.query.get_or_404(merchant_id)
-    
-    if merchant.application_status != 'pending':
-        return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
-    
-    merchant.application_status = 'approved'
-    merchant.reviewed_at = datetime.utcnow()
-    merchant.reviewed_by = current_user.id
-    merchant.is_verified = True
-    
-    db.session.commit()
-    
-    # Log the event
-    log_event(
-        event='merchant.approved',
-        details={
-            'merchant_id': merchant.id,
-            'business_name': merchant.business_name,
-            'approved_by': current_user.email
-        }
-    )
-    
-    return jsonify({'success': True, 'message': 'Merchant approved successfully'})
+    try:
+        merchant = Merchant.query.get_or_404(merchant_id)
+        
+        if merchant.application_status != 'pending':
+            return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
+        
+        merchant.application_status = 'approved'
+        merchant.reviewed_at = datetime.utcnow()
+        merchant.reviewed_by = current_user.id
+        merchant.is_verified = True
+        
+        db.session.commit()
+        
+        # Log the event
+        log_event(
+            event='merchant.approved',
+            details={
+                'merchant_id': merchant.id,
+                'business_name': merchant.business_name,
+                'approved_by': current_user.email
+            }
+        )
+        
+        flash(f"Merchant '{merchant.business_name}' has been approved successfully!", 'success')
+        return jsonify({'success': True, 'message': 'Merchant approved successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error approving merchant: {str(e)}")
+        flash(f'Error approving merchant: {str(e)}', 'danger')
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @bp.route("/api/merchants/<int:merchant_id>/reject", methods=["POST"])
+@csrf.exempt
 @login_required
 @admin_required
 def reject_merchant(merchant_id):
-    """Reject a merchant application"""
-    if current_user.role != "admin":
-        abort(403)
-    
-    data = request.get_json()
-    reason = data.get('reason', '')
-    
-    merchant = Merchant.query.get_or_404(merchant_id)
-    
-    if merchant.application_status != 'pending':
-        return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
-    
-    merchant.application_status = 'rejected'
-    merchant.reviewed_at = datetime.utcnow()
-    merchant.reviewed_by = current_user.id
-    merchant.rejection_reason = reason
-    
-    db.session.commit()
-    
-    # Log the event
-    log_event(
-        event='merchant.rejected',
-        details={
-            'merchant_id': merchant.id,
-            'business_name': merchant.business_name,
-            'rejected_by': current_user.email,
-            'reason': reason
-        }
-    )
-    
-    return jsonify({'success': True, 'message': 'Merchant rejected successfully'})
-
-
-@bp.route("/api/merchants/<int:merchant_id>", methods=["PATCH"])
-@login_required
-@admin_required
-def update_merchant_status(merchant_id):
-    """Update merchant application status"""
-    if current_user.role != "admin":
-        abort(403)
-    
-    data = request.get_json()
-    new_status = data.get('status', '').lower()
-    
-    if new_status not in ['pending', 'under_review', 'approved', 'rejected']:
-        return jsonify({'success': False, 'message': 'Invalid status'}), 400
-    
-    merchant = Merchant.query.get_or_404(merchant_id)
-    
-    merchant.application_status = new_status
-    merchant.reviewed_at = datetime.utcnow()
-    merchant.reviewed_by = current_user.id
-    
-    db.session.commit()
-    
-    # Log the event
-    log_event(
-        event=f'merchant.status_updated',
-        details={
-            'merchant_id': merchant.id,
-            'business_name': merchant.business_name,
-            'new_status': new_status,
-            'updated_by': current_user.email
-        }
-    )
-    
-    return jsonify({'success': True, 'message': f'Merchant status updated to {new_status}'})
+    """Reject a merchant application with reason"""
+    try:
+        data = request.get_json()
+        reason = data.get('reason', '') if data else ''
+        
+        if not reason.strip():
+            return jsonify({'success': False, 'message': 'Rejection reason is required'}), 400
+        
+        merchant = Merchant.query.get_or_404(merchant_id)
+        
+        if merchant.application_status != 'pending':
+            return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
+        
+        merchant.application_status = 'rejected'
+        merchant.reviewed_at = datetime.utcnow()
+        merchant.rejection_reason = reason.strip()
+        merchant.reviewed_by = current_user.id
+        
+        db.session.commit()
+        
+        # Log the event
+        log_event(
+            event='merchant.rejected',
+            details={
+                'merchant_id': merchant.id,
+                'business_name': merchant.business_name,
+                'rejected_by': current_user.email,
+                'reason': reason
+            }
+        )
+        
+        flash(f"Merchant '{merchant.business_name}' has been rejected.", 'warning')
+        return jsonify({'success': True, 'message': 'Merchant rejected successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error rejecting merchant: {str(e)}")
+        flash(f'Error rejecting merchant: {str(e)}', 'danger')
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @bp.route("/merchants/applications")
 @login_required
 @admin_required
 def merchant_applications():
-    """Display all merchant applications (for reference, shows existing template)"""
+    """Display all merchant applications"""
     if current_user.role != "admin":
         abort(403)
     
     return render_template("admin/merchant_applications.html")
-
-
-@bp.route("/merchants/applications/<int:merchant_id>")
-@login_required
-@admin_required
-def view_merchant_application(merchant_id):
-    """View full merchant application details"""
-    if current_user.role != "admin":
-        abort(403)
-    
-    merchant = Merchant.query.get_or_404(merchant_id)
-    return render_template("admin/merchant_application_detail.html", merchant=merchant)
 

@@ -10,9 +10,11 @@ from app.decorators import merchant_required
 from app.models.breed import Breed
 from app.models.species import Species
 from app.models.merchant import Merchant
+from app.models.booking import Booking
 from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
 from app.models.audit_log import AuditLog
+from sqlalchemy import func, and_
 import logging
 
 logger = logging.getLogger(__name__)
@@ -92,7 +94,7 @@ def dashboard():
 @login_required
 @merchant_required
 def store():
-    """Display merchant store information"""
+    """Display merchant store information with real statistics from bookings"""
     if current_user.role != 'merchant':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
@@ -103,20 +105,178 @@ def store():
         flash('Store information not found. Please complete your merchant application first.', 'warning')
         return redirect(url_for('merchant.apply'))
     
-    # TODO: Replace with real database queries when implementing actual metrics
-    # Real implementation would query:
-    # - MatchHistory.query.filter_by(merchant_id=merchant.id).count()
-    # - Review.query.filter_by(merchant_id=merchant.id).avg(rating)
-    # - Calculate response time from message history
-    # - Calculate completion rate from booking status
+    # ========== REAL DATA QUERIES FROM BOOKING MODEL ==========
     
-    # Mock data for UI demonstration
+    # 1. Total Bookings Count
+    total_bookings = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # 2. Confirmed Bookings Count
+    confirmed_bookings = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.status == 'confirmed',
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # 3. Pending Bookings Count
+    pending_bookings = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.status == 'pending',
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # 4. Completed Bookings Count
+    completed_bookings = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.status == 'completed',
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # 5. Cancelled Bookings Count
+    cancelled_bookings = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.status == 'cancelled',
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # 6. Store Rating (Average customer rating from completed bookings)
+    avg_rating = db.session.query(func.avg(Booking.customer_rating)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.customer_rating.isnot(None),
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    store_rating = round(float(avg_rating), 1) if avg_rating else 0
+    
+    # 7. Total Reviews Count (bookings with ratings)
+    total_reviews = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.customer_rating.isnot(None),
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # 8. Completion Rate (%)
+    completion_rate = 0
+    if total_bookings > 0:
+        completion_rate = round((completed_bookings / total_bookings) * 100, 1)
+    
+    # 9. Average Response Time (hours) - MySQL compatible
+    # Calculate time from booking created to merchant_confirmed_at
+    avg_response_hours = 24  # Default
+    try:
+        # MySQL-compatible way to calculate time difference in seconds, then convert to hours
+        from sqlalchemy import literal_column
+        response_times = db.session.query(
+            func.avg(
+                (func.unix_timestamp(Booking.merchant_confirmed_at) - 
+                 func.unix_timestamp(Booking.created_at)) / 3600.0
+            )
+        ).filter(
+            Booking.merchant_id == merchant.id,
+            Booking.merchant_confirmed_at.isnot(None),
+            Booking.deleted_at.is_(None)
+        ).scalar()
+        
+        if response_times and response_times > 0:
+            avg_response_hours = max(1, round(float(response_times), 1))
+    except Exception as e:
+        logger.error(f"Error calculating response time: {e}")
+        avg_response_hours = 24  # Fallback to default
+    
+    # Format response time
+    if avg_response_hours < 1:
+        avg_response_time = f"{int(avg_response_hours * 60)}m"
+    elif avg_response_hours < 24:
+        avg_response_time = f"{int(avg_response_hours)}h"
+    else:
+        avg_response_time = f"{round(avg_response_hours / 24, 1)}d"
+    
+    # 10. Total Revenue (sum of all completed booking amounts)
+    total_revenue = db.session.query(func.sum(Booking.total_amount)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.payment_status == 'completed',
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    total_revenue = float(total_revenue)
+    
+    # 11. Merchant Earnings (after commission)
+    merchant_earnings = db.session.query(func.sum(Booking.merchant_receives)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.payment_status == 'completed',
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    merchant_earnings = float(merchant_earnings)
+    
+    # 12. Platform Fee Collected
+    platform_fees = total_revenue - merchant_earnings if total_revenue > 0 else 0
+    
+    # 13. Bookings this month (30 days)
+    from datetime import timedelta
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    bookings_this_month = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.created_at >= thirty_days_ago,
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # 14. No-show Rate
+    no_show_count = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.no_show == True,
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    no_show_rate = 0
+    if completed_bookings > 0:
+        no_show_rate = round((no_show_count / completed_bookings) * 100, 1)
+    
+    # 15. Recent bookings (last 5 for dashboard preview)
+    recent_bookings = db.session.query(Booking).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.deleted_at.is_(None)
+    ).order_by(Booking.created_at.desc()).limit(5).all()
+    
+    # 16. Month-over-month growth
+    sixty_days_ago = datetime.utcnow() - timedelta(days=60)
+    prev_month_bookings = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.created_at >= sixty_days_ago,
+        Booking.created_at < thirty_days_ago,
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    month_growth = 0
+    if prev_month_bookings > 0:
+        month_growth = round(((bookings_this_month - prev_month_bookings) / prev_month_bookings) * 100, 1)
+    else:
+        month_growth = 100 if bookings_this_month > 0 else 0
+    
+    # Determine growth direction
+    growth_direction = "up" if month_growth >= 0 else "down"
+
+    logo_path = merchant.logo_path
+    logo_url = url_for('static', filename=f'uploads/merchants/{merchant.id}/{logo_path}') if logo_path else None
+    
+    # Prepare statistics dictionary
     store_stats = {
-        'booking_count': 142,          # Replace: count from MatchHistory
-        'store_rating': 4.8,           # Replace: average from reviews
-        'total_reviews': 56,           # Replace: count from Review model
-        'avg_response_time': '2h',     # Replace: calculate from messages
-        'completion_rate': 89          # Replace: calculate from completed bookings
+        'booking_count': total_bookings,
+        'confirmed_bookings': confirmed_bookings,
+        'pending_bookings': pending_bookings,
+        'completed_bookings': completed_bookings,
+        'cancelled_bookings': cancelled_bookings,
+        'store_rating': store_rating,
+        'total_reviews': total_reviews,
+        'avg_response_time': avg_response_time,
+        'completion_rate': completion_rate,
+        'total_revenue': f"₱{total_revenue:,.2f}",
+        'merchant_earnings': f"₱{merchant_earnings:,.2f}",
+        'platform_fees': f"₱{platform_fees:,.2f}",
+        'bookings_this_month': bookings_this_month,
+        'month_growth': month_growth,
+        'growth_direction': growth_direction,
+        'no_show_rate': no_show_rate,
+        'recent_bookings': recent_bookings,
     }
     
     return render_template(
@@ -124,6 +284,119 @@ def store():
         merchant=merchant,
         **store_stats
     )
+
+
+@bp.route('/store/logo-upload', methods=['POST'])
+@login_required
+@merchant_required
+@csrf.exempt
+def upload_logo():
+    """Upload merchant store logo"""
+    try:
+        logger.info(f"Logo upload requested by user {current_user.id}")
+        
+        if current_user.role != 'merchant':
+            logger.warning(f"Non-merchant user {current_user.id} tried to upload logo")
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+        merchant = Merchant.query.filter_by(user_id=current_user.id).first()
+        
+        if not merchant:
+            logger.warning(f"User {current_user.id} has no merchant record")
+            return jsonify({'success': False, 'message': 'Store not found'}), 404
+        
+        # Check if file is in request
+        if 'logo' not in request.files:
+            logger.warning(f"Logo upload: no file in request from user {current_user.id}")
+            return jsonify({'success': False, 'message': 'No file provided'}), 400
+        
+        file = request.files['logo']
+        
+        if file.filename == '':
+            logger.warning(f"Logo upload: empty filename from user {current_user.id}")
+            return jsonify({'success': False, 'message': 'No file selected'}), 400
+        
+        # Validate file extension
+        if not allowed_file(file.filename):
+            logger.warning(f"Logo upload: invalid file type {file.filename} from user {current_user.id}")
+            return jsonify({'success': False, 'message': 'Invalid file type. Allowed: JPG, PNG'}), 400
+        
+        # Validate file size (max 5MB)
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size > MAX_FILE_SIZE:
+            logger.warning(f"Logo upload: file too large ({file_size} bytes) from user {current_user.id}")
+            return jsonify({'success': False, 'message': 'File too large. Max 5MB'}), 400
+        
+        logger.info(f"Logo upload: file validated ({file.filename}, {file_size} bytes)")
+        
+        # Create user upload directory if it doesn't exist (using user_id not merchant_id)
+        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+        os.makedirs(upload_dir, exist_ok=True)
+        logger.info(f"Logo upload: directory ready at {upload_dir}")
+        
+        # Generate unique filename
+        timestamp = int(datetime.utcnow().timestamp())
+        file_extension = file.filename.rsplit('.', 1)[1].lower()
+        filename = secure_filename(f"logo_{timestamp}.{file_extension}")
+        
+        # Save file
+        filepath = os.path.join(upload_dir, filename)
+        file.save(filepath)
+        logger.info(f"Logo upload: file saved to {filepath}")
+        
+        # Delete old logo if exists
+        if merchant.logo_path:
+            # Extract just the filename from the stored path
+            old_filename = merchant.logo_path.split('/')[-1] if '/' in merchant.logo_path else merchant.logo_path
+            old_path = os.path.join('app/static/uploads/merchants', str(current_user.id), old_filename)
+            try:
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+                    logger.info(f"Logo upload: old logo deleted from {old_path}")
+            except Exception as e:
+                logger.error(f"Error deleting old logo: {e}")
+        
+        # Update merchant record with full relative path (using user_id)
+        merchant.logo_path = f"uploads/merchants/{current_user.id}/{filename}"
+        merchant.updated_at = datetime.utcnow()
+        db.session.add(merchant)
+        db.session.commit()
+        logger.info(f"Logo upload: merchant record updated for merchant {merchant.id}")
+        
+        # Log the action
+        audit_log = AuditLog(
+            event='merchant_logo_uploaded',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=datetime.utcnow()
+        )
+        audit_log.set_details({'merchant_id': merchant.id, 'filename': filename})
+        db.session.add(audit_log)
+        db.session.commit()
+        logger.info(f"Logo upload: audit log created")
+        
+        # Get fresh logo URL
+        logo_url = url_for('static', filename=f'uploads/merchants/{merchant.id}/{filename}')
+        logger.info(f"Logo upload: success, URL = {logo_url}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logo uploaded successfully',
+            'logo_url': logo_url
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error uploading logo: {str(e)}", exc_info=True)
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return jsonify({'success': False, 'message': f'Upload failed: {str(e)}'}), 500
 
 
 @bp.route('/store/edit', methods=['GET', 'POST'])
@@ -148,28 +421,118 @@ def store_edit():
             # Store previous values for audit log
             previous_values = {
                 'business_name': merchant.business_name,
+                'business_type': merchant.business_type,
                 'business_description': merchant.business_description,
+                'owner_manager_name': merchant.owner_manager_name,
                 'contact_email': merchant.contact_email,
                 'contact_phone': merchant.contact_phone,
                 'full_address': merchant.full_address,
                 'city': merchant.city,
                 'province': merchant.province,
+                'barangay': merchant.barangay,
                 'postal_code': merchant.postal_code,
+                'google_maps_link': merchant.google_maps_link,
+                'services_offered': merchant.services_offered,
+                'pets_accepted': merchant.pets_accepted,
+                'max_pets_per_day': merchant.max_pets_per_day,
+                'min_price_per_day': merchant.min_price_per_day,
+                'max_price_per_day': merchant.max_price_per_day,
                 'opening_time': merchant.opening_time,
-                'closing_time': merchant.closing_time
+                'closing_time': merchant.closing_time,
+                'operating_days': merchant.operating_days,
+                'cancellation_policy': merchant.cancellation_policy,
+                'years_in_operation': merchant.years_in_operation
             }
             
-            # Update merchant information
+            # Update merchant information - SECTION 1: BUSINESS INFO
             merchant.business_name = form.business_name.data
+            merchant.business_type = form.business_type.data
             merchant.business_description = form.business_description.data
+            merchant.years_in_operation = form.years_in_operation.data
+            
+            # Handle logo upload if provided
+            if 'logo_path' in request.files and request.files['logo_path'].filename:
+                logo_file = request.files['logo_path']
+                if allowed_file(logo_file.filename):
+                    # Validate file size
+                    logo_file.seek(0, os.SEEK_END)
+                    file_size = logo_file.tell()
+                    logo_file.seek(0)
+                    
+                    if file_size <= MAX_FILE_SIZE:
+                        # Create merchant upload directory
+                        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                        os.makedirs(upload_dir, exist_ok=True)
+                        
+                        # Delete old logo if exists
+                        if merchant.logo_path:
+                            old_filename = merchant.logo_path.split('/')[-1] if '/' in merchant.logo_path else merchant.logo_path
+                            old_path = os.path.join(upload_dir, old_filename)
+                            try:
+                                if os.path.exists(old_path):
+                                    os.remove(old_path)
+                            except Exception as e:
+                                logger.error(f"Error deleting old logo: {e}")
+                        
+                        # Generate unique filename and save
+                        timestamp = int(datetime.utcnow().timestamp())
+                        file_extension = logo_file.filename.rsplit('.', 1)[1].lower()
+                        filename = secure_filename(f"logo_{timestamp}.{file_extension}")
+                        filepath = os.path.join(upload_dir, filename)
+                        logo_file.save(filepath)
+                        
+                        # Update merchant with full path
+                        merchant.logo_path = f"uploads/merchants/{current_user.id}/{filename}"
+                        logger.info(f"Logo updated for merchant {merchant.id}: {merchant.logo_path}")
+            
+            # SECTION 2: CONTACT PERSON
+            merchant.owner_manager_name = form.owner_manager_name.data
             merchant.contact_email = form.contact_email.data
             merchant.contact_phone = form.contact_phone.data
+            
+            # SECTION 3: LOCATION
+            # Convert codes to human-readable names
+            province_code = form.province.data
+            city_code = form.city.data
+            barangay_code = form.barangay.data
+            
+            # Get human-readable names from API
+            province_name = get_province_name(province_code)
+            city_name = get_city_name(city_code)
+            barangay_name = get_barangay_name(barangay_code)
+            
             merchant.full_address = form.full_address.data
-            merchant.city = form.city.data
-            merchant.province = form.province.data
+            merchant.city = city_name
+            merchant.province = province_name
+            merchant.barangay = barangay_name
             merchant.postal_code = form.postal_code.data or ''
+            merchant.google_maps_link = form.google_maps_link.data
+            
+            # Update coordinates from hidden fields
+            if request.form.get('latitude'):
+                merchant.latitude = float(request.form.get('latitude'))
+            if request.form.get('longitude'):
+                merchant.longitude = float(request.form.get('longitude'))
+            
+            # SECTION 4: SERVICES OFFERED
+            merchant.services_offered = form.services_offered.data if form.services_offered.data else []
+            
+            # SECTION 5: PETS ACCEPTED
+            merchant.pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
+            
+            # SECTION 6: CAPACITY & PRICING
+            merchant.max_pets_per_day = form.max_pets_per_day.data
+            merchant.min_price_per_day = form.min_price_per_day.data
+            merchant.max_price_per_day = form.max_price_per_day.data
+            
+            # SECTION 7: OPERATING SCHEDULE
             merchant.opening_time = form.opening_time.data
             merchant.closing_time = form.closing_time.data
+            merchant.operating_days = form.operating_days.data if form.operating_days.data else []
+            
+            # SECTION 8: POLICIES
+            merchant.cancellation_policy = form.cancellation_policy.data
+            
             merchant.updated_at = datetime.utcnow()
             
             # Mark as pending approval if it was approved
@@ -192,15 +555,27 @@ def store_edit():
                 'previous_values': previous_values,
                 'new_values': {
                     'business_name': merchant.business_name,
+                    'business_type': merchant.business_type,
                     'business_description': merchant.business_description,
+                    'owner_manager_name': merchant.owner_manager_name,
                     'contact_email': merchant.contact_email,
                     'contact_phone': merchant.contact_phone,
                     'full_address': merchant.full_address,
                     'city': merchant.city,
                     'province': merchant.province,
+                    'barangay': merchant.barangay,
                     'postal_code': merchant.postal_code,
+                    'google_maps_link': merchant.google_maps_link,
+                    'services_offered': merchant.services_offered,
+                    'pets_accepted': merchant.pets_accepted,
+                    'max_pets_per_day': merchant.max_pets_per_day,
+                    'min_price_per_day': merchant.min_price_per_day,
+                    'max_price_per_day': merchant.max_price_per_day,
                     'opening_time': merchant.opening_time,
-                    'closing_time': merchant.closing_time
+                    'closing_time': merchant.closing_time,
+                    'operating_days': merchant.operating_days,
+                    'cancellation_policy': merchant.cancellation_policy,
+                    'years_in_operation': merchant.years_in_operation
                 }
             })
             db.session.add(audit_log)
@@ -217,18 +592,80 @@ def store_edit():
     elif request.method == 'GET':
         # Pre-fill form with existing data
         form.business_name.data = merchant.business_name
+        form.business_type.data = merchant.business_type
         form.business_description.data = merchant.business_description
+        form.years_in_operation.data = merchant.years_in_operation
+        form.owner_manager_name.data = merchant.owner_manager_name
         form.contact_email.data = merchant.contact_email
         form.contact_phone.data = merchant.contact_phone
         form.full_address.data = merchant.full_address
         form.city.data = merchant.city
         form.province.data = merchant.province
+        form.barangay.data = merchant.barangay
         form.postal_code.data = merchant.postal_code
+        form.google_maps_link.data = merchant.google_maps_link
+        form.services_offered.data = merchant.services_offered or []
+        form.pets_accepted.data = merchant.pets_accepted or []
+        form.max_pets_per_day.data = merchant.max_pets_per_day
+        form.min_price_per_day.data = merchant.min_price_per_day
+        form.max_price_per_day.data = merchant.max_price_per_day
         form.opening_time.data = merchant.opening_time
         form.closing_time.data = merchant.closing_time
+        form.operating_days.data = merchant.operating_days or []
+        form.cancellation_policy.data = merchant.cancellation_policy
     
     return render_template('merchant/store_edit.html', form=form, merchant=merchant)
 
+
+
+@bp.route('/store-public/<int:merchant_id>')
+def store_public(merchant_id):
+    """Display public view of merchant store - no login required"""
+    merchant = Merchant.query.filter_by(id=merchant_id).first()
+    
+    if not merchant:
+        flash('Store not found.', 'danger')
+        return redirect(url_for('user.nearby_services'))
+    
+    # Compute rating stats from bookings (like store() route does)
+    avg_rating = db.session.query(func.avg(Booking.customer_rating)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.customer_rating.isnot(None),
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    store_rating = round(float(avg_rating), 1) if avg_rating else 0
+    
+    # Total reviews count (bookings with ratings)
+    total_reviews = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.customer_rating.isnot(None),
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    # Check if store is open right now
+    is_open = False
+    if merchant.opening_time and merchant.closing_time and merchant.operating_days:
+        from datetime import datetime, time
+        now = datetime.now()
+        current_day = now.weekday()  # 0=Monday, 6=Sunday
+        current_time = now.time()
+        
+        # Check if today is in operating days
+        operating_days = merchant.get_operating_days()
+        if current_day in operating_days:
+            # Check if current time is within operating hours
+            try:
+                opening = datetime.strptime(merchant.opening_time, '%H:%M').time() if isinstance(merchant.opening_time, str) else merchant.opening_time
+                closing = datetime.strptime(merchant.closing_time, '%H:%M').time() if isinstance(merchant.closing_time, str) else merchant.closing_time
+                is_open = opening <= current_time < closing
+            except (ValueError, TypeError):
+                is_open = False
+    
+    return render_template('merchant/store_public.html', 
+                         merchant=merchant, 
+                         store_rating=store_rating, 
+                         total_reviews=total_reviews,
+                         is_open=is_open)
 
 
 @bp.route('/species')

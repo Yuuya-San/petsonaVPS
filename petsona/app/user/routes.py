@@ -2,10 +2,28 @@ from flask import render_template, flash, redirect, url_for, request, abort
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.user import bp
 from app.decorators import user_required
-from app.models import Species, Breed
+from app.models import Species, Breed, Merchant
 from app import db
+from app.extensions import csrf
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from flask import Blueprint, request, jsonify
+import math
+import sys
+
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance in km between two coordinates using Haversine formula"""
+    R = 6371  # Earth's radius in kilometers
+    
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lon2 - lon1)
+    
+    a = math.sin(dLat / 2) * math.sin(dLat / 2) + \
+        math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * \
+        math.sin(dLon / 2) * math.sin(dLon / 2)
+    
+    c = 2 * math.asin(math.sqrt(a))
+    return R * c
 
 
 @bp.route('/dashboard')
@@ -94,136 +112,179 @@ def view_species(id):
 @user_required
 def nearby_services():
     """Display nearby pet services based on user location"""
-    
-    # TODO: Replace with real database query and distance calculation
-    # Real implementation would:
-    # 1. Get user's current location (from request or saved location)
-    # 2. Query merchants with: 
-    #    Merchant.query.filter_by(application_status='approved').all()
-    # 3. Calculate distance using haversine formula with latitude/longitude
-    # 4. Filter by distance radius (e.g., 5km)
-    # 5. Sort by distance
-    
-    # Mock data - scalable structure for real merchant data
-    nearby_merchants = [
-        {
-            'id': 1,
-            'business_name': 'PawsCare Pet Services',
-            'rating': 4.8,
-            'reviews': 156,
-            'distance': 0.8,  # km
-            'city': 'Manila',
-            'contact_phone': '+63 912 345 6789',
-            'contact_email': 'contact@pawscare.com',
-            'services_offered': ['Pet Grooming', 'Pet Boarding', 'Veterinary'],
-            'pets_accepted': ['Dogs', 'Cats', 'Birds'],
-            'min_price': 500,
-            'max_price': 2500,
-            'opening_time': '09:00',
-            'closing_time': '18:00',
-            'is_open': True,
-            'response_time': '1h',
-            'completion_rate': 94
-        },
-        {
-            'id': 2,
-            'business_name': 'Furry Friends Pet Hotel',
-            'rating': 4.6,
-            'reviews': 89,
-            'distance': 1.2,
-            'city': 'Manila',
-            'contact_phone': '+63 923 456 7890',
-            'contact_email': 'hello@furryfriends.com',
-            'services_offered': ['Pet Boarding', 'Pet Sitting', 'Pet Transport'],
-            'pets_accepted': ['Dogs', 'Cats', 'Rabbits'],
-            'min_price': 400,
-            'max_price': 2000,
-            'opening_time': '08:00',
-            'closing_time': '20:00',
-            'is_open': True,
-            'response_time': '2h',
-            'completion_rate': 91
-        },
-        {
-            'id': 3,
-            'business_name': 'Pet Haven Clinic',
-            'rating': 4.9,
-            'reviews': 234,
-            'distance': 1.5,
-            'city': 'Manila',
-            'contact_phone': '+63 934 567 8901',
-            'contact_email': 'vet@pethaven.com',
-            'services_offered': ['Veterinary Clinic', 'Pet Grooming', 'Pet Training'],
-            'pets_accepted': ['Dogs', 'Cats', 'Birds', 'Reptiles'],
-            'min_price': 300,
-            'max_price': 5000,
-            'opening_time': '07:00',
-            'closing_time': '19:00',
-            'is_open': True,
-            'response_time': '30m',
-            'completion_rate': 98
-        },
-        {
-            'id': 4,
-            'business_name': 'Paws Training Academy',
-            'rating': 4.7,
-            'reviews': 102,
-            'distance': 2.1,
-            'city': 'Makati',
-            'contact_phone': '+63 945 678 9012',
-            'contact_email': 'trainer@pawsacademy.com',
-            'services_offered': ['Pet Training', 'Behavioral Coaching', 'Pet Grooming'],
-            'pets_accepted': ['Dogs', 'Cats'],
-            'min_price': 600,
-            'max_price': 3000,
-            'opening_time': '10:00',
-            'closing_time': '17:00',
-            'is_open': True,
-            'response_time': '3h',
-            'completion_rate': 89
-        },
-        {
-            'id': 5,
-            'business_name': 'Cozy Paws Grooming',
-            'rating': 4.5,
-            'reviews': 67,
-            'distance': 2.3,
-            'city': 'Quezon City',
-            'contact_phone': '+63 956 789 0123',
-            'contact_email': 'groom@cozypaws.com',
-            'services_offered': ['Pet Grooming', 'Pet Spa', 'Pet Care'],
-            'pets_accepted': ['Dogs', 'Cats'],
-            'min_price': 350,
-            'max_price': 1500,
-            'opening_time': '09:00',
-            'closing_time': '18:00',
-            'is_open': False,
-            'response_time': '4h',
-            'completion_rate': 85
-        },
-        {
-            'id': 6,
-            'business_name': 'Happy Paws Transport',
-            'rating': 4.4,
-            'reviews': 45,
-            'distance': 2.8,
-            'city': 'Pasig',
-            'contact_phone': '+63 967 890 1234',
-            'contact_email': 'transport@happypaws.com',
-            'services_offered': ['Pet Transport', 'Pet Delivery', 'Pet Sitting'],
-            'pets_accepted': ['Dogs', 'Cats', 'Small Animals'],
-            'min_price': 200,
-            'max_price': 1000,
-            'opening_time': '06:00',
-            'closing_time': '22:00',
-            'is_open': True,
-            'response_time': '15m',
-            'completion_rate': 92
-        }
-    ]
-    
     return render_template(
         'user/nearby_services.html',
-        nearby_merchants=nearby_merchants,
         page_title='Nearby Pet Services'
     )
+
+
+@bp.route('/api/merchants/test', methods=['GET'])
+@csrf.exempt
+def test_merchants():
+    """Test endpoint to check merchants in database"""
+    try:
+        print("\n[TEST] Starting test endpoint")
+        all_merchants = Merchant.query.all()
+        print(f"[TEST] Total merchants: {len(all_merchants)}")
+        approved_merchants = Merchant.query.filter_by(
+            application_status='approved',
+            is_verified=True
+        ).all()
+        print(f"[TEST] Approved & verified: {len(approved_merchants)}\n")
+        
+        result = {
+            'total_merchants': len(all_merchants),
+            'approved_verified_count': len(approved_merchants),
+            'approved_merchants': []
+        }
+        
+        for m in approved_merchants:
+            result['approved_merchants'].append({
+                'id': m.id,
+                'name': m.business_name,
+                'status': m.application_status,
+                'verified': m.is_verified,
+                'lat': m.latitude,
+                'lon': m.longitude,
+                'city': m.city,
+                'services': m.services_offered
+            })
+            print(f"[TEST] {m.business_name}: status={m.application_status}, verified={m.is_verified}, coords=({m.latitude}, {m.longitude})")
+        
+        print(f"[TEST] Returning result")
+        return jsonify(result)
+    except Exception as e:
+        print(f"[ERROR] Test error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/api/merchants/nearby', methods=['POST'])
+@csrf.exempt
+def get_nearby_merchants():
+    """Get nearby merchants based on user location and filters"""
+    try:
+        data = request.get_json() or {}
+        
+        # Extract parameters
+        user_lat = float(data.get('latitude', 14.5995))
+        user_lon = float(data.get('longitude', 120.9842))
+        max_distance = float(data.get('max_distance', 50))
+        search_query = data.get('search', '').lower()
+        service_filter = data.get('service', '').lower()
+        sort_by = data.get('sort_by', 'distance')
+        
+        # Get all approved and verified merchants  
+        merchants = Merchant.query.filter_by(
+            application_status='approved',
+            is_verified=True
+        ).all()
+        
+        nearby_list = []
+        from datetime import datetime
+        
+        for merchant in merchants:
+            # Skip merchants without coordinates
+            if not merchant.latitude or not merchant.longitude:
+                continue
+            
+            # Calculate distance
+            distance = haversine_distance(
+                user_lat, user_lon,
+                float(merchant.latitude), float(merchant.longitude)
+            )
+            
+            # Filter by max_distance
+            if distance > max_distance:
+                continue
+            
+            # Apply search filter
+            if search_query:
+                if not (search_query in merchant.business_name.lower() or
+                        search_query in (merchant.city or '').lower()):
+                    continue
+            
+            # Apply service filter
+            if service_filter:
+                services_str = ' '.join([s.lower() for s in (merchant.services_offered or [])])
+                if service_filter not in services_str:
+                    continue
+            
+            # Check if open using same logic as store_public
+            is_open = False
+            if merchant.opening_time and merchant.closing_time and merchant.operating_days:
+                from datetime import datetime, time
+                now = datetime.now()
+                current_day = now.weekday()  # 0=Monday, 6=Sunday
+                current_time = now.time()
+                
+                # Check if today is in operating days
+                operating_days = merchant.get_operating_days()
+                if current_day in operating_days:
+                    # Check if current time is within operating hours
+                    try:
+                        opening = datetime.strptime(merchant.opening_time, '%H:%M').time() if isinstance(merchant.opening_time, str) else merchant.opening_time
+                        closing = datetime.strptime(merchant.closing_time, '%H:%M').time() if isinstance(merchant.closing_time, str) else merchant.closing_time
+                        is_open = opening <= current_time < closing
+                    except (ValueError, TypeError):
+                        is_open = False
+            
+            # Get merchant reviews for rating and count
+            reviews = merchant.merchant_reviews if hasattr(merchant, 'merchant_reviews') else []
+            if reviews:
+                avg_rating = sum([r.rating for r in reviews]) / len(reviews)
+                review_count = len(reviews)
+            else:
+                avg_rating = 4.5
+                review_count = 0
+            
+            merchant_data = {
+                'id': merchant.id,
+                'business_name': merchant.business_name,
+                'business_type': merchant.business_type,
+                'city': merchant.city,
+                'province': merchant.province,
+                'barangay': merchant.barangay or '',
+                'contact_email': merchant.contact_email,
+                'contact_phone': merchant.contact_phone,
+                'services_offered': merchant.services_offered or [],
+                'pets_accepted': merchant.pets_accepted or [],
+                'min_price': int(merchant.min_price_per_day) if merchant.min_price_per_day else 0,
+                'max_price': int(merchant.max_price_per_day) if merchant.max_price_per_day else 0,
+                'opening_time': merchant.opening_time or '09:00',
+                'closing_time': merchant.closing_time or '18:00',
+                'is_open': is_open,
+                'distance': round(distance, 1),
+                'rating': round(avg_rating, 1),
+                'reviews': review_count,
+                'response_time': '2h',
+                'completion_rate': 90,
+                'latitude': float(merchant.latitude),
+                'longitude': float(merchant.longitude)
+            }
+            nearby_list.append(merchant_data)
+        
+        # Sort results
+        if sort_by == 'distance':
+            nearby_list.sort(key=lambda x: x['distance'])
+        elif sort_by == 'rating':
+            nearby_list.sort(key=lambda x: x['rating'], reverse=True)
+        elif sort_by == 'name':
+            nearby_list.sort(key=lambda x: x['business_name'])
+        
+        return jsonify({
+            'success': True,
+            'merchants': nearby_list,
+            'count': len(nearby_list)
+        })
+        
+    except Exception as e:
+        print(f"[ERROR] get_nearby_merchants: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'merchants': []
+        }), 500

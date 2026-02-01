@@ -1,0 +1,1121 @@
+/* ================================
+   STORE PAGE - MAIN STYLES
+   Premium e-commerce dashboard
+================================ */
+
+.store-page {
+  padding: 2.5rem 1.5rem;
+  background: linear-gradient(135deg, #f5f5f7 0%, #fafbfc 100%);
+  min-height: 100vh;
+}
+
+.store-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ================================
+   PAGE HEADER
+================================ */
+.page-header {
+  margin-bottom: 2.5rem;
+  animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* ================================
+   APPROVAL BANNER
+================================ */
+.approval-banner {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 146, 60, 0.1));
+  border-left: 5px solid #f59e0b;
+  border-radius: 14px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+  animation: slideUp 0.5s ease 0.1s both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.approval-banner.pending {
+  border-left-color: #f59e0b;
+}
+
+.approval-banner.approved {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+  border-left-color: #22c55e;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+}
+
+.approval-banner.rejected {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(225, 29, 72, 0.1));
+  border-left-color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.approval-icon {
+  font-size: 2rem;
+  min-width: 50px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.approval-icon.pending {
+  color: #f59e0b;
+}
+
+.approval-icon.approved {
+  color: #22c55e;
+}
+
+.approval-icon.rejected {
+  color: #ef4444;
+}
+
+.approval-content h3 {
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.3rem;
+  font-size: 1.05rem;
+}
+
+.approval-content p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* ================================
+   TWO COLUMN LAYOUT
+================================ */
+.store-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+/* ================================
+   STORE INFO CARD
+================================ */
+.store-info-section {
+  background: white;
+  border-radius: 20px;
+  padding: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: slideUp 0.5s ease 0.2s both;
+}
+
+.store-info-section:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.store-header {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  padding: 2.5rem 2rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.store-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: float 20s linear infinite;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+.store-banner {
+  width: 100%;
+  height: 140px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
+}
+
+.store-logo-section {
+  position: relative;
+  margin-bottom: 1.5rem;
+  z-index: 2;
+}
+
+.store-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 18px;
+  background: white;
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+.store-logo:hover {
+  transform: scale(1.05);
+}
+
+.edit-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  border: 4px solid white;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+}
+
+.edit-badge:hover {
+  transform: scale(1.15);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.6);
+}
+
+.store-header h2 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin: 1rem 0 0.8rem 0;
+  position: relative;
+  z-index: 2;
+  letter-spacing: -0.5px;
+}
+
+.store-header .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+}
+
+.store-header .badge i {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ================================
+   STORE DETAILS
+================================ */
+.store-details {
+  padding: 2.5rem;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.8rem;
+}
+
+.detail-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.detail-value.status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.status-dot.active {
+  background: #22c55e;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+}
+
+.status-dot.inactive {
+  background: #ef4444;
+}
+
+.detail-value a {
+  color: #8b5cf6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.detail-value a:hover {
+  color: #6d28d9;
+  text-decoration: underline;
+}
+
+.description-item {
+  grid-column: 1 / -1;
+}
+
+.description-item .detail-value {
+  color: #6b7280;
+  font-weight: normal;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+/* ================================
+   ACTION BUTTONS
+================================ */
+.action-buttons {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.btn-edit {
+  flex: 1;
+  padding: 1.1rem 1.8rem;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.2);
+}
+
+.btn-edit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
+}
+
+.btn-edit:active {
+  transform: translateY(-1px);
+}
+
+.btn-view {
+  flex: 1;
+  padding: 1.1rem 1.8rem;
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.btn-view:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  transform: translateY(-3px);
+}
+
+.btn-view:active {
+  transform: translateY(-1px);
+}
+
+/* ================================
+   SIDEBAR STATS
+================================ */
+.store-stats {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  height: fit-content;
+  animation: slideUp 0.5s ease 0.3s both;
+  position: sticky;
+  top: 100px;
+}
+
+.stats-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.stat-block {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.stat-block:last-child {
+  border-bottom: none;
+}
+
+.stat-block-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.7rem;
+}
+
+.stat-block-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1f2937;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.stat-block-unit {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.stat-block-change {
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+  color: #22c55e;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ================================
+   BOOKING STATUS BREAKDOWN
+================================ */
+.booking-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1.5rem;
+  margin: 2.5rem 0;
+  padding: 2.5rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.status-card {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(109, 40, 217, 0.05));
+  border: 2px solid #f3f4f6;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.status-card:hover {
+  border-color: #8b5cf6;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
+}
+
+.status-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.status-count {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #1f2937;
+  margin: 0.5rem 0;
+}
+
+.status-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-card.confirmed {
+  border-color: #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(16, 185, 129, 0.08));
+}
+
+.status-card.confirmed:hover {
+  border-color: #22c55e;
+  box-shadow: 0 12px 32px rgba(34, 197, 94, 0.2);
+}
+
+.status-card.confirmed .status-icon {
+  color: #22c55e;
+}
+
+.status-card.pending {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(251, 146, 60, 0.08));
+}
+
+.status-card.pending:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 12px 32px rgba(245, 158, 11, 0.2);
+}
+
+.status-card.pending .status-icon {
+  color: #f59e0b;
+}
+
+.status-card.completed {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(37, 99, 235, 0.08));
+}
+
+.status-card.completed:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.2);
+}
+
+.status-card.completed .status-icon {
+  color: #3b82f6;
+}
+
+.status-card.cancelled {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(225, 29, 72, 0.08));
+}
+
+.status-card.cancelled:hover {
+  border-color: #ef4444;
+  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.2);
+}
+
+.status-card.cancelled .status-icon {
+  color: #ef4444;
+}
+
+/* ================================
+   RECENT BOOKINGS TABLE
+================================ */
+.recent-bookings-section {
+  margin-top: 2.5rem;
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bookings-table thead {
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.bookings-table th {
+  padding: 1.2rem;
+  text-align: left;
+  font-weight: 700;
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.bookings-table td {
+  padding: 1.2rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #1f2937;
+}
+
+.bookings-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.bookings-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.booking-id {
+  font-weight: 800;
+  color: #8b5cf6;
+  font-size: 0.95rem;
+}
+
+.customer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.customer-name {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.customer-email {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.booking-date {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.booking-amount {
+  font-weight: 800;
+  color: #22c55e;
+  font-size: 1.05rem;
+}
+
+.booking-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.booking-status.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.booking-status.confirmed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.booking-status.completed {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1e40af;
+}
+
+.booking-status.cancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+}
+
+.empty-bookings {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #9ca3af;
+}
+
+.empty-bookings-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-bookings p {
+  font-size: 1.1rem;
+  color: #6b7280;
+}
+
+/* ================================
+   EMPTY STATE
+================================ */
+.empty-store {
+  text-align: center;
+  padding: 5rem 2rem;
+}
+
+.empty-store-icon {
+  font-size: 4.5rem;
+  color: #d1d5db;
+  margin-bottom: 1.5rem;
+}
+
+.empty-store-text h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 0.8rem;
+}
+
+.empty-store-text p {
+  color: #6b7280;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.btn-setup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.2);
+}
+
+.btn-setup:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
+}
+
+/* ================================
+   MODAL STYLES
+================================ */
+.modal {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background-color: white;
+  padding: 0;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 550px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-close {
+  position: absolute;
+  right: 1.8rem;
+  top: 1.5rem;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: all 0.2s ease;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #1f2937;
+  transform: scale(1.1);
+}
+
+.modal-header {
+  padding: 2.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(109, 40, 217, 0.05));
+}
+
+.modal-header h2 {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.modal-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.modal-body {
+  padding: 2.5rem;
+}
+
+.upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 14px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+}
+
+.upload-area:hover {
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #f3f0ff, #f0ebff);
+}
+
+.upload-area.drag-over {
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #f3f0ff, #f0ebff);
+  transform: scale(1.02);
+}
+
+.upload-area i {
+  font-size: 3.5rem;
+  color: #8b5cf6;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.upload-area p {
+  margin: 0.6rem 0;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.upload-area p:last-child {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+#preview {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+#previewImage {
+  max-width: 150px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+#fileName {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.modal-footer {
+  padding: 1.8rem 2.5rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  background: #fafbfc;
+}
+
+.btn-cancel {
+  padding: 0.9rem 2rem;
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.btn-upload {
+  padding: 0.9rem 2rem;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-upload:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+}
+
+.btn-upload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #6d28d9);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+#uploadProgress {
+  margin-top: 1.5rem;
+}
+
+#progressText {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 0.8rem;
+  color: #6b7280;
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+================================ */
+@media (max-width: 1024px) {
+  .store-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .store-stats {
+    position: static;
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .store-page {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .store-header {
+    padding: 2rem;
+  }
+
+  .store-header h2 {
+    font-size: 1.6rem;
+  }
+
+  .store-details {
+    padding: 1.5rem;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .store-stats {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .booking-breakdown {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 1.5rem;
+  }
+
+  .bookings-table {
+    font-size: 0.85rem;
+  }
+
+  .bookings-table th,
+  .bookings-table td {
+    padding: 0.8rem 0.5rem;
+  }
+
+  .modal-content {
+    max-width: 95%;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .store-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .store-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .store-logo {
+    width: 90px;
+    height: 90px;
+  }
+
+  .booking-breakdown {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-row {
+    gap: 1rem;
+  }
+
+  .bookings-table th,
+  .bookings-table td {
+    padding: 0.6rem 0.3rem;
+    font-size: 0.75rem;
+  }
+}

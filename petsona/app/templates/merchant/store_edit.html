@@ -1,592 +1,893 @@
 {% extends "merchant/base.html" %}
 
 {% block content %}
-<style>
-  /* ================================
-     EDIT STORE PAGE
-  ================================ */
-  .edit-store-page {
-    padding: 2.5rem 1.5rem;
-    background: #f5f5f7;
-    min-height: 100vh;
-  }
-
-  .edit-store-container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  /* ================================
-     PAGE HEADER
-  ================================ */
-  .page-header {
-    margin-bottom: 2.5rem;
-  }
-
-  .page-title {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .page-subtitle {
-    font-size: 1rem;
-    color: #6b7280;
-    font-weight: 500;
-  }
-
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #8b5cf6;
-    text-decoration: none;
-    font-weight: 500;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
-  }
-
-  .back-link:hover {
-    gap: 0.75rem;
-    color: #6d28d9;
-  }
-
-  /* ================================
-     FORM CARD
-  ================================ */
-  .form-card {
-    background: white;
-    border-radius: 18px;
-    padding: 2.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    margin-bottom: 2rem;
-  }
-
-  /* ================================
-     FORM SECTIONS
-  ================================ */
-  .form-section {
-    margin-bottom: 2.5rem;
-  }
-
-  .form-section:last-child {
-    margin-bottom: 0;
-  }
-
-  .section-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f3f4f6;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .section-title i {
-    color: #8b5cf6;
-    font-size: 1.4rem;
-  }
-
-  /* ================================
-     FORM ROWS
-  ================================ */
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .form-row.full {
-    grid-template-columns: 1fr;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .form-group label {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.6rem;
-  }
-
-  .form-group label .required {
-    color: #ef4444;
-    margin-left: 0.3rem;
-  }
-
-  .form-group input,
-  .form-group textarea {
-    padding: 0.8rem 1rem;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-family: inherit;
-    transition: all 0.3s ease;
-    background: #f9fafb;
-  }
-
-  .form-group input:focus,
-  .form-group textarea:focus {
-    outline: none;
-    background: white;
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-  }
-
-  .form-group textarea {
-    resize: vertical;
-    min-height: 120px;
-  }
-
-  /* ================================
-     FORM HINTS
-  ================================ */
-  .form-hint {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin-top: 0.5rem;
-  }
-
-  /* ================================
-     FORM ERRORS
-  ================================ */
-  .form-group.has-error input,
-  .form-group.has-error textarea {
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.05);
-  }
-
-  .error-message {
-    color: #ef4444;
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
-
-  ul.errors {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0 0 0;
-  }
-
-  ul.errors li {
-    color: #ef4444;
-    font-size: 0.85rem;
-    margin-bottom: 0.3rem;
-  }
-
-  /* ================================
-     ACTION BUTTONS
-  ================================ */
-  .form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 2px solid #f3f4f6;
-  }
-
-  .btn-submit {
-    flex: 1;
-    padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-  }
-
-  .btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(139, 92, 246, 0.3);
-  }
-
-  .btn-submit:active {
-    transform: translateY(0);
-  }
-
-  .btn-cancel {
-    flex: 1;
-    padding: 1rem 1.5rem;
-    background: #f3f4f6;
-    color: #1f2937;
-    border: 1.5px solid #d1d5db;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    text-decoration: none;
-  }
-
-  .btn-cancel:hover {
-    background: #e5e7eb;
-    border-color: #9ca3af;
-  }
-
-  /* ================================
-     INFO BOX
-  ================================ */
-  .info-box {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(108, 45, 217, 0.05));
-    border-left: 4px solid #8b5cf6;
-    border-radius: 10px;
-    padding: 1.2rem;
-    margin-bottom: 2rem;
-    display: flex;
-    gap: 1rem;
-  }
-
-  .info-box-icon {
-    font-size: 1.5rem;
-    color: #8b5cf6;
-    min-width: 30px;
-    text-align: center;
-  }
-
-  .info-box-content h4 {
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 0.3rem 0;
-  }
-
-  .info-box-content p {
-    color: #6b7280;
-    margin: 0;
-    font-size: 0.9rem;
-  }
-
-  /* ================================
-     RESPONSIVE
-  ================================ */
-  @media (max-width: 1024px) {
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .edit-store-page {
-      padding: 1.5rem 0.75rem;
-    }
-
-    .form-card {
-      padding: 1.5rem;
-    }
-
-    .page-title {
-      font-size: 1.8rem;
-    }
-
-    .section-title {
-      font-size: 1.1rem;
-    }
-
-    .form-actions {
-      flex-direction: column;
-    }
-  }
-</style>
-
-<div class="edit-store-page">
-  <div class="edit-store-container">
+<div x-data="storeEditForm()" @mount="init()" x-cloak class="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white py-8">
+  
+  <div class="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     
-    <!-- Back Link -->
-    <a href="{{ url_for('merchant.store') }}" class="back-link">
-      <i class="fas fa-arrow-left"></i>
-      Back to Store Info
-    </a>
-
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1 class="page-title">
-        <i class="fas fa-pen-to-square"></i>
-        Edit Store Information
-      </h1>
-      <p class="page-subtitle">Update your store details and settings. All changes will be submitted for approval.</p>
+    <!-- Header Section -->
+    <div class="mb-8">
+      <a href="{{ url_for('merchant.store') }}" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold mb-4 transition-colors">
+        <i class="fas fa-arrow-left"></i>
+        Back to Store
+      </a>
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Edit Store Information</h1>
+      <p class="text-gray-600">Update your store profile information</p>
     </div>
 
-    <!-- Info Box -->
-    <div class="info-box">
-      <div class="info-box-icon">
-        <i class="fas fa-info-circle"></i>
+    <!-- Error Display -->
+    {% if form.errors %}
+      <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+        <div class="flex-shrink-0 mt-0.5">
+          <i class="fas fa-circle-exclamation text-red-500 text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="font-semibold text-red-900 mb-2">Please fix the following errors:</h3>
+          <ul class="text-sm text-red-800 space-y-1">
+            {% for field, errors in form.errors.items() %}
+              {% if field != 'csrf_token' %}
+                {% for error in errors %}
+                  <li><i class="fas fa-circle text-xs mr-2"></i>{{ error }}</li>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
       </div>
-      <div class="info-box-content">
-        <h4>Changes Under Review</h4>
-        <p>Once you submit your changes, they will be reviewed by our admin team. You'll be notified when they're approved or if we need more information.</p>
-      </div>
-    </div>
+    {% endif %}
 
-    <!-- Form Card -->
-    <form method="POST" class="form-card" novalidate>
+    <!-- Main Form -->
+    <form method="POST" enctype="multipart/form-data" @submit="validateForm($event)" novalidate class="space-y-6">
       {{ form.hidden_tag() }}
-
-      <!-- Business Information Section -->
-      <div class="form-section">
-        <h3 class="section-title">
-          <i class="fas fa-store"></i>
-          Business Information
-        </h3>
-
-        <div class="form-row">
-          <div class="form-group {% if form.business_name.errors %}has-error{% endif %}">
-            <label for="business_name">
-              Store Name
-              <span class="required">*</span>
-            </label>
-            {{ form.business_name(id='business_name') }}
-            {% if form.business_name.errors %}
-              <ul class="errors">
-                {% for error in form.business_name.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+      
+      <!-- SECTION 1: BUSINESS INFORMATION -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">1</div>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Business Information</h2>
+            <p class="text-gray-600 text-sm mt-1">Update your business details</p>
           </div>
         </div>
 
-        <div class="form-row full">
-          <div class="form-group {% if form.business_description.errors %}has-error{% endif %}">
-            <label for="business_description">
-              Store Description
-              <span class="required">*</span>
-            </label>
-            {{ form.business_description(id='business_description') }}
-            <div class="form-hint">
-              Describe your store, services offered, and what makes you special. This will be visible to customers.
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Business Name <span class="text-red-500">*</span></label>
+            {{ form.business_name(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
+            <div data-error-for="business_name" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Business Type <span class="text-red-500">*</span></label>
+            {{ form.business_type(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
+            <div data-error-for="business_type" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Years in Operation</label>
+            {{ form.years_in_operation(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Business Description <span class="text-red-500">*</span></label>
+            {{ form.business_description(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 resize-none text-sm", rows="4") }}
+            <div data-error-for="business_description" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Store Logo</label>
+            <div class="relative">
+              <label class="flex items-center justify-center w-full p-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all group">
+                <input type="file" @change="updateFileName($event, 'logo_name')" name="logo_path" class="hidden" accept=".jpg,.jpeg,.png,.webp">
+                <div class="text-center">
+                  <i class="fas fa-image text-purple-400 text-3xl group-hover:text-purple-600 mb-2 block"></i>
+                  <p class="text-sm font-medium text-gray-900 group-hover:text-purple-700">Click to upload logo</p>
+                  <p class="text-xs text-gray-500 mt-1">or drag and drop</p>
+                  <p class="text-xs text-gray-400 mt-2">JPG, PNG, WebP • Max 5MB • Recommended: 300×300px</p>
+                </div>
+              </label>
             </div>
-            {% if form.business_description.errors %}
-              <ul class="errors">
-                {% for error in form.business_description.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+            <div class="mt-2 text-sm" x-text="logo_name" :style="logo_name.includes('✓') ? 'color: #10b981' : ''"></div>
+            <div data-error-for="logo_path" class="mt-2 text-sm text-red-600 hidden"></div>
+            <template x-if="currentLogo">
+              <div class="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p class="text-xs font-semibold text-gray-700 mb-2">Current Logo</p>
+                <img :src="currentLogo" alt="Current Logo" class="h-24 w-24 object-cover rounded border border-purple-300">
+              </div>
+            </template>
           </div>
         </div>
       </div>
 
-      <!-- Contact Information Section -->
-      <div class="form-section">
-        <h3 class="section-title">
-          <i class="fas fa-phone"></i>
-          Contact Information
-        </h3>
-
-        <div class="form-row">
-          <div class="form-group {% if form.contact_email.errors %}has-error{% endif %}">
-            <label for="contact_email">
-              Store Email
-              <span class="required">*</span>
-            </label>
-            {{ form.contact_email(id='contact_email', type='email') }}
-            {% if form.contact_email.errors %}
-              <ul class="errors">
-                {% for error in form.contact_email.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+      <!-- SECTION 2: CONTACT PERSON -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">2</div>
           </div>
-          <div class="form-group {% if form.contact_phone.errors %}has-error{% endif %}">
-            <label for="contact_phone">
-              Store Phone
-              <span class="required">*</span>
-            </label>
-            {{ form.contact_phone(id='contact_phone') }}
-            {% if form.contact_phone.errors %}
-              <ul class="errors">
-                {% for error in form.contact_phone.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Contact Information</h2>
+            <p class="text-gray-600 text-sm mt-1">Update your contact details</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Owner/Manager Name <span class="text-red-500">*</span></label>
+            {{ form.owner_manager_name(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
+            <div data-error-for="owner_manager_name" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Email Address <span class="text-red-500">*</span></label>
+            {{ form.contact_email(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
+            <div data-error-for="contact_email" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Phone Number <span class="text-red-500">*</span></label>
+            {{ form.contact_phone(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
+            <div data-error-for="contact_phone" class="mt-2 text-sm text-red-600 hidden"></div>
           </div>
         </div>
       </div>
 
-      <!-- Location Section -->
-      <div class="form-section">
-        <h3 class="section-title">
-          <i class="fas fa-map-marker-alt"></i>
-          Location
-        </h3>
-
-        <div class="form-row full">
-          <div class="form-group {% if form.full_address.errors %}has-error{% endif %}">
-            <label for="full_address">
-              Full Address
-              <span class="required">*</span>
-            </label>
-            {{ form.full_address(id='full_address') }}
-            {% if form.full_address.errors %}
-              <ul class="errors">
-                {% for error in form.full_address.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+      <!-- SECTION 3: LOCATION -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">3</div>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Business Location</h2>
+            <p class="text-gray-600 text-sm mt-1">Update your store location and current location information</p>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group {% if form.city.errors %}has-error{% endif %}">
-            <label for="city">
-              City
-              <span class="required">*</span>
-            </label>
-            {{ form.city(id='city') }}
-            {% if form.city.errors %}
-              <ul class="errors">
-                {% for error in form.city.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-          </div>
-          <div class="form-group {% if form.province.errors %}has-error{% endif %}">
-            <label for="province">
-              Province
-              <span class="required">*</span>
-            </label>
-            {{ form.province(id='province') }}
-            {% if form.province.errors %}
-              <ul class="errors">
-                {% for error in form.province.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+        <input type="hidden" name="province" x-model="selectedProvince">
+        <input type="hidden" name="city" x-model="selectedCity">
+        <input type="hidden" name="barangay" x-model="selectedBarangay">
+        <input type="hidden" name="latitude" x-model="selectedLatitude">
+        <input type="hidden" name="longitude" x-model="selectedLongitude">
+        <input type="hidden" name="full_address" x-model="fullAddress">
+
+        <!-- Current Location Display -->
+        <div class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+          <h3 class="font-semibold text-gray-900 mb-3 text-sm">Current Location</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="text-gray-600">Province:</span>
+              <p class="font-medium text-gray-900" x-text="currentProvinceName || 'Not set'"></p>
+            </div>
+            <div>
+              <span class="text-gray-600">City:</span>
+              <p class="font-medium text-gray-900" x-text="currentCityName || 'Not set'"></p>
+            </div>
+            <div>
+              <span class="text-gray-600">Barangay:</span>
+              <p class="font-medium text-gray-900" x-text="currentBarangayName || 'Not set'"></p>
+            </div>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group {% if form.postal_code.errors %}has-error{% endif %}">
-            <label for="postal_code">Postal Code</label>
-            {{ form.postal_code(id='postal_code') }}
-            {% if form.postal_code.errors %}
-              <ul class="errors">
-                {% for error in form.postal_code.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Province <span class="text-red-500">*</span></label>
+            <select @change="loadCities()" x-model="selectedProvince" class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm">
+              <option value="">-- Select Province --</option>
+              <template x-for="(prov, idx) in provinces" :key="idx">
+                <option :value="prov.code" x-text="prov.name"></option>
+              </template>
+            </select>
+            <div data-error-for="province" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">City/Municipality <span class="text-red-500">*</span></label>
+            <select @change="loadBarangays()" x-model="selectedCity" class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" :disabled="!selectedProvince">
+              <option value="">-- Select City --</option>
+              <template x-for="(city, idx) in cities" :key="idx">
+                <option :value="city.code" x-text="city.name"></option>
+              </template>
+            </select>
+            <div data-error-for="city" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Barangay <span class="text-red-500">*</span></label>
+            <select x-model="selectedBarangay" class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" :disabled="!selectedCity">
+              <option value="">-- Select Barangay --</option>
+              <template x-for="(barangay, idx) in barangays" :key="idx">
+                <option :value="barangay.code || barangay" x-text="barangay.name || barangay"></option>
+              </template>
+            </select>
+            <div data-error-for="barangay" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Postal Code</label>
+            {{ form.postal_code(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Google Maps Link (Optional)</label>
+            {{ form.google_maps_link(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-900 mb-2">Full Address <span class="text-red-500">*</span></label>
+          {{ form.full_address(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-purple-50 text-gray-900 text-sm", placeholder="Auto-populated from map") }}
+          <div data-error-for="full_address" class="mt-2 text-sm text-red-600 hidden"></div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-50 to-white rounded-lg p-6 border border-purple-200 mb-6">
+          <h3 class="font-semibold text-gray-900 mb-4 text-sm flex items-center gap-2">
+            <i class="fas fa-map-location-dot text-purple-600"></i>Pin Your Store Location
+          </h3>
+          <div id="editStoreMap" style="width: 100%; height: 300px; min-height: 300px; border-radius: 0.5rem; border: 2px solid #e9d5ff; background-color: #f5f3ff;"></div>
+          <div data-error-for="map" class="mt-2 text-sm text-red-600 hidden"></div>
+          <p class="text-sm text-gray-600 mt-3"><i class="fas fa-info-circle text-purple-600 mr-2"></i>Click on the map to update your store location</p>
+          {{ form.latitude() }}
+          {{ form.longitude() }}
+        </div>
+
+        <style>
+          @media (min-width: 640px) {
+            #editStoreMap {
+              height: 400px;
+              min-height: 400px;
+            }
+          }
+
+          @media (min-width: 1024px) {
+            #editStoreMap {
+              height: 500px;
+              min-height: 500px;
+            }
+          }
+        </style>
+      </div>
+
+      <!-- SECTION 4: SERVICES OFFERED -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">4</div>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Services Offered</h2>
+            <p class="text-gray-600 text-sm mt-1">Select all services your business provides</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {% for field in form.services_offered %}
+            <label class="flex items-center p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all group">
+              {{ field(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
+              <span class="ml-3 text-sm font-medium text-gray-900 group-hover:text-purple-700">{{ field.label.text }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div data-error-for="services_offered" class="mt-3 text-sm text-red-600 hidden"></div>
+      </div>
+
+      <!-- SECTION 5: PETS ACCEPTED -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">5</div>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Pets Accepted</h2>
+            <p class="text-gray-600 text-sm mt-1">Select all pet types your business can accommodate</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {% for field in form.pets_accepted %}
+            <label class="flex items-center p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all group">
+              {{ field(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
+              <span class="ml-3 text-sm font-medium text-gray-900 group-hover:text-purple-700">{{ field.label.text }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div data-error-for="pets_accepted" class="mt-3 text-sm text-red-600 hidden"></div>
+      </div>
+
+      <!-- SECTION 6: CAPACITY & PRICING -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">6</div>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Capacity & Pricing</h2>
+            <p class="text-gray-600 text-sm mt-1">Update your business capacity and pricing</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Max Pets Per Day <span class="text-red-500">*</span></label>
+            {{ form.max_pets_per_day(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm", type="number") }}
+            <div data-error-for="max_pets_per_day" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Min Price (₱) <span class="text-red-500">*</span></label>
+            {{ form.min_price_per_day(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm", type="number", step="0.01") }}
+            <div data-error-for="min_price_per_day" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Max Price (₱) <span class="text-red-500">*</span></label>
+            {{ form.max_price_per_day(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm", type="number", step="0.01") }}
+            <div data-error-for="max_price_per_day" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+        </div>
+
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-6">
+          <p class="text-sm text-purple-900"><i class="fas fa-lightbulb text-purple-600 mr-2"></i>Update your pricing. These changes will be reviewed by admin.</p>
+        </div>
+      </div>
+
+      <!-- SECTION 7: OPERATING SCHEDULE -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">7</div>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Operating Schedule</h2>
+            <p class="text-gray-600 text-sm mt-1">Update your business hours</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Opening Time <span class="text-red-500">*</span></label>
+            {{ form.opening_time(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
+            <div data-error-for="opening_time" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Closing Time <span class="text-red-500">*</span></label>
+            {{ form.closing_time(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
+            <div data-error-for="closing_time" class="mt-2 text-sm text-red-600 hidden"></div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-4">Operating Days <span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {% for field in form.operating_days %}
+              <label class="flex items-center p-3 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all">
+                {{ field(class="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
+                <span class="ml-2 text-sm font-medium text-gray-900">{{ field.label.text }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          <div data-error-for="operating_days" class="mt-3 text-sm text-red-600 hidden"></div>
+        </div>
+      </div>
+
+      <!-- SECTION 8: POLICIES -->
+      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">8</div>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Policies</h2>
+            <p class="text-gray-600 text-sm mt-1">Update your store policies</p>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="flex items-start p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all">
+            <input type="checkbox" x-model="hasCancellationPolicy" class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer mt-0.5">
+            <span class="ml-3 text-sm font-medium text-gray-900">I have a specific cancellation policy</span>
+          </label>
+          <p class="text-gray-500 text-xs mt-2 ml-2">Leave unchecked to use default policy</p>
+        </div>
+
+        <div x-show="hasCancellationPolicy" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Cancellation Policy</label>
+            {{ form.cancellation_policy(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 resize-none text-sm", rows="4") }}
           </div>
         </div>
       </div>
 
-      <!-- Operating Hours Section -->
-      <div class="form-section">
-        <h3 class="section-title">
-          <i class="fas fa-clock"></i>
-          Operating Hours
-        </h3>
-
-        <div class="form-row">
-          <div class="form-group {% if form.opening_time.errors %}has-error{% endif %}">
-            <label for="opening_time">
-              Opening Time
-              <span class="required">*</span>
-            </label>
-            {{ form.opening_time(id='opening_time') }}
-            <div class="form-hint">Format: HH:MM (e.g., 09:00)</div>
-            {% if form.opening_time.errors %}
-              <ul class="errors">
-                {% for error in form.opening_time.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+      <!-- SUBMIT SECTION -->
+      <div class="bg-gradient-to-br from-white to-purple-50 border-2 border-purple-300 rounded-xl shadow-sm p-6 sm:p-8">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 text-white text-lg font-bold"><i class="fas fa-check"></i></div>
           </div>
-          <div class="form-group {% if form.closing_time.errors %}has-error{% endif %}">
-            <label for="closing_time">
-              Closing Time
-              <span class="required">*</span>
-            </label>
-            {{ form.closing_time(id='closing_time') }}
-            <div class="form-hint">Format: HH:MM (e.g., 18:00)</div>
-            {% if form.closing_time.errors %}
-              <ul class="errors">
-                {% for error in form.closing_time.errors %}
-                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Submit Changes</h2>
+            <p class="text-gray-600 text-sm mt-1">Confirm and save your updates</p>
           </div>
         </div>
-      </div>
 
-      <!-- Action Buttons -->
-      <div class="form-actions">
-        <button type="submit" class="btn-submit">
-          <i class="fas fa-check"></i>
-          Submit for Approval
-        </button>
-        <a href="{{ url_for('merchant.store') }}" class="btn-cancel">
-          <i class="fas fa-times"></i>
-          Cancel
-        </a>
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+          <p class="text-sm text-purple-900"><i class="fas fa-info-circle text-purple-600 mr-2"></i>Your changes will be submitted for review by our admin team.</p>
+        </div>
+
+        <label class="flex items-start p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all mb-6">
+          <input type="checkbox" x-model="agreedToTerms" class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer mt-0.5">
+          <span class="ml-3 text-sm text-gray-900">
+            I confirm that all information provided is accurate and complete.
+            <span class="text-red-500">*</span>
+          </span>
+        </label>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a href="{{ url_for('merchant.store') }}" class="flex-1 px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+            <i class="fas fa-arrow-left text-sm"></i> <span>Cancel</span>
+          </a>
+          <button type="submit" :disabled="!agreedToTerms" class="flex-1 px-8 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all disabled:transform-none flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+            <i class="fas fa-check text-sm"></i> <span>Save Changes</span>
+          </button>
+        </div>
       </div>
     </form>
-
   </div>
 </div>
 
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- Axios for API calls -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Animate form on load
-    const formCard = document.querySelector('.form-card');
-    if (formCard) {
-      formCard.style.opacity = '0';
-      formCard.style.transform = 'translateY(20px)';
-      setTimeout(() => {
-        formCard.style.transition = 'all 0.5s ease';
-        formCard.style.opacity = '1';
-        formCard.style.transform = 'translateY(0)';
-      }, 100);
-    }
+  function storeEditForm() {
+    return {
+      selectedProvince: '{{ merchant.province or "" }}',
+      selectedCity: '{{ merchant.city or "" }}',
+      selectedBarangay: '{{ merchant.barangay or "" }}',
+      selectedLatitude: '{{ merchant.latitude or "" }}',
+      selectedLongitude: '{{ merchant.longitude or "" }}',
+      fullAddress: '{{ merchant.full_address or "" }}',
+      currentProvinceName: '{{ merchant.province or "" }}',
+      currentCityName: '{{ merchant.city or "" }}',
+      currentBarangayName: '{{ merchant.barangay or "" }}',
+      currentLogo: "{{ merchant.logo_path if (merchant.logo_path and (merchant.logo_path.startswith('/') or merchant.logo_path.startswith('http'))) else (url_for('static', filename=merchant.logo_path) if merchant.logo_path else '') }}",
+      provinces: [],
+      cities: [],
+      barangays: [],
+      map: null,
+      marker: null,
+      agreedToTerms: false,
+      logo_name: '',
+      hasCancellationPolicy: "{{ 'true' if merchant.cancellation_policy else 'false' }}",
+      mapInitialized: false,
 
-    // Focus effects on inputs
-    document.querySelectorAll('input, textarea').forEach(input => {
-      input.addEventListener('blur', () => {
-        if (input.value.trim() === '') {
-          input.parentElement.classList.remove('has-value');
-        } else {
-          input.parentElement.classList.add('has-value');
+      async init() {
+        await this.loadProvinces();
+        this.loadExistingData();
+        
+        // Initialize map after provinces load
+        setTimeout(() => this.initializeMap(), 500);
+      },
+
+      updateFileName(event, fieldName) {
+        const file = event.target.files[0];
+        if (file) this[fieldName] = `✓ ${file.name}`;
+      },
+
+      loadExistingData() {
+        // Get coordinates from form inputs
+        const latInput = document.querySelector('input[name="latitude"]');
+        const lngInput = document.querySelector('input[name="longitude"]');
+        
+        if (latInput?.value) this.selectedLatitude = latInput.value;
+        if (lngInput?.value) this.selectedLongitude = lngInput.value;
+
+        // Load cities for current province if set
+        if (this.selectedProvince) {
+          this.loadCities();
         }
-      });
+      },
 
-      // Check initial value
-      if (input.value.trim() !== '') {
-        input.parentElement.classList.add('has-value');
+      initializeMap() {
+        if (typeof L === 'undefined') return;
+
+        const mapElement = document.getElementById('editStoreMap');
+        if (!mapElement) return;
+
+        if (this.mapInitialized && this.map) {
+          this.map.invalidateSize();
+          return;
+        }
+
+        try {
+          const defaultLat = 14.5994;
+          const defaultLng = 120.9842;
+
+          this.map = L.map('editStoreMap').setView([defaultLat, defaultLng], 12);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+          }).addTo(this.map);
+
+          this.map.on('click', (e) => {
+            this.placeMarker(e.latlng.lat, e.latlng.lng);
+          });
+
+          this.mapInitialized = true;
+          this.addMapControls();
+
+          if (this.selectedLatitude && this.selectedLongitude) {
+            const lat = parseFloat(this.selectedLatitude);
+            const lng = parseFloat(this.selectedLongitude);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              this.placeMarker(lat, lng);
+            }
+          }
+
+          setTimeout(() => this.map.invalidateSize(), 100);
+        } catch (error) {
+          console.error('Map error:', error);
+        }
+      },
+
+      addMapControls() {
+        const self = this;
+        
+        const controlContainer = document.createElement('div');
+        controlContainer.style.cssText = `
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          z-index: 1000;
+          display: flex;
+        `;
+
+        const locIconBtn = document.createElement('button');
+        locIconBtn.innerHTML = '<i class="fas fa-location-arrow"></i>';
+        locIconBtn.title = 'Use current location';
+        locIconBtn.style.cssText = `
+          width: 44px;
+          height: 44px;
+          background: white;
+          color: #a855f7;
+          border: 2px solid #a855f7;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          transition: all 0.2s;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        `;
+        locIconBtn.onmouseover = () => { 
+          locIconBtn.style.background = '#a855f7';
+          locIconBtn.style.color = 'white';
+          locIconBtn.style.transform = 'scale(1.1)';
+        };
+        locIconBtn.onmouseout = () => { 
+          locIconBtn.style.background = 'white';
+          locIconBtn.style.color = '#a855f7';
+          locIconBtn.style.transform = 'scale(1)';
+        };
+        locIconBtn.onclick = (e) => {
+          e.preventDefault();
+          self.getCurrentLocation();
+        };
+
+        controlContainer.appendChild(locIconBtn);
+        const mapElement = document.getElementById('editStoreMap');
+        mapElement.parentElement.style.position = 'relative';
+        mapElement.parentElement.appendChild(controlContainer);
+      },
+
+      placeMarker(lat, lng) {
+        if (this.marker) {
+          this.marker.setLatLng([lat, lng]);
+        } else {
+          this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+          this.marker.on('dragend', () => {
+            const pos = this.marker.getLatLng();
+            this.updateCoordinates(pos.lat, pos.lng);
+          });
+        }
+        this.updateCoordinates(lat, lng);
+        this.map.setView([lat, lng], 15);
+      },
+
+      updateCoordinates(lat, lng) {
+        this.selectedLatitude = lat;
+        this.selectedLongitude = lng;
+        document.querySelector('input[name="latitude"]').value = lat;
+        document.querySelector('input[name="longitude"]').value = lng;
+        this.reverseGeocode(lat, lng);
+      },
+
+      async reverseGeocode(lat, lng) {
+        try {
+          lat = parseFloat(lat);
+          lng = parseFloat(lng);
+          
+          if (isNaN(lat) || isNaN(lng)) throw new Error('Invalid coordinates');
+          
+          const response = await axios.post('{{ url_for("merchant.reverse_geocode") }}', {
+            lat: lat,
+            lon: lng
+          }, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          });
+          
+          const data = response.data;
+          const address = data.address || {};
+          let fullAddress = '';
+          
+          if (address.house_number && address.road) {
+            fullAddress = `${address.house_number} ${address.road}`;
+          } else if (address.road) {
+            fullAddress = address.road;
+          } else if (address.place) {
+            fullAddress = address.place;
+          } else if (address.town) {
+            fullAddress = address.town;
+          } else if (address.city) {
+            fullAddress = address.city;
+          }
+          
+          if (address.village) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.village}` : address.village;
+          }
+          
+          if (address.municipality && !fullAddress.includes(address.municipality)) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.municipality}` : address.municipality;
+          } else if (address.city && !fullAddress.includes(address.city)) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.city}` : address.city;
+          }
+          
+          if (address.state && !fullAddress.includes(address.state)) {
+            fullAddress = fullAddress ? `${fullAddress}, ${address.state}` : address.state;
+          }
+          
+          if (address.postcode) {
+            fullAddress = fullAddress ? `${fullAddress} ${address.postcode}` : address.postcode;
+          }
+          
+          document.querySelector('input[name="full_address"]').value = fullAddress;
+          this.fullAddress = fullAddress;
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+        }
+      },
+
+      getCurrentLocation() {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported');
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            this.placeMarker(lat, lng);
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            alert('Unable to get your location');
+          }
+        );
+      },
+
+      async loadProvinces() {
+        try {
+          const response = await axios.get('{{ url_for("merchant.get_provinces") }}');
+          this.provinces = Array.isArray(response.data) ? response.data : [];
+        } catch (error) {
+          console.error('Error loading provinces:', error);
+        }
+      },
+
+      async loadCities() {
+        if (!this.selectedProvince) return;
+        try {
+          const url = '{{ url_for("merchant.get_cities", province_code="PLACEHOLDER") }}'.replace('PLACEHOLDER', this.selectedProvince);
+          const response = await axios.get(url);
+          this.cities = Array.isArray(response.data) ? response.data : [];
+        } catch (error) {
+          console.error('Error loading cities:', error);
+        }
+      },
+
+      async loadBarangays() {
+        if (!this.selectedCity) return;
+        try {
+          const url = '{{ url_for("merchant.get_barangays", city_code="PLACEHOLDER") }}'.replace('PLACEHOLDER', this.selectedCity);
+          const response = await axios.get(url);
+          this.barangays = Array.isArray(response.data) ? response.data : [];
+        } catch (error) {
+          console.error('Error loading barangays:', error);
+        }
+      },
+
+      validateForm(event) {
+        if (!this.agreedToTerms) {
+          event.preventDefault();
+          alert('Please confirm that your information is accurate');
+          return false;
+        }
+        return this.validateAllSections();
+      },
+
+      validateBusiness() {
+        const name = document.querySelector('input[name="business_name"]')?.value?.trim();
+        const type = document.querySelector('select[name="business_type"]')?.value?.trim();
+        const desc = document.querySelector('textarea[name="business_description"]')?.value?.trim();
+        
+        this.clearErrors();
+        if (!name) this.showError('business_name', 'Business name is required');
+        if (!type) this.showError('business_type', 'Business type is required');
+        if (!desc) this.showError('business_description', 'Description is required');
+        
+        return name && type && desc;
+      },
+
+      validateContact() {
+        const name = document.querySelector('input[name="owner_manager_name"]')?.value?.trim();
+        const email = document.querySelector('input[name="contact_email"]')?.value?.trim();
+        const phone = document.querySelector('input[name="contact_phone"]')?.value?.trim();
+        
+        this.clearErrors();
+        if (!name) this.showError('owner_manager_name', 'Manager name is required');
+        if (!email || !this.isValidEmail(email)) this.showError('contact_email', 'Valid email required');
+        if (!phone || !this.isValidPhone(phone)) this.showError('contact_phone', 'Valid PH phone required');
+        
+        return name && email && this.isValidEmail(email) && phone && this.isValidPhone(phone);
+      },
+
+      validateLocation() {
+        this.clearErrors();
+        if (!this.selectedProvince) this.showError('province', 'Select a province');
+        if (!this.selectedCity) this.showError('city', 'Select a city');
+        if (!this.selectedBarangay) this.showError('barangay', 'Select a barangay');
+        if (!document.querySelector('input[name="latitude"]')?.value) this.showError('map', 'Pin your location on the map');
+        
+        return this.selectedProvince && this.selectedCity && this.selectedBarangay && document.querySelector('input[name="latitude"]')?.value;
+      },
+
+      validateServices() {
+        this.clearErrors();
+        const checkboxes = document.querySelectorAll('input[name="services_offered"]');
+        const checked = Array.from(checkboxes).filter(cb => cb.checked).length > 0;
+        if (!checked) this.showError('services_offered', 'Select at least one service');
+        return checked;
+      },
+
+      validatePets() {
+        this.clearErrors();
+        const checkboxes = document.querySelectorAll('input[name="pets_accepted"]');
+        const checked = Array.from(checkboxes).filter(cb => cb.checked).length > 0;
+        if (!checked) this.showError('pets_accepted', 'Select at least one pet type');
+        return checked;
+      },
+
+      validatePricing() {
+        const max = document.querySelector('input[name="max_pets_per_day"]')?.value;
+        const min = document.querySelector('input[name="min_price_per_day"]')?.value;
+        const maxPrice = document.querySelector('input[name="max_price_per_day"]')?.value;
+        
+        this.clearErrors();
+        if (!max || parseInt(max) <= 0) this.showError('max_pets_per_day', 'Valid capacity required');
+        if (!min || parseFloat(min) <= 0) this.showError('min_price_per_day', 'Valid min price required');
+        if (!maxPrice || parseFloat(maxPrice) <= 0) this.showError('max_price_per_day', 'Valid max price required');
+        if (min && maxPrice && parseFloat(maxPrice) < parseFloat(min)) this.showError('max_price_per_day', 'Max must be >= min');
+        
+        return max && min && maxPrice && parseFloat(max) > 0 && parseFloat(min) > 0 && parseFloat(maxPrice) > 0 && parseFloat(maxPrice) >= parseFloat(min);
+      },
+
+      validateSchedule() {
+        const opening = document.querySelector('input[name="opening_time"]')?.value;
+        const closing = document.querySelector('input[name="closing_time"]')?.value;
+        const dayCheckboxes = document.querySelectorAll('input[name="operating_days"]');
+        const days = Array.from(dayCheckboxes).filter(cb => cb.checked).length > 0;
+        
+        this.clearErrors();
+        if (!opening) this.showError('opening_time', 'Opening time required');
+        if (!closing) this.showError('closing_time', 'Closing time required');
+        if (!days) this.showError('operating_days', 'Select at least one day');
+        
+        return opening && closing && days;
+      },
+
+      validateAllSections() {
+        if (!this.validateBusiness()) return false;
+        if (!this.validateContact()) return false;
+        if (!this.validateLocation()) return false;
+        if (!this.validateServices()) return false;
+        if (!this.validatePets()) return false;
+        if (!this.validatePricing()) return false;
+        if (!this.validateSchedule()) return false;
+        return true;
+      },
+
+      clearErrors() {
+        document.querySelectorAll('[data-error-for]').forEach(el => {
+          el.style.display = 'none';
+          el.textContent = '';
+        });
+      },
+
+      showError(field, message) {
+        const errorEl = document.querySelector(`[data-error-for="${field}"]`);
+        if (errorEl) {
+          errorEl.innerHTML = `<i class="fas fa-circle-exclamation mr-2"></i>${message}`;
+          errorEl.style.display = 'block';
+        }
+      },
+
+      isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      },
+
+      isValidPhone(phone) {
+        return /^(\+63|0)[0-9]{9,}$/.test(phone.replace(/[-\s]/g, ''));
       }
-    });
-  });
+    };
+  }
 </script>
+
+<style>
+  [x-cloak] { display: none; }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+  }
+
+  input[type="checkbox"]:focus,
+  input[type="radio"]:focus {
+    outline: 2px solid #a855f7;
+    outline-offset: 2px;
+  }
+
+  #editStoreMap {
+    width: 100%;
+    height: 300px;
+    border-radius: 0.5rem;
+    border: 2px solid #e9d5ff;
+    background-color: #f5f3ff;
+  }
+
+  @media (min-width: 640px) {
+    #editStoreMap {
+      height: 400px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #editStoreMap {
+      height: 500px;
+    }
+  }
+
+  .leaflet-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 1;
+  }
+</style>
 
 {% endblock %}

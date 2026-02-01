@@ -377,103 +377,330 @@ class MerchantApplicationForm(FlaskForm):
             raise ValidationError('Please select at least one operating day')
 
 class MerchantStoreUpdateForm(FlaskForm):
-    """Form for updating merchant store information"""
-    
+    """Form for updating merchant store information - mirrors MerchantApplicationForm for editing"""
+
+    # ========== SECTION 1: BUSINESS INFORMATION ==========
     business_name = StringField(
-        'Store Name',
+        'Business Name',
         validators=[
-            DataRequired(message='Store name is required'),
-            Length(min=3, max=255, message='Store name must be between 3 and 255 characters')
+            DataRequired(message='Business name is required'),
+            Length(min=3, max=255, message='Business name must be between 3 and 255 characters')
         ],
-        render_kw={'class': 'form-control', 'placeholder': 'e.g., PawsCare Pet Services'}
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., Happy Paws Hotel & Boarding',
+        }
     )
-    
+
+    business_type = SelectField(
+        'Business Type',
+        choices=[
+            ('', '-- Select Business Type --'),
+            ('hotel', 'Pet Hotel'),
+            ('boarding', 'Pet Boarding Facility'),
+            ('grooming', 'Pet Grooming Salon'),
+            ('vet', 'Veterinary Clinic'),
+            ('trainer', 'Pet Training Center'),
+            ('transport', 'Pet Transport Service'),
+        ],
+        validators=[DataRequired(message='Please select a business type')],
+        render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
+    )
+
     business_description = TextAreaField(
-        'Store Description',
+        'Business Description',
         validators=[
-            DataRequired(message='Store description is required'),
+            DataRequired(message='Please provide a business description'),
             Length(min=20, max=1000, message='Description must be between 20 and 1000 characters')
         ],
         render_kw={
-            'class': 'form-control',
-            'placeholder': 'Describe your store, services, and what makes you special...',
-            'rows': 5
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm resize-vertical',
+            'placeholder': 'Tell us about your business, specialties, and what makes you unique...',
+            'rows': 4,
         }
     )
-    
+
+    years_in_operation = IntegerField(
+        'Years in Operation (Optional)',
+        validators=[
+            Optional(),
+            NumberRange(min=0, max=100, message='Please enter a valid number of years')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., 5',
+            'type': 'number',
+            'min': '0',
+            'max': '100'
+        }
+    )
+
+    # ========== SECTION 2: CONTACT PERSON ==========
+    owner_manager_name = StringField(
+        'Owner / Manager Full Name',
+        validators=[
+            DataRequired(message='Full name is required'),
+            Length(min=3, max=128, message='Name must be between 3 and 128 characters')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., Juan Dela Cruz',
+        }
+    )
+
     contact_email = StringField(
-        'Store Email',
+        'Contact Email',
         validators=[
             DataRequired(message='Email is required'),
-            Email(message='Invalid email address')
+            Email(message='Please provide a valid email address')
         ],
-        render_kw={'class': 'form-control', 'placeholder': 'contact@store.com'}
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., contact@happypaws.com',
+            'type': 'email'
+        }
     )
-    
+
     contact_phone = StringField(
-        'Store Phone',
+        'Contact Phone',
         validators=[
-            DataRequired(message='Phone is required'),
-            Length(min=10, max=20, message='Phone must be between 10 and 20 characters')
+            DataRequired(message='Phone number is required'),
+            Regexp(r'^\+?63\d{10}$|^09\d{9}$', message='Please provide a valid Philippine phone number (09XX-XXX-XXXX or +63...)')
         ],
-        render_kw={'class': 'form-control', 'placeholder': '+63 9XX XXX XXXX'}
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., 09XX-XXX-XXXX or +639XX-XXX-XXXX',
+        }
     )
-    
-    full_address = StringField(
-        'Full Address',
-        validators=[
-            DataRequired(message='Address is required'),
-            Length(min=10, max=500, message='Address must be between 10 and 500 characters')
-        ],
-        render_kw={'class': 'form-control', 'placeholder': 'Street address'}
-    )
-    
-    city = StringField(
-        'City',
-        validators=[
-            DataRequired(message='City is required'),
-            Length(min=2, max=100)
-        ],
-        render_kw={'class': 'form-control', 'placeholder': 'City'}
-    )
-    
-    province = StringField(
+
+    # ========== SECTION 3: LOCATION ==========
+    province = SelectField(
         'Province',
-        validators=[
-            DataRequired(message='Province is required'),
-            Length(min=2, max=100)
-        ],
-        render_kw={'class': 'form-control', 'placeholder': 'Province'}
+        choices=[('', '-- Select Province --')],
+        validators=[DataRequired(message='Please select a province')],
+        validate_choice=False,
+        render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
     )
-    
+
+    city = SelectField(
+        'City / Municipality',
+        choices=[('', '-- Select City/Municipality --')],
+        validators=[DataRequired(message='Please select a city or municipality')],
+        validate_choice=False,
+        render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
+    )
+
+    barangay = SelectField(
+        'Barangay (Optional)',
+        choices=[('', '-- Select Barangay --')],
+        validators=[Optional()],
+        validate_choice=False,
+        render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
+    )
+
     postal_code = StringField(
         'Postal Code',
         validators=[
             Optional(),
-            Length(max=10)
+            Length(min=4, max=4, message='Postal code must be exactly 4 digits'),
+            Regexp(r'^\d{4}$', message='Postal code must contain only numbers')
         ],
-        render_kw={'class': 'form-control', 'placeholder': 'Postal Code'}
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., 1200',
+            'inputmode': 'numeric',   
+            'pattern': '[0-9]{4}',   
+            'maxlength': '4',
+            'minlength': '4'
+        }
     )
-    
+
+    google_maps_link = StringField(
+        'Google Maps Link (Optional)',
+        validators=[
+            Optional(),
+            URL(message='Please provide a valid Google Maps URL')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., https://maps.google.com/?q=...',
+        }
+    )
+
+    full_address = StringField(
+        'Full Address',
+        validators=[DataRequired(message='Please pin your location on the map to get the full address')],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'readonly': True,
+        }
+    )
+
+    # Map coordinates (hidden fields)
+    latitude = HiddenField('Latitude', validators=[Optional()])
+    longitude = HiddenField('Longitude', validators=[Optional()])
+
+    # ========== SECTION 4: SERVICES OFFERED ==========
+    services_offered = MultiCheckboxField(
+        'Services Offered',
+        choices=[
+            ('Pet Hotel', 'Pet Hotel (Overnight Stay)'),
+            ('Pet Boarding', 'Pet Boarding (Daycare)'),
+            ('Pet Grooming', 'Pet Grooming'),
+            ('Pet Training', 'Pet Training'),
+            ('Pet Transport', 'Pet Transport'),
+            ('Veterinary Clinic', 'Veterinary Clinic'),
+        ],
+        validators=[DataRequired(message='Please select at least one service')],
+        render_kw={'class': 'space-y-2'}
+    )
+
+    # ========== SECTION 5: PETS ACCEPTED ==========
+    pets_accepted = MultiCheckboxField(
+        'Pets Accepted',
+        choices=[
+            ('Dogs', 'Dogs'),
+            ('Cats', 'Cats'),
+            ('Birds', 'Birds'),
+            ('Rabbits', 'Rabbits'),
+            ('Reptiles', 'Reptiles'),
+            ('Exotic Pets', 'Exotic Pets'),
+        ],
+        validators=[DataRequired(message='Please select at least one pet type')],
+        render_kw={'class': 'space-y-2'}
+    )
+
+    # ========== SECTION 6: CAPACITY & PRICING ==========
+    max_pets_per_day = IntegerField(
+        'Maximum Pets Per Day',
+        validators=[
+            DataRequired(message='Capacity is required'),
+            NumberRange(min=1, max=10000, message='Capacity must be between 1 and 10,000 pets')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., 50',
+            'type': 'number',
+            'min': '1'
+        }
+    )
+
+    min_price_per_day = FloatField(
+        'Minimum Price Per Day (₱)',
+        validators=[
+            DataRequired(message='Minimum price is required'),
+            NumberRange(min=0, max=999999, message='Price must be a positive number')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., 500.00',
+            'type': 'number',
+            'min': '0',
+            'step': '0.01'
+        }
+    )
+
+    max_price_per_day = FloatField(
+        'Maximum Price Per Day (₱)',
+        validators=[
+            DataRequired(message='Maximum price is required'),
+            NumberRange(min=0, max=999999, message='Price must be a positive number')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'placeholder': 'e.g., 1500.00',
+            'type': 'number',
+            'min': '0',
+            'step': '0.01'
+        }
+    )
+
+    # ========== SECTION 7: OPERATING SCHEDULE ==========
     opening_time = StringField(
         'Opening Time',
         validators=[
             DataRequired(message='Opening time is required'),
-            Regexp(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', message='Please enter time in HH:MM format')
+            Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Please use HH:MM format (24-hour)')
         ],
-        render_kw={'class': 'form-control', 'type': 'time'}
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'type': 'time',
+        }
     )
-    
+
     closing_time = StringField(
         'Closing Time',
         validators=[
             DataRequired(message='Closing time is required'),
-            Regexp(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', message='Please enter time in HH:MM format')
+            Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Please use HH:MM format (24-hour)')
         ],
-        render_kw={'class': 'form-control', 'type': 'time'}
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
+            'type': 'time',
+        }
     )
-    
+
+    operating_days = MultiCheckboxField(
+        'Operating Days',
+        choices=[
+            ('Monday', 'Monday'),
+            ('Tuesday', 'Tuesday'),
+            ('Wednesday', 'Wednesday'),
+            ('Thursday', 'Thursday'),
+            ('Friday', 'Friday'),
+            ('Saturday', 'Saturday'),
+            ('Sunday', 'Sunday'),
+        ],
+        validators=[DataRequired(message='Please select at least one operating day')],
+        render_kw={'class': 'space-y-2'}
+    )
+
+    # ========== SECTION 8: POLICIES ==========
+    cancellation_policy = TextAreaField(
+        'Cancellation Policy',
+        validators=[
+            Optional(),
+            Length(max=1000, message='Cancellation policy must not exceed 1000 characters')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm resize-vertical',
+            'placeholder': 'Describe your cancellation policy (e.g., Free cancellation up to 48 hours before service)...',
+            'rows': 4,
+        }
+    )
+
+    # ========== SUBMIT ==========
     submit = SubmitField(
-        'Submit for Approval',
-        render_kw={'class': 'btn btn-primary btn-block'}
+        'Save Changes',
+        render_kw={
+            'class': 'w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md'
+        }
     )
+
+    # ========== CUSTOM VALIDATORS ==========
+    def validate_max_price_per_day(self, field):
+        """Ensure max price is greater than or equal to min price"""
+        if self.min_price_per_day.data and field.data:
+            if field.data < self.min_price_per_day.data:
+                raise ValidationError('Maximum price must be greater than or equal to minimum price')
+
+    def validate_closing_time(self, field):
+        """Ensure closing time is after opening time"""
+        if self.opening_time.data and field.data:
+            if field.data <= self.opening_time.data:
+                raise ValidationError('Closing time must be after opening time')
+
+    def validate_services_offered(self, field):
+        """Ensure at least one service is selected"""
+        if not field.data or len(field.data) == 0:
+            raise ValidationError('Please select at least one service')
+
+    def validate_pets_accepted(self, field):
+        """Ensure at least one pet type is selected"""
+        if not field.data or len(field.data) == 0:
+            raise ValidationError('Please select at least one pet type')
+
+    def validate_operating_days(self, field):
+        """Ensure at least one operating day is selected"""
+        if not field.data or len(field.data) == 0:
+            raise ValidationError('Please select at least one operating day')

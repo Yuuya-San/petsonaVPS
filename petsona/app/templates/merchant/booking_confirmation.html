@@ -1,0 +1,286 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes checkmark { 0% { transform: scale(0) rotate(-45deg); } 50% { transform: scale(1.2) rotate(0deg); } 100% { transform: scale(1) rotate(0deg); } }
+
+  .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+  .animate-slide-in { animation: slideInUp 0.6s ease-out; }
+  .animate-checkmark { animation: checkmark 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+</style>
+
+<div class="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+  <!-- Sticky Header -->
+  <div class="sticky top-0 z-40 bg-white border-b border-slate-200/50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+      <h1 class="text-center text-sm sm:text-base font-bold text-slate-900 flex-1">Booking Confirmation</h1>
+      <div class="w-20"></div>
+    </div>
+  </div>
+
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    
+    {% if booking %}
+      <!-- Success State -->
+      <div class="animate-fade-in space-y-6">
+        <!-- Success Icon -->
+        <div class="flex justify-center mb-8">
+          <div class="relative">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-emerald-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-check text-emerald-600 text-5xl sm:text-6xl animate-checkmark"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div class="text-center animate-slide-in">
+          <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Booking Confirmed!</h2>
+          <p class="text-slate-600 text-sm sm:text-base">Your reservation has been submitted to the merchant for confirmation.</p>
+        </div>
+
+        <!-- Confirmation Number -->
+        <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-6 sm:p-8 text-center animate-slide-in" style="animation-delay: 0.1s;">
+          <p class="text-slate-600 text-sm font-medium mb-2">Confirmation Code</p>
+          <p class="text-2xl sm:text-3xl font-bold text-purple-600 font-mono mb-4">{{ booking.confirmation_code }}</p>
+          <p class="text-slate-700 text-xs sm:text-sm mb-4">Booking Number: <span class="font-bold">{{ booking.booking_number }}</span></p>
+          <button onclick="copyToClipboard('{{ booking.confirmation_code }}')" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors text-sm flex items-center gap-2 justify-center mx-auto">
+            <i class="fas fa-copy"></i>Copy Code
+          </button>
+        </div>
+
+        <!-- Booking Details -->
+        <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-200 animate-slide-in" style="animation-delay: 0.2s;">
+          <h3 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-file-alt text-indigo-600"></i>Booking Details
+          </h3>
+
+          <div class="space-y-4">
+            <!-- Merchant -->
+            <div class="flex justify-between items-start pb-4 border-b border-slate-200">
+              <span class="text-slate-600 font-medium">Service Provider</span>
+              <div class="text-right">
+                <p class="font-bold text-slate-900">{{ booking.merchant.business_name }}</p>
+                <p class="text-sm text-slate-600">{{ booking.merchant.business_type }}</p>
+              </div>
+            </div>
+
+            <!-- Services -->
+            <div class="flex justify-between items-start pb-4 border-b border-slate-200">
+              <span class="text-slate-600 font-medium">Services</span>
+              <div class="text-right space-y-1">
+                {% for service in booking.services_booked %}
+                <p class="text-slate-900 font-medium text-sm"><i class="fas fa-check text-emerald-600 mr-2"></i>{{ service }}</p>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Pets -->
+            <div class="flex justify-between items-start pb-4 border-b border-slate-200">
+              <span class="text-slate-600 font-medium">Pets</span>
+              <div class="text-right">
+                <p class="font-bold text-slate-900">{{ booking.total_pets }} pet(s)</p>
+              </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="flex justify-between items-start pb-4 border-b border-slate-200">
+              <span class="text-slate-600 font-medium">Reservation Period</span>
+              <div class="text-right">
+                <p class="font-bold text-slate-900">{{ booking.check_in_date.strftime('%b %d, %Y') }}</p>
+                <p class="text-sm text-slate-600">to {{ booking.check_out_date.strftime('%b %d, %Y') }}</p>
+                <p class="text-xs text-slate-500 mt-1">{{ booking.duration_days }} day(s)</p>
+              </div>
+            </div>
+
+            <!-- Times -->
+            <div class="flex justify-between items-start pb-4 border-b border-slate-200">
+              <span class="text-slate-600 font-medium">Times</span>
+              <div class="text-right">
+                <p class="font-bold text-slate-900">{{ booking.check_in_time }} - {{ booking.check_out_time }}</p>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="flex justify-between items-start">
+              <span class="text-slate-600 font-medium">Status</span>
+              <div class="text-right">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-full font-bold text-sm">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-600 animate-pulse"></span>
+                  Pending Confirmation
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing Summary -->
+        <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 sm:p-8 border border-purple-200 animate-slide-in" style="animation-delay: 0.3s;">
+          <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-receipt text-purple-600"></i>Pricing Summary
+          </h3>
+
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-slate-700">Base Rate (per day)</span>
+              <span class="font-semibold text-slate-900">₱{{ "%.2f"|format(booking.base_price_per_day) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-700">Duration</span>
+              <span class="font-semibold text-slate-900">{{ booking.duration_days }} day(s)</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-700">Number of Pets</span>
+              <span class="font-semibold text-slate-900">{{ booking.total_pets }}</span>
+            </div>
+            
+            {% if booking.pickup_fee > 0 %}
+            <div class="flex justify-between pt-2 border-t border-purple-300">
+              <span class="text-slate-700">Pickup Fee</span>
+              <span class="font-semibold text-slate-900">₱{{ "%.2f"|format(booking.pickup_fee) }}</span>
+            </div>
+            {% endif %}
+
+            {% if booking.delivery_fee > 0 %}
+            <div class="flex justify-between">
+              <span class="text-slate-700">Delivery Fee</span>
+              <span class="font-semibold text-slate-900">₱{{ "%.2f"|format(booking.delivery_fee) }}</span>
+            </div>
+            {% endif %}
+
+            {% if booking.discount_amount > 0 %}
+            <div class="flex justify-between text-emerald-600">
+              <span>Discount</span>
+              <span class="font-semibold">-₱{{ "%.2f"|format(booking.discount_amount) }}</span>
+            </div>
+            {% endif %}
+
+            <div class="flex justify-between pt-4 border-t-2 border-purple-300">
+              <span class="text-lg font-bold text-slate-900">Estimated Total</span>
+              <span class="text-2xl font-bold text-purple-600">₱{{ "%.2f"|format(booking.total_amount) }}</span>
+            </div>
+
+            <p class="text-xs text-slate-600 pt-2">
+              <i class="fas fa-info-circle mr-1"></i>
+              <strong>Note:</strong> This is an estimated quote. The merchant will confirm the final pricing.
+            </p>
+          </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-200 animate-slide-in" style="animation-delay: 0.4s;">
+          <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-user-circle text-indigo-600"></i>Your Information
+          </h3>
+
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-slate-600">Name</span>
+              <span class="font-semibold text-slate-900">{{ booking.customer_name }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Email</span>
+              <span class="font-semibold text-slate-900 break-all">{{ booking.customer_email }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Phone</span>
+              <span class="font-semibold text-slate-900">{{ booking.customer_phone }}</span>
+            </div>
+            {% if booking.special_requests %}
+            <div>
+              <span class="text-slate-600">Special Requests</span>
+              <p class="font-semibold text-slate-900 mt-1 bg-slate-50 p-3 rounded-lg text-sm">{{ booking.special_requests }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 sm:p-8 animate-slide-in" style="animation-delay: 0.5s;">
+          <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-info-circle text-blue-600"></i>What Happens Next?
+          </h3>
+
+          <ol class="space-y-4 text-sm text-blue-900">
+            <li class="flex gap-3">
+              <span class="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
+              <span>The merchant will review your booking request within 24 hours.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
+              <span>You'll receive an email and notification when they confirm or request changes.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</span>
+              <span>Once confirmed, you can communicate directly through the platform.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">4</span>
+              <span>Arrange pickup/delivery details or visit the store on your scheduled date.</span>
+            </li>
+          </ol>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 animate-slide-in" style="animation-delay: 0.6s;">
+          <a href="javascript:history.back()" class="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
+            <i class="fas fa-arrow-left"></i>
+            Back to Store
+          </a>
+          <a href="{{ url_for('user.dashboard') }}" class="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
+            <i class="fas fa-home"></i>
+            Go to Dashboard
+          </a>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-200 text-center animate-slide-in" style="animation-delay: 0.7s;">
+          <p class="text-slate-700 text-sm mb-4">Have questions? Contact support.</p>
+          <a href="mailto:support@petsona.local" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold">
+            <i class="fas fa-envelope"></i>
+            Get Help
+          </a>
+        </div>
+      </div>
+
+    {% else %}
+      <!-- Error State -->
+      <div class="text-center py-16">
+        <div class="text-6xl mb-4 text-red-300">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-slate-900 mb-2">Booking Not Found</h2>
+        <p class="text-slate-600 mb-6">We couldn't find your booking. Please try again.</p>
+        <a href="javascript:history.back()" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition duration-300 inline-flex items-center gap-2">
+          <i class="fas fa-arrow-left"></i>Go Back
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+
+<script>
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Show success message
+    const button = event.target;
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    button.disabled = true;
+    
+    setTimeout(() => {
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
+}
+</script>
+
+{% endblock %}

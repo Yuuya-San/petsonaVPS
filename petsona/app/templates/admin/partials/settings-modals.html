@@ -1,0 +1,873 @@
+<!-- ================= SETTINGS MODALS ================= -->
+
+<!-- Account Settings Modal -->
+<div class="modal fade" id="settingsAccountModal" tabindex="-1" role="dialog" aria-labelledby="settingsAccountLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsAccountLabel">
+          <i class="fas fa-lock mr-2"></i>Password & Security
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- Change Password Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-key mr-2"></i>Change Password
+          </h6>
+          <form class="settings-form">
+            <div class="form-group">
+              <label for="currentPassword" class="settings-label">Current Password</label>
+              <input type="password" class="form-control glass-input" id="currentPassword" placeholder="Enter your current password" required>
+            </div>
+            <div class="form-group">
+              <label for="newPassword" class="settings-label">New Password</label>
+              <input type="password" class="form-control glass-input" id="newPassword" placeholder="Enter new password" required>
+              <div class="password-strength-meter mt-2">
+                <div class="strength-bar">
+                  <div class="strength-progress" id="strengthProgress"></div>
+                </div>
+                <small class="strength-text" id="strengthText">Password strength: Weak</small>
+              </div>
+              <small class="form-text text-muted mt-2">
+                <i class="fas fa-info-circle mr-1"></i>
+                Minimum 8 characters, include uppercase, lowercase, number, and special character
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword" class="settings-label">Confirm Password</label>
+              <input type="password" class="form-control glass-input" id="confirmPassword" placeholder="Confirm new password" required>
+              <div class="password-match-indicator mt-2" id="matchIndicator"></div>
+            </div>
+            <button type="submit" class="btn btn-glass-primary">
+              <i class="fas fa-check mr-2"></i>Update Password
+            </button>
+          </form>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Active Sessions Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-desktop mr-2"></i>Active Sessions
+          </h6>
+          <div class="session-item">
+            <div class="session-info">
+              <p class="session-device"><i class="fas fa-laptop mr-2"></i>Windows - Chrome</p>
+              <p class="session-location">New York, USA</p>
+              <p class="session-time">Last active: 2 minutes ago</p>
+            </div>
+            <span class="badge badge-success">Current Session</span>
+          </div>
+          <div class="session-item">
+            <div class="session-info">
+              <p class="session-device"><i class="fas fa-mobile-alt mr-2"></i>iPhone - Safari</p>
+              <p class="session-location">Brooklyn, USA</p>
+              <p class="session-time">Last active: 1 hour ago</p>
+            </div>
+            <button class="btn btn-sm btn-glass-danger">Logout</button>
+          </div>
+          <button class="btn btn-glass-secondary mt-3">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout All Other Sessions
+          </button>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Login Activity Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-history mr-2"></i>Recent Login Activity
+          </h6>
+          <div class="activity-log">
+            <div class="log-item">
+              <i class="fas fa-check-circle text-success mr-2"></i>
+              <span>Successful login from Windows - Chrome</span>
+              <small class="text-muted">Today at 2:45 PM</small>
+            </div>
+            <div class="log-item">
+              <i class="fas fa-check-circle text-success mr-2"></i>
+              <span>Successful login from iPhone - Safari</span>
+              <small class="text-muted">Today at 10:30 AM</small>
+            </div>
+            <div class="log-item">
+              <i class="fas fa-check-circle text-success mr-2"></i>
+              <span>Successful login from Windows - Chrome</span>
+              <small class="text-muted">Yesterday at 5:20 PM</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Two-Factor Authentication Modal -->
+<div class="modal fade" id="settingsTwoFactorModal" tabindex="-1" role="dialog" aria-labelledby="settingsTwoFactorLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsTwoFactorLabel">
+          <i class="fas fa-shield-alt mr-2"></i>Two-Factor Authentication
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- 2FA Status Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-toggle-on mr-2"></i>Status
+          </h6>
+          <div class="twofa-status">
+            <p>Two-Factor Authentication is currently <span class="badge badge-success">ENABLED</span></p>
+            <p class="text-muted small">Enhanced security for your account</p>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Authenticator App Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-mobile-alt mr-2"></i>Authenticator App
+          </h6>
+          <p class="small text-muted mb-3">Backup method for 2FA verification</p>
+          <button class="btn btn-glass-primary">
+            <i class="fas fa-qrcode mr-2"></i>View QR Code
+          </button>
+          <button class="btn btn-glass-secondary">
+            <i class="fas fa-redo mr-2"></i>Reset Authenticator
+          </button>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Backup Codes Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-shield-alt mr-2"></i>Backup Codes
+          </h6>
+          <p class="small text-muted mb-3">Use these codes if you lose access to your authenticator device</p>
+          <div class="backup-codes">
+            <code class="backup-code">5X4K-8J2P-9M1L</code>
+            <code class="backup-code">3W7Q-6D4B-2F9R</code>
+            <code class="backup-code">8T5N-1C3K-7V6X</code>
+          </div>
+          <button class="btn btn-glass-secondary mt-3">
+            <i class="fas fa-copy mr-2"></i>Copy Codes
+          </button>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- SMS Verification Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-sms mr-2"></i>SMS Verification
+          </h6>
+          <p class="small text-muted mb-3">Backup 2FA method</p>
+          <div class="form-group">
+            <label class="settings-label">Phone Number</label>
+            <input type="tel" class="form-control glass-input" value="+1 (555) 123-****" readonly>
+          </div>
+          <button class="btn btn-glass-secondary">
+            <i class="fas fa-edit mr-2"></i>Update Phone Number
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Email Preferences Modal -->
+<div class="modal fade" id="settingsEmailModal" tabindex="-1" role="dialog" aria-labelledby="settingsEmailLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsEmailLabel">
+          <i class="fas fa-envelope mr-2"></i>Email Preferences
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- Primary Email Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-at mr-2"></i>Email Address
+          </h6>
+          <div class="form-group">
+            <label class="settings-label">Primary Email</label>
+            <input type="email" class="form-control glass-input" value="{{ current_user.email }}" readonly>
+            <small class="form-text text-muted">
+              <i class="fas fa-check-circle text-success mr-1"></i>Verified
+            </small>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Email Notifications Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-bell mr-2"></i>Email Notifications
+          </h6>
+          
+          <div class="email-preference-item">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="emailMarketing" checked>
+              <label class="custom-control-label" for="emailMarketing">
+                <strong>Marketing & Promotional Emails</strong>
+                <div class="small text-muted">Receive special offers, new features, and product updates</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="email-preference-item">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="emailSecurity" checked>
+              <label class="custom-control-label" for="emailSecurity">
+                <strong>Security Alerts</strong>
+                <div class="small text-muted">New login, password changes, and security updates</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="email-preference-item">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="emailMatches" checked>
+              <label class="custom-control-label" for="emailMatches">
+                <strong>Match Notifications</strong>
+                <div class="small text-muted">New pet matches and compatibility alerts</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="email-preference-item">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="emailMessages" checked>
+              <label class="custom-control-label" for="emailMessages">
+                <strong>Message Digests</strong>
+                <div class="small text-muted">Daily or weekly summary of your messages</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="email-preference-item">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="emailAccount">
+              <label class="custom-control-label" for="emailAccount">
+                <strong>Account Updates</strong>
+                <div class="small text-muted">Billing updates, subscriptions, and plan changes</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Email Frequency Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-clock mr-2"></i>Email Frequency
+          </h6>
+          <div class="form-group">
+            <label class="settings-label">Maximum emails per day</label>
+            <select class="form-control glass-input">
+              <option>1 email per day</option>
+              <option selected>3 emails per day</option>
+              <option>5 emails per day</option>
+              <option>Unlimited</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-glass-primary">
+          <i class="fas fa-save mr-2"></i>Save Preferences
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy Settings Modal -->
+<div class="modal fade" id="settingsPrivacyModal" tabindex="-1" role="dialog" aria-labelledby="settingsPrivacyLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsPrivacyLabel">
+          <i class="fas fa-eye-slash mr-2"></i>Privacy Settings
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- Profile Visibility Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-user-eye mr-2"></i>Profile Visibility
+          </h6>
+          
+          <div class="privacy-option">
+            <div class="custom-control custom-radio">
+              <input type="radio" id="profilePublic" name="profileVisibility" class="custom-control-input" checked>
+              <label class="custom-control-label" for="profilePublic">
+                <strong>Public</strong>
+                <div class="small text-muted">Anyone can view your profile</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="privacy-option">
+            <div class="custom-control custom-radio">
+              <input type="radio" id="profilePrivate" name="profileVisibility" class="custom-control-input">
+              <label class="custom-control-label" for="profilePrivate">
+                <strong>Private</strong>
+                <div class="small text-muted">Only you can view your profile</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="privacy-option">
+            <div class="custom-control custom-radio">
+              <input type="radio" id="profileFriends" name="profileVisibility" class="custom-control-input">
+              <label class="custom-control-label" for="profileFriends">
+                <strong>Friends Only</strong>
+                <div class="small text-muted">Only your connections can view</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Pet Information Privacy Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-paw mr-2"></i>Pet Information
+          </h6>
+          
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="showPetDetails" checked>
+            <label class="custom-control-label" for="showPetDetails">
+              <strong>Show Pet Details</strong>
+              <div class="small text-muted">Allow others to view your pet information</div>
+            </label>
+          </div>
+
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="showPetPhotos" checked>
+            <label class="custom-control-label" for="showPetPhotos">
+              <strong>Show Pet Photos</strong>
+              <div class="small text-muted">Allow others to see your pet images</div>
+            </label>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Search & Discovery Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-search mr-2"></i>Search & Discovery
+          </h6>
+          
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="searchIndexing" checked>
+            <label class="custom-control-label" for="searchIndexing">
+              <strong>Search Engine Indexing</strong>
+              <div class="small text-muted">Allow search engines to index your profile</div>
+            </label>
+          </div>
+
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="showInDirectory" checked>
+            <label class="custom-control-label" for="showInDirectory">
+              <strong>Show in Directory</strong>
+              <div class="small text-muted">Appear in PetSona user directory</div>
+            </label>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Blocking Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-ban mr-2"></i>Blocked Users
+          </h6>
+          <p class="small text-muted mb-3">Users you've blocked won't be able to contact you or see your profile</p>
+          <button class="btn btn-glass-secondary">
+            <i class="fas fa-list mr-2"></i>Manage Blocked Users
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-glass-primary">
+          <i class="fas fa-save mr-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications Modal -->
+<div class="modal fade" id="settingsNotificationsModal" tabindex="-1" role="dialog" aria-labelledby="settingsNotificationsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsNotificationsLabel">
+          <i class="fas fa-bell mr-2"></i>Notifications
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- In-App Notifications Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-envelope mr-2"></i>In-App Notifications
+          </h6>
+          
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="pushMatches" checked>
+            <label class="custom-control-label" for="pushMatches">
+              <strong>Pet Match Notifications</strong>
+              <div class="small text-muted">Get notified when new matches are found</div>
+            </label>
+          </div>
+
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="pushMessages" checked>
+            <label class="custom-control-label" for="pushMessages">
+              <strong>Message Notifications</strong>
+              <div class="small text-muted">Get notified of new messages</div>
+            </label>
+          </div>
+
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="pushActivity" checked>
+            <label class="custom-control-label" for="pushActivity">
+              <strong>Activity Notifications</strong>
+              <div class="small text-muted">Profile views, likes, and comments</div>
+            </label>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Browser Notifications Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-globe mr-2"></i>Browser Notifications
+          </h6>
+          
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="browserNotif" checked>
+            <label class="custom-control-label" for="browserNotif">
+              <strong>Enable Browser Notifications</strong>
+              <div class="small text-muted">Receive notifications even when tab is not active</div>
+            </label>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Notification Sound Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-volume-up mr-2"></i>Sound & Vibration
+          </h6>
+          
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="notifSound" checked>
+            <label class="custom-control-label" for="notifSound">
+              <strong>Notification Sound</strong>
+              <div class="small text-muted">Play sound for important notifications</div>
+            </label>
+          </div>
+
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="vibration">
+            <label class="custom-control-label" for="vibration">
+              <strong>Vibration Feedback</strong>
+              <div class="small text-muted">Vibrate on mobile devices</div>
+            </label>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Quiet Hours Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-moon mr-2"></i>Quiet Hours
+          </h6>
+          
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="quietHours">
+            <label class="custom-control-label" for="quietHours">
+              <strong>Enable Quiet Hours</strong>
+              <div class="small text-muted">Mute notifications during specified times</div>
+            </label>
+          </div>
+
+          <div class="form-row ml-3">
+            <div class="form-group col-md-6">
+              <label class="settings-label">Start Time</label>
+              <input type="time" class="form-control glass-input" value="22:00">
+            </div>
+            <div class="form-group col-md-6">
+              <label class="settings-label">End Time</label>
+              <input type="time" class="form-control glass-input" value="08:00">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-glass-primary">
+          <i class="fas fa-save mr-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Data & Privacy Modal -->
+<div class="modal fade" id="settingsDataModal" tabindex="-1" role="dialog" aria-labelledby="settingsDataLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsDataLabel">
+          <i class="fas fa-database mr-2"></i>Data & Privacy
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- Data Download Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-download mr-2"></i>Download Your Data
+          </h6>
+          <p class="small text-muted mb-3">Export a copy of your personal data in JSON format (GDPR compliant)</p>
+          <button class="btn btn-glass-primary">
+            <i class="fas fa-download mr-2"></i>Download My Data
+          </button>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Consent Management Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-file-contract mr-2"></i>Consent & Preferences
+          </h6>
+          
+          <div class="custom-control custom-checkbox mb-3">
+            <input type="checkbox" class="custom-control-input" id="analyticsConsent" checked>
+            <label class="custom-control-label" for="analyticsConsent">
+              <strong>Analytics & Performance</strong>
+              <div class="small text-muted">Help us improve by sharing anonymized usage data</div>
+            </label>
+          </div>
+
+          <div class="custom-control custom-checkbox mb-3">
+            <input type="checkbox" class="custom-control-input" id="marketingConsent">
+            <label class="custom-control-label" for="marketingConsent">
+              <strong>Marketing & Personalization</strong>
+              <div class="small text-muted">Receive personalized content and recommendations</div>
+            </label>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Third-Party Access Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-share-alt mr-2"></i>Connected Applications
+          </h6>
+          <p class="small text-muted mb-3">Manage access to third-party applications</p>
+          
+          <div class="app-access-item">
+            <div class="app-info">
+              <strong>Google Account</strong>
+              <p class="small text-muted">Connected on March 15, 2024</p>
+            </div>
+            <button class="btn btn-sm btn-glass-danger">Disconnect</button>
+          </div>
+
+          <div class="app-access-item">
+            <div class="app-info">
+              <strong>Facebook Account</strong>
+              <p class="small text-muted">Connected on January 20, 2024</p>
+            </div>
+            <button class="btn btn-sm btn-glass-danger">Disconnect</button>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Danger Zone Section -->
+        <div class="settings-section danger-zone">
+          <h6 class="settings-section-title">
+            <i class="fas fa-exclamation-triangle mr-2"></i>Danger Zone
+          </h6>
+          
+          <div class="mb-3">
+            <h6 class="small mb-2">Delete Account</h6>
+            <p class="small text-muted mb-3">Permanently delete your account and all associated data. This action cannot be undone.</p>
+            <button class="btn btn-glass-danger">
+              <i class="fas fa-trash mr-2"></i>Delete My Account
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-glass-primary">
+          <i class="fas fa-save mr-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Appearance Modal -->
+<div class="modal fade" id="settingsAppearanceModal" tabindex="-1" role="dialog" aria-labelledby="settingsAppearanceLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsAppearanceLabel">
+          <i class="fas fa-palette mr-2"></i>Appearance
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- Theme Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-moon mr-2"></i>Theme
+          </h6>
+          
+          <div class="theme-option">
+            <div class="custom-control custom-radio">
+              <input type="radio" id="themeLight" name="theme" class="custom-control-input">
+              <label class="custom-control-label" for="themeLight">
+                <strong>Light</strong>
+                <div class="small text-muted">Bright and clean interface</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="theme-option">
+            <div class="custom-control custom-radio">
+              <input type="radio" id="themeDark" name="theme" class="custom-control-input">
+              <label class="custom-control-label" for="themeDark">
+                <strong>Dark</strong>
+                <div class="small text-muted">Easier on the eyes in low light</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="theme-option">
+            <div class="custom-control custom-radio">
+              <input type="radio" id="themeAuto" name="theme" class="custom-control-input" checked>
+              <label class="custom-control-label" for="themeAuto">
+                <strong>Auto</strong>
+                <div class="small text-muted">Follow system preferences</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Font Size Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-text-height mr-2"></i>Font Size
+          </h6>
+          
+          <div class="form-group">
+            <label class="settings-label">Interface Font Size</label>
+            <select class="form-control glass-input">
+              <option>Small</option>
+              <option selected>Normal</option>
+              <option>Large</option>
+              <option>Extra Large</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Animations Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-magic mr-2"></i>Animations
+          </h6>
+          
+          <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="enableAnimations" checked>
+            <label class="custom-control-label" for="enableAnimations">
+              <strong>Enable Animations</strong>
+              <div class="small text-muted">Smooth transitions and effects</div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-glass-primary">
+          <i class="fas fa-save mr-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Language & Region Modal -->
+<div class="modal fade" id="settingsLanguageModal" tabindex="-1" role="dialog" aria-labelledby="settingsLanguageLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header">
+        <h5 class="modal-title" id="settingsLanguageLabel">
+          <i class="fas fa-globe mr-2"></i>Language & Region
+        </h5>
+        <button type="button" class="close glass-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body glass-modal-body">
+        <!-- Language Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-language mr-2"></i>Language
+          </h6>
+          
+          <div class="form-group">
+            <label class="settings-label">Display Language</label>
+            <select class="form-control glass-input">
+              <option selected>English (US)</option>
+              <option>English (UK)</option>
+              <option>Spanish (Español)</option>
+              <option>French (Français)</option>
+              <option>German (Deutsch)</option>
+              <option>Italian (Italiano)</option>
+              <option>Portuguese (Português)</option>
+              <option>Japanese (日本語)</option>
+              <option>Chinese (中文)</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Region Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-map-marker-alt mr-2"></i>Region & Timezone
+          </h6>
+          
+          <div class="form-group">
+            <label class="settings-label">Country/Region</label>
+            <select class="form-control glass-input">
+              <option selected>United States</option>
+              <option>Canada</option>
+              <option>United Kingdom</option>
+              <option>Australia</option>
+              <option>Germany</option>
+              <option>France</option>
+              <option>Japan</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="settings-label">Timezone</label>
+            <select class="form-control glass-input">
+              <option selected>Eastern Time (ET)</option>
+              <option>Central Time (CT)</option>
+              <option>Mountain Time (MT)</option>
+              <option>Pacific Time (PT)</option>
+              <option>GMT</option>
+              <option>CET</option>
+              <option>JST</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Date & Time Format Section -->
+        <div class="settings-section">
+          <h6 class="settings-section-title">
+            <i class="fas fa-calendar-alt mr-2"></i>Date & Time Format
+          </h6>
+          
+          <div class="form-group">
+            <label class="settings-label">Date Format</label>
+            <select class="form-control glass-input">
+              <option selected>MM/DD/YYYY</option>
+              <option>DD/MM/YYYY</option>
+              <option>YYYY-MM-DD</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="settings-label">Time Format</label>
+            <select class="form-control glass-input">
+              <option selected>12-hour (AM/PM)</option>
+              <option>24-hour</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer glass-modal-footer">
+        <button type="button" class="btn btn-glass-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-glass-primary">
+          <i class="fas fa-save mr-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

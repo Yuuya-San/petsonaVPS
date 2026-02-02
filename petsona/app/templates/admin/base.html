@@ -65,7 +65,7 @@
     {% block styles %}{% endblock %}
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="sidebar-mini sidebar-collapse">
 
 <div class="wrapper">
 
@@ -138,6 +138,9 @@ window.addEventListener('load', () => {
 });
 </script>
 
+<!-- ================= SETTINGS MODALS ================= -->
+{% include 'admin/partials/settings-modals.html' %}
+
 <!-- ================= FLASH AUTO DISMISS ================= -->
 <script>
 document.querySelectorAll('.flash').forEach(flash => {
@@ -151,6 +154,9 @@ document.querySelectorAll('.flash').forEach(flash => {
     });
 });
 </script>
+
+<!-- Settings Modal Functionality -->
+<script src="{{ url_for('static', filename='admin/js/settings-modal.js') }}"></script>
 
 {% block scripts %}{% endblock %}
 </body>

@@ -59,6 +59,113 @@
         referrerpolicy="no-referrer" />
 
   {% block styles %}{% endblock %}
+
+  <style>
+    /* ================= FULL PAGE GLASSMORPHISM ================= */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #ede9fe 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ================= SKELETON WRAPPER ================= */
+    #skeleton-wrapper {
+      flex: 1;
+      padding: 1.5rem clamp(1rem, 4vw, 3.5rem);
+    }
+
+    /* ================= PAGE CONTENT WRAPPER ================= */
+    #page-content {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin-top: 0;
+    }
+
+    /* ================= FLASH MESSAGES ================= */
+    .flash-wrapper {
+      position: fixed;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 500px;
+      z-index: 9999;
+      padding: 0 1rem;
+      box-sizing: border-box;
+    }
+
+    /* ================= MAIN CONTENT AREA ================= */
+    #page-content > *:not(.flash-wrapper):not(footer) {
+      flex: 1;
+      padding: 1.5rem clamp(1rem, 4vw, 3.5rem);
+      background: linear-gradient(
+        135deg,
+        rgba(255,255,255,.12),
+        rgba(237,233,254,.08)
+      );
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-radius: 0;
+      box-shadow: 
+        inset 0 1px 0 rgba(255,255,255,.4),
+        0 8px 32px rgba(139,92,246,.08);
+      margin: 1rem auto;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      animation: contentFadeIn 0.6s ease-out;
+    }
+
+    @keyframes contentFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ================= FOOTER STICKS TO BOTTOM ================= */
+    #page-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #page-content footer {
+      margin-top: auto;
+    }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 768px) {
+      #page-content > *:not(.flash-wrapper):not(footer) {
+        padding: 1.5rem 1rem;
+        margin: 1rem auto;
+      }
+
+      .flash-wrapper {
+        top: 80px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #page-content > *:not(.flash-wrapper):not(footer) {
+        padding: 1.2rem 0.8rem;
+        margin: 0.8rem auto;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -74,7 +181,7 @@
   </div>
 
   <!-- ================= REAL PAGE CONTENT ================= -->
-  <div id="page-content" class="d-none">
+  <div id="page-content">
 
     <!-- ================= FLASH MESSAGES ================= -->
     <div class="flash-wrapper">
@@ -88,7 +195,10 @@
       {% endwith %}
     </div>
 
-    {% block content %}{% endblock %}
+    <!-- ================= MAIN CONTENT ================= -->
+    <div class="main-content">
+      {% block content %}{% endblock %}
+    </div>
 
     {% include 'partials/footer.html' %}
 
@@ -109,7 +219,7 @@
       const content = document.getElementById('page-content');
 
       if (skeleton) skeleton.remove();
-      if (content) content.classList.remove('d-none');
+      if (content) content.style.display = 'flex';
     });
 
     // Flash close

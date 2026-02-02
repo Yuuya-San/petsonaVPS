@@ -1,0 +1,213 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<!-- Messaging Module CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='messages/css/messaging.css') }}">
+
+<div class="min-h-screen bg-gradient-to-b from-slate-50 to-white messaging-container" 
+     data-current-user-id="{{ current_user.id }}"
+     data-conversation-id="{{ conversation.id }}">
+  
+  <!-- Conversation List Panel (Mobile Hidden) -->
+  <div class="conversations-panel hidden md:block">
+    <!-- Header -->
+    <div class="sticky top-0 z-30 bg-white border-b border-slate-200 p-4">
+      <a href="{{ url_for('messages.inbox') }}" class="text-purple-600 hover:text-purple-700 font-semibold text-sm flex items-center gap-2">
+        <i class="fas fa-chevron-left"></i>
+        <span>Back to Inbox</span>
+      </a>
+    </div>
+
+    <!-- Conversations List -->
+    <div id="conversations-list" class="divide-y">
+      <!-- Loaded dynamically or preloaded -->
+    </div>
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="chat-panel flex flex-col animate-fade-in">
+    <!-- Chat Header -->
+    <div class="chat-header sticky top-0 z-30 bg-white">
+      <div class="flex items-center gap-3">
+        <!-- Mobile Back Button -->
+        <button class="back-btn md:hidden text-purple-600 hover:text-purple-700 text-lg" data-href="{{ url_for('messages.inbox') }}">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <!-- User Info -->
+        <div class="flex items-center gap-3 flex-1">
+          <div class="conversation-avatar">
+            {% if other_user.photo_url %}
+              <img src="{{ url_for('static', filename=other_user.photo_url) }}" alt="{{ other_user.first_name }}" class="w-full h-full object-cover">
+            {% else %}
+              <span class="text-lg font-bold">{{ other_user.first_name[0] }}</span>
+            {% endif %}
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-900">{{ other_user.first_name }} {{ other_user.last_name }}</h2>
+            <p class="text-xs text-slate-500">
+              {% if conversation.is_blocked_for_user(current_user.id) %}
+                <i class="fas fa-ban text-red-500 mr-1"></i>Blocked
+              {% else %}
+                Active now
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Menu -->
+        <div class="relative group">
+          <button class="text-slate-600 hover:text-slate-900 text-lg transition focus-ring p-2">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <!-- Dropdown -->
+          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-hard z-10 hidden group-hover:block animate-scale-in">
+            {% if not conversation.is_blocked_for_user(current_user.id) %}
+              <button class="action-btn w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-red-600 border-b border-slate-100"
+                      data-action="block-user"
+                      data-conversation-id="{{ conversation.id }}">
+                <i class="fas fa-ban mr-2"></i>Block User
+              </button>
+            {% else %}
+              <button class="action-btn w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-green-600 border-b border-slate-100"
+                      data-action="unblock-user"
+                      data-conversation-id="{{ conversation.id }}">
+                <i class="fas fa-check mr-2"></i>Unblock User
+              </button>
+            {% endif %}
+            
+            <button class="action-btn w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-yellow-600 border-b border-slate-100"
+                    data-action="archive"
+                    data-conversation-id="{{ conversation.id }}">
+              <i class="fas fa-archive mr-2"></i>Archive
+            </button>
+            
+            <a href="{{ url_for('messages.report_message_route', message_id=conversation.last_message_id or 0) }}" 
+               class="w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-orange-600 block">
+              <i class="fas fa-flag mr-2"></i>Report
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="chat-messages scrollbar-hide">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="message-bubble {% if message.sender_id == current_user.id %}own{% else %}other{% endif %} animate-slide-in-up"
+               data-message-id="{{ message.id }}">
+            <div class="message-content">
+              <div class="message-text">{{ message.content }}</div>
+              <div class="message-time">
+                {{ message.created_at.strftime('%I:%M %p') }}
+                {% if message.sender_id == current_user.id %}
+                  <span class="message-status ml-2">
+                    {% if message.is_read %}
+                      <i class="fas fa-check-double text-blue-300"></i>
+                    {% elif message.is_delivered %}
+                      <i class="fas fa-check text-gray-300"></i>
+                    {% else %}
+                      <i class="fas fa-clock text-gray-300"></i>
+                    {% endif %}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i class="fas fa-paper-plane"></i>
+          </div>
+          <h3 class="empty-state-title">Start the conversation</h3>
+          <p class="empty-state-text">Send your first message to {{ other_user.first_name }}</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Typing Indicator Container (shows when other user is typing) -->
+    <div id="typing-container" class="px-4 pt-2 hidden">
+      <div class="message-bubble other">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+      {% if not conversation.is_blocked_for_user(current_user.id) %}
+        <div class="message-input-wrapper">
+          <textarea class="message-textarea" 
+                    placeholder="Type a message..." 
+                    rows="1"
+                    maxlength="5000"></textarea>
+          <button class="send-button" title="Send message (Shift+Enter for new line)">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">
+          <i class="fas fa-lock mr-1"></i>Messages are end-to-end encrypted
+        </p>
+      {% else %}
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+          <p class="text-sm text-red-700 font-semibold">
+            <i class="fas fa-ban mr-2"></i>You have blocked this conversation
+          </p>
+          <button class="action-btn mt-2 px-4 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition"
+                  data-action="unblock-user"
+                  data-conversation-id="{{ conversation.id }}">
+            Unblock
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Messaging JavaScript -->
+<script src="{{ url_for('static', filename='messages/js/messaging.js') }}"></script>
+
+<script>
+  // Handle action buttons
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const action = this.dataset.action;
+      const conversationId = parseInt(this.dataset.conversationId);
+      
+      if (action === 'block-user') {
+        messagingApp.blockUser(conversationId);
+      } else if (action === 'unblock-user') {
+        messagingApp.unblockUser(conversationId);
+      } else if (action === 'archive') {
+        messagingApp.archiveConversation(conversationId);
+      }
+    });
+  });
+
+  // Handle back button
+  document.querySelectorAll('.back-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      window.location.href = this.dataset.href;
+    });
+  });
+
+  // Responsive layout handling
+  function handleResponsive() {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      document.querySelector('.conversations-panel').classList.add('hidden');
+      document.querySelector('.chat-panel').classList.add('active');
+    }
+  }
+
+  window.addEventListener('resize', handleResponsive);
+  handleResponsive();
+</script>
+
+{% endblock %}

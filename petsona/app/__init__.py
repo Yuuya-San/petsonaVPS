@@ -78,6 +78,10 @@ def create_app(config_class: type = Config):
     from .matching import bp as matching_bp
     app.register_blueprint(matching_bp, url_prefix="/matching")
 
+    # MESSAGES BLUEPRINT
+    from .messages import bp as messages_bp
+    app.register_blueprint(messages_bp)
+
     # VOTES API BLUEPRINT
     from .votes import votes_bp
     app.register_blueprint(votes_bp)

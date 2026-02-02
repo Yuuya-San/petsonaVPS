@@ -3,7 +3,7 @@
   <!-- Sidebar toggle button -->
   <ul class="navbar-nav">
     <li class="nav-item">
-      <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+      <a class="nav-link d-lg-none" data-widget="pushmenu" href="#" role="button">
         <i class="fas fa-bars"></i>
       </a>
     </li>
@@ -32,30 +32,187 @@
       </div>
     </li>
 
-    <!-- User Dropdown (photo + name, aligned better) -->
+    <!-- Messages Dropdown -->
     <li class="nav-item dropdown">
-      <a class="nav-link d-flex align-items-center" data-toggle="dropdown" href="#" role="button">
+      <a class="nav-link" data-toggle="dropdown" href="#" role="button">
+        <i class="fa-regular fa-message"></i>
+        <span class="badge badge-danger navbar-badge" id="unread-msg-badge" style="display:none;">0</span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+        <span class="dropdown-header">Messages</span>
+        <div class="dropdown-divider"></div>
+        <a href="{{ url_for('messages.inbox') }}" class="dropdown-item text-center text-muted py-3">
+          <i class="fas fa-envelope mr-2"></i> View All Messages
+        </a>
+      </div>
+    </li>
+
+    <!-- User Dropdown (Glassmorphism Style) -->
+    <li class="nav-item dropdown">
+      <a class="nav-link d-flex align-items-center user-dropdown-trigger" data-toggle="dropdown" href="#" role="button">
         <!-- User name on left side -->
-        <span class="mr-2 font-weight-bold" style="font-size: 14px;">
-          {{ current_user.first_name or 'Merchant' }} {{ current_user.last_name or '' }}
+        <span class="mr-2 font-weight-bold d-none d-md-inline user-name-label">
+          {{ current_user.first_name or 'User' }} {{ current_user.last_name or '' }}
         </span>
         <!-- User avatar with fallback to default -->
         <img src="{{ url_for('static', filename=current_user.photo_url) if current_user.photo_url else url_for('static', filename='images/avatar/cat.png') }}"
-             class="img-circle elevation-2"
-             style="width:40px; height:40px; object-fit:cover;"
+             class="img-circle elevation-2 user-avatar"
              alt="User Image">
       </a>
-      <div class="dropdown-menu dropdown-menu-right">
-        <a href="{{ url_for('profile.profile') }}" class="dropdown-item">
-          <i class="fas fa-user mr-2"></i> My Profile
+
+      <!-- Glassmorphism Dropdown Menu -->
+      <div class="dropdown-menu dropdown-menu-right glass-dropdown-menu">
+        
+        <!-- Profile Section Header -->
+        <div class="glass-dropdown-header">
+          <img src="{{ url_for('static', filename=current_user.photo_url) if current_user.photo_url else url_for('static', filename='images/avatar/cat.png') }}"
+               class="img-circle user-header-avatar"
+               alt="User Avatar">
+          <div class="user-info-header">
+            <p class="user-fullname">{{ current_user.first_name or 'User' }} {{ current_user.last_name or '' }}</p>
+            <p class="user-email-header">{{ current_user.email or 'No email' }}</p>
+          </div>
+        </div>
+
+        <div class="dropdown-divider glass-divider"></div>
+
+        <!-- Profile Section -->
+        <div class="glass-dropdown-section">
+          <p class="glass-section-title">
+            <i class="fas fa-user-circle mr-2"></i>Profile
+          </p>
+          <a href="{{ url_for('profile.profile') }}" class="glass-dropdown-item">
+            <div class="glass-item-icon">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="glass-item-content">
+              <span class="glass-item-label">My Profile</span>
+              <span class="glass-item-desc">View and edit profile</span>
+            </div>
+            <i class="fas fa-chevron-right glass-item-arrow"></i>
+          </a>
+          <a href="{{ url_for('merchant.dashboard') }}" class="glass-dropdown-item">
+            <div class="glass-item-icon">
+              <i class="fas fa-store"></i>
+            </div>
+            <div class="glass-item-content">
+              <span class="glass-item-label">My Store</span>
+              <span class="glass-item-desc">Manage store details</span>
+            </div>
+            <i class="fas fa-chevron-right glass-item-arrow"></i>
+          </a>
+        </div>
+
+        <div class="dropdown-divider glass-divider"></div>
+
+        <!-- Settings Section -->
+        <div class="glass-dropdown-section">
+          <p class="glass-section-title">
+            <i class="fas fa-cog mr-2"></i>Settings
+          </p>
+          
+          <!-- Account Settings Subsection -->
+          <div class="glass-subsection">
+            <p class="glass-subsection-title">Account</p>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsAccountModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-lock"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Password & Security</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsTwoFactorModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Two-Factor Authentication</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsEmailModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Email Preferences</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+          </div>
+
+          <!-- Privacy & Data Subsection -->
+          <div class="glass-subsection">
+            <p class="glass-subsection-title">Privacy & Data</p>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsPrivacyModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-eye-slash"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Privacy Settings</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsNotificationsModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-bell"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Notifications</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsDataModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-database"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Data & Privacy</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+          </div>
+
+          <!-- Preferences Subsection -->
+          <div class="glass-subsection">
+            <p class="glass-subsection-title">Preferences</p>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsAppearanceModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-palette"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Appearance</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsLanguageModal">
+              <div class="glass-item-icon glass-item-icon-sm">
+                <i class="fas fa-globe"></i>
+              </div>
+              <div class="glass-item-content">
+                <span class="glass-item-label">Language & Region</span>
+              </div>
+              <i class="fas fa-chevron-right glass-item-arrow"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="dropdown-divider glass-divider"></div>
+
+        <!-- Logout Section -->
+        <a href="{{ url_for('auth.logout') }}" class="glass-dropdown-item glass-logout-item">
+          <div class="glass-item-icon">
+            <i class="fas fa-sign-out-alt"></i>
+          </div>
+          <div class="glass-item-content">
+            <span class="glass-item-label">Logout</span>
+            <span class="glass-item-desc">Sign out from your account</span>
+          </div>
+          <i class="fas fa-chevron-right glass-item-arrow"></i>
         </a>
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-cog mr-2"></i> Settings
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="{{ url_for('auth.logout') }}" class="dropdown-item">
-          <i class="fas fa-sign-out-alt mr-2"></i> Logout
-        </a>
+
       </div>
     </li>
 

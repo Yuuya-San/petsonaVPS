@@ -1,0 +1,588 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<!-- FontAwesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Alpine.js -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<style>
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  
+  @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+  .animate-slide-in { animation: slideInUp 0.6s ease-out; }
+  .animate-slide-down { animation: slideInDown 0.4s ease-out; }
+  .animate-pulse-custom { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  
+  .step-indicator {
+    @apply relative flex items-center justify-center w-9 h-9 rounded-full font-bold text-xs transition-all duration-300;
+  }
+
+  .step-active { @apply bg-purple-600 text-white; }
+  .step-inactive { @apply bg-slate-200 text-slate-600; }
+  .step-completed { @apply bg-emerald-500 text-white; }
+
+  .service-badge {
+    @apply p-3 rounded-lg border-2 border-slate-200 cursor-pointer transition-all duration-200 flex items-center gap-2 hover:border-slate-300;
+  }
+
+  .service-badge.selected {
+    @apply bg-purple-50 border-purple-500 shadow-md;
+  }
+
+  .pet-card {
+    @apply p-3 border-2 border-slate-200 rounded-lg cursor-pointer transition-all duration-200 hover:border-slate-300;
+  }
+
+  .pet-card.selected {
+    @apply bg-rose-50 border-rose-400 shadow-md;
+  }
+
+  .date-input {
+    @apply w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm;
+  }
+
+  .error-message {
+    @apply text-red-600 text-xs mt-1.5 flex items-center gap-1;
+  }
+
+  .form-section {
+    @apply bg-white rounded-xl p-4 shadow-sm border border-slate-100;
+  }
+
+  .section-title {
+    @apply text-base font-bold text-slate-900 mb-3 flex items-center gap-2;
+  }
+
+  .info-box {
+    @apply p-3 rounded-lg border flex items-start gap-2 text-xs bg-slate-50 border-slate-200 text-slate-700;
+  }
+</style>
+
+<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50" 
+     x-data="bookingApp()"
+     @submit.prevent="submitBooking">
+  
+  <!-- Sticky Header -->
+  <div class="sticky top-0 z-50 bg-white border-b border-slate-200/50 shadow-sm animate-slide-down">
+    <div class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+      <a href="javascript:history.back()" class="inline-flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-purple-600 font-semibold transition-colors text-xs sm:text-sm">
+        <i class="fas fa-chevron-left"></i>
+        <span>Back</span>
+      </a>
+      <h1 class="text-center text-sm sm:text-base font-bold text-slate-900 flex-1 px-2">Book Service</h1>
+      <div class="w-12"></div>
+    </div>
+  </div>
+
+  {% if merchant %}
+  <div class="w-full px-4 sm:px-6 py-6 sm:py-8">
+    <div class="max-w-2xl mx-auto">
+      
+      <!-- Merchant Header - Simple -->
+      <div class="mb-6 sm:mb-8 animate-fade-in">
+        <div class="flex items-center gap-3 sm:gap-4">
+          <div class="flex-shrink-0">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
+              {% if merchant.logo_path %}
+                {% if merchant.logo_path.startswith('/') or merchant.logo_path.startswith('http') %}
+                  <img src="{{ merchant.logo_path }}" alt="{{ merchant.business_name }}" class="w-full h-full object-cover">
+                {% else %}
+                  <img src="{{ url_for('static', filename=merchant.logo_path) }}" alt="{{ merchant.business_name }}" class="w-full h-full object-cover">
+                {% endif %}
+              {% else %}
+                <i class="fas fa-store text-2xl text-purple-200"></i>
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900">{{ merchant.business_name }}</h2>
+            <p class="text-slate-600 text-xs sm:text-sm">{{ merchant.business_type }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simple Progress Steps -->
+      <div class="mb-6 sm:mb-8 animate-fade-in">
+        <div class="flex items-center justify-between gap-2">
+          <!-- Step 1 -->
+          <div class="flex-1 text-center">
+            <div class="step-indicator mx-auto mb-2" :class="currentStep >= 1 ? (currentStep > 1 ? 'step-completed' : 'step-active') : 'step-inactive'">
+              <template x-if="currentStep > 1"><i class="fas fa-check"></i></template>
+              <template x-if="currentStep <= 1">1</template>
+            </div>
+            <p class="text-xs font-medium text-slate-900">Services</p>
+          </div>
+
+          <!-- Line -->
+          <div class="flex-1 h-0.5 mx-1" :class="currentStep > 1 ? 'bg-purple-600' : 'bg-slate-200'"></div>
+
+          <!-- Step 2 -->
+          <div class="flex-1 text-center">
+            <div class="step-indicator mx-auto mb-2" :class="currentStep >= 2 ? (currentStep > 2 ? 'step-completed' : 'step-active') : 'step-inactive'">
+              <template x-if="currentStep > 2"><i class="fas fa-check"></i></template>
+              <template x-if="currentStep <= 2">2</template>
+            </div>
+            <p class="text-xs font-medium text-slate-900">Details</p>
+          </div>
+
+          <!-- Line -->
+          <div class="flex-1 h-0.5 mx-1" :class="currentStep > 2 ? 'bg-purple-600' : 'bg-slate-200'"></div>
+
+          <!-- Step 3 -->
+          <div class="flex-1 text-center">
+            <div class="step-indicator mx-auto mb-2" :class="currentStep >= 3 ? 'step-active' : 'step-inactive'">
+              <template x-if="currentStep <= 3">3</template>
+            </div>
+            <p class="text-xs font-medium text-slate-900">Confirm</p>
+          </div>
+        </div>
+      </div>
+
+      <form @submit.prevent="submitBooking" class="space-y-5">
+      
+        <!-- STEP 1: SELECT SERVICES -->
+        <template x-if="currentStep === 1">
+          <div class="animate-slide-in">
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="fas fa-briefcase text-purple-600"></i>
+                Select services
+              </h2>
+              
+              {% if merchant.services_offered and merchant.services_offered|length > 0 %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                  {% for service in merchant.services_offered %}
+                  <label class="service-badge" :class="selectedServices.includes('{{ service }}') ? 'selected' : ''">
+                    <input type="checkbox" 
+                           name="services" 
+                           value="{{ service }}"
+                           @change="toggleService('{{ service }}')"
+                           class="hidden">
+                    <div class="flex-shrink-0 w-4 h-4 rounded bg-slate-200 flex items-center justify-center transition-all" :class="selectedServices.includes('{{ service }}') ? 'bg-purple-600' : ''">
+                      <i class="fas fa-check text-white text-xs opacity-0 transition-opacity" :class="selectedServices.includes('{{ service }}') ? 'opacity-100' : ''"></i>
+                    </div>
+                    <span class="font-medium text-slate-900 text-sm flex-1">{{ service }}</span>
+                  </label>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="text-slate-600 text-center py-4 text-sm">No services available</p>
+              {% endif %}
+
+              <!-- Button navigation -->
+              <div class="flex justify-between gap-3 mt-5 pt-4 border-t border-slate-200">
+                <button type="button" 
+                        @click="goToPreviousStep()"
+                        disabled
+                        class="px-4 py-2 text-slate-400 font-medium rounded-lg border border-slate-300 disabled:opacity-30 text-sm">
+                  Back
+                </button>
+                <button type="button"
+                        @click="goToNextStep()"
+                        :disabled="selectedServices.length === 0"
+                        class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm">
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- STEP 2: SELECT PETS & DATES -->
+        <template x-if="currentStep === 2">
+          <div class="animate-slide-in space-y-4">
+            <!-- Select Pets -->
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="fas fa-paw text-rose-600"></i>
+                Select pets
+              </h2>
+
+              {% if current_user.is_authenticated %}
+                {% if user_pets and user_pets|length > 0 %}
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                    {% for pet in user_pets %}
+                    <label class="pet-card" :class="selectedPets.includes({{ pet.id }}) ? 'selected' : ''">
+                      <input type="checkbox" 
+                             name="pets" 
+                             value="{{ pet.id }}"
+                             @change="togglePet({{ pet.id }})"
+                             class="hidden">
+                      <div class="flex items-center gap-2 flex-1">
+                        <div class="flex-shrink-0">
+                          {% if pet.photo_url %}
+                            <img src="{{ pet.photo_url }}" alt="{{ pet.name }}" class="w-8 h-8 rounded object-cover">
+                          {% else %}
+                            <div class="w-8 h-8 rounded bg-slate-200 flex items-center justify-center text-slate-400">
+                              <i class="fas fa-paw text-xs"></i>
+                            </div>
+                          {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="font-bold text-slate-900 text-sm">{{ pet.name }}</p>
+                          <p class="text-xs text-slate-600 truncate">{{ pet.species or 'Pet' }}</p>
+                        </div>
+                      </div>
+                    </label>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-slate-600 text-center py-3 text-sm">No pets yet. Add one in your profile.</p>
+                {% endif %}
+              {% else %}
+                <p class="text-center py-3 text-sm">
+                  <a href="{{ url_for('auth.login') }}" class="text-purple-600 hover:underline font-semibold">Login</a> to continue
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- Dates -->
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="fas fa-calendar text-blue-600"></i>
+                When do you need it?
+              </h2>
+
+              <div class="space-y-2.5">
+                <!-- Check-in -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-900 mb-1">Check-in</label>
+                  <input type="date" 
+                         x-model="formData.check_in_date"
+                         :min="minDate"
+                         class="date-input"
+                         @change="validateDates()"
+                         required>
+                  <template x-if="errors.check_in_date">
+                    <p class="error-message"><i class="fas fa-exclamation-circle"></i> <span x-text="errors.check_in_date"></span></p>
+                  </template>
+                </div>
+
+                <!-- Check-out -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-900 mb-1">Check-out</label>
+                  <input type="date" 
+                         x-model="formData.check_out_date"
+                         :min="formData.check_in_date || minDate"
+                         class="date-input"
+                         @change="validateDates()"
+                         required>
+                  <template x-if="errors.check_out_date">
+                    <p class="error-message"><i class="fas fa-exclamation-circle"></i> <span x-text="errors.check_out_date"></span></p>
+                  </template>
+                </div>
+
+                <!-- Times -->
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">Time In</label>
+                    <input type="time" 
+                           x-model="formData.check_in_time"
+                           class="date-input"
+                           required>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">Time Out</label>
+                    <input type="time" 
+                           x-model="formData.check_out_time"
+                           class="date-input"
+                           required>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex justify-between gap-3">
+              <button type="button" 
+                      @click="goToPreviousStep()"
+                      class="px-4 py-2 text-slate-700 font-medium rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">
+                Back
+              </button>
+              <button type="button"
+                      @click="goToNextStep()"
+                      :disabled="selectedPets.length === 0 || !formData.check_in_date || !formData.check_out_date"
+                      class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm">
+                Next
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <!-- STEP 3: CUSTOMER DETAILS & REVIEW -->
+        <template x-if="currentStep === 3">
+          <div class="animate-slide-in space-y-4">
+            <!-- Customer Info -->
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="fas fa-user text-indigo-600"></i>
+                Your info
+              </h2>
+
+              <div class="space-y-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-900 mb-1">Full name</label>
+                  <input type="text" 
+                         x-model="formData.customer_name"
+                         placeholder="Your name"
+                         class="date-input"
+                         required>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-900 mb-1">Email</label>
+                  <input type="email" 
+                         x-model="formData.customer_email"
+                         placeholder="your@email.com"
+                         class="date-input"
+                         required>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-900 mb-1">Phone</label>
+                  <input type="tel" 
+                         x-model="formData.customer_phone"
+                         placeholder="+63 912 345 6789"
+                         class="date-input"
+                         required>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-900 mb-1">Notes (optional)</label>
+                  <textarea x-model="formData.special_requests"
+                            placeholder="Any special requests?"
+                            rows="2"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm resize-none"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="form-section bg-purple-50 border-purple-200">
+              <h3 class="font-bold text-slate-900 mb-3 text-sm">Summary</h3>
+              <div class="space-y-1.5 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-slate-700">Services:</span>
+                  <span class="font-bold text-right max-w-xs" x-text="selectedServices.slice(0, 2).join(', ') + (selectedServices.length > 2 ? '...' : '')"></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-700">Pets:</span>
+                  <span class="font-bold" x-text="selectedPets.length + ' pet(s)'"></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-700">Duration:</span>
+                  <span class="font-bold" x-text="calculateDuration() + ' day(s)'"></span>
+                </div>
+                <div class="border-t border-purple-300 pt-1.5 mt-1.5 flex justify-between">
+                  <span class="font-bold">Total:</span>
+                  <span class="text-base font-bold text-purple-600" x-text="'₱' + calculateTotal().toFixed(2)"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Terms -->
+            <div class="form-section">
+              <label class="flex items-start gap-2 cursor-pointer">
+                <input type="checkbox" 
+                       x-model="formData.agree_terms"
+                       class="w-4 h-4 mt-0.5 rounded"
+                       required>
+                <span class="text-xs text-slate-700">
+                  I agree this is a reservation. The merchant will confirm within 24 hours.
+                </span>
+              </label>
+            </div>
+
+            <!-- Error Message -->
+            <template x-if="formError">
+              <div class="form-section bg-red-50 border-red-200">
+                <p class="text-red-700 text-sm font-medium" x-text="formError"></p>
+              </div>
+            </template>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-between gap-3">
+              <button type="button" 
+                      @click="goToPreviousStep()"
+                      class="flex-1 px-4 py-2 text-slate-700 font-medium rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">
+                Back
+              </button>
+              <button type="submit"
+                      :disabled="isSubmitting"
+                      class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 text-sm">
+                <template x-if="!isSubmitting">
+                  <span><i class="fas fa-check-circle mr-1"></i>Reserve</span>
+                </template>
+                <template x-if="isSubmitting">
+                  <span><i class="fas fa-spinner animate-pulse-custom mr-1"></i>Processing...</span>
+                </template>
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <input type="hidden" name="merchant_id" :value="merchantId">
+        <input type="hidden" name="services" :value="JSON.stringify(selectedServices)">
+        <input type="hidden" name="pets" :value="JSON.stringify(selectedPets)">
+      </form>
+
+    </div>
+  </div>
+
+  {% else %}
+  <div class="w-full px-4 py-12">
+    <div class="max-w-sm mx-auto text-center">
+      <div class="text-5xl mb-3 text-slate-300">
+        <i class="fas fa-lock"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-900 mb-2">Not Found</h2>
+      <p class="text-slate-600 mb-6 text-sm">This store is not available.</p>
+      <a href="javascript:history.back()" class="inline-flex items-center gap-2 px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-sm transition">
+        <i class="fas fa-arrow-left"></i>Go Back
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+function bookingApp() {
+  return {
+    currentStep: 1,
+    merchantId: {{ merchant.id if merchant else 0 }},
+    
+    selectedServices: [],
+    selectedPets: [],
+    
+    formData: {
+      check_in_date: '',
+      check_out_date: '',
+      check_in_time: '10:00',
+      check_out_time: '16:00',
+      customer_name: '{{ current_user.first_name + " " + current_user.last_name if current_user.is_authenticated else "" }}',
+      customer_email: '{{ current_user.email if current_user.is_authenticated else "" }}',
+      customer_phone: '',
+      special_requests: '',
+      agree_terms: false,
+    },
+    
+    minDate: new Date().toISOString().split('T')[0],
+    errors: {},
+    formError: '',
+    isSubmitting: false,
+    basePrice: {{ merchant.max_price_per_day if merchant else 500 }},
+
+    toggleService(service) {
+      const index = this.selectedServices.indexOf(service);
+      if (index > -1) {
+        this.selectedServices.splice(index, 1);
+      } else {
+        this.selectedServices.push(service);
+      }
+    },
+
+    togglePet(petId) {
+      const index = this.selectedPets.indexOf(petId);
+      if (index > -1) {
+        this.selectedPets.splice(index, 1);
+      } else {
+        this.selectedPets.push(petId);
+      }
+    },
+
+    calculateDuration() {
+      if (!this.formData.check_in_date || !this.formData.check_out_date) return 0;
+      const checkIn = new Date(this.formData.check_in_date);
+      const checkOut = new Date(this.formData.check_out_date);
+      const timeDiff = checkOut - checkIn;
+      return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) || 0;
+    },
+
+    calculateTotal() {
+      const duration = this.calculateDuration();
+      const petMultiplier = this.selectedPets.length;
+      return (this.basePrice * duration * petMultiplier) || 0;
+    },
+
+    formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr + 'T00:00:00');
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
+
+    validateDates() {
+      this.errors = {};
+      if (this.formData.check_in_date < this.minDate) {
+        this.errors.check_in_date = 'Date must be in the future';
+      }
+      if (this.formData.check_out_date <= this.formData.check_in_date) {
+        this.errors.check_out_date = 'Must be after check-in date';
+      }
+    },
+
+    goToNextStep() {
+      if (this.currentStep < 3) {
+        this.currentStep++;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+
+    goToPreviousStep() {
+      if (this.currentStep > 1) {
+        this.currentStep--;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+
+    async submitBooking() {
+      this.formError = '';
+      this.isSubmitting = true;
+
+      try {
+        const response = await fetch('{{ url_for("merchant.api_create_booking") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || '',
+          },
+          body: JSON.stringify({
+            merchant_id: this.merchantId,
+            services_booked: this.selectedServices,
+            pets_booked: this.selectedPets,
+            check_in_date: this.formData.check_in_date,
+            check_out_date: this.formData.check_out_date,
+            check_in_time: this.formData.check_in_time,
+            check_out_time: this.formData.check_out_time,
+            customer_name: this.formData.customer_name,
+            customer_email: this.formData.customer_email,
+            customer_phone: this.formData.customer_phone,
+            special_requests: this.formData.special_requests,
+          }),
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          window.location.href = '/merchant/booking/confirmation/' + data.booking_id;
+        } else {
+          this.formError = data.error || 'Booking failed. Please try again.';
+        }
+      } catch (error) {
+        this.formError = 'An error occurred. Please try again.';
+        console.error('Booking error:', error);
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+  };
+}
+</script>
+
+{% endblock %}

@@ -1110,3 +1110,193 @@ def reverse_geocode():
         logger.error(f"Error reverse geocoding: {str(e)}", exc_info=True)
         return jsonify({'error': 'Failed to reverse geocode', 'details': str(e)}), 500
 
+
+# ========== BOOKING ROUTES ==========
+
+@bp.route('/booking/<int:merchant_id>')
+def booking(merchant_id):
+    """Display booking form for a specific merchant"""
+    merchant = Merchant.query.filter_by(id=merchant_id).first()
+    
+    if not merchant:
+        flash('Store not found.', 'danger')
+        return redirect(url_for('user.nearby_services'))
+    
+    # Get user's pets if authenticated
+    user_pets = []
+    if current_user.is_authenticated:
+        from app.models.user import User
+        from app.models.breed import Breed
+        from app.models.species import Species
+        
+        # Query pets for current user - assuming a pets relationship exists
+        # This may need to be adjusted based on your actual pet model structure
+        try:
+            user_pets = db.session.query(db.func.json_extract(db.func.json_array_elements(User.pets), '$.id')).filter(
+                User.id == current_user.id
+            ).all()
+        except:
+            user_pets = []
+    
+    # Get merchant ratings
+    avg_rating = db.session.query(func.avg(Booking.customer_rating)).filter(
+        Booking.merchant_id == merchant_id,
+        Booking.customer_rating.isnot(None),
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    store_rating = round(float(avg_rating), 1) if avg_rating else 0
+    
+    total_reviews = db.session.query(func.count(Booking.id)).filter(
+        Booking.merchant_id == merchant_id,
+        Booking.customer_rating.isnot(None),
+        Booking.deleted_at.is_(None)
+    ).scalar() or 0
+    
+    return render_template('merchant/booking.html', 
+                         merchant=merchant,
+                         user_pets=user_pets,
+                         store_rating=store_rating,
+                         total_reviews=total_reviews)
+
+
+@bp.route('/api/booking/create', methods=['POST'])
+@login_required
+def api_create_booking():
+    """Create a new booking"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        # Validate required fields
+        required_fields = ['merchant_id', 'services_booked', 'pets_booked', 'check_in_date', 
+                          'check_out_date', 'check_in_time', 'check_out_time', 
+                          'customer_name', 'customer_email', 'customer_phone']
+        
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        merchant_id = data.get('merchant_id')
+        merchant = Merchant.query.get(merchant_id)
+        
+        if not merchant:
+            return jsonify({'error': 'Merchant not found'}), 404
+        
+        # Parse dates
+        from datetime import datetime
+        try:
+            check_in_date = datetime.fromisoformat(data['check_in_date'])
+            check_out_date = datetime.fromisoformat(data['check_out_date'])
+        except:
+            return jsonify({'error': 'Invalid date format'}), 400
+        
+        if check_out_date <= check_in_date:
+            return jsonify({'error': 'Check-out date must be after check-in date'}), 400
+        
+        # Calculate duration
+        duration_days = (check_out_date - check_in_date).days
+        if duration_days <= 0:
+            duration_days = 1
+        
+        # Get pricing info
+        base_price = float(merchant.max_price_per_day or 0)
+        pets_count = len(data.get('pets_booked', []))
+        
+        # Calculate pricing
+        service_cost = base_price * duration_days * max(pets_count, 1)
+        pickup_fee = 0
+        delivery_fee = 0
+        additional_services_fee = 0
+        discount_amount = 0
+        subtotal = service_cost + pickup_fee + delivery_fee + additional_services_fee
+        total_amount = subtotal - discount_amount
+        
+        # Generate booking number and confirmation code
+        import random
+        import string
+        booking_number = f"BK-{datetime.now().year}-{random.randint(100000, 999999)}"
+        confirmation_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        
+        # Create booking
+        booking = Booking(
+            user_id=current_user.id,
+            merchant_id=merchant_id,
+            booking_number=booking_number,
+            confirmation_code=confirmation_code,
+            status='pending',
+            customer_name=data['customer_name'],
+            customer_email=data['customer_email'],
+            customer_phone=data['customer_phone'],
+            services_booked=data.get('services_booked', []),
+            pets_booked=data.get('pets_booked', []),
+            total_pets=pets_count,
+            check_in_date=check_in_date,
+            check_out_date=check_out_date,
+            check_in_time=data.get('check_in_time', '09:00'),
+            check_out_time=data.get('check_out_time', '17:00'),
+            duration_days=duration_days,
+            base_price_per_day=base_price,
+            total_service_cost=service_cost,
+            pickup_fee=pickup_fee,
+            delivery_fee=delivery_fee,
+            additional_services_fee=additional_services_fee,
+            discount_amount=discount_amount,
+            subtotal=subtotal,
+            total_amount=total_amount,
+            payment_method='simulated',
+            payment_status='pending',
+            special_requests=data.get('special_requests', ''),
+            source='web',
+        )
+        
+        # Calculate merchant split
+        booking.calculate_merchant_split()
+        
+        db.session.add(booking)
+        db.session.commit()
+        
+        # Log the booking creation
+        audit_log = AuditLog(
+            user_id=current_user.id,
+            action='booking_created',
+            resource_type='Booking',
+            resource_id=booking.id,
+            details=f'Booking {booking.booking_number} created for merchant {merchant.business_name}',
+            ip_address=request.remote_addr
+        )
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'booking_id': booking.id,
+            'confirmation_code': booking.confirmation_code,
+            'message': 'Booking created successfully'
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Error creating booking: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Failed to create booking', 'details': str(e)}), 500
+
+
+@bp.route('/booking/confirmation/<int:booking_id>')
+def booking_confirmation(booking_id):
+    """Display booking confirmation page"""
+    booking = Booking.query.get(booking_id)
+    
+    if not booking:
+        flash('Booking not found.', 'danger')
+        return redirect(url_for('user.dashboard'))
+    
+    # Security check: user can only view their own booking
+    if booking.user_id != current_user.id and current_user.role != 'admin':
+        # Allow access via confirmation code if not logged in as the booker
+        confirmation_code = request.args.get('confirmation_code')
+        if not confirmation_code or confirmation_code != booking.confirmation_code:
+            flash('Unauthorized access.', 'danger')
+            return redirect(url_for('user.dashboard'))
+    
+    return render_template('merchant/booking_confirmation.html', booking=booking)
+

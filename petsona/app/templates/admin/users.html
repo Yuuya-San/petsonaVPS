@@ -1,157 +1,850 @@
 {% extends "admin/base.html" %}
 {% block content %}
 
-<section class="content">
-  <div class="card shadow-sm card-modern">
-    <!-- Header -->
-    <div class="card-header d-flex align-items-center justify-content-between card-header-modern">
-      <h3 class="card-title mb-0">All Users</h3>
+<style>
+  .users-section {
+    background: linear-gradient(135deg, #f8f7ff 0%, #fafbfc 100%);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
 
-            <!-- Spacer -->
-      <div class="flex-grow-1"></div>
+  .users-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+  }
 
-      <!-- Filter by Role -->
-      <form method="GET" class="d-flex align-items-center flex-wrap gap-2">
-        <select name="role" class="form-select form-select-sm role-filter" onchange="this.form.submit()">
-          <option value="">All Roles</option>
-          {% for r in roles %}
-            <option value="{{ r[0] }}" {% if selected_role == r[0] %}selected{% endif %}>
-              {{ r[0] | capitalize }}
-            </option>
-          {% endfor %}
-        </select>
-      </form>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left h1.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+
+  .header-left .page-subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0.25rem 0 0 0;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .filter-form {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .role-select {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.75rem;
+    color: #374151;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .role-select:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .users-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 12px 48px rgba(168, 85, 247, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    border-radius: 1.5rem;
+    overflow: hidden;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .users-table thead {
+    background: rgba(168, 85, 247, 0.08);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .users-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #a855f7;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .users-table tbody tr {
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    transition: background 0.3s ease;
+  }
+
+  .users-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+  }
+
+  .users-table td {
+    padding: 1rem;
+    color: #374151;
+    font-size: 0.9rem;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .user-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid rgba(168, 85, 247, 0.2);
+    object-fit: cover;
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-name {
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .email-link {
+    color: #a855f7;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .email-link:hover {
+    color: #9333ea;
+    text-decoration: underline;
+  }
+
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .role-badge.admin {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .role-badge.merchant {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .role-badge.user {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+  }
+
+  .action-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    font-size: 0.85rem;
+  }
+
+  .action-btn:hover {
+    background: rgba(168, 85, 247, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .action-btn.edit {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+
+  .action-btn.edit:hover {
+    background: rgba(59, 130, 246, 0.2);
+  }
+
+  .action-btn.delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  .pagination-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .pagination-info {
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  .pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    background: rgba(255, 255, 255, 0.6);
+    color: #a855f7;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(168, 85, 247, 0.4);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem !important;
+  }
+
+  .empty-content {
+    color: #a855f7;
+  }
+
+  .empty-content i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  /* Delete Modal Glassmorphism */
+  .modal-content.delete-modal {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 12px 48px rgba(168, 85, 247, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border-radius: 1rem;
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(147, 51, 234, 0.05));
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    padding: 1.5rem;
+  }
+
+  .modal-title {
+    color: #a855f7;
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: color 0.3s ease;
+  }
+
+  .modal-close:hover {
+    color: #a855f7;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-description {
+    color: #374151;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .user-preview {
+    background: rgba(168, 85, 247, 0.05);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .preview-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .preview-item:last-child {
+    border-bottom: none;
+  }
+
+  .preview-label {
+    color: #a855f7;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .preview-value {
+    color: #374151;
+    font-size: 0.9rem;
+  }
+
+  .alert-warning {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #dc2626;
+    font-size: 0.9rem;
+  }
+
+  .modal-footer {
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    padding: 1.5rem;
+    background: rgba(168, 85, 247, 0.02);
+  }
+
+  .modal-footer form {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-cancel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    color: #4b5563;
+  }
+
+  .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(168, 85, 247, 0.3);
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+
+  .btn-delete:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+  }
+
+  .btn-delete:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .spinner {
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* View Modal Glassmorphism */
+  .modal-content.view-modal {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 12px 48px rgba(168, 85, 247, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border-radius: 1rem;
+  }
+
+  .view-modal .modal-body {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 1.25rem;
+  }
+
+  .view-modal .user-preview {
+    background: rgba(168, 85, 247, 0.05);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 0.75rem;
+    padding: 0.9rem;
+  }
+
+  .view-modal .preview-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+    font-size: 0.85rem;
+  }
+
+  .view-modal .preview-item:last-child {
+    border-bottom: none;
+  }
+
+  .view-modal .preview-label {
+    color: #a855f7;
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  .view-modal .preview-value {
+    color: #374151;
+    font-size: 0.85rem;
+  }
+
+  .view-modal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.02);
+  }
+
+  .view-modal .modal-footer .btn {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 640px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-left h1.page-title {
+      font-size: 1.5rem;
+    }
+
+    .users-table {
+      font-size: 0.8rem;
+    }
+
+    .users-table th,
+    .users-table td {
+      padding: 0.75rem 0.5rem;
+    }
+
+    .user-avatar {
+      width: 2rem;
+      height: 2rem;
+      font-size: 0.8rem;
+    }
+
+    .action-btn {
+      width: 1.8rem;
+      height: 1.8rem;
+      font-size: 0.75rem;
+    }
+
+    .pagination-footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .pagination-controls {
+      justify-content: center;
+    }
+  }
+</style>
+
+<section class="users-section">
+  <div class="users-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Users</h1>
+        <p class="page-subtitle">Manage system users</p>
+      </div>
+      
+      <div class="header-right">
+        <form method="GET" class="filter-form">
+          <select name="role" class="role-select" onchange="this.form.submit()">
+            <option value="">All Roles</option>
+            {% for r in roles %}
+              <option value="{{ r[0] }}" {% if selected_role == r[0] %}selected{% endif %}>
+                {{ r[0] | capitalize }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
     </div>
 
-    <!-- Table -->
-    <div class="card-body table-responsive p-0 card-body-modern">
-      <table class="table table-striped table-hover table-bordered mb-0">
-        <thead class="table-header-modern">
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th class="text-center" style="width: 180px;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if users.items|length > 0 %}
-            {% for user in users.items %}
+    <!-- Users Card -->
+    <div class="users-card">
+      
+      <div class="table-container">
+        <table class="users-table">
+          <thead>
             <tr>
-              <td>{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}</td>
-              <td>{{ user.email }}</td>
-              <td>
-                {% if user.role == 'admin' %}
-                  <span class="badge badge-admin">Admin</span>
-                {% elif user.role == 'merchant' %}
-                  <span class="badge badge-merchant">Merchant</span>
-                {% else %}
-                  <span class="badge badge-user">User</span>
-                {% endif %}
-              </td>
-              <td class="text-center actions-cell">
-                <div class="action-buttons">
-                  <a href="{{ url_for('admin.view_user', id=user.id) }}" class="btn btn-sm btn-info" title="View User">
-                    <i class="fas fa-eye"></i>
-                  </a>
-
-                  <a href="{{ url_for('admin.edit_user', id=user.id) }}" class="btn btn-sm btn-warning" title="Edit User">
-                    <i class="fas fa-edit"></i>
-                  </a>
-
-                  <button type="button"
-                          class="btn btn-sm btn-danger"
-                          title="Delete User"
-                          data-toggle="modal"
-                          data-target="#deleteUserModal"
-                          data-user-id="{{ user.id }}"
-                          data-user-name="{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}"
-                          data-user-email="{{ user.email }}"
-                          data-user-role="{{ user.role | capitalize }}">
-                    <i class="fas fa-trash"></i>
-                  </button>
-
+              <th class="th-name">Name</th>
+              <th class="th-email">Email</th>
+              <th class="th-role">Role</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if users.items|length > 0 %}
+              {% for user in users.items %}
+              <tr>
+                <td class="td-name" data-label="Name">
+                  <div class="user-info">
+                    <div class="user-avatar">
+                      {% if user.photo_url %}
+                        <img src="{% if user.photo_url.startswith('http') %}{{ user.photo_url }}{% else %}/static/{{ user.photo_url }}{% endif %}" 
+                             alt="{{ user.first_name }} {{ user.last_name }}"
+                             onerror="this.parentElement.textContent = '{{ (user.first_name[0] if user.first_name else user.email[0]) | upper }}'">
+                      {% else %}
+                        {{ (user.first_name[0] if user.first_name else user.email[0]) | upper }}
+                      {% endif %}
+                    </div>
+                    <span class="user-name">{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}</span>
+                  </div>
+                </td>
+                
+                <td class="td-email" data-label="Email">
+                  <a href="mailto:{{ user.email }}" class="email-link">{{ user.email }}</a>
+                </td>
+                
+                <td class="td-role" data-label="Role">
+                  {% if user.role == 'admin' %}
+                    <span class="role-badge admin">
+                      <i class="fas fa-crown"></i>
+                      <span>Admin</span>
+                    </span>
+                  {% elif user.role == 'merchant' %}
+                    <span class="role-badge merchant">
+                      <i class="fas fa-store"></i>
+                      <span>Merchant</span>
+                    </span>
+                  {% else %}
+                    <span class="role-badge user">
+                      <i class="fas fa-user"></i>
+                      <span>User</span>
+                    </span>
+                  {% endif %}
+                </td>
+                
+                <td class="td-actions" data-label="Actions">
+                  <div class="action-group">
+                    <button type="button"
+                            class="action-btn view"
+                            title="View"
+                            data-toggle="modal"
+                            data-target="#viewUserModal"
+                            data-user-id="{{ user.id }}"
+                            data-user-name="{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}"
+                            data-user-email="{{ user.email }}"
+                            data-user-role="{{ user.role | capitalize }}"
+                            data-user-first-name="{{ user.first_name or '' }}"
+                            data-user-last-name="{{ user.last_name or '' }}"
+                            data-user-phone="{{ user.phone or 'N/A' }}"
+                            data-user-created="{{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <a href="{{ url_for('admin.edit_user', id=user.id) }}" 
+                       class="action-btn edit" 
+                       title="Edit">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <button type="button"
+                            class="action-btn delete"
+                            title="Delete"
+                            data-toggle="modal"
+                            data-target="#deleteUserModal"
+                            data-user-id="{{ user.id }}"
+                            data-user-name="{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}"
+                            data-user-email="{{ user.email }}"
+                            data-user-role="{{ user.role | capitalize }}">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="4" class="empty-state">
+                <div class="empty-content">
+                  <i class="fas fa-users"></i>
+                  <p>No users found</p>
                 </div>
               </td>
             </tr>
-            {% endfor %}
-          {% else %}
-          <tr>
-            <td colspan="4" class="text-center">No users found.</td>
-          </tr>
-          {% endif %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="card-footer d-flex justify-content-between align-items-center card-footer-modern flex-wrap gap-2">
-      <span>Page {{ users.page }} of {{ users.pages }}</span>
-      <div class="pagination-buttons">
-        {% if users.has_prev %}
-          <a href="{{ url_for('admin.users', page=users.prev_num, role=selected_role) }}" class="btn btn-sm btn-secondary">Previous</a>
-        {% else %}
-          <button class="btn btn-sm btn-secondary" disabled>Previous</button>
-        {% endif %}
-
-        {% if users.has_next %}
-          <a href="{{ url_for('admin.users', page=users.next_num, role=selected_role) }}" class="btn btn-sm btn-secondary">Next</a>
-        {% else %}
-          <button class="btn btn-sm btn-secondary" disabled>Next</button>
-        {% endif %}
+            {% endif %}
+          </tbody>
+        </table>
       </div>
+
+      <!-- Pagination -->
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          <span>Page <strong>{{ users.page }}</strong> of <strong>{{ users.pages }}</strong></span>
+        </div>
+        
+        <div class="pagination-controls">
+          {% if users.has_prev %}
+            <a href="{{ url_for('admin.users', page=users.prev_num, role=selected_role) }}" 
+               class="pagination-btn">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          {% endif %}
+
+          {% if users.has_next %}
+            <a href="{{ url_for('admin.users', page=users.next_num, role=selected_role) }}" 
+               class="pagination-btn">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- DELETE USER MODAL -->
-<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 rounded-4 shadow">
-
-      <div class="modal-header bg-danger text-white">
+<!-- View Modal -->
+<div class="modal fade" id="viewUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered delete-modal-dialog">
+    <div class="modal-content view-modal">
+      
+      <div class="modal-header">
         <h5 class="modal-title">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          Confirm Delete User
+          <i class="fas fa-user-circle"></i>
+          User Details
         </h5>
-        <button type="button" class="close text-white" data-dismiss="modal">
-          <span>&times;</span>
+        <button type="button" class="modal-close" data-dismiss="modal">
+          <i class="fas fa-times"></i>
         </button>
       </div>
 
       <div class="modal-body">
+        <div class="user-preview">
+          <div class="preview-item">
+            <span class="preview-label">ID</span>
+            <span id="viewUserId" class="preview-value">USER-2026-<span id="viewUserIdNum"></span></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Full Name</span>
+            <span id="viewUserFullName" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Email</span>
+            <span id="viewUserEmail" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Role</span>
+            <span id="viewUserRole" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Phone</span>
+            <span id="viewUserPhone" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Joined</span>
+            <span id="viewUserCreated" class="preview-value"></span>
+          </div>
+        </div>
+      </div>
 
-        <p class="mb-2">
-          You are about to delete the following user:
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-dismiss="modal">
+          Close
+        </button>
+        <a id="viewUserEditBtn" href="#" class="btn btn-cancel" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none;">
+          <i class="fas fa-edit"></i>
+          Edit User
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered delete-modal-dialog">
+    <div class="modal-content delete-modal">
+      
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-exclamation-triangle"></i>
+          Delete User
+        </h5>
+        <button type="button" class="modal-close" data-dismiss="modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description">
+          You are about to permanently delete this user:
         </p>
 
-        <!-- PREVIEW -->
-        <div class="bg-light rounded-3 p-3 mb-3 small">
-          <div><strong>ID:</strong> <span id="delUserId"></span></div>
-          <div><strong>Name:</strong> <span id="delUserName"></span></div>
-          <div><strong>Email:</strong> <span id="delUserEmail"></span></div>
-          <div><strong>Role:</strong> <span id="delUserRole"></span></div>
+        <div class="user-preview">
+          <div class="preview-item">
+            <span class="preview-label">ID</span>
+            <span id="delUserId" class="preview-value">USER-2026-<span id="delUserIdNum"></span></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Name</span>
+            <span id="delUserName" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Email</span>
+            <span id="delUserEmail" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Role</span>
+            <span id="delUserRole" class="preview-value"></span>
+          </div>
         </div>
 
-        <div class="alert alert-warning small mb-0">
-          <i class="fas fa-info-circle me-1"></i>
-          This action cannot be undone.
+        <div class="alert-warning">
+          <i class="fas fa-shield-alt"></i>
+          <span>This action cannot be undone</span>
         </div>
-
       </div>
 
       <div class="modal-footer">
         <form id="deleteUserForm" method="POST">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <button type="button"
-                  class="btn btn-outline-secondary"
-                  data-dismiss="modal">
+          <button type="button" class="btn btn-cancel" data-dismiss="modal">
             Cancel
           </button>
-          <button type="submit"
-                  class="btn btn-danger">
-            <i class="fas fa-trash me-1"></i>
-            Delete User
+          <button type="submit" class="btn btn-delete" id="deleteSubmitBtn">
+            <span id="deleteButtonContent">
+              <i class="fas fa-trash-alt"></i>
+              Delete User
+            </span>
+            <span id="deleteSpinner" class="spinner" style="display: none;"></span>
           </button>
         </form>
       </div>
@@ -160,26 +853,55 @@
   </div>
 </div>
 
-
 {% endblock %}
 
 {% block scripts %}
 <script>
+  // View Modal Handler
+  $('#viewUserModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    const id = button.data('user-id');
+    const firstName = button.data('user-first-name');
+    const lastName = button.data('user-last-name');
+    const email = button.data('user-email');
+    const role = button.data('user-role');
+    const phone = button.data('user-phone');
+    const created = button.data('user-created');
+
+    $('#viewUserIdNum').text(id);
+    $('#viewUserFullName').text((firstName + ' ' + lastName).trim() || '(No Name)');
+    $('#viewUserEmail').text(email);
+    $('#viewUserRole').text(role);
+    $('#viewUserPhone').text(phone);
+    $('#viewUserCreated').text(created);
+    $('#viewUserEditBtn').attr('href', '/admin/users/edit/' + id);
+  });
+
+  // Delete Modal Handler
   $('#deleteUserModal').on('show.bs.modal', function (event) {
     const button = $(event.relatedTarget);
-
     const id = button.data('user-id');
     const name = button.data('user-name');
     const email = button.data('user-email');
     const role = button.data('user-role');
 
-    $('#delUserId').text(id);
+    $('#delUserIdNum').text(id);
     $('#delUserName').text(name);
     $('#delUserEmail').text(email);
     $('#delUserRole').text(role);
-
     $('#deleteUserForm').attr('action', '/admin/users/delete/' + id);
+
+    // Reset button state
+    $('#deleteSubmitBtn').prop('disabled', false);
+    $('#deleteButtonContent').show();
+    $('#deleteSpinner').hide();
+  });
+
+  $('#deleteUserForm').on('submit', function (e) {
+    const submitBtn = $('#deleteSubmitBtn');
+    submitBtn.prop('disabled', true);
+    $('#deleteButtonContent').hide();
+    $('#deleteSpinner').show();
   });
 </script>
 {% endblock %}
-

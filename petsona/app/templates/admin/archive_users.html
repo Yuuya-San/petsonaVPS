@@ -1,166 +1,367 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
-<div class="card">
-  <!-- Card Header -->
-  <div class="card-header d-flex align-items-center" style="background-color:#DCCBF9; border-radius:12px 12px 0 0;">
-    <h3 class="card-title mb-0">Archived Users</h3>
-  </div>
+<style>
+  /* --- Copied from users.html for design and responsiveness --- */
+  .users-section {
+    background: linear-gradient(135deg, #f8f7ff 0%, #fafbfc 100%);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .users-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+  }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .header-left h1.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+  .header-left .page-subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0.25rem 0 0 0;
+  }
+  .users-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 12px 48px rgba(168, 85, 247, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    border-radius: 1.5rem;
+    overflow: hidden;
+  }
+  .table-container {
+    overflow-x: auto;
+  }
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .users-table thead {
+    background: rgba(168, 85, 247, 0.08);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+  .users-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #a855f7;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .users-table tbody tr {
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    transition: background 0.3s ease;
+  }
+  .users-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+  }
+  .users-table td {
+    padding: 1rem;
+    color: #374151;
+    font-size: 0.9rem;
+  }
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .role-badge.admin {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+  .role-badge.merchant {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+  .role-badge.user {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+  }
+  .btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .btn-cancel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    color: #4b5563;
+  }
+  .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(168, 85, 247, 0.3);
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  }
+  .btn-success:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
+  }
+  .btn-success:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem !important;
+  }
+  .empty-content {
+    color: #a855f7;
+  }
+  .empty-content i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  @media (max-width: 640px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .header-left h1.page-title {
+      font-size: 1.5rem;
+    }
+    .users-table {
+      font-size: 0.8rem;
+    }
+    .users-table th,
+    .users-table td {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+</style>
 
-  <!-- Card Body: Table only is scrollable -->
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Deleted At</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users.items %}
-          <tr>
-            <td>{{ user.first_name }} {{ user.last_name }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.role }}</td>
-            <td>{{ user.deleted_at.strftime('%Y-%m-%d %H:%M') if user.deleted_at else '-' }}</td>
-            <td>
-              <button type="button"
-                      class="btn btn-sm btn-success"
-                      data-toggle="modal"
-                      data-target="#restoreUserModal"
-                      data-user-id="{{ user.id }}"
-                      data-user-name="{{ user.first_name }} {{ user.last_name }}"
-                      data-user-email="{{ user.email }}"
-                      data-user-role="{{ user.role | capitalize }}"
-                      data-user-deleted="{{ user.deleted_at.strftime('%Y-%m-%d %H:%M') if user.deleted_at else '-' }}">
-                <i class="fas fa-undo"></i> Restore
-              </button>
-            </td>
-          </tr>
+<section class="users-section">
+  <div class="users-container">
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Archived Users</h1>
+        <p class="page-subtitle">Manage archived user accounts</p>
+      </div>
+    </div>
+    <div class="users-card">
+      <div class="table-container">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Deleted At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if users.items|length > 0 %}
+              {% for user in users.items %}
+              <tr>
+                <td class="td-name" data-label="Name">
+                  <div class="user-info">
+                    <div class="user-avatar">
+                      {% if user.photo_url %}
+                        <img src="{% if user.photo_url.startswith('http') %}{{ user.photo_url }}{% else %}/static/{{ user.photo_url }}{% endif %}"
+                             alt="{{ user.first_name }} {{ user.last_name }}"
+                             onerror="this.parentElement.textContent = '{{ (user.first_name[0] if user.first_name else user.email[0]) | upper }}'">
+                      {% else %}
+                        {{ (user.first_name[0] if user.first_name else user.email[0]) | upper }}
+                      {% endif %}
+                    </div>
+                    <span class="user-name">{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}</span>
+                  </div>
+                </td>
+                <td class="td-email" data-label="Email">
+                  <a href="mailto:{{ user.email }}" class="email-link">{{ user.email }}</a>
+                </td>
+                <td class="td-role" data-label="Role">
+                  {% if user.role == 'admin' %}
+                    <span class="role-badge admin">
+                      <i class="fas fa-crown"></i>
+                      <span>Admin</span>
+                    </span>
+                  {% elif user.role == 'merchant' %}
+                    <span class="role-badge merchant">
+                      <i class="fas fa-store"></i>
+                      <span>Merchant</span>
+                    </span>
+                  {% else %}
+                    <span class="role-badge user">
+                      <i class="fas fa-user"></i>
+                      <span>User</span>
+                    </span>
+                  {% endif %}
+                </td>
+                <td data-label="Deleted At">
+                  {% if user.deleted_at_manila %}
+                    {{ user.deleted_at_manila.strftime('%Y-%m-%d %H:%M') }}
+                  {% else %}-{% endif %}
+                </td>
+                <td class="td-actions" data-label="Actions">
+                  <div class="action-group">
+                    <button type="button"
+                            class="action-btn btn-success"
+                            title="Restore"
+                            data-toggle="modal"
+                            data-target="#restoreUserModal"
+                            data-user-id="{{ user.id }}"
+                            data-user-name="{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}"
+                            data-user-email="{{ user.email }}"
+                            data-user-role="{{ user.role | capitalize }}"
+                            data-user-deleted="{{ user.deleted_at.strftime('%Y-%m-%d %H:%M') if user.deleted_at else '-' }}">
+                      <i class="fas fa-undo"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="5" class="empty-state">
+                <div class="empty-content">
+                  <i class="fas fa-users-slash"></i>
+                  <p>No archived users found.</p>
+                </div>
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          <span>Page <strong>{{ users.page }}</strong> of <strong>{{ users.pages }}</strong></span>
+        </div>
+        <div class="pagination-controls">
+          {% if users.has_prev %}
+            <a href="{{ url_for('admin.archive_users', page=users.prev_num) }}" class="pagination-btn">
+              <i class="fas fa-chevron-left"></i>
+            </a>
           {% else %}
-          <tr>
-            <td colspan="5" class="text-center">No archived users found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          {% endif %}
+          {% if users.has_next %}
+            <a href="{{ url_for('admin.archive_users', page=users.next_num) }}" class="pagination-btn">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- Card Footer -->
-  <div class="card-footer d-flex justify-content-center">
-    {% if users.pages > 1 %}
-      <nav>
-        <ul class="pagination mb-0">
-          {% if users.has_prev %}
-            <li class="page-item">
-              <a class="page-link" href="{{ url_for('admin.archive_users', page=users.prev_num) }}">Previous</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Previous</span></li>
-          {% endif %}
-
-          {% for page_num in users.iter_pages() %}
-            {% if page_num %}
-              <li class="page-item {% if page_num == users.page %}active{% endif %}">
-                <a class="page-link" href="{{ url_for('admin.archive_users', page=page_num) }}">{{ page_num }}</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">…</span></li>
-            {% endif %}
-          {% endfor %}
-
-          {% if users.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="{{ url_for('admin.archive_users', page=users.next_num) }}">Next</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Next</span></li>
-          {% endif %}
-        </ul>
-      </nav>
-    {% endif %}
-  </div>
-</div>
+</section>
 
 <!-- RESTORE USER MODAL -->
 <div class="modal fade" id="restoreUserModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 rounded-4 shadow">
-
-      <div class="modal-header bg-success text-white">
+    <div class="modal-content delete-modal">
+      <div class="modal-header">
         <h5 class="modal-title">
           <i class="fas fa-undo me-2"></i>
-          Confirm Restore User
+          Restore User
         </h5>
-        <button type="button" class="close text-white" data-dismiss="modal">
-          <span>&times;</span>
+        <button type="button" class="modal-close" data-dismiss="modal">
+          <i class="fas fa-times"></i>
         </button>
       </div>
-
       <div class="modal-body">
-        <p class="mb-2">
-          You are about to restore the following user:
+        <p class="modal-description">
+          You are about to restore this user:
         </p>
-
-        <!-- PREVIEW INFO -->
-        <div class="bg-light rounded-3 p-3 mb-3 small">
-          <div><strong>ID:</strong> <span id="restoreUserId"></span></div>
-          <div><strong>Name:</strong> <span id="restoreUserName"></span></div>
-          <div><strong>Email:</strong> <span id="restoreUserEmail"></span></div>
-          <div><strong>Role:</strong> <span id="restoreUserRole"></span></div>
-          <div><strong>Deleted At:</strong> <span id="restoreUserDeleted"></span></div>
+        <div class="user-preview">
+          <div class="preview-item">
+            <span class="preview-label">ID</span>
+            <span id="restoreUserId" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Name</span>
+            <span id="restoreUserName" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Email</span>
+            <span id="restoreUserEmail" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Role</span>
+            <span id="restoreUserRole" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Deleted At</span>
+            <span id="restoreUserDeleted" class="preview-value"></span>
+          </div>
         </div>
-
-        <div class="alert alert-info small mb-0">
+        <div class="alert-warning">
           <i class="fas fa-info-circle me-1"></i>
-          The user account will become active again.
+          <span>The user account will become active again.</span>
         </div>
       </div>
-
       <div class="modal-footer">
         <form id="restoreUserForm" method="POST">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <button type="button"
-                  class="btn btn-outline-secondary"
-                  data-dismiss="modal">
-            Cancel
-          </button>
-          <button type="submit"
-                  class="btn btn-success">
-            <i class="fas fa-check me-1"></i>
-            Restore User
-          </button>
+          <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success"><i class="fas fa-check me-1"></i> Restore User</button>
         </form>
       </div>
-
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
   $('#restoreUserModal').on('show.bs.modal', function (event) {
     const button = $(event.relatedTarget);
-
     const id = button.data('user-id');
     const name = button.data('user-name');
     const email = button.data('user-email');
     const role = button.data('user-role');
     const deleted = button.data('user-deleted');
-
-    $('#restoreUserId').text(id);
+    $('#restoreUserId').text('USER-2026-' + id);
     $('#restoreUserName').text(name);
     $('#restoreUserEmail').text(email);
     $('#restoreUserRole').text(role);
     $('#restoreUserDeleted').text(deleted);
-
     $('#restoreUserForm').attr('action', '/admin/users/restore/' + id);
   });
 </script>

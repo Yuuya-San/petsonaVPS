@@ -86,11 +86,18 @@ def contact():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
+        # Check if email already exists
+        email = form.email.data.lower()
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('This email is already registered. Please log in or use a different email.', 'warning')
+            return redirect(url_for('auth.register'))
+        
         # Store registration data in session
         session['registration'] = {
             'first_name': form.first_name.data,
             'last_name': form.last_name.data,
-            'email': form.email.data.lower(),
+            'email': email,
             'password': form.password.data,
             'photo_url': random.choice(DEFAULT_AVATARS)
         }
@@ -103,7 +110,7 @@ def register():
         <p>Your OTP code for registration is: <b>{otp}</b></p>
         <p>This code will expire in 10 minutes.</p>
         """
-        send_email('Your Registration OTP', [form.email.data], html)
+        send_email('Your Registration OTP', [email], html)
         return redirect(url_for('auth.verify_otp'))
     # Flash form validation errors
     for field, errors in form.errors.items():

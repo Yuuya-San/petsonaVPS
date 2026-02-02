@@ -129,6 +129,15 @@ def archive_users():
     # Paginate 10 users per page
     users_paginated = query.paginate(page=page, per_page=10)
 
+    # Convert deleted_at to Asia/Manila timezone for each user
+    import pytz
+    manila = pytz.timezone('Asia/Manila')
+    for user in users_paginated.items:
+        if user.deleted_at:
+            user.deleted_at_manila = user.deleted_at.astimezone(manila)
+        else:
+            user.deleted_at_manila = None
+
     return render_template(
         "admin/archive_users.html",
         users=users_paginated
@@ -214,8 +223,7 @@ def admin_add_user():
 
     return render_template('admin/add_user.html',
                             form=form,
-                            page_title="Add User",
-                            button_text="Save User")
+                            button_text="Save")
 
 # ------------------ EDIT USER ------------------
 @bp.route("/users/edit/<int:id>", methods=["GET", "POST"])
@@ -275,8 +283,7 @@ def edit_user(id):
         "admin/edit_user.html",
         user=user,
         form=form,
-        page_title="Edit User",
-        button_text="Update User"
+        button_text="Update"
     )
 
 

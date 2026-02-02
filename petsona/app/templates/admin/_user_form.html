@@ -1,138 +1,355 @@
-<form method="POST" novalidate class="bg-white shadow-lg rounded-3xl p-6 sm:p-10 max-w-5xl mx-auto space-y-8">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-  {{ form.hidden_tag() }}
-
-  <!-- GRID FIELDS -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-    <!-- FIRST NAME -->
-    <div class="flex flex-col">
-      <label class="font-medium text-gray-700 mb-2">First Name *</label>
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-          <i class="fas fa-user"></i>
-        </span>
-        {{ form.first_name(class_="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter first name") }}
-      </div>
-      {% for error in form.first_name.errors %}
-        <small class="text-red-600 mt-1 block">{{ error }}</small>
-      {% endfor %}
-    </div>
-
-    <!-- LAST NAME -->
-    <div class="flex flex-col">
-      <label class="font-medium text-gray-700 mb-2">Last Name *</label>
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-          <i class="fas fa-user"></i>
-        </span>
-        {{ form.last_name(class_="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter last name") }}
-      </div>
-      {% for error in form.last_name.errors %}
-        <small class="text-red-600 mt-1 block">{{ error }}</small>
-      {% endfor %}
-    </div>
-
-    <!-- EMAIL (full width) -->
-    <div class="flex flex-col md:col-span-2">
-      <label class="font-medium text-gray-700 mb-2">Email Address *</label>
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-          <i class="fas fa-envelope"></i>
-        </span>
-        {{ form.email(class_="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter email") }}
-      </div>
-      {% for error in form.email.errors %}
-        <small class="text-red-600 mt-1 block">{{ error }}</small>
-      {% endfor %}
-    </div>
-
-    <!-- PASSWORD (full width, optional in edit) -->
-    <div class="flex flex-col md:col-span-2" x-data="{ show: false }">
-      <label class="font-medium text-gray-700 mb-2">
-        {% if is_edit %}
-          New Password (optional)
-        {% else %}
-          Temporary Password *
-        {% endif %}
-      </label>
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-          <i class="fas fa-lock"></i>
-        </span>
-        {{ form.password(class_="pl-10 pr-12 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", placeholder="Enter password", id="temp-password", type="password") }}
-        <button type="button" @click="show = !show; $refs.pwd.type = show ? 'text' : 'password'" 
-                class="absolute inset-y-0 right-3 flex items-center text-gray-500">
-          <i :class="show ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-        </button>
-      </div>
-      {% if not is_edit %}
-      <div class="flex items-center justify-between mt-2">
-        <button type="button" onclick="generatePassword()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-1.5 px-4 rounded-xl transition">
-          Generate Password
-        </button>
-        <span class="text-gray-500 text-sm">Will be emailed to the user</span>
-      </div>
-      {% endif %}
-      {% for error in form.password.errors %}
-        <small class="text-red-600 mt-1 block">{{ error }}</small>
-      {% endfor %}
-    </div>
-
-    <!-- ROLE DROPDOWN (full width) -->
-    <div class="flex flex-col md:col-span-2">
-      <label class="font-medium text-gray-700 mb-2">Role *</label>
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-          <i class="fas fa-user-shield"></i>
-        </span>
-        <select name="{{ form.role.name }}" class="pl-10 pr-3 py-2 border rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-          <option value="">Select role</option>
-          <option value="user" {% if form.role.data == 'user' %}selected{% endif %}>User</option>
-          <option value="merchant" {% if form.role.data == 'merchant' %}selected{% endif %}>Merchant</option>
-          <option value="admin" {% if form.role.data == 'admin' %}selected{% endif %}>Admin</option>
-        </select>
-      </div>
-      {% for error in form.role.errors %}
-        <small class="text-red-600 mt-1 block">{{ error }}</small>
-      {% endfor %}
-    </div>
-
-  </div>
-
-  <!-- ACTION BUTTONS -->
-  <div class="flex flex-col sm:flex-row gap-4 justify-end mt-6">
-    <!-- Submit -->
-    <button type="submit" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 px-6 rounded-xl text-sm sm:text-base font-medium transition">
-      <i class="fas fa-user-plus"></i>
-      {% if button_text %}{{ button_text }}{% else %}Save User{% endif %}
-    </button>
-
-    <!-- Cancel/Back -->
-    <a href="{{ url_for('admin.users') }}" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2.5 px-6 rounded-xl text-sm sm:text-base font-medium transition">
-      <i class="fas fa-arrow-left"></i>
-      Cancel
-    </a>
-  </div>
-
-</form>
-
-<script>
-function togglePassword(el) {
-  const input = document.getElementById('temp-password');
-  if (input.type === 'password') {
-    input.type = 'text';
-    el.querySelector('i').classList.remove('fa-eye');
-    el.querySelector('i').classList.add('fa-eye-slash');
-  } else {
-    input.type = 'password';
-    el.querySelector('i').classList.remove('fa-eye-slash');
-    el.querySelector('i').classList.add('fa-eye');
+<!-- Add these styles and scripts in your page head section -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  body {
+    background: linear-gradient(135deg, #f8f7ff 0%, #fafbfc 100%);
+    min-height: 100vh;
+    position: relative;
+    padding: 0;
+    margin: 0;
   }
-}
+  
+  .glass-form {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 12px 48px rgba(168, 85, 247, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    animation: slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
 
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .glass-input {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    color: #1f2937;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.95rem;
+  }
+
+  .glass-input::placeholder {
+    color: #a855f7;
+  }
+  
+  .glass-input:hover {
+    background: rgba(255, 255, 255, 0.65);
+    border-color: rgba(168, 85, 247, 0.25);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  
+  .glass-input:focus {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(168, 85, 247, 0.4);
+    outline: none;
+    box-shadow: 
+      0 0 0 3px rgba(168, 85, 247, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 0 8px rgba(168, 85, 247, 0.05);
+  }
+
+  .glass-input:disabled {
+    background: rgba(255, 255, 255, 0.3);
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .glass-button-primary {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      0 8px 24px rgba(168, 85, 247, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  
+  .glass-button-primary:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 
+      0 12px 32px rgba(168, 85, 247, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  }
+
+  .glass-button-primary:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 4px 16px rgba(168, 85, 247, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-button-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .glass-button-secondary {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    color: #4b5563;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  
+  .glass-button-secondary:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(168, 85, 247, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 
+      0 8px 24px rgba(168, 85, 247, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .glass-button-secondary:active {
+    transform: translateY(-1px);
+  }
+  
+  .spinner {
+    border: 2.5px solid rgba(255, 255, 255, 0.25);
+    border-top: 2.5px solid #fff;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  label {
+    font-weight: 600;
+    color: #a855f7;
+    font-size: 0.95rem;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+  }
+
+  small.text-red-600 {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #dc2626;
+  }
+
+  .form-icon {
+    color: #a855f7;
+    transition: all 0.3s ease;
+  }
+
+  .glass-input:focus ~ .form-icon,
+  .glass-input:hover ~ .form-icon {
+    color: #9333ea;
+  }
+
+  .form-title {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.75rem;
+    letter-spacing: -0.5px;
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem;
+  }
+</style>
+
+<!-- Your Form Code -->
+<div class="min-h-screen flex items-start justify-center px-0 sm:px-4 py-4">
+  <form method="POST" novalidate class="glass-form rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 w-full mx-auto max-w-6xl relative z-10"
+        x-data="{ 
+          loading: false,
+          handleSubmit(e) {
+            this.loading = true;
+          }
+        }"
+        @submit="handleSubmit">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    {{ form.hidden_tag() }}
+
+    <!-- FORM TITLE -->
+    <div class="mb-7 sm:mb-8">
+      <h1 class="form-title flex items-center gap-2 text-xl sm:text-2xl md:text-3xl">
+        {% if is_edit %}
+          <i class="fas fa-edit"></i>Edit User
+        {% else %}
+          <i class="fas fa-user-plus"></i>Add New User
+        {% endif %}
+      </h1>
+      <div class="h-0.5 w-12 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full mt-2"></div>
+    </div>
+
+    <!-- GRID FIELDS -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5 mb-7">
+
+      <!-- FIRST NAME -->
+      <div class="flex flex-col col-span-1">
+        <label class="font-medium text-gray-700 mb-2 text-xs sm:text-sm">First Name *</label>
+        <div class="relative group">
+          <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center form-icon pointer-events-none">
+            <i class="fas fa-user text-xs"></i>
+          </span>
+          {{ form.first_name(class_="glass-input pl-8 pr-3 py-2 sm:py-2.5 rounded-lg w-full text-xs sm:text-sm", placeholder="First name") }}
+        </div>
+        {% for error in form.first_name.errors %}
+          <small class="text-red-600 mt-0.5 block text-xs">{{ error }}</small>
+        {% endfor %}
+      </div>
+
+      <!-- LAST NAME -->
+      <div class="flex flex-col col-span-1">
+        <label class="font-medium text-gray-700 mb-2 text-xs sm:text-sm">Last Name *</label>
+        <div class="relative group">
+          <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center form-icon pointer-events-none">
+            <i class="fas fa-user text-xs"></i>
+          </span>
+          {{ form.last_name(class_="glass-input pl-8 pr-3 py-2 sm:py-2.5 rounded-lg w-full text-xs sm:text-sm", placeholder="Last name") }}
+        </div>
+        {% for error in form.last_name.errors %}
+          <small class="text-red-600 mt-0.5 block text-xs">{{ error }}</small>
+        {% endfor %}
+      </div>
+
+      <!-- EMAIL -->
+      <div class="flex flex-col col-span-2 sm:col-span-2">
+        <label class="font-medium text-gray-700 mb-2 text-xs sm:text-sm">Email *</label>
+        <div class="relative group">
+          <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center form-icon pointer-events-none">
+            <i class="fas fa-envelope text-xs"></i>
+          </span>
+          {{ form.email(class_="glass-input pl-8 pr-3 py-2 sm:py-2.5 rounded-lg w-full text-xs sm:text-sm", placeholder="email@example.com") }}
+        </div>
+        {% for error in form.email.errors %}
+          <small class="text-red-600 mt-0.5 block text-xs">{{ error }}</small>
+        {% endfor %}
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="flex flex-col col-span-2 sm:col-span-2" x-data="{ show: false }">
+        <label class="font-medium text-gray-700 mb-2 text-xs sm:text-sm">
+          {% if is_edit %}
+            New Pass (opt)
+          {% else %}
+            Password *
+          {% endif %}
+        </label>
+        <div class="relative group">
+          <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center form-icon pointer-events-none">
+            <i class="fas fa-lock text-xs"></i>
+          </span>
+          <input 
+            :type="show ? 'text' : 'password'"
+            name="{{ form.password.name }}"
+            id="temp-password"
+            class="glass-input pl-8 pr-8 py-2 sm:py-2.5 rounded-lg w-full text-xs sm:text-sm" 
+            placeholder="Password"
+            value="{{ form.password.data or '' }}"
+          />
+          <button type="button" @click="show = !show" 
+                  class="absolute inset-y-0 right-2.5 flex items-center form-icon hover:text-purple-600 transition-colors">
+            <i :class="show ? 'fas fa-eye-slash text-xs' : 'fas fa-eye text-xs'"></i>
+          </button>
+        </div>
+        {% if not is_edit %}
+        <button type="button" onclick="generatePassword()" class="text-purple-600 hover:text-purple-700 text-xs mt-0.5 font-medium">
+          <i class="fas fa-magic mr-1"></i>Generate
+        </button>
+        {% endif %}
+        {% for error in form.password.errors %}
+          <small class="text-red-600 mt-0.5 block text-xs">{{ error }}</small>
+        {% endfor %}
+      </div>
+
+      <!-- ROLE -->
+      <div class="flex flex-col col-span-2 sm:col-span-2 md:col-span-1">
+        <label class="font-medium text-gray-700 mb-2 text-xs sm:text-sm">Role *</label>
+        <div class="relative group">
+          <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center form-icon pointer-events-none">
+            <i class="fas fa-user-shield text-xs"></i>
+          </span>
+          <select name="{{ form.role.name }}" class="glass-input pl-8 pr-3 py-2 sm:py-2.5 rounded-lg w-full text-xs sm:text-sm">
+            <option value="">Select</option>
+            <option value="user" {% if form.role.data == 'user' %}selected{% endif %}>User</option>
+            <option value="merchant" {% if form.role.data == 'merchant' %}selected{% endif %}>Merchant</option>
+            <option value="admin" {% if form.role.data == 'admin' %}selected{% endif %}>Admin</option>
+          </select>
+        </div>
+        {% for error in form.role.errors %}
+          <small class="text-red-600 mt-0.5 block text-xs">{{ error }}</small>
+        {% endfor %}
+      </div>
+
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="flex gap-2 sm:gap-3 justify-end mt-7 pt-6 border-t border-purple-200/20">
+
+      <!-- Cancel/Back -->
+      <a href="{{ url_for('admin.users') }}" class="glass-button-secondary inline-flex justify-center items-center gap-1.5 text-gray-700 py-2 px-4 sm:px-6 rounded-lg text-xs sm:text-sm font-semibold">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back</span>
+      </a>
+      
+      <!-- Submit -->
+      <button type="submit" 
+              class="glass-button-primary inline-flex justify-center items-center gap-1.5 text-white py-2 px-4 sm:px-6 rounded-lg text-xs sm:text-sm font-semibold"
+              :disabled="loading">
+        <template x-if="!loading">
+          <span class="flex items-center gap-1.5">
+            <i class="fas fa-check"></i>
+            <span>Save</span>
+          </span>
+        </template>
+        <template x-if="loading">
+          <span class="flex items-center gap-1.5">
+            <div class="spinner"></div>
+            <span>Saving...</span>
+          </span>
+        </template>
+      </button>
+
+    </div>
+
+  </form>
+</div>
+<script>
 function generatePassword() {
-  const pwd = Math.random().toString(36).slice(-10);
-  document.getElementById('temp-password').value = pwd;
+  const length = 12;
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  document.getElementById('temp-password').value = password;
 }
 </script>

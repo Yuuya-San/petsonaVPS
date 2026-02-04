@@ -1,7 +1,7 @@
-from flask import render_template, flash, redirect, url_for, abort, jsonify
+from flask import render_template, flash, redirect, url_for, abort, jsonify # pyright: ignore[reportMissingImports]
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.admin import bp
-from flask import request
+from flask import request # pyright: ignore[reportMissingImports]
 from .forms import (
     GeneralSettingsForm, SecuritySettingsForm, AuditSettingsForm,
     EmailSettingsForm, APISettingsForm, BackupSettingsForm, ComplianceSettingsForm,
@@ -130,7 +130,7 @@ def archive_users():
     users_paginated = query.paginate(page=page, per_page=10)
 
     # Convert deleted_at to Asia/Manila timezone for each user
-    import pytz
+    import pytz # pyright: ignore[reportMissingModuleSource]
     manila = pytz.timezone('Asia/Manila')
     for user in users_paginated.items:
         if user.deleted_at:

@@ -57,15 +57,20 @@
     animation: float 3s ease-in-out infinite;
   }
 
-  /* Premium Card Styling */
+  /* Premium Card Styling with Glass Morphism */
   .premium-card {
     transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
-    background: linear-gradient(135deg, #ffffff 0%, #fafbff 95%, #f5f3ff 100%);
-    border: 1px solid rgba(168, 139, 250, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(99, 102, 241, 0.06) 100%
+    );
+    backdrop-filter: blur(30px) saturate(150%);
+    -webkit-backdrop-filter: blur(30px) saturate(150%);
+    border: 1px solid rgba(140, 0, 255, 0.2);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 30px rgba(139, 92, 246, 0.08);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7);
   }
 
   .premium-card::before {
@@ -81,22 +86,30 @@
 
   .premium-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(139, 92, 246, 0.15);
-    border-color: rgba(139, 92, 246, 0.5);
+    backdrop-filter: blur(35px) saturate(160%);
+    -webkit-backdrop-filter: blur(35px) saturate(160%);
+    box-shadow: 0 15px 50px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border-color: rgba(99, 102, 241, 0.5);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(99, 102, 241, 0.08) 100%
+    );
   }
 
   .premium-card:hover::before {
     left: 100%;
   }
 
-  /* Distance Badge Premium */
+  /* Distance Badge Premium with Glass Morphism */
   .distance-badge {
-    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
     font-weight: 800;
     letter-spacing: 0.8px;
-    border: 1.5px solid rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
     transition: all 0.3s ease;
   }
 
@@ -105,37 +118,42 @@
     box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
   }
 
-  /* Status Badge */
   .status-badge {
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    border: 1.5px solid;
-    backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 9999px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   }
 
   .status-open {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.12));
-    border-color: #22c55e !important;
-    color: #166534;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-  }
-
-  .status-open:hover {
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.85), rgba(34, 197, 94, 0.65)) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 40px rgba(34, 197, 94, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(15px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(160%) !important;
   }
 
   .status-closed {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.12));
-    border-color: #ef4444 !important;
-    color: #7f1d1d;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.85), rgba(239, 68, 68, 0.65)) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(15px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(160%) !important;
   }
 
-  .status-closed:hover {
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
-    transform: translateY(-2px);
+  /* Subtle hover pop */
+  .status-badge:hover {
+    transform: scale(1.03);
+  }
+
+  /* Optional icon glow for extra polish */
+  .status-open i {
+    filter: drop-shadow(0 0 6px rgba(46, 204, 113, 0.8));
+  }
+
+  .status-closed i {
+    filter: drop-shadow(0 0 6px rgba(231, 76, 60, 0.8));
   }
 
   /* Premium Scrollbar */
@@ -156,6 +174,56 @@
     background: #c4b5fd;
   }
 
+  /* Smooth Button Styling - No Sharp Edges */
+  .smooth-btn {
+    border-radius: 24px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .smooth-btn-primary {
+    background: linear-gradient(135deg, #6B4C7A, #553B66) !important;
+    color: white !important;
+    box-shadow: 0 10px 25px rgba(107, 76, 122, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 24px !important;
+  }
+
+  .smooth-btn-primary:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #553B66, #3E2747) !important;
+    box-shadow: 0 15px 35px rgba(107, 76, 122, 0.6) !important;
+  }
+
+  .smooth-btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .smooth-btn-secondary {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(243, 244, 246, 0.8));
+    color: #1f2937;
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    border-radius: 24px !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+  }
+
+  .smooth-btn-secondary:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(243, 244, 246, 0.9));
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+    backdrop-filter: blur(12px);
+  }
+
+  .smooth-btn-secondary:active {
+    transform: translateY(0);
+  }
+
   /* Link Styling */
   a.premium-card {
     text-decoration: none;
@@ -166,11 +234,23 @@
   [x-cloak] {
     display: none !important;
   }
+
+  .smooth-btn-primary {
+    background: linear-gradient(135deg, #9929EA, #7b1fd1) !important;
+    box-shadow: 0 8px 25px rgba(153, 41, 234, 0.45);
+    transition: all 0.25s ease;
+  }
+
+  .smooth-btn-primary:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 12px 30px rgba(153, 41, 234, 0.6);
+  }
+
 </style>
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-white py-6 lg:py-8 px-3 sm:px-4" x-data="premiumNearbyServices()" x-cloak @mount="init()">
-  <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+<div class="min-h-screen py-6 lg:py-8 px-2 sm:px-3" style="background: linear-gradient(135deg, rgba(239,246,255,0.4) 0%, rgba(230,224,255,0.3) 50%, rgba(245,240,255,0.35) 100%); position: relative;" x-data="premiumNearbyServices()" x-cloak @mount="init()">
+  <div class="w-full mx-auto px-2 sm:px-3 md:px-4 lg:px-6">
     
     <!-- Simple Hero Section -->
     <div class="mb-6 lg:mb-8 animate-slide-in">
@@ -186,9 +266,9 @@
       <div class="flex items-center justify-between mt-4">
 
         <!-- Current Location Badge -->
-        <div x-show="hasLocation" class="inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-white border-2 border-purple-200 rounded-full text-xs lg:text-sm font-bold text-slate-900 shadow-sm">
+        <div x-data="locationBadge()" x-show="hasLocation" class="inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-white border-2 border-purple-200 rounded-full text-xs lg:text-sm font-bold text-slate-900 shadow-sm">
           <i class="fas fa-location-dot text-purple-600"></i>
-          <span>📍 Current location</span>
+          <span x-text="locationText">Loading location...</span>
         </div>
       </div>
     </div>
@@ -210,12 +290,14 @@
               </p>
             </div>
           </div>
-          <div class="flex flex-col sm:flex-row gap-2.5 lg:gap-3 w-full sm:w-auto flex-shrink-0">
-            <button @click="requestLocation()" class="px-5 lg:px-8 py-2.5 lg:py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:shadow-2xl transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base">
-              <i class="fas fa-check-circle text-base lg:text-lg"></i> Allow
+          <div class="flex flex-col sm:flex-row gap-3 lg:gap-4 w-full sm:w-auto flex-shrink-0">
+            <button @click="requestLocation()" class="smooth-btn smooth-btn-primary px-6 lg:px-8 py-3 lg:py-4 text-white flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base font-bold">
+              <i class="fas fa-check-circle text-base lg:text-lg"></i>
+              <span>Allow</span>
             </button>
-            <button @click="skipLocation()" class="px-5 lg:px-8 py-2.5 lg:py-4 bg-white hover:bg-purple-50 text-slate-900 rounded-xl lg:rounded-2xl font-bold border-2 border-slate-300 hover:border-purple-300 transition-all duration-300 flex items-center justify-center gap-2 text-sm lg:text-base">
-              <i class="fas fa-times"></i> Skip
+            <button @click="skipLocation()" class="smooth-btn smooth-btn-secondary px-6 lg:px-8 py-3 lg:py-4 text-slate-900 flex items-center justify-center gap-2 text-sm lg:text-base font-bold">
+              <i class="fas fa-times"></i>
+              <span>Skip</span>
             </button>
           </div>
         </div>
@@ -233,26 +315,26 @@
                      x-model="searchQuery"
                      @input="fetchMerchants()"
                      placeholder="Search services..."
-                     class="w-full px-4 lg:px-5 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 placeholder-slate-400 transition-all duration-300 font-medium shadow-sm focus:shadow-md text-sm lg:text-base">
-              <i class="fas fa-search absolute right-3 lg:right-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors text-xs lg:text-sm"></i>
+                     class="w-full px-4 lg:px-6 py-3 lg:py-3.5 rounded-2xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 placeholder-slate-400 transition-all duration-300 font-medium shadow-sm focus:shadow-md text-sm lg:text-base">
+              <i class="fas fa-search absolute right-4 lg:right-4.5 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors text-xs lg:text-sm"></i>
             </div>
           </div>
 
           <!-- Service Filter -->
           <div>
-            <select x-model="selectedService" @change="fetchMerchants()" class="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 font-medium cursor-pointer transition-all duration-300 shadow-sm focus:shadow-md appearance-none text-sm lg:text-base">
+            <select x-model="selectedService" @change="fetchMerchants()" class="w-full px-4 lg:px-6 py-3 lg:py-3.5 rounded-2xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 font-medium cursor-pointer transition-all duration-300 shadow-sm focus:shadow-md appearance-none text-sm lg:text-base">
               <option value="">All services</option>
-              <option value="grooming">✂️ Grooming</option>
-              <option value="boarding">🏠 Boarding</option>
-              <option value="veterinary">⚕️ Vet</option>
-              <option value="training">🎓 Training</option>
-              <option value="transport">🚗 Transport</option>
+              <option value="grooming">Grooming</option>
+              <option value="boarding">Boarding</option>
+              <option value="veterinary">Vet</option>
+              <option value="training">Training</option>
+              <option value="transport">Transport</option>
             </select>
           </div>
 
           <!-- Distance Filter -->
           <div>
-            <select x-model="maxDistance" @change="fetchMerchants()" class="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 font-medium cursor-pointer transition-all duration-300 shadow-sm focus:shadow-md appearance-none text-sm lg:text-base">
+            <select x-model="maxDistance" @change="fetchMerchants()" class="w-full px-4 lg:px-6 py-3 lg:py-3.5 rounded-2xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 font-medium cursor-pointer transition-all duration-300 shadow-sm focus:shadow-md appearance-none text-sm lg:text-base">
               <option value="5">5 km</option>
               <option value="10">10 km</option>
               <option value="25">25 km</option>
@@ -266,25 +348,25 @@
     <!-- Simple Results & Sort -->
     <div class="mb-6 lg:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 lg:gap-4 animate-slide-in">
       <p class="font-bold text-sm lg:text-base text-slate-900" x-text="merchants.length + ' service provider' + (merchants.length !== 1 ? 's found' : ' found')"></p>
-      <select x-model="sortBy" @change="fetchMerchants()" class="px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg border-2 border-purple-200 bg-white text-slate-900 font-semibold text-sm lg:text-base cursor-pointer transition-all focus:outline-none focus:border-purple-500 appearance-none w-full sm:w-auto">
-        <option value="distance">📍 Distance</option>
-        <option value="rating">⭐ Rating</option>
-        <option value="name">🔤 Name</option>
+      <select x-model="sortBy" @change="fetchMerchants()" class="px-4 lg:px-6 py-2.5 lg:py-3 rounded-2xl border-2 border-purple-200 bg-white text-slate-900 font-semibold text-sm lg:text-base cursor-pointer transition-all focus:outline-none focus:border-purple-500 appearance-none w-full sm:w-auto">
+        <option value="distance">Distance</option>
+        <option value="rating">Rating</option>
+        <option value="name">Name</option>
       </select>
     </div>
 
     <!-- Loading State -->
-    <div x-show="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8 lg:mb-12">
+    <div x-show="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3 md:gap-3.5 lg:gap-4 2xl:gap-5 mb-8 lg:mb-12">
       <template x-for="i in 6" :key="i">
-        <div class="premium-card rounded-xl lg:rounded-3xl overflow-hidden h-80 lg:h-96 border-2 border-purple-200">
-          <div class="h-24 sm:h-28 lg:h-40 bg-gradient-to-r from-purple-200 via-purple-100 to-purple-50 animate-pulse"></div>
-          <div class="p-3 lg:p-6 space-y-3 lg:space-y-4">
-            <div class="h-3 lg:h-4 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg w-3/4 animate-pulse"></div>
-            <div class="h-2 lg:h-3 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg w-1/2 animate-pulse"></div>
+        <div class="premium-card rounded-3xl lg:rounded-4xl overflow-hidden h-80 lg:h-96 border-2 border-purple-200/50">
+          <div class="h-28 lg:h-44 bg-gradient-to-r from-purple-200 via-purple-100 to-purple-50 animate-pulse"></div>
+          <div class="p-4 lg:p-6 space-y-4 lg:space-y-5">
+            <div class="h-3 lg:h-4 bg-gradient-to-r from-purple-100 to-purple-50 rounded-2xl w-3/4 animate-pulse"></div>
+            <div class="h-2 lg:h-3 bg-gradient-to-r from-purple-100 to-purple-50 rounded-2xl w-1/2 animate-pulse"></div>
             <div class="grid grid-cols-3 gap-2 lg:gap-3">
-              <div class="h-12 lg:h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg animate-pulse"></div>
-              <div class="h-12 lg:h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg animate-pulse"></div>
-              <div class="h-12 lg:h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg animate-pulse"></div>
+              <div class="h-14 lg:h-18 bg-gradient-to-r from-purple-100 to-purple-50 rounded-2xl animate-pulse"></div>
+              <div class="h-14 lg:h-18 bg-gradient-to-r from-purple-100 to-purple-50 rounded-2xl animate-pulse"></div>
+              <div class="h-14 lg:h-18 bg-gradient-to-r from-purple-100 to-purple-50 rounded-2xl animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -292,106 +374,117 @@
     </div>
 
     <!-- Premium Services Grid -->
-    <div x-show="!isLoading && merchants.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mb-12">
+    <div x-show="!isLoading && merchants.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-2.5 sm:gap-3 md:gap-3.5 lg:gap-4 2xl:gap-5 mb-12 w-full">
       <template x-for="merchant in merchants" :key="merchant.id">
-        <a :href="'/merchant/store-public/' + merchant.id" class="premium-card rounded-xl lg:rounded-3xl overflow-hidden cursor-pointer group flex flex-col hover:no-underline transition-all border-2">
+        <a :href="'/merchant/store-public/' + merchant.id" class="premium-card rounded-3xl lg:rounded-4xl overflow-hidden cursor-pointer group flex flex-col hover:no-underline transition-all border-2">
           
           <!-- Premium Image/Banner -->
-          <div class="relative h-24 sm:h-28 lg:h-40 bg-gradient-to-br from-purple-300 via-purple-200 to-purple-100 overflow-hidden flex items-center justify-center border-b-2 border-purple-200 group-hover:from-purple-400 group-hover:via-purple-300 transition-all duration-300">
+          <div class="relative h-28 lg:h-44 bg-gradient-to-br from-purple-300 via-purple-200 to-purple-100 overflow-hidden flex items-center justify-center border-b-2 border-purple-200 group-hover:from-purple-400 group-hover:via-purple-300 transition-all duration-300">
             <i class="fas fa-store text-5xl sm:text-6xl lg:text-7xl opacity-20 group-hover:opacity-30 transition-opacity"></i>
             
-            <!-- Distance Badge - Premium Position -->
-            <div class="absolute top-2 right-2 lg:top-3 lg:right-3">
-              <div class="distance-badge rounded-full px-2.5 lg:px-4 py-1 lg:py-2 text-white text-xs lg:text-xs font-black shadow-xl flex items-center gap-1.5">
-                <i class="fas fa-location-arrow text-xs"></i>
+            <!-- Distance Badge - Text Only, Purple Label -->
+            <div class="absolute top-3 right-3 lg:top-4 lg:right-4">
+              <div class="distance-badge rounded-full px-2.5 lg:px-4 py-1 lg:py-2 text-xs lg:text-xs font-black shadow-xl flex items-center gap-1.5"
+                  style="background: transparent; color: #9929EA;">
+                <i class="fas fa-location-arrow text-xs" style="color: #9929EA;"></i>
                 <span x-text="merchant.distance.toFixed(1) + 'km'"></span>
               </div>
             </div>
 
-            <!-- Status Badge - Premium -->
-            <div class="absolute top-2 left-2 lg:top-3 lg:left-3 rounded-full px-2.5 lg:px-3.5 py-1 lg:py-1.5 flex items-center gap-1 status-badge text-xs lg:text-xs"
-                 :class="merchant.is_open ? 'status-open' : 'status-closed'">
-              <i :class="merchant.is_open ? 'fas fa-check-circle' : 'fas fa-circle-xmark'" class="text-xs"></i>
-              <span x-text="merchant.is_open ? 'Open' : 'Closed'" class="font-bold hidden sm:inline"></span>
+            <!-- Status Badge - Text Only -->
+            <div class="absolute top-3 left-3 lg:top-4 lg:left-4 px-2 py-1 
+                        flex items-center gap-1.5 text-xs font-bold"
+                :style="merchant.is_open 
+                  ? 'color: #22c55e;'   /* green */
+                  : 'color: #ef4444;'  /* red */">
+
+              <i :class="merchant.is_open ? 'fas fa-check-circle' : 'fas fa-circle-xmark'"></i>
+              <span x-text="merchant.is_open ? 'Open' : 'Closed'" class="hidden sm:inline"></span>
             </div>
 
             <!-- Rating Badge - Bottom Right -->
-            <div class="absolute bottom-2 right-2 lg:bottom-3 lg:right-3 bg-white/95 backdrop-blur-sm rounded-full px-2 lg:px-3 py-0.5 lg:py-1 flex items-center gap-0.5 border-2 border-purple-300 text-xs shadow-lg">
+            <div class="absolute bottom-3 right-3 lg:bottom-4 lg:right-4 bg-white/95 backdrop-blur-sm rounded-full px-2 lg:px-3 py-0.5 lg:py-1 flex items-center gap-0.5 border-2 border-purple-300 text-xs shadow-lg">
               <i class="fas fa-star text-amber-400 text-xs"></i>
               <span class="font-bold text-slate-900" x-text="merchant.rating.toFixed(1)"></span>
             </div>
           </div>
 
           <!-- Content -->
-          <div class="p-3 lg:p-4 flex flex-col flex-grow">
+          <div class="p-4 lg:p-5 flex flex-col flex-grow">
             <!-- Business Name & Location in one line -->
-            <div class="mb-2.5 lg:mb-3">
+            <div class="mb-3 lg:mb-4">
               <h3 class="font-bold text-sm lg:text-base text-slate-900 line-clamp-1 group-hover:text-purple-600 transition-colors duration-300"
                   x-text="merchant.business_name"></h3>
-              <p class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+              <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
                 <i class="fas fa-map-pin text-purple-600 text-xs"></i>
                 <span x-text="merchant.city" class="truncate"></span>
               </p>
             </div>
 
             <!-- Quick Stats - Compact -->
-            <div class="grid grid-cols-3 gap-1.5 mb-2.5 lg:mb-3">
-              <div class="bg-gradient-to-br from-purple-50 to-white rounded-lg p-1.5 lg:p-2 text-center border border-purple-200">
+            <div class="grid grid-cols-3 gap-1.5 mb-3 lg:mb-4">
+              <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-2 lg:p-2.5 text-center border border-purple-200">
                 <i class="fas fa-clock text-purple-600 text-xs mb-0.5 block"></i>
                 <p class="font-bold text-slate-900 text-xs" x-text="merchant.response_time"></p>
               </div>
-              <div class="bg-gradient-to-br from-emerald-50 to-white rounded-lg p-1.5 lg:p-2 text-center border border-emerald-200">
+              <div class="bg-gradient-to-br from-emerald-50 to-white rounded-2xl p-2 lg:p-2.5 text-center border border-emerald-200">
                 <i class="fas fa-check text-emerald-600 text-xs mb-0.5 block"></i>
                 <p class="font-bold text-emerald-700 text-xs" x-text="merchant.completion_rate + '%'"></p>
               </div>
-              <div class="bg-gradient-to-br from-orange-50 to-white rounded-lg p-1.5 lg:p-2 text-center border border-orange-200">
+              <div class="bg-gradient-to-br from-orange-50 to-white rounded-2xl p-2 lg:p-2.5 text-center border border-orange-200">
                 <i class="fas fa-briefcase text-orange-600 text-xs mb-0.5 block"></i>
                 <p class="font-bold text-orange-700 text-xs" x-text="merchant.services_offered.length"></p>
               </div>
             </div>
 
             <!-- Price -->
-            <div class="mb-2.5 lg:mb-3 p-2 lg:p-2.5 bg-purple-50 rounded-lg border border-purple-200 text-center">
+            <div class="mb-3 lg:mb-4 p-2 lg:p-2.5 bg-purple-50 rounded-2xl border border-purple-200/60 text-center backdrop-filter backdrop-blur-sm">
               <p class="text-xs lg:text-sm text-purple-700 font-bold">
                 <i class="fas fa-peso-sign text-xs mr-0.5"></i><span x-text="(merchant.min_price/1000).toFixed(1) + 'k'" class="font-black"></span> - <span x-text="(merchant.max_price/1000).toFixed(1) + 'k'" class="font-black"></span>
               </p>
             </div>
 
             <!-- Services Tag -->
-            <div class="mb-3 lg:mb-3">
+            <div class="mb-3 lg:mb-3 flex items-center gap-2 flex-wrap">
               <template x-for="(service, idx) in merchant.services_offered.slice(0, 1)" :key="idx">
-                <span class="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-lg border border-purple-300 line-clamp-1"
+                <span class="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-2.5 py-1.5 rounded-2xl border border-purple-300 line-clamp-1"
                       x-text="service"></span>
               </template>
               <template x-if="merchant.services_offered.length > 1">
-                <span class="inline-block ml-1 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded-lg border border-slate-300"
+                <span class="inline-block bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-2xl border border-slate-300"
                       x-text="'+' + (merchant.services_offered.length - 1)"></span>
               </template>
             </div>
 
-            <!-- CTA Button -->
-            <button class="mt-auto w-full py-2 lg:py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold rounded-lg transition-all duration-300 hover:shadow-lg transform hover:scale-102 text-xs lg:text-sm flex items-center justify-center gap-1.5 shadow-md">
-              <i class="fas fa-arrow-right text-xs"></i>
-              <span>View</span>
-            </button>
+              <!-- CTA Button -->
+              <button 
+                class="smooth-btn smooth-btn-primary mt-auto w-full py-2.5 lg:py-3 
+                      text-white font-bold shadow-lg flex items-center justify-center gap-2 
+                      text-sm lg:text-base transition-all duration-300 rounded-xl"
+                style="background-color: #9929EA;">
+                <i class="fas fa-arrow-right text-xs"></i>
+                <span>View Details</span>
+              </button>
           </div>
         </a>
       </template>
     </div>
 
     <!-- Empty State - Premium -->
-    <div x-show="!isLoading && merchants.length === 0" class="premium-card rounded-2xl lg:rounded-3xl p-10 lg:p-20 text-center border-2 border-purple-200 animate-fade-scale">
+    <div x-show="!isLoading && merchants.length === 0" class="premium-card rounded-3xl lg:rounded-4xl p-12 lg:p-24 text-center border-2 border-purple-200 animate-fade-scale">
       <div class="text-7xl lg:text-9xl mb-6 lg:mb-8 inline-block text-gradient bg-gradient-to-r from-purple-300 to-purple-400 bg-clip-text text-transparent">
         <i class="fas fa-inbox"></i>
       </div>
       <h3 class="text-3xl lg:text-5xl font-black text-slate-900 mb-3 lg:mb-4 tracking-tight">Nothing Found</h3>
-      <p class="text-slate-600 mb-6 lg:mb-10 text-base lg:text-lg max-w-lg mx-auto leading-relaxed font-medium">Try different filters or expand your search radius.</p>
-      <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <button @click="resetFilters()" class="px-6 lg:px-8 py-2.5 lg:py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold rounded-lg lg:rounded-2xl transition-all hover:shadow-2xl transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base">
-          <i class="fas fa-redo text-sm lg:text-base"></i> Reset
+      <p class="text-slate-600 mb-6 lg:mb-10 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed font-medium">Try different filters or expand your search radius.</p>
+      <div class="flex flex-col sm:flex-row gap-3 lg:gap-4 justify-center">
+        <button @click="resetFilters()" class="smooth-btn smooth-btn-primary px-6 lg:px-8 py-3 lg:py-4 text-white font-bold flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base">
+          <i class="fas fa-redo text-sm lg:text-base"></i>
+          <span>Reset</span>
         </button>
-        <a href="{{ url_for('user.dashboard') }}" class="px-6 lg:px-8 py-2.5 lg:py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold rounded-lg lg:rounded-2xl transition-all flex items-center justify-center gap-2 border-2 border-slate-300 hover:border-slate-400 text-sm lg:text-base">
-          <i class="fas fa-arrow-left text-sm lg:text-base"></i> Back
+        <a href="{{ url_for('user.dashboard') }}" class="smooth-btn smooth-btn-secondary px-6 lg:px-8 py-3 lg:py-4 text-slate-900 font-bold flex items-center justify-center gap-2 border-2 border-purple-200 text-sm lg:text-base">
+          <i class="fas fa-arrow-left text-sm lg:text-base"></i>
+          <span>Back</span>
         </a>
       </div>
     </div>
@@ -498,6 +591,48 @@ function premiumNearbyServices() {
       this.fetchMerchants();
     }
   }
+}
+
+function locationBadge() {
+    return {
+        hasLocation: false,
+        locationText: 'Loading location...',
+        
+        init() {
+            if (!navigator.geolocation) {
+                this.locationText = 'Geolocation not supported';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async position => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Reverse geocode to get human-readable address
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+                        const data = await res.json();
+
+                        // You can pick which parts to display
+                        const city = data.address.city || data.address.town || data.address.village || '';
+                        const state = data.address.state || '';
+                        const barangay = data.address.suburb || data.address.hamlet || data.address.neighbourhood || '';
+
+                        this.locationText = `${barangay ? barangay + ', ' : ''}${city}${state ? ', ' + state : ''}`;
+                        this.hasLocation = true;
+                    } catch (e) {
+                        console.error(e);
+                        this.locationText = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                        this.hasLocation = true;
+                    }
+                },
+                error => {
+                    this.locationText = 'Location denied';
+                }
+            );
+        }
+    }
 }
 </script>
 {% endblock %}

@@ -38,12 +38,12 @@ html, body {
 .features-hero::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -2%;
   background:
     url("{{ url_for('static', filename='images/bg/bg-image.png') }}")
       center / cover no-repeat;
   z-index: 1;
-  will-change: transform;
+  background-attachment: fixed;
 }
 
 
@@ -120,17 +120,11 @@ html, body {
   gap: clamp(2rem, 4vw, 3.5rem);
   padding: clamp(2.2rem, 4vw, 3.2rem);
   border-radius: 22px;
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,.65),
-    rgba(255,255,255,.35)
-  );
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(99, 102, 241, 0.08) 100%);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
-  border: 1px solid rgba(255,255,255,.5);
-  box-shadow:
-    0 30px 70px rgba(0,0,0,.12),
-    inset 0 1px 0 rgba(255,255,255,.5);
+  border: 1px solid rgba(140, 0, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(140, 0, 255, 0.08) inset;
   transition: all .45s ease;
   overflow: hidden;
 }
@@ -154,9 +148,7 @@ html, body {
 
 .feature-card:hover {
   transform: translateY(-8px);
-  box-shadow:
-    0 45px 90px rgba(124,58,237,.25),
-    inset 0 1px 0 rgba(255,255,255,.6);
+  box-shadow: 0 20px 50px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255,255,255,.6);
 }
 
 .feature-card.reverse {
@@ -173,16 +165,16 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  background: linear-gradient(135deg, #6366f1, #8C00FF);
   color: white;
   font-size: clamp(1.8rem, 3vw, 2.6rem);
-  box-shadow: 0 25px 60px rgba(124,58,237,.45);
+  box-shadow: 0 25px 60px rgba(99, 102, 241, 0.45);
   transition: transform .4s ease, box-shadow .4s ease;
 }
 
 .feature-card:hover .feature-icon {
   transform: scale(1.12) rotate(6deg);
-  box-shadow: 0 35px 80px rgba(124,58,237,.6);
+  box-shadow: 0 35px 80px rgba(99, 102, 241, 0.6);
 }
 
 /* ================= TEXT ================= */

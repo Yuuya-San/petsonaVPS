@@ -35,8 +35,9 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(20, 24, 45, 0.88),
-    rgba(20, 24, 45, 0.65)
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(99, 102, 241, 0.08) 50%,
+    rgba(140, 0, 255, 0.05) 100%
   );
   z-index: 2;
 }
@@ -52,12 +53,16 @@
   padding: 1.4rem 1.5rem;
   border-radius: 16px;
 
-  background: rgba(245, 245, 250, 0.18);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(99, 102, 241, 0.08) 100%
+  );
   backdrop-filter: blur(20px) saturate(130%);
   -webkit-backdrop-filter: blur(20px) saturate(130%);
 
-  border: 1px solid rgba(230, 225, 255, 0.28);
-  box-shadow: 0 22px 50px rgba(0,0,0,.42);
+  border: 1px solid rgba(140, 0, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(140, 0, 255, 0.08) inset;
   
 }
 
@@ -95,14 +100,14 @@
   text-align: center;
   font-size: 1.55rem;
   font-weight: 700;
-  color: #fafaff;
+  color: #0d0d0d;
   margin-bottom: 0.15rem;
 }
 
 .subtitle {
   text-align: center;
   font-size: 0.75rem;
-  color: #d8d4ea;
+  color: #6366f1;
   margin-bottom: 0.9rem;
 }
 
@@ -126,13 +131,13 @@
 }
 
 .input-group:focus-within {
-  border-bottom-color: #c2b8ff;
-  box-shadow: 0 2px 0 rgba(194, 184, 255, 0.35);
+  border-bottom-color: #6366f1;
+  box-shadow: 0 2px 0 rgba(99, 102, 241, 0.35);
 }
 
 /* Icons */
 .icon i {
-  color: #d6d2f2;
+  color: #6366f1;
 }
 
 /* Input */
@@ -142,12 +147,12 @@
   border: none;
   outline: none;
   padding: 0.35rem 0;
-  color: #fafaff;
+  color: #1a1a1a;
   font-size: 0.9rem;
 }
 
 .input-field::placeholder {
-  color: rgba(215, 210, 235, 0.75);
+  color: rgba(26, 26, 26, 0.5);
 }
 
 /* Toggle password */
@@ -158,11 +163,11 @@
 }
 
 .toggle-password i {
-  color: #cfc9f5;
+  color: #6366f1;
 }
 
 .toggle-password:hover i {
-  color: #e4e0ff;
+  color: #4f46e5;
 }
 
 /* ===============================
@@ -180,18 +185,19 @@
   gap: 0.4rem;
   min-height: 34px;
 
-  background: linear-gradient(135deg, #c6bcff, #a395ff);
+  background: linear-gradient(135deg, #6366f1, #8C00FF);
   color: #ffffff;
   font-weight: 600;
   font-size: 0.85rem;
 
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-primary:hover {
   filter: brightness(1.05);
   transform: translateY(-1px);
-  background: #5B23FF;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
 }
 
 .btn-primary:active {
@@ -229,19 +235,22 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #d8d2f2;
+  color: #1a1a1a;
   text-align: center;
   flex-wrap: wrap;
 }
 
 .links a {
-  color: #d8d2f2;
+  color: #1a1a1a;
   text-decoration: none;
   font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .links a:hover {
-  color: #e4e0ff;
+  color: #6366f1;
+  border-bottom-color: #6366f1;
 }
 
 .links .divider {
@@ -268,12 +277,12 @@
   justify-content: center;
   gap: 0.6rem;
 
-  background: rgba(245, 245, 250, 0.22);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
-  border: 1px solid rgba(230, 225, 255, 0.28);
-  box-shadow: 0 10px 25px rgba(0,0,0,.25);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
 
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
@@ -288,18 +297,19 @@
 .social-btn.google-wide span {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #fafaff;
+  color: #1a1a1a;
 }
 
 .social-btn i {
   font-size: 1.05rem;
-  color: #fafaff;
+  color: #1a1a1a;
 }
 
 /* Hover */
 .social-btn:hover {
   transform: translateY(-1px);
-  background: rgba(245, 245, 250, 0.35);
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
 }
 
 /* Active */
@@ -309,7 +319,7 @@
 
 /* Brand hints (subtle, not loud) */
 .social-btn.google i {
-  background: linear-gradient(135deg, #c6bcff, #8C00FF);
+  background: linear-gradient(135deg, #6366f1, #8C00FF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -331,7 +341,7 @@
   justify-content: center;
   gap: 0.8rem;
   font-size: 0.75rem;
-  color: #d8d4ea;
+  color: #1a1a1a;
   text-transform: lowercase;
   letter-spacing: 0.4px;
 }
@@ -344,7 +354,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    rgba(220, 215, 255, 0.45),
+    rgba(99, 102, 241, 0.2),
     transparent
   );
 }

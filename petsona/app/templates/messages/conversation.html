@@ -1,36 +1,79 @@
-{% extends "user/base.html" %}
+{% extends
+    'admin/base.html' if current_user.role == 'admin'
+    else 'merchant/base.html' if current_user.role == 'merchant'
+    else 'user/base.html'
+%}
 
 {% block content %}
 <!-- Messaging Module CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='messages/css/messaging.css') }}">
 
-<div class="min-h-screen bg-gradient-to-b from-slate-50 to-white messaging-container" 
+<div class="messaging-container" 
      data-current-user-id="{{ current_user.id }}"
-     data-conversation-id="{{ conversation.id }}">
+     data-conversation-id="{{ conversation.id }}"
+     data-other-user-name="{{ other_user.first_name }}"
+     data-other-user-photo="{{ url_for('static', filename=other_user.photo_url) if other_user.photo_url else '' }}"
+     data-other-user-id="{{ other_user.id }}">
   
-  <!-- Conversation List Panel (Mobile Hidden) -->
-  <div class="conversations-panel hidden md:block">
+  <!-- Conversation List Panel (Hidden on mobile ≤1023px) -->
+  <div class="conversations-panel md:block hidden" id="conversations-panel">
     <!-- Header -->
     <div class="sticky top-0 z-30 bg-white border-b border-slate-200 p-4">
-      <a href="{{ url_for('messages.inbox') }}" class="text-purple-600 hover:text-purple-700 font-semibold text-sm flex items-center gap-2">
-        <i class="fas fa-chevron-left"></i>
-        <span>Back to Inbox</span>
-      </a>
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-lg text-slate-900">Messages</h3>
+        <button id="close-conversations-btn" class="md:hidden text-slate-600 hover:text-slate-900 text-lg transition">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Conversations List -->
-    <div id="conversations-list" class="divide-y">
-      <!-- Loaded dynamically or preloaded -->
+    <div id="conversations-list" class="divide-y overflow-y-auto max-h-[calc(100vh-100px)]">
+      {% if all_conversations %}
+        {% for conv in all_conversations %}
+          {% set conv_other_user = conv.get_other_user(current_user.id) %}
+          {% set unread_count = conv.get_unread_count(current_user.id) %}
+          <a href="{{ url_for('messages.conversation', conversation_id=conv.id) }}" 
+             class="conversation-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition cursor-pointer border-l-4 {% if conv.id == conversation.id %}border-purple-600 bg-slate-50{% else %}border-transparent{% endif %}"
+             data-conversation-id="{{ conv.id }}">
+            <!-- User Avatar -->
+            <div class="flex-shrink-0">
+              <div class="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
+                {% if conv_other_user.photo_url %}
+                  <img src="{{ url_for('static', filename=conv_other_user.photo_url) }}" alt="{{ conv_other_user.first_name }}" class="w-full h-full object-cover">
+                {% else %}
+                  <span class="text-sm font-bold text-slate-700">{{ conv_other_user.first_name[0] }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Conversation Info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <h4 class="font-semibold text-slate-900 truncate">{{ conv_other_user.first_name }} {{ conv_other_user.last_name }}</h4>
+                {% if unread_count > 0 %}
+                  <span class="bg-purple-600 text-white text-xs font-bold rounded-full px-2 py-1 flex-shrink-0">{{ unread_count }}</span>
+                {% endif %}
+              </div>
+              <p class="text-sm text-slate-500 truncate">{{ conv.get_last_message_preview() }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="px-4 py-8 text-center">
+          <p class="text-sm text-slate-500">No conversations yet</p>
+        </div>
+      {% endif %}
     </div>
   </div>
 
   <!-- Chat Panel -->
-  <div class="chat-panel flex flex-col animate-fade-in">
+  <div class="chat-panel flex flex-col animate-fade-in" id="chat-panel">
     <!-- Chat Header -->
     <div class="chat-header sticky top-0 z-30 bg-white">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-1">
         <!-- Mobile Back Button -->
-        <button class="back-btn md:hidden text-purple-600 hover:text-purple-700 text-lg" data-href="{{ url_for('messages.inbox') }}">
+        <button class="back-btn md:hidden text-purple-600 hover:text-purple-700 text-lg" id="back-to-conversations-btn">
           <i class="fas fa-chevron-left"></i>
         </button>
 
@@ -96,24 +139,56 @@
       {% if messages %}
         {% for message in messages %}
           <div class="message-bubble {% if message.sender_id == current_user.id %}own{% else %}other{% endif %} animate-slide-in-up"
-               data-message-id="{{ message.id }}">
-            <div class="message-content">
-              <div class="message-text">{{ message.content }}</div>
-              <div class="message-time">
-                {{ message.created_at.strftime('%I:%M %p') }}
-                {% if message.sender_id == current_user.id %}
-                  <span class="message-status ml-2">
-                    {% if message.is_read %}
-                      <i class="fas fa-check-double text-blue-300"></i>
-                    {% elif message.is_delivered %}
-                      <i class="fas fa-check text-gray-300"></i>
-                    {% else %}
-                      <i class="fas fa-clock text-gray-300"></i>
-                    {% endif %}
-                  </span>
-                {% endif %}
+               data-message-id="{{ message.id }}"
+               data-sender-id="{{ message.sender_id }}"
+               data-needs-parse="true">
+            <!-- User Avatar for Other Messages -->
+            {% if message.sender_id != current_user.id %}
+              <div class="message-avatar-container">
+                <div class="message-avatar">
+                  {% if other_user.photo_url %}
+                    <img src="{{ url_for('static', filename=other_user.photo_url) }}" alt="{{ other_user.first_name }}" class="w-full h-full object-cover" onerror="console.log('Avatar image load failed')">
+                  {% else %}
+                    <span class="text-xs font-bold">{{ other_user.first_name[0] }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+            
+            <div class="message-content-wrapper">
+              <!-- Sender Name for Other Messages -->
+              {% if message.sender_id != current_user.id %}
+                <div class="message-sender-name">{{ other_user.first_name }}</div>
+              {% endif %}
+              
+              <div class="message-content">
+                <!-- Parse and render message content with media attachments -->
+                <div class="message-text message-parser">{{ message.content | safe }}</div>
+                <div class="message-time">
+                  {{ message.get_formatted_time() }}
+                  {% if message.sender_id == current_user.id %}
+                    <span class="message-status ml-2">
+                      {% if message.is_read %}
+                        <i class="fas fa-check-double text-blue-300"></i>
+                      {% elif message.is_delivered %}
+                        <i class="fas fa-check text-gray-300"></i>
+                      {% else %}
+                        <i class="fas fa-clock text-gray-300"></i>
+                      {% endif %}
+                    </span>
+                  {% endif %}
+                </div>
               </div>
             </div>
+            
+            <!-- Message Delete/Menu Button for Own Messages -->
+            {% if message.sender_id == current_user.id %}
+              <button class="message-menu-btn text-slate-400 hover:text-slate-600 transition p-1" 
+                      data-message-id="{{ message.id }}" 
+                      title="Message options">
+                <i class="fas fa-ellipsis-v text-xs"></i>
+              </button>
+            {% endif %}
           </div>
         {% endfor %}
       {% else %}
@@ -142,7 +217,52 @@
     <!-- Input Area -->
     <div class="chat-input-area">
       {% if not conversation.is_blocked_for_user(current_user.id) %}
+        <!-- File/Photo Preview Container -->
+        <div id="attachment-preview" class="attachment-preview hidden">
+          <!-- Photo preview -->
+          <div id="photo-preview-container" class="photo-preview-container hidden">
+            <div class="preview-wrapper">
+              <img id="photo-preview-img" src="" alt="Photo preview" class="preview-image">
+              <button type="button" id="remove-photo-preview" class="remove-preview-btn" title="Remove photo">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          
+          <!-- File preview -->
+          <div id="file-preview-container" class="file-preview-container hidden">
+            <div class="preview-wrapper">
+              <div class="file-preview-item">
+                <div class="file-icon">
+                  <i id="file-preview-icon" class="fas fa-file"></i>
+                </div>
+                <div class="file-info">
+                  <div class="file-name" id="file-preview-name">File name</div>
+                  <div class="file-size" id="file-preview-size">0 KB</div>
+                </div>
+              </div>
+              <button type="button" id="remove-file-preview" class="remove-preview-btn" title="Remove file">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="message-input-wrapper">
+          <!-- File upload inputs (hidden) -->
+          <input type="file" id="file-upload" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar" style="display: none;">
+          <input type="file" id="photo-upload" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
+          
+          <!-- Attachment buttons -->
+          <div class="flex gap-2">
+            <button type="button" id="photo-btn" class="text-purple-600 hover:text-purple-700 text-lg transition p-2" title="Send photo">
+              <i class="fas fa-image"></i>
+            </button>
+            <button type="button" id="file-btn" class="text-purple-600 hover:text-purple-700 text-lg transition p-2" title="Send file">
+              <i class="fas fa-paperclip"></i>
+            </button>
+          </div>
+          
           <textarea class="message-textarea" 
                     placeholder="Type a message..." 
                     rows="1"
@@ -151,9 +271,6 @@
             <i class="fas fa-paper-plane"></i>
           </button>
         </div>
-        <p class="text-xs text-slate-500 mt-2">
-          <i class="fas fa-lock mr-1"></i>Messages are end-to-end encrypted
-        </p>
       {% else %}
         <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-center">
           <p class="text-sm text-red-700 font-semibold">
@@ -174,6 +291,62 @@
 <script src="{{ url_for('static', filename='messages/js/messaging.js') }}"></script>
 
 <script>
+  // Mobile responsiveness - Toggle conversations panel
+  const conversationsPanel = document.getElementById('conversations-panel');
+  const chatPanel = document.getElementById('chat-panel');
+  const backBtn = document.getElementById('back-to-conversations-btn');
+  const closeBtn = document.getElementById('close-conversations-btn');
+  const chatMessages = document.querySelector('.chat-messages');
+
+  // Auto-scroll to latest message on load and when new messages arrive
+  function scrollToBottom() {
+    if (chatMessages) {
+      setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 100);
+    }
+  }
+
+  // Scroll to bottom on page load
+  window.addEventListener('load', scrollToBottom);
+  scrollToBottom();
+
+  // Show conversations on mobile when clicking back button
+  backBtn.addEventListener('click', function() {
+    if (window.innerWidth <= 1023) {
+      conversationsPanel.classList.remove('hidden');
+      conversationsPanel.classList.add('active');
+      chatPanel.style.display = 'none';
+    } else {
+      window.location.href = "{{ url_for('messages.inbox') }}";
+    }
+  });
+
+  // Close conversations panel on mobile
+  closeBtn.addEventListener('click', function() {
+    conversationsPanel.classList.add('hidden');
+    conversationsPanel.classList.remove('active');
+    chatPanel.style.display = 'flex';
+  });
+
+  // Handle responsive on resize
+  function handleResponsive() {
+    const isMobile = window.innerWidth <= 1023;
+    
+    if (!isMobile) {
+      // Desktop view - show both
+      conversationsPanel.classList.remove('hidden');
+      chatPanel.style.display = 'flex';
+    } else {
+      // Mobile view - show chat by default
+      conversationsPanel.classList.add('hidden');
+      chatPanel.style.display = 'flex';
+    }
+  }
+
+  window.addEventListener('resize', handleResponsive);
+  handleResponsive();
+
   // Handle action buttons
   document.querySelectorAll('.action-btn').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -190,24 +363,24 @@
     });
   });
 
-  // Handle back button
-  document.querySelectorAll('.back-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      window.location.href = this.dataset.href;
+  // Handle conversation item clicks
+  document.querySelectorAll('.conversation-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      // Close sidebar on mobile after clicking a conversation
+      if (window.innerWidth <= 1023) {
+        conversationsPanel.classList.add('hidden');
+        chatPanel.style.display = 'flex';
+      }
+      // Update active state (will be reloaded on new page)
+      document.querySelectorAll('.conversation-item').forEach(conv => {
+        conv.classList.remove('border-purple-600', 'bg-slate-50');
+        conv.classList.add('border-transparent');
+      });
+      this.classList.remove('border-transparent');
+      this.classList.add('border-purple-600', 'bg-slate-50');
     });
   });
 
-  // Responsive layout handling
-  function handleResponsive() {
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      document.querySelector('.conversations-panel').classList.add('hidden');
-      document.querySelector('.chat-panel').classList.add('active');
-    }
-  }
-
-  window.addEventListener('resize', handleResponsive);
-  handleResponsive();
 </script>
 
 {% endblock %}

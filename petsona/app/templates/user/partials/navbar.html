@@ -1,10 +1,18 @@
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
 
-  <!-- Sidebar toggle button -->
-  <ul class="navbar-nav">
+  <!-- Responsive Sidebar toggle button -->
+  <ul class="navbar-nav toggle-small">
     <li class="nav-item">
-      <a class="nav-link d-lg-none" data-widget="pushmenu" href="#" role="button">
+      <a class="nav-link sidebar-toggle-icon-sm" data-widget="pushmenu" href="#" role="button">
         <i class="fas fa-bars"></i>
+      </a>
+    </li>
+  </ul>
+
+  <ul class="navbar-nav toggle-large">
+    <li class="nav-item">
+      <a class="nav-link sidebar-toggle-icon-lg" data-widget="pushmenu" href="#" role="button">
+        <i class="fa-solid fa-left-right"></i>
       </a>
     </li>
   </ul>
@@ -16,19 +24,29 @@
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#" role="button">
         <i class="far fa-bell"></i>
-        <span class="badge badge-warning navbar-badge">{{ notifications|length }}</span>
+        {% if notifications|length > 0 %}
+          <span class="badge badge-warning navbar-badge">{{ notifications|length }}</span>
+        {% endif %}
       </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notifications-dropdown">
         <span class="dropdown-header">{{ notifications|length }} Notifications</span>
         <div class="dropdown-divider"></div>
-        {% for notif in notifications %}
-          <a href="{{ notif.link if notif.link else '#' }}" class="dropdown-item">
-            <i class="fas fa-envelope mr-2"></i> {{ notif.message }}
-            <span class="float-right text-muted text-sm">{{ notif.time }}</span>
-          </a>
-          <div class="dropdown-divider"></div>
-        {% endfor %}
-        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+        {% if notifications|length > 0 %}
+          <div class="notifications-scroll-container">
+            {% for notif in notifications %}
+              <a href="{{ notif.link if notif.link else '#' }}" class="dropdown-item notification-item">
+                <i class="fas fa-envelope mr-2"></i> {{ notif.message }}
+                <span class="float-right text-muted text-sm">{{ notif.time }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-4" style="font-size: 0.9rem;">
+            <i class="fas fa-bell mb-2" style="display: block; font-size: 1.5rem; opacity: 0.5;"></i>
+            No notifications yet
+          </div>
+        {% endif %}
+        <div class="dropdown-divider"></div>
       </div>
     </li>
 
@@ -36,14 +54,47 @@
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#" role="button">
         <i class="fa-regular fa-message"></i>
-        <span class="badge badge-danger navbar-badge" id="unread-msg-badge" style="display:none;">0</span>
+        <span class="badge badge-danger navbar-badge" id="unread-msg-badge">{{ unread_badge_count if unread_badge_count > 0 else '' }}</span>
       </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        <span class="dropdown-header">Messages</span>
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right messages-dropdown">
+        <span class="dropdown-header">Recent Conversations</span>
         <div class="dropdown-divider"></div>
-        <a href="{{ url_for('messages.inbox') }}" class="dropdown-item text-center text-muted py-3">
-          <i class="fas fa-envelope mr-2"></i> View All Messages
-        </a>
+        {% if recent_conversations %}
+          <div class="messages-scroll-container">
+            {% for conv in recent_conversations %}
+              {% set other_user = conv.get_other_user(current_user.id) %}
+              {% set unread_count = conv.get_unread_count(current_user.id) %}
+              <a href="{{ url_for('messages.conversation', conversation_id=conv.id) }}" class="dropdown-item message-item {% if unread_count > 0 %}has-unread{% endif %}">
+                <div class="d-flex align-items-center justify-content-between" style="width: 100%;">
+                  <div class="d-flex align-items-center" style="min-width: 0; flex: 1;">
+                    {% if other_user.photo_url %}
+                      <img src="{{ url_for('static', filename=other_user.photo_url) }}" alt="{{ other_user.first_name }}" class="img-circle mr-2" style="width: 36px; height: 36px; object-fit: cover; flex-shrink: 0;">
+                    {% else %}
+                      <div class="img-circle mr-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: #c8a2ff; color: white; font-weight: bold; flex-shrink: 0;">{{ other_user.first_name[0] }}</div>
+                    {% endif %}
+                    <div style="min-width: 0; flex: 1;">
+                      <p class="mb-0 text-dark font-weight-bold message-user-name">{{ other_user.first_name }} {{ other_user.last_name }}</p>
+                      {% if unread_count > 0 %}
+                        <p class="mb-0 message-status-unread"><i class="fas fa-circle" style="font-size: 0.5rem; margin-right: 6px;"></i>You have new message</p>
+                      {% else %}
+                        <p class="mb-0 message-status-read">No message yet</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% if unread_count > 0 %}
+                    <span class="new-message-indicator" style="flex-shrink: 0; margin-left: 8px;">{{ unread_count if unread_count < 10 else '9+' }}</span>
+                  {% endif %}
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-4" style="font-size: 0.9rem;">
+            <i class="fas fa-inbox mb-2" style="display: block; font-size: 1.5rem; opacity: 0.5;"></i>
+            No conversations yet
+          </div>
+        {% endif %}
+        <div class="dropdown-divider"></div>
       </div>
     </li>
 
@@ -218,3 +269,48 @@
 
   </ul>
 </nav>
+
+<style>
+  /* Responsive sidebar toggle buttons - Control the parent UL visibility */
+  
+  /* Default: Hide large icon, show small icon (below 1024px) */
+  .navbar-nav.toggle-small {
+    display: flex !important;
+  }
+
+  .navbar-nav.toggle-large {
+    display: none !important;
+  }
+
+  /* 1024px and above: Show large icon ONLY, hide small icon */
+  @media (min-width: 1024px) {
+    .navbar-nav.toggle-small {
+      display: none !important;
+    }
+
+    .navbar-nav.toggle-large {
+      display: flex !important;
+    }
+  }
+
+  /* Style for both icons */
+  .sidebar-toggle-icon-sm,
+  .sidebar-toggle-icon-lg {
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .sidebar-toggle-icon-sm:hover,
+  .sidebar-toggle-icon-lg:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.05);
+  }
+
+  .sidebar-toggle-icon-sm:active,
+  .sidebar-toggle-icon-lg:active {
+    transform: scale(0.95);
+  }
+</style>
+
+<script src="{{ url_for('static', filename='js/navbar-socket.js') }}"></script>

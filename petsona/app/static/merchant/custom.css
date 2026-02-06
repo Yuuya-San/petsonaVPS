@@ -375,8 +375,96 @@ html, body {
 
 
 .content-wrapper {
-    margin-top: 25px; /* adds space below fixed header */
-    padding: 20px;    /* optional padding for nicer spacing */
+    margin-top: 50px; /* increased space from navbar */
+    width: 100%;
+    min-height: calc(100vh - 106px); /* full height minus header and margin */
+    padding: 30px 3px;
+}
+
+/* Ultra-wide screens (1920px+) - account for 80px sidebar */
+@media (min-width: 1920px) {
+    .content-wrapper {
+        margin-top: 55px;
+        margin-left: 80px;
+        width: calc(100% - 80px);
+        padding: 40px 15px;
+        box-sizing: border-box;
+    }
+}
+
+/* Wide screens (1440-1919px) - account for 80px sidebar */
+@media (min-width: 1440px) and (max-width: 1919.98px) {
+    .content-wrapper {
+        margin-top: 52px;
+        margin-left: 80px;
+        width: calc(100% - 80px);
+        padding: 35px 12px;
+        box-sizing: border-box;
+    }
+}
+
+/* Large desktop (1200-1439px) - account for 80px sidebar */
+@media (min-width: 1200px) and (max-width: 1439.98px) {
+    .content-wrapper {
+        margin-top: 50px;
+        margin-left: 80px;
+        width: calc(100% - 80px);
+        padding: 32px 10px;
+        box-sizing: border-box;
+    }
+}
+
+/* Desktop (1024-1199px) - account for 80px sidebar */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+    .content-wrapper {
+        margin-top: 48px;
+        margin-left: 80px;
+        width: calc(100% - 80px);
+        padding: 30px 12px;
+        box-sizing: border-box;
+    }
+}
+
+/* Tablets (768-1023px) - no sidebar, full width */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+    .content-wrapper {
+        margin-top: 45px;
+        margin-left: 0;
+        width: 100%;
+        padding: 28px 15px;
+        box-sizing: border-box;
+    }
+}
+
+/* Small tablets and mobile (576-767px) - no sidebar, full width */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .content-wrapper {
+        margin-top: 42px;
+        margin-left: 0;
+        width: 100%;
+        padding: 25px 12px;
+        box-sizing: border-box;
+    }
+}
+
+/* Mobile phones (<576px) - no sidebar, full width */
+@media (max-width: 575.98px) {
+    .content-wrapper {
+        margin-top: 40px;
+        margin-left: 0;
+        width: 100%;
+        padding: 20px 10px;
+        box-sizing: border-box;
+    }
+}
+
+/* Ensure container-fluid takes full width - NO extra padding */
+.content-wrapper .container-fluid {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 
@@ -389,6 +477,381 @@ html, body {
 
 .main-header .nav-link:hover {
     color: rgba(140, 0, 255, 0.15) !important; /* extremely subtle purple on hover */
+}
+
+/* ===============================
+   NAVBAR BADGES
+================================ */
+/* Badge positioning - absolute so it doesn't affect layout */
+.navbar-badge {
+  position: absolute !important;
+  top: -2px !important;
+  right: -2px !important;
+  font-size: 0.65rem !important;
+  padding: 2px 6px !important;
+  min-width: 18px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Hide empty badges */
+.navbar-badge:empty {
+  display: none !important;
+}
+
+/* Show badge with visible content */
+.navbar-badge:not(:empty) {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+/* ===============================
+   NAVBAR ICON ALIGNMENT
+================================ */
+/* Ensure all navbar right items are consistently aligned */
+.navbar-nav .nav-item {
+  display: flex;
+  align-items: center;
+  height: 56px; /* Match navbar height */
+}
+
+/* Style notification and message icon links */
+.navbar-nav .nav-item .nav-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 40px !important;
+  min-width: 40px !important;
+  padding: 0.5rem 0.75rem !important;
+  position: relative;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+}
+
+/* Style message item */
+.message-item {
+  padding: 10px 12px !important;
+  margin: 4px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 56px !important;
+  transition: background-color 0.2s ease !important;
+  border-radius: 6px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  flex-wrap: wrap;
+}
+
+.message-item:hover {
+  background-color: rgba(200, 162, 255, 0.08);
+}
+
+.message-item:active {
+  background-color: rgba(200, 162, 255, 0.12);
+}
+
+/* Messages scroll container */
+.messages-scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Clean scrollbar */
+.messages-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(200, 162, 255, 0.25);
+  border-radius: 3px;
+}
+
+.messages-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 162, 255, 0.4);
+}
+
+/* Notifications Dropdown */
+.notifications-dropdown {
+  min-width: 320px !important;
+  max-width: 420px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  border-radius: 10px !important;
+  margin-top: 8px !important;
+  overflow: hidden !important;
+}
+
+.notifications-dropdown .dropdown-divider {
+  margin: 6px 0 !important;
+}
+
+.notifications-scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.notifications-scroll-container::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+.notifications-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notifications-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(200, 162, 255, 0.25);
+  border-radius: 3px;
+}
+
+.notifications-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 162, 255, 0.4);
+}
+
+.notification-item {
+  padding: 10px 12px !important;
+  margin: 4px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 48px !important;
+  transition: background-color 0.2s ease !important;
+  border-radius: 6px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.notification-item:hover {
+  background-color: rgba(200, 162, 255, 0.08);
+}
+
+.notification-item:active {
+  background-color: rgba(200, 162, 255, 0.12);
+}
+
+/* Message Status Text Styling */
+.message-user-name {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-status-unread {
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-status-read {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Messages dropdown styling */
+.messages-dropdown {
+  min-width: 320px !important;
+  max-width: 420px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  border-radius: 10px !important;
+  margin-top: 8px !important;
+  overflow: hidden !important;
+}
+
+.messages-dropdown .dropdown-divider {
+  margin: 6px 0 !important;
+}
+
+.messages-dropdown .dropdown-header {
+  padding: 12px 16px !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  color: #2c2c2c !important;
+}
+
+/* New message indicator badge */
+.new-message-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: white;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 20px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+/* Highlight unread conversations */
+.message-item.has-unread {
+  background-color: rgba(200, 162, 255, 0.06) !important;
+  border-left: 3px solid #8C00FF;
+}
+
+.message-item.has-unread:hover {
+  background-color: rgba(200, 162, 255, 0.12) !important;
+}
+
+/* ===============================
+   DESKTOP VIEW (>1023px)
+================================ */
+@media (min-width: 1024px) {
+  .messages-dropdown {
+    position: absolute !important;
+    right: 0 !important;
+  }
+  
+  .messages-scroll-container {
+    max-height: 350px;
+  }
+}
+
+/* User dropdown is already well-styled, ensure consistency */
+.user-dropdown-trigger {
+  min-height: 40px !important;
+  height: 40px !important;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+  margin: 0 !important;
+}
+
+/* Responsive: Ensure alignment on all screen sizes */
+@media (max-width: 1200px) {
+  .navbar-nav .nav-item {
+    height: 56px;
+  }
+  
+  .navbar-nav .nav-item .nav-link {
+    min-height: 38px !important;
+    min-width: 38px !important;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-nav .nav-item {
+    height: 56px;
+  }
+  
+  .navbar-nav .nav-item .nav-link {
+    min-height: 36px !important;
+    min-width: 36px !important;
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem !important;
+  }
+  
+  .navbar-badge {
+    font-size: 0.6rem !important;
+    padding: 2px 5px !important;
+    min-width: 16px !important;
+  }
+}
+
+/* ===============================
+   MOBILE DROPDOWN STYLING (1023px and below)
+================================ */
+@media (max-width: 1023px) {
+  /* Messages & Notifications dropdown positioning */
+  .dropdown-menu-right.messages-dropdown,
+  .dropdown-menu-right.notifications-dropdown {
+    position: fixed !important;
+    right: 10px !important;
+    left: auto !important;
+    top: 56px !important; /* Height of navbar */
+    width: calc(100vw - 20px) !important;
+    max-width: 400px !important;
+    max-height: calc(100vh - 100px) !important;
+    border-radius: 12px !important;
+    margin: 0 !important;
+    z-index: 1050 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  /* Scrollable container for messages and notifications */
+  .messages-scroll-container,
+  .notifications-scroll-container {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+  }
+  
+  /* Message and Notification item styling */
+  .message-item,
+  .notification-item {
+    padding: 12px 12px !important;
+    margin: 4px 0 !important;
+    border-radius: 8px !important;
+    transition: background-color 0.2s ease !important;
+    min-height: 56px !important;
+  }
+  
+  .message-item:active,
+  .notification-item:active {
+    background-color: rgba(200, 162, 255, 0.1) !important;
+  }
+  
+  .message-item:hover,
+  .notification-item:hover {
+    background-color: rgba(200, 162, 255, 0.08) !important;
+  }
+  
+  /* Dropdown header on mobile */
+  .messages-dropdown .dropdown-header,
+  .notifications-dropdown .dropdown-header {
+    padding: 12px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Hide scrollbar but keep scrolling */
+  .messages-scroll-container::-webkit-scrollbar,
+  .notifications-scroll-container::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .messages-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .messages-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(200, 162, 255, 0.3);
+    border-radius: 4px;
+  }
+  
+  .messages-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(200, 162, 255, 0.5);
+  }
+  
+  /* Ensure touch targets are adequate */
+  .dropdown-menu.messages-dropdown .dropdown-item {
+    min-height: 50px !important;
+    padding: 10px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
 }
 
 /* ===============================

@@ -5,6 +5,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#343a40">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ title or "Admin Dashboard" }}</title>
 
@@ -25,11 +26,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='admin/css/all_user.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='admin/css/audit_logs.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='pet/css/pet_view_breed.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='pet/css/pet_breed_form.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='pet/css/species.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/compatibility-scores.css') }}">
-    <!-- Tailwind -->
+    <!-- Tailwind (Development) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Alpine -->
@@ -47,17 +46,10 @@
         }
     </script>
 
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        integrity="sha512-..."
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer" />
-
     <!-- Font Awesome Free CDN -->
     <link 
         rel="stylesheet" 
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" 
-        integrity="sha512-p1CmG2g+0Wjgyypg9MZ+kXHBcW6cXNn8fXqPYlT1zvCenOjqf7m/1T6R/Sc4H5W6CZ2uFhVJ0R+u3f8q+oXKpQ==" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
         crossorigin="anonymous" 
         referrerpolicy="no-referrer" 
     />
@@ -119,12 +111,13 @@
 </div>
 
 <!-- ================= JS ================= -->
+<!-- Socket.IO for Real-time Updates -->
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='admin/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='admin/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='admin/dist/js/adminlte.min.js') }}"></script>
 <script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
-<script src="{{ url_for('static', filename='pet/js/pet_card_rotation.js') }}"></script>
 <script src="{{ url_for('static', filename='admin/js/user_form.js') }}"></script>
 
 <!-- ================= SKELETON HANDLER ================= -->

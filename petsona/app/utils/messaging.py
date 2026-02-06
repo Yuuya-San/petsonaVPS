@@ -98,6 +98,7 @@ def get_conversation_messages(conversation_id, user_id, page=1, per_page=50):
     """
     Get paginated messages for a conversation.
     Respects soft deletes (messages deleted by each user).
+    Returns messages with newest first on page 1.
     """
     query = Message.query.filter(
         Message.conversation_id == conversation_id
@@ -112,10 +113,13 @@ def get_conversation_messages(conversation_id, user_id, page=1, per_page=50):
         )
     )
     
-    # Order by timestamp
-    query = query.order_by(Message.created_at.asc())
+    # Order by timestamp - NEWEST FIRST
+    query = query.order_by(Message.created_at.desc())
     
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Reverse items to display oldest→newest in conversation view (even though paginated newest first)
+    pagination.items = list(reversed(pagination.items))
     
     return pagination
 

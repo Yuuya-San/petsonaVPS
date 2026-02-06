@@ -1,6 +1,11 @@
 """Message model for user-to-user messaging."""
 from datetime import datetime
 from app.extensions import db
+import pytz
+from app.utils.security import encrypt_message, decrypt_message
+
+# Philippine timezone
+PH_TZ = pytz.timezone('Asia/Manila')
 
 
 class Message(db.Model):
@@ -19,8 +24,20 @@ class Message(db.Model):
     sender = db.relationship('User', foreign_keys=[sender_id])
     receiver = db.relationship('User', foreign_keys=[receiver_id])
     
-    # Message content
-    content = db.Column(db.Text, nullable=False)
+    # Message content (stored encrypted)
+    _content = db.Column('content', db.Text, nullable=False)
+    
+    @property
+    def content(self):
+        """Get decrypted message content."""
+        if not self._content:
+            return ''
+        return decrypt_message(self._content)
+    
+    @content.setter
+    def content(self, value):
+        """Set and encrypt message content."""
+        self._content = encrypt_message(value) if value else value
     
     # Status tracking
     is_read = db.Column(db.Boolean, default=False, index=True)
@@ -60,6 +77,24 @@ class Message(db.Model):
             self.is_delivered = True
             db.session.commit()
     
+    def get_formatted_time(self):
+        """Get formatted time in Philippine timezone with mm/dd/yr HH:MM AM/PM."""
+        try:
+            # Convert UTC to Philippine timezone
+            ph_time = self.created_at.replace(tzinfo=pytz.UTC).astimezone(PH_TZ)
+            # Format: mm/dd/yr HH:MM AM/PM
+            return ph_time.strftime('%m/%d/%y %I:%M %p')
+        except:
+            # Fallback to original format if pytz fails
+            return self.created_at.strftime('%m/%d/%y %I:%M %p')
+    
+    def get_time_only(self):
+        """Get time only in Philippine timezone (HH:MM AM/PM)."""
+        try:
+            ph_time = self.created_at.replace(tzinfo=pytz.UTC).astimezone(PH_TZ)
+            return ph_time.strftime('%I:%M %p')
+        except:
+            return self.created_at.strftime('%I:%M %p')
     def to_dict(self, current_user_id):
         """Convert message to dictionary for JSON response."""
         sender_photo = None
@@ -79,7 +114,8 @@ class Message(db.Model):
             'is_own_message': self.sender_id == current_user_id,
             'created_at': self.created_at.isoformat(),
             'read_at': self.read_at.isoformat() if self.read_at else None,
-            'created_at_formatted': self.created_at.strftime('%I:%M %p'),
+            'created_at_formatted': self.get_time_only(),
+            'created_at_formatted_full': self.get_formatted_time(),
         }
 
 

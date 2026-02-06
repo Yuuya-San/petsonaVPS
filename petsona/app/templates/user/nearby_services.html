@@ -291,11 +291,21 @@
             </div>
           </div>
           <div class="flex flex-col sm:flex-row gap-3 lg:gap-4 w-full sm:w-auto flex-shrink-0">
-            <button @click="requestLocation()" class="smooth-btn smooth-btn-primary px-6 lg:px-8 py-3 lg:py-4 text-white flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base font-bold">
+            <button 
+              @click="requestLocation()" 
+              class="smooth-btn smooth-btn-primary px-6 lg:px-8 py-3 lg:py-4 
+                    text-white flex items-center justify-center gap-2 shadow-lg 
+                    text-sm lg:text-base font-bold rounded-xl"
+              style="background-color: #9929EA;">
               <i class="fas fa-check-circle text-base lg:text-lg"></i>
               <span>Allow</span>
             </button>
-            <button @click="skipLocation()" class="smooth-btn smooth-btn-secondary px-6 lg:px-8 py-3 lg:py-4 text-slate-900 flex items-center justify-center gap-2 text-sm lg:text-base font-bold">
+
+            <button 
+              @click="skipLocation()" 
+              class="smooth-btn smooth-btn-secondary px-6 lg:px-8 py-3 lg:py-4 
+                    flex items-center justify-center gap-2 text-sm lg:text-base font-bold rounded-xl"
+              style="background: transparent; color: #9929EA; border: 2px solid #9929EA;">
               <i class="fas fa-times"></i>
               <span>Skip</span>
             </button>
@@ -339,6 +349,9 @@
               <option value="10">10 km</option>
               <option value="25">25 km</option>
               <option value="50">50 km</option>
+              <option value="100">100 km</option>
+              <option value="150">150 km</option>
+              <option value="200">200 km</option>
             </select>
           </div>
         </div>
@@ -478,7 +491,15 @@
       <h3 class="text-3xl lg:text-5xl font-black text-slate-900 mb-3 lg:mb-4 tracking-tight">Nothing Found</h3>
       <p class="text-slate-600 mb-6 lg:mb-10 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed font-medium">Try different filters or expand your search radius.</p>
       <div class="flex flex-col sm:flex-row gap-3 lg:gap-4 justify-center">
-        <button @click="resetFilters()" class="smooth-btn smooth-btn-primary px-6 lg:px-8 py-3 lg:py-4 text-white font-bold flex items-center justify-center gap-2 shadow-lg text-sm lg:text-base">
+        <button 
+          @click="resetFilters()" 
+          class="smooth-btn smooth-btn-primary px-6 lg:px-8 py-3 lg:py-4 
+                text-white font-bold flex items-center justify-center gap-2 shadow-lg 
+                text-sm lg:text-base rounded-xl"
+          style="background-color: #9929EA;"
+          onmouseover="this.style.filter='brightness(0.95)'"
+          onmouseout="this.style.filter='brightness(1)'">
+          
           <i class="fas fa-redo text-sm lg:text-base"></i>
           <span>Reset</span>
         </button>

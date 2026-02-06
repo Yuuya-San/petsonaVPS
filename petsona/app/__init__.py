@@ -89,6 +89,41 @@ def create_app(config_class: type = Config):
     # SOCKET.IO EVENTS
     from . import socket_events
 
+    # TEMPLATE CONTEXT PROCESSORS
+    @app.context_processor
+    def inject_navbar_data():
+        """Inject notifications and recent conversations into all templates."""
+        from flask_login import current_user
+        from app.utils.messaging import get_user_inbox, get_unread_count
+        
+        notifications = []
+        recent_conversations = []
+        unread_count = 0
+        
+        if current_user.is_authenticated:
+            try:
+                # Get unread message count
+                unread_count = get_unread_count(current_user.id)
+                
+                # Get recent conversations (first 5)
+                inbox_pagination = get_user_inbox(current_user.id, page=1, per_page=8, include_archived=False)
+                recent_conversations = inbox_pagination.items if inbox_pagination and inbox_pagination.items else []
+                
+                # Get notifications (empty list for now - can be expanded later)
+                notifications = []
+            except Exception as e:
+                # Silently fail if there's an error - log for debugging
+                import logging
+                logging.error(f"Error in inject_navbar_data: {e}")
+                recent_conversations = []
+                unread_count = 0
+        
+        return dict(
+            notifications=notifications,
+            recent_conversations=recent_conversations,
+            unread_badge_count=unread_count
+        )
+
     # Root route
     @app.route("/")
     def index():

@@ -10,7 +10,13 @@ class SocketManager {
     this.watchers = new Map(); // species_id -> callback function
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
+    // Disable debug logging for performance
+    this.debugMode = false;
     this.init();
+  }
+
+  log(...args) {
+    if (this.debugMode) console.log(...args);
   }
 
   /**
@@ -24,12 +30,24 @@ class SocketManager {
         return;
       }
 
-      this.socket = io({
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: this.maxReconnectAttempts
-      });
+      // Reuse existing global socket connection if available
+      if (window.sharedSocket && window.sharedSocket.connected) {
+        this.socket = window.sharedSocket;
+        this.connected = true;
+      } else if (!window.sharedSocket) {
+        // Create shared socket instance for all modules
+        window.sharedSocket = io({
+          reconnection: true,
+          reconnectionDelay: 500,
+          reconnectionDelayMax: 2000,
+          reconnectionAttempts: this.maxReconnectAttempts,
+          transports: ['websocket'],
+          upgrade: false,
+        });
+        this.socket = window.sharedSocket;
+      } else {
+        this.socket = window.sharedSocket;
+      }
 
       this.setupEventHandlers();
     } catch (error) {
@@ -47,7 +65,7 @@ class SocketManager {
     this.socket.on('connect', () => {
       this.connected = true;
       this.reconnectAttempts = 0;
-      console.log('🔗 Socket.IO connected:', this.socket.id);
+      this.log('🔗 Socket.IO connected:', this.socket.id);
       
       // Re-register watchers after reconnection
       this.rewatchAllSpecies();
@@ -59,7 +77,7 @@ class SocketManager {
     // Connection lost
     this.socket.on('disconnect', () => {
       this.connected = false;
-      console.log('❌ Socket.IO disconnected');
+      this.log('❌ Socket.IO disconnected');
     });
 
     // Server sent error
@@ -69,13 +87,13 @@ class SocketManager {
 
     // Connection response
     this.socket.on('connection_response', (data) => {
-      console.log('✅ Connection response:', data);
+      this.log('✅ Connection response:', data);
     });
 
     // Vote update from server
     this.socket.on('vote_update', (data) => {
       const { species_id, vote_count } = data;
-      console.log(`📡 Vote update received for species ${species_id}: ${vote_count} votes`);
+      this.log(`📡 Vote update received for species ${species_id}: ${vote_count} votes`);
       
       // Call registered callback for this species
       if (this.watchers.has(species_id)) {
@@ -86,13 +104,13 @@ class SocketManager {
 
     // Watch confirmation
     this.socket.on('watch_confirmed', (data) => {
-      console.log('✅ Watch confirmed:', data);
+      this.log('✅ Watch confirmed:', data);
     });
 
     // Reconnection attempt
     this.socket.on('reconnect_attempt', () => {
       this.reconnectAttempts++;
-      console.log(`⏳ Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+      this.log(`⏳ Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
     });
 
     // Reconnection successful

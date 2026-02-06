@@ -17,3 +17,4 @@ pytz
 requests
 Flask-SocketIO
 authlib
+cryptography

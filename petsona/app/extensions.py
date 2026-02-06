@@ -39,8 +39,16 @@ talisman = Talisman()
 # CSRF protection
 csrf = CSRFProtect()
 
-# Socket.IO for real-time updates
-socketio = SocketIO(cors_allowed_origins="*", ping_timeout=10, ping_interval=5)
+# Socket.IO for real-time updates - WebSocket with polling fallback
+socketio = SocketIO(
+    cors_allowed_origins="*",
+    ping_timeout=60,  # Increased timeout to prevent disconnects
+    ping_interval=25,
+    transports=['websocket', 'polling'],  # WebSocket first, fallback to polling if needed
+    async_mode='threading',
+    engineio_logger=False,  # Disable debug logging
+    logger=False,
+)
 
 # OAuth for social login
 oauth = OAuth()

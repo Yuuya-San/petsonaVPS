@@ -87,6 +87,10 @@ def conversation(conversation_id):
     # Mark messages as read
     mark_conversation_messages_as_read(conversation_id, current_user.id)
     
+    # Get all conversations for left sidebar
+    all_conversations_paginated = get_user_inbox(current_user.id, page=1, per_page=50, include_archived=False)
+    all_conversations = all_conversations_paginated.items
+    
     form = SendMessageForm()
     
     return render_template(
@@ -94,6 +98,7 @@ def conversation(conversation_id):
         conversation=conversation_obj,
         messages=messages,
         other_user=other_user,
+        all_conversations=all_conversations,
         form=form,
         pagination=pagination,
         page_title=f"Chat with {other_user.first_name}"
@@ -105,44 +110,69 @@ def conversation(conversation_id):
 @login_required
 def send_message(conversation_id):
     """Send a message in a conversation."""
-    conversation_obj = Conversation.query.get(conversation_id)
-    
-    if not conversation_obj:
-        return jsonify({'error': 'Conversation not found'}), 404
-    
-    # Verify user is part of conversation
-    if conversation_obj.user1_id != current_user.id and conversation_obj.user2_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    # Check if blocked
-    if conversation_obj.is_blocked_for_user(current_user.id):
-        return jsonify({'error': 'You are blocked from sending messages in this conversation'}), 403
-    
-    # Get JSON data
-    data = request.get_json()
-    
-    if not data or 'content' not in data:
-        return jsonify({'error': 'Message content is required'}), 400
-    
-    content = data.get('content', '').strip()
-    
-    # Validate content
-    if not content:
-        return jsonify({'error': 'Message cannot be empty'}), 400
-    
-    if len(content) > 5000:
-        return jsonify({'error': 'Message is too long (max 5000 characters)'}), 400
-    
-    receiver_id = conversation_obj.get_other_user_id(current_user.id)
-    
-    message = create_message(
-        conversation_id=conversation_id,
-        sender_id=current_user.id,
-        receiver_id=receiver_id,
-        content=content
-    )
-    
-    if message:
+    try:
+        logger.info(f"================== SEND MESSAGE REQUEST ==================")
+        logger.info(f"Conversation ID from URL: {conversation_id}")
+        logger.info(f"Current user ID: {current_user.id}")
+        
+        conversation_obj = Conversation.query.get(conversation_id)
+        
+        if not conversation_obj:
+            logger.warning(f"❌ Conversation {conversation_id} not found")
+            return jsonify({'error': 'Conversation not found'}), 404
+        
+        logger.info(f"✅ Found conversation {conversation_id}: user1={conversation_obj.user1_id}, user2={conversation_obj.user2_id}")
+        
+        # Verify user is part of conversation
+        if conversation_obj.user1_id != current_user.id and conversation_obj.user2_id != current_user.id:
+            logger.warning(f"❌ User {current_user.id} not part of conversation {conversation_id}")
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Check if blocked
+        if conversation_obj.is_blocked_for_user(current_user.id):
+            logger.warning(f"❌ User {current_user.id} is blocked in conversation {conversation_id}")
+            return jsonify({'error': 'You are blocked from sending messages in this conversation'}), 403
+        
+        # Get JSON data
+        data = request.get_json()
+        
+        if not data or 'content' not in data:
+            logger.warning("❌ Missing message content in request")
+            return jsonify({'error': 'Message content is required'}), 400
+        
+        content = data.get('content', '').strip()
+        
+        # Validate content
+        if not content:
+            logger.warning("❌ Empty message content after strip")
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        if len(content) > 5000:
+            logger.warning(f"❌ Message too long: {len(content)} chars")
+            return jsonify({'error': 'Message is too long (max 5000 characters)'}), 400
+        
+        receiver_id = conversation_obj.get_other_user_id(current_user.id)
+        logger.info(f"📤 Determined receiver_id: {receiver_id} (other user in conversation {conversation_id})")
+        
+        logger.info(f"📝 Creating message in conversation {conversation_id} from user {current_user.id} to {receiver_id}")
+        message = create_message(
+            conversation_id=conversation_id,
+            sender_id=current_user.id,
+            receiver_id=receiver_id,
+            content=content
+        )
+        
+        if not message:
+            logger.error(f"❌ Failed to create message in conversation {conversation_id}")
+            return jsonify({'error': 'Failed to send message'}), 500
+        
+        logger.info(f"✅ MESSAGE CREATED:")
+        logger.info(f"   Message ID: {message.id}")
+        logger.info(f"   Conversation ID: {message.conversation_id}")
+        logger.info(f"   From user: {message.sender_id}")
+        logger.info(f"   To user: {message.receiver_id}")
+        logger.info(f"   Content length: {len(message.content)}")
+        
         log_event(
             event='message.sent',
             details={'message_id': message.id, 'to_user': receiver_id}
@@ -174,44 +204,72 @@ def send_message(conversation_id):
                 'is_delivered': message.is_delivered,
                 'created_at': message.created_at.isoformat(),
                 'read_at': message.read_at.isoformat() if message.read_at else None,
-                'created_at_formatted': message.created_at.strftime('%I:%M %p'),
+                'created_at_formatted': message.get_time_only(),
+                'created_at_formatted_full': message.get_formatted_time(),
                 'conversation_id': conversation_id,
             },
             room=room
         )
         
+        # Broadcast navbar update to receiver
+        from app.socket_events import broadcast_message_to_navbar, notify_unread_message_count
+        message_preview = content[:50] + ('...' if len(content) > 50 else '')
+        broadcast_message_to_navbar(
+            recipient_id=receiver_id,
+            conversation_id=conversation_id,
+            sender_id=current_user.id,
+            sender_name=current_user.first_name,
+            sender_avatar=sender_photo,
+            message_preview=message_preview
+        )
+        
+        # Notify receiver of updated unread count
+        new_unread_count = get_unread_count(receiver_id)
+        notify_unread_message_count(receiver_id, new_unread_count)
+        
         return jsonify({
             'success': True,
             'message': message.to_dict(current_user.id)
         })
-    else:
-        return jsonify({'error': 'Failed to send message'}), 500
+    except Exception as e:
+        logger.error(f"❌ Error in send_message: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 
 @bp.route('/mark-read/<int:message_id>', methods=['POST'])
+@csrf.exempt
 @login_required
 def mark_read(message_id):
     """Mark a specific message as read."""
-    message = Message.query.get(message_id)
-    
-    if not message:
-        return jsonify({'error': 'Message not found'}), 404
-    
-    # Verify user is receiver
-    if message.receiver_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    message.mark_as_read()
-    
-    # Emit Socket.IO event
-    from app.extensions import socketio
-    socketio.emit(
-        'message_read',
-        {'message_id': message.id, 'read_at': message.read_at.isoformat()},
-        room=f'conversation_{message.conversation_id}'
-    )
-    
-    return jsonify({'success': True, 'read_at': message.read_at.isoformat()})
+    try:
+        message = Message.query.get(message_id)
+        
+        if not message:
+            return jsonify({'error': 'Message not found'}), 404
+        
+        # Verify user is receiver
+        if message.receiver_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        message.mark_as_read()
+        
+        # Emit Socket.IO event
+        from app.extensions import socketio
+        from app.socket_events import notify_unread_message_count
+        socketio.emit(
+            'message_read',
+            {'message_id': message.id, 'read_at': message.read_at.isoformat()},
+            room=f'conversation_{message.conversation_id}'
+        )
+        
+        # Notify sender of updated unread count for their view
+        new_unread_count = get_unread_count(current_user.id)
+        notify_unread_message_count(current_user.id, new_unread_count)
+        
+        return jsonify({'success': True, 'read_at': message.read_at.isoformat()})
+    except Exception as e:
+        logger.error(f"Error marking message as read: {str(e)}")
+        return jsonify({'error': 'Failed to mark message as read'}), 500
 
 
 @bp.route('/delete-message/<int:message_id>', methods=['POST'])
@@ -418,3 +476,138 @@ def get_conversations_api():
         'pages': pagination.pages,
         'current_page': page
     })
+
+@bp.route('/upload-file/<int:conversation_id>', methods=['POST'])
+@login_required
+def upload_file(conversation_id):
+    """Upload a file to a conversation."""
+    try:
+        conversation_obj = Conversation.query.get(conversation_id)
+        
+        if not conversation_obj:
+            return jsonify({'error': 'Conversation not found'}), 404
+        
+        # Verify user is part of conversation
+        if conversation_obj.user1_id != current_user.id and conversation_obj.user2_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Check if user is blocked
+        if conversation_obj.is_blocked_for_user(current_user.id):
+            return jsonify({'error': 'You are blocked from sending files in this conversation'}), 403
+        
+        # Check if file was provided
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        file_type = request.form.get('type', 'file')  # 'photo' or 'file'
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # ==================== SECURITY VALIDATIONS ====================
+        
+        import os
+        from werkzeug.utils import secure_filename
+        import mimetypes
+        
+        # 1. Validate MIME type
+        allowed_mime_types = {
+            'photo': ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+            'file': [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'text/plain',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'application/zip',
+                'application/x-rar-compressed'
+            ]
+        }
+        
+        file_mime_type = mimetypes.guess_type(file.filename)[0] or file.content_type
+        if file_mime_type not in allowed_mime_types.get(file_type, []):
+            return jsonify({'error': 'Invalid file type'}), 400
+        
+        # 2. Validate file extension
+        filename = secure_filename(file.filename)
+        if not filename:
+            return jsonify({'error': 'Invalid filename'}), 400
+        
+        valid_extensions = {
+            'photo': ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+            'file': ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar']
+        }
+        
+        file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+        if file_ext not in valid_extensions.get(file_type, []):
+            return jsonify({'error': 'Invalid file extension'}), 400
+        
+        # 3. Validate file size
+        max_file_sizes = {
+            'photo': 5 * 1024 * 1024,  # 5MB for photos
+            'file': 25 * 1024 * 1024   # 25MB for files
+        }
+        
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size > max_file_sizes.get(file_type, 25 * 1024 * 1024):
+            return jsonify({'error': 'File exceeds maximum size limit'}), 400
+        
+        if file_size == 0:
+            return jsonify({'error': 'File is empty'}), 400
+        
+        # 4. Read and check file content (magic bytes)
+        file_content = file.read(512)  # Read first 512 bytes for validation
+        file.seek(0)
+        
+        # Check for executable or suspicious content
+        suspicious_signatures = [b'MZ', b'BZh', b'7z', b'\x7fELF']  # Common executable signatures
+        for sig in suspicious_signatures:
+            if file_content.startswith(sig):
+                return jsonify({'error': 'File type not allowed'}), 400
+        
+        # Create upload directory
+        upload_dir = current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads/messages')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Ensure upload_dir is safe (prevent path traversal)
+        upload_dir_abs = os.path.abspath(upload_dir)
+        
+        # Generate secure filename with timestamp
+        import time
+        import secrets
+        timestamp = int(time.time())
+        random_suffix = secrets.token_hex(4)  # Add random suffix for extra security
+        filename_with_timestamp = f"{timestamp}_{random_suffix}_{filename}"
+        filepath = os.path.join(upload_dir_abs, filename_with_timestamp)
+        
+        # Verify filepath is within upload directory (prevent directory traversal)
+        filepath_abs = os.path.abspath(filepath)
+        if not filepath_abs.startswith(upload_dir_abs):
+            return jsonify({'error': 'Invalid file path'}), 400
+        
+        # Save file
+        try:
+            file.save(filepath)
+            # Set proper file permissions (read-only for upload directory)
+            os.chmod(filepath, 0o644)
+        except Exception as e:
+            logger.error(f"Error saving file: {str(e)}")
+            return jsonify({'error': 'Failed to save file'}), 500
+        
+        # Return file URL for insertion
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'url': f'/static/uploads/messages/{filename_with_timestamp}',
+            'type': file_type
+        })
+    except Exception as e:
+        logger.error(f"Error uploading file: {str(e)}")
+        return jsonify({'error': 'Failed to upload file'}), 500

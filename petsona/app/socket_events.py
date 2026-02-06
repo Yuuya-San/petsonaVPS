@@ -1,6 +1,6 @@
 """Socket.IO event handlers for real-time updates"""
 from flask import session, request
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room, leave_room # pyright: ignore[reportMissingModuleSource]
 from app.extensions import socketio
 from app.models import Species
 from flask_login import current_user
@@ -22,7 +22,13 @@ def handle_connect():
         if current_user.id not in active_users:
             active_users[current_user.id] = []
         active_users[current_user.id].append(sid)
-        logger.info(f"✅ User {current_user.id} connected: {sid}")
+        
+        # Join user-specific room for navbar updates
+        room = f'user_{current_user.id}'
+        from flask_socketio import join_room # pyright: ignore[reportMissingModuleSource]
+        join_room(room)
+        
+        logger.info(f"✅ User {current_user.id} connected: {sid} (joined room: {room})")
     else:
         logger.info(f"✅ Anonymous user connected: {sid}")
     emit('connection_response', {'data': 'Connected to Petsona server'})
@@ -231,4 +237,32 @@ def notify_message_read(conversation_id, message_id, read_at):
         }, room=room)
     except Exception as e:
         logger.error(f"Error notifying message read: {str(e)}")
+
+
+def notify_unread_message_count(recipient_id, unread_count):
+    """Notify a specific user about their unread message count."""
+    try:
+        logger.info(f"📡 Notifying user {recipient_id} of {unread_count} unread messages")
+        socketio.emit('unread_count_update', {
+            'unread_count': unread_count,
+            'timestamp': __import__('datetime').datetime.utcnow().isoformat()
+        }, room=f'user_{recipient_id}')
+    except Exception as e:
+        logger.error(f"Error notifying unread count: {str(e)}")
+
+
+def broadcast_message_to_navbar(recipient_id, conversation_id, sender_id, sender_name, sender_avatar, message_preview):
+    """Broadcast new message to recipient's navbar for live update."""
+    try:
+        logger.info(f"📡 Broadcasting message navbar update for user {recipient_id}")
+        socketio.emit('navbar_message_update', {
+            'conversation_id': conversation_id,
+            'sender_id': sender_id,
+            'sender_name': sender_name,
+            'sender_avatar': sender_avatar,
+            'message_preview': message_preview,
+            'timestamp': __import__('datetime').datetime.utcnow().isoformat()
+        }, room=f'user_{recipient_id}')
+    except Exception as e:
+        logger.error(f"Error broadcasting navbar message update: {str(e)}")
 

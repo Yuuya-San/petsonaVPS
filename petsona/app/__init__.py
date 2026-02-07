@@ -40,6 +40,26 @@ def create_app(config_class: type = Config):
     # Initialize config (including OAuth registration)
     config_class.init_app(app)
 
+    # Custom Jinja2 filter for converting operating days from numeric to names
+    def convert_operating_days(operating_days_str):
+        """Convert operating days from numeric string/list to day names."""
+        day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        if not operating_days_str:
+            return 'N/A'
+        try:
+            # Handle both string and list inputs
+            if isinstance(operating_days_str, str):
+                days = [int(d.strip()) for d in operating_days_str.split(',')]
+            else:
+                days = [int(d) for d in operating_days_str]
+            
+            day_list = [day_names[d] for d in days if 0 <= d < 7]
+            return ', '.join(day_list) if day_list else 'N/A'
+        except (ValueError, TypeError, IndexError):
+            return 'N/A'
+    
+    app.jinja_env.filters['operating_days'] = convert_operating_days
+
     # Flask-Login user loader
     @login_manager.user_loader
     def load_user(user_id):

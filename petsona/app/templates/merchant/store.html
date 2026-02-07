@@ -1,8 +1,8 @@
 {% extends "merchant/base.html" %}
 
 {% block content %}
-<!-- Icons Library - Remixicon CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.6.0/remixicon.min.css" />
+<!-- Icons Library - Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 <!-- Global Loader -->
 <div id="loader-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden z-50 flex items-center justify-center">
   <div class="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl max-w-sm mx-4 animate-fade-in border border-white/20">
@@ -28,45 +28,18 @@
     <div class="mb-12 animate-fade-in">
       <div class="flex items-start sm:items-center gap-6 mb-4">
         <div class="w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl flex items-center justify-center text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 transform flex-shrink-0">
-          <i class="ri-store-2-line text-3xl"></i>
+          <i class="fas fa-store text-3xl"></i>
         </div>
         <div class="flex-1">
           <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">Store Dashboard</h1>
           <p class="text-gray-600 font-medium text-sm sm:text-base mt-2 flex items-center gap-2">
-            <i class="ri-bar-chart-line text-purple-600"></i> Manage your pet care business
+            <i class="fas fa-chart-line text-purple-600"></i> Manage your pet care business
           </p>
         </div>
       </div>
     </div>
 
     {% if merchant %}
-      <!-- Status Banner - Glass Morphism -->
-      <div class="mb-12 animate-fade-in" style="animation-delay: 0.1s">
-        <div class="relative overflow-hidden rounded-2xl bg-white/80 backdrop-blur-xl shadow-lg border border-white/60 p-6 group hover:shadow-xl transition-all duration-300">
-          <div class="absolute top-0 left-0 right-0 h-1 {% if merchant.application_status == 'approved' %}bg-emerald-500{% elif merchant.application_status == 'pending' %}bg-amber-500{% else %}bg-rose-500{% endif %} rounded-t-2xl"></div>
-          <div class="flex items-start sm:items-center gap-6">
-            <div class="text-5xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              {% if merchant.application_status == 'approved' %}<i class="ri-verified-badge-fill text-emerald-500"></i>{% elif merchant.application_status == 'pending' %}<i class="ri-time-line text-amber-500"></i>{% else %}<i class="ri-alert-line text-rose-500"></i>{% endif %}
-            </div>
-            <div class="flex-1">
-              {% if merchant.application_status == 'approved' %}
-                <h3 class="text-lg font-bold text-emerald-700">Store Verified & Live</h3>
-                <p class="text-gray-600 text-sm mt-1">Your store is verified and visible to customers worldwide</p>
-              {% elif merchant.application_status == 'pending' %}
-                <h3 class="text-lg font-bold text-amber-700">Pending Verification</h3>
-                <p class="text-gray-600 text-sm mt-1">Your store is under review. We'll notify you within 24-48 hours</p>
-              {% else %}
-                <h3 class="text-lg font-bold text-rose-700">Changes Required</h3>
-                <p class="text-gray-600 text-sm mt-1">{{ merchant.rejection_reason or 'Please update your store information' }}</p>
-              {% endif %}
-            </div>
-            <a href="{{ url_for('merchant.store_edit') }}" class="hidden sm:flex px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 items-center gap-2 flex-shrink-0">
-              <i class="ri-edit-line"></i>
-              <span>Edit</span>
-            </a>
-          </div>
-        </div>
-      </div>
 
       <!-- Main Layout -->
       <div class="grid grid-cols-1 md:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-10 sm:mb-12">
@@ -75,7 +48,7 @@
         <div class="md:col-span-3 space-y-4 sm:space-y-5 lg:space-y-6 animate-fade-in" style="animation-delay: 0.2s">
           
           <!-- Store Header Card -->
-          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-white/60 hover:border-purple-200/60 transition-all duration-300 animate-fade-in hover:shadow-xl" style="animation-delay: 0.2s">
+          <div class=\"group bg-white/65 backdrop-blur-3xl rounded-3xl sm:rounded-4xl shadow-2xl overflow-hidden border border-white/70 hover:border-purple-300/70 transition-all duration-300 animate-fade-in hover:shadow-2xl\" style=\"animation-delay: 0.2s\">
             <!-- Banner -->
             <div class="h-32 sm:h-40 bg-gradient-to-br from-purple-100 to-lavender-50 relative overflow-hidden">
               <div class="absolute inset-0 opacity-10">
@@ -89,33 +62,42 @@
             <div class="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
               <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-24 sm:-mt-28 mb-6 sm:mb-8 relative z-10">
                 <!-- Logo -->
-                <div class="relative">
-                  <div class="w-32 h-32 sm:w-40 sm:h-40 bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl border-4 border-purple-200/60 shadow-lg flex items-center justify-center overflow-hidden group/logo hover:shadow-xl transition-all duration-300">
+                <div class="relative w-32 h-32 sm:w-40 sm:h-40">
+                  <div class="w-full h-full bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl border-4 border-purple-200/60 shadow-lg flex items-center justify-center overflow-hidden group/logo hover:shadow-xl transition-all duration-300">
                     {% if merchant.logo_path %}
                       {% if merchant.logo_path.startswith('/') or merchant.logo_path.startswith('http') %}
                         <img id="store-logo" 
-                             src="{{ merchant.logo_path }}" 
-                             alt="{{ merchant.business_name }}" 
-                             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;text-6xl text-gray-300&quot;><i class=&quot;ri-shopping-bag-line&quot;></i></div>'"
-                             class="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-300">
+                            src="{{ merchant.logo_path }}" 
+                            alt="{{ merchant.business_name }}" 
+                            onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;text-6xl text-gray-300&quot;><i class=&quot;fas fa-bag-shopping&quot;></i></div>'"
+                            class="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-300">
                       {% else %}
                         <img id="store-logo" 
-                             src="{{ url_for('static', filename=merchant.logo_path) }}" 
-                             alt="{{ merchant.business_name }}" 
-                             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;text-6xl text-gray-300&quot;><i class=&quot;ri-shopping-bag-line&quot;></i></div>'"
-                             class="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-300">
+                            src="{{ url_for('static', filename=merchant.logo_path) }}" 
+                            alt="{{ merchant.business_name }}" 
+                            onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;text-6xl text-gray-300&quot;><i class=&quot;fas fa-bag-shopping&quot;></i></div>'"
+                            class="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-300">
                       {% endif %}
                     {% else %}
                       <div class="text-6xl text-gray-300 group-hover/logo:scale-125 transition-transform duration-300">
-                        <i class="ri-shopping-bag-line"></i>
+                        <i class="fas fa-bag-shopping"></i>
                       </div>
                     {% endif %}
                   </div>
-                  <button onclick="openLogoUploadModal()" class="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 border-4 border-white active:scale-95 group/btn transform">
-                    <i class="ri-camera-fill text-lg"></i>
-                  </button>
+
+                  <!-- Edit button pinned to logo corner -->
+                  <a href="{{ url_for('merchant.store_edit') }}"
+                    class="absolute right-1 bottom-1 sm:right-2 sm:bottom-2
+                            bg-transparent
+                            text-purple-600 hover:text-purple-700
+                            rounded-full p-2 sm:p-2.5
+                            transition-all duration-300
+                            active:scale-95"
+                    title="Edit Store">
+                    <i class="fas fa-pen text-base sm:text-lg drop-shadow-md"></i>
+                  </a>
                 </div>
-                
+   
                 <!-- Store Name & Status -->
                 <div class="flex-1 w-full">
                   <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">{{ merchant.business_name }}</h2>
@@ -123,15 +105,9 @@
                     <div class="flex items-center gap-2">
                       <div class="w-4 h-4 {% if merchant.is_approved %}bg-emerald-500 shadow-lg shadow-emerald-500/50{% else %}bg-amber-500 shadow-lg shadow-amber-500/50{% endif %} rounded-full animate-pulse"></div>
                       <span class="font-medium text-sm {% if merchant.is_approved %}text-emerald-700{% else %}text-amber-700{% endif %}">
-                        {% if merchant.is_approved %}<i class="ri-check-line"></i> Online & Verified{% else %}<i class="ri-time-line"></i> Pending{% endif %}
+                        {% if merchant.is_approved %}<i class="fas fa-check"></i> Online & Verified{% else %}<i class="fas fa-hourglass-end"></i> Pending{% endif %}
                       </span>
                     </div>
-                  </div>
-                  <div class="flex gap-2 sm:gap-3">
-                    <a href="{{ url_for('merchant.store_edit') }}" class="px-4 sm:px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm sm:text-base transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 flex items-center gap-2 inline-flex">
-                      <i class="ri-edit-line"></i>
-                      <span>Edit Store</span>
-                    </a>
                   </div>
                 </div>
               </div>
@@ -139,36 +115,36 @@
               <!-- Info Cards -->
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6 sm:mb-8">
                 <!-- Email -->
-                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                <div class="group bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-white/70 hover:border-purple-300/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-visible">
                   <div class="relative z-10">
-                    <div class="text-3xl mb-2 text-purple-600">📧</div>
+                    <div class="text-lg mb-2 text-purple-600"><i class="fa-solid fa-envelope"></i></div>
                     <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Email</p>
                     <p class="text-xs font-semibold text-gray-900 break-all" title="{{ merchant.contact_email }}">{{ merchant.contact_email }}</p>
                   </div>
                 </div>
                 
                 <!-- Phone -->
-                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                <div class="group bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-white/70 hover:border-purple-300/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-visible">
                   <div class="relative z-10">
-                    <div class="text-3xl mb-2">📱</div>
+                    <div class="text-lg mb-2 text-purple-600"><i class="fa-solid fa-phone"></i></div>
                     <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Phone</p>
                     <p class="text-xs font-semibold text-gray-900 break-all">{{ merchant.contact_phone }}</p>
                   </div>
                 </div>
                 
                 <!-- Location -->
-                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                <div class="group bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-white/70 hover:border-purple-300/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-visible">
                   <div class="relative z-10">
-                    <div class="text-3xl mb-2">📍</div>
+                    <div class="text-lg mb-2 text-purple-600"><i class="fa-solid fa-location-dot"></i></div>
                     <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Location</p>
                     <p class="text-xs font-semibold text-gray-900 break-words">{% if merchant.barangay %}{{ merchant.barangay }}, {% endif %}{{ merchant.city }}, {{ merchant.province }}</p>
                   </div>
                 </div>
                 
                 <!-- Hours -->
-                <div class="group bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/80 hover:border-purple-200/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-visible">
+                <div class="group bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-white/70 hover:border-purple-300/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-visible">
                   <div class="relative z-10">
-                    <div class="text-3xl mb-2">🕐</div>
+                    <div class="text-lg mb-2 text-purple-600"><i class="fa-solid fa-clock"></i></div>
                     <p class="text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Hours</p>
                     <p class="text-xs font-semibold text-gray-900 break-words">{{ merchant.opening_time }} - {{ merchant.closing_time }}</p>
                   </div>
@@ -177,9 +153,9 @@
 
               <!-- Details Sections -->
               {% if merchant.get_services_list() %}
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4 w-full">
+              <div class="bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all duration-300 mb-3 sm:mb-4 w-full">
                 <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <i class="ri-briefcase-line text-purple-600 text-lg"></i> Services Offered
+                  <i class="fas fa-briefcase text-purple-600 text-lg"></i> Services Offered
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
                   {% for service in merchant.get_services_list() %}
@@ -192,9 +168,9 @@
               {% endif %}
 
               {% if merchant.get_pets_list() %}
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4 w-full">
+              <div class="bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all duration-300 mb-3 sm:mb-4 w-full">
                 <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <i class="ri-animal-paw-line text-rose-600 text-lg"></i> Pets Accepted
+                  <i class="fas fa-paw text-rose-600 text-lg"></i> Pets Accepted
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
                   {% for pet in merchant.get_pets_list() %}
@@ -206,9 +182,9 @@
               </div>
               {% endif %}
 
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+              <div class="bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all duration-300 mb-3 sm:mb-4">
                 <h4 class="font-bold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
-                  <i class="ri-user-heart-line text-purple-600 text-lg"></i> Capacity & Pricing
+                  <i class="fas fa-heart text-purple-600 text-lg"></i> Capacity & Pricing
                 </h4>
                 <div class="space-y-2 text-gray-700 text-sm">
                   <p><strong>Max pets per day:</strong> {{ merchant.max_pets_per_day }}</p>
@@ -217,34 +193,34 @@
               </div>
 
               {% if merchant.get_operating_days() %}
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+              <div class="bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all duration-300 mb-3 sm:mb-4">
                 <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <i class="ri-calendar-schedule-line text-amber-600 text-lg"></i> Operating Days
+                  <i class="fas fa-calendar-check text-amber-600 text-lg"></i> Operating Days
                 </h4>
-                <p class="text-gray-700 text-sm">{{ merchant.get_operating_days()|join(', ') }}</p>
+                <p class="text-gray-700 text-sm">{{ merchant.get_operating_days()|operating_days }}</p>
               </div>
               {% endif %}
 
               {% if merchant.business_description %}
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+              <div class="bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all duration-300 mb-3 sm:mb-4">
                 <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <i class="ri-file-text-line text-indigo-600 text-lg"></i> Store Description
+                  <i class="fas fa-file-lines text-indigo-600 text-lg"></i> Store Description
                 </h4>
                 <p class="text-gray-700 leading-relaxed text-sm">{{ merchant.business_description }}</p>
               </div>
               {% endif %}
 
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-3 sm:mb-4">
+              <div class="bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all duration-300 mb-3 sm:mb-4">
                 <h4 class="font-bold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
-                  <i class="ri-map-pin-line text-purple-600 text-lg"></i> Full Address
+                  <i class="fas fa-location-dot text-purple-600 text-lg"></i> Full Address
                 </h4>
                 <p class="text-gray-700 text-sm">{{ merchant.full_address }}{% if merchant.postal_code %}, {{ merchant.postal_code }}{% endif %}</p>
               </div>
 
               {% if merchant.cancellation_policy %}
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-5 border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 mb-6 sm:mb-8">
+              <div class="bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all duration-300 mb-6 sm:mb-8">
                 <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <i class="ri-prohibition-line text-red-600 text-lg"></i> Cancellation Policy
+                  <i class="fas fa-ban text-red-600 text-lg"></i> Cancellation Policy
                 </h4>
                 <p class="text-gray-700 leading-relaxed text-sm">{{ merchant.cancellation_policy }}</p>
               </div>
@@ -256,79 +232,79 @@
         <!-- Stats Sidebar -->
         <div class="md:col-span-2 space-y-2 sm:space-y-3 animate-fade-in" style="animation-delay: 0.3s">
           <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-            <i class="ri-pie-chart-2-line text-purple-600 text-xl sm:text-2xl"></i> Performance
+            <i class="fas fa-chart-pie text-purple-600 text-xl sm:text-2xl"></i> Performance
           </h3>
           
           <!-- Stat Cards - Glass Morphism -->
-          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+          <div class="bg-white/60 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 shadow-xl border border-white/70 hover:border-purple-300/60 transition-all duration-300 hover:shadow-2xl">
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Bookings</p>
                 <p class="text-3xl font-bold text-purple-600 mt-2">{{ booking_count }}</p>
               </div>
               <div class="text-3xl text-purple-200">
-                <i class="ri-calendar-2-line"></i>
+                <i class="fas fa-calendar"></i>
               </div>
             </div>
           </div>
 
 
-          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+          <div class="bg-white/60 backdrop-blur-2xl rounded-3xl p-5 shadow-xl border border-white/70 hover:border-purple-300/60 transition-all duration-300 hover:shadow-2xl">
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Store Rating</p>
                 <p class="text-3xl font-bold text-amber-600 mt-2">{{ store_rating }}<span class="text-xl">/5</span></p>
               </div>
               <div class="text-3xl text-amber-200">
-                <i class="ri-star-line"></i>
+                <i class="fas fa-star"></i>
               </div>
             </div>
           </div>
 
-          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+          <div class="bg-white/60 backdrop-blur-2xl rounded-3xl p-5 shadow-xl border border-white/70 hover:border-purple-300/60 transition-all duration-300 hover:shadow-2xl">
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Completion Rate</p>
                 <p class="text-3xl font-bold text-purple-600 mt-2">{{ completion_rate }}<span class="text-xl">%</span></p>
               </div>
               <div class="text-3xl text-purple-200">
-                <i class="ri-checkbox-fill"></i>
+                <i class="fas fa-square-check"></i>
               </div>
             </div>
           </div>
 
-          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+          <div class="bg-white/60 backdrop-blur-2xl rounded-3xl p-5 shadow-xl border border-white/70 hover:border-purple-300/60 transition-all duration-300 hover:shadow-2xl">
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Avg Response</p>
                 <p class="text-3xl font-bold text-emerald-600 mt-2">{{ avg_response_time }}</p>
               </div>
               <div class="text-3xl text-emerald-200">
-                <i class="ri-lightning-fill"></i>
+                <i class="fas fa-bolt"></i>
               </div>
             </div>
           </div>
 
-          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+          <div class="bg-white/60 backdrop-blur-2xl rounded-3xl p-5 shadow-xl border border-white/70 hover:border-purple-300/60 transition-all duration-300 hover:shadow-2xl">
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Earnings</p>
                 <p class="text-2xl font-bold text-rose-600 mt-2">{{ merchant_earnings }}</p>
               </div>
               <div class="text-3xl text-rose-200">
-                <i class="ri-money-dollar-circle-line"></i>
+                <i class="fas fa-circle-dollar-to-slot"></i>
               </div>
             </div>
           </div>
 
-          <div class="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/60 hover:border-purple-200/60 transition-all duration-300">
+          <div class="bg-white/60 backdrop-blur-2xl rounded-3xl p-5 shadow-xl border border-white/70 hover:border-purple-300/60 transition-all duration-300 hover:shadow-2xl">
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">This Month</p>
                 <p class="text-3xl font-bold text-orange-600 mt-2">{{ bookings_this_month }}</p>
               </div>
               <div class="text-3xl text-orange-200">
-                <i class="ri-bar-chart-2-line"></i>
+                <i class="fas fa-chart-bar"></i>
               </div>
             </div>
           </div>
@@ -338,17 +314,17 @@
       <!-- Booking Status Overview -->
       <div class="mb-10 sm:mb-12 animate-fade-in w-full" style="animation-delay: 0.4s">
         <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-          <i class="ri-pie-chart-line text-purple-600 text-xl sm:text-2xl"></i> Booking Status Overview
+          <i class="fas fa-chart-pie text-purple-600 text-xl sm:text-2xl"></i> Booking Status Overview
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-4 w-full">
           <!-- Confirmed -->
-          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-emerald-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+          <div class="group bg-white/60 backdrop-blur-2xl rounded-3xl p-4 sm:p-6 shadow-xl border-l-4 border-l-emerald-500 border border-white/70 hover:border-purple-300/60 hover:shadow-2xl transition-all duration-300">
             <div class="flex items-start justify-between mb-3">
               <div class="text-3xl text-emerald-500">
-                <i class="ri-check-line"></i>
+                <i class="fas fa-check"></i>
               </div>
               <div class="text-3xl text-emerald-100">
-                <i class="ri-check-double-fill"></i>
+                <i class="fas fa-circle-check"></i>
               </div>
             </div>
             <p class="text-3xl sm:text-4xl font-bold text-emerald-600 mb-1">{{ confirmed_bookings }}</p>
@@ -356,13 +332,13 @@
           </div>
 
           <!-- Pending -->
-          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-amber-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+          <div class="group bg-white/60 backdrop-blur-2xl rounded-3xl p-4 sm:p-6 shadow-xl border-l-4 border-l-amber-500 border border-white/70 hover:border-purple-300/60 hover:shadow-2xl transition-all duration-300">
             <div class="flex items-start justify-between mb-3">
               <div class="text-3xl text-amber-500">
-                <i class="ri-time-line"></i>
+                <i class="fas fa-hourglass-end"></i>
               </div>
               <div class="text-3xl text-amber-100">
-                <i class="ri-timer-flash-fill"></i>
+                <i class="fas fa-hourglass-end"></i>
               </div>
             </div>
             <p class="text-3xl sm:text-4xl font-bold text-amber-600 mb-1">{{ pending_bookings }}</p>
@@ -370,13 +346,13 @@
           </div>
 
           <!-- Completed -->
-          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-cyan-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+          <div class="group bg-white/60 backdrop-blur-2xl rounded-3xl p-4 sm:p-6 shadow-xl border-l-4 border-l-cyan-500 border border-white/70 hover:border-purple-300/60 hover:shadow-2xl transition-all duration-300">
             <div class="flex items-start justify-between mb-3">
               <div class="text-3xl text-cyan-500">
-                <i class="ri-verified-badge-line"></i>
+                <i class="fas fa-badge-check"></i>
               </div>
               <div class="text-3xl text-cyan-100">
-                <i class="ri-checkbox-circle-fill"></i>
+                <i class="fas fa-circle-check"></i>
               </div>
             </div>
             <p class="text-3xl sm:text-4xl font-bold text-cyan-600 mb-1">{{ completed_bookings }}</p>
@@ -384,13 +360,13 @@
           </div>
 
           <!-- Cancelled -->
-          <div class="group bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-xl p-4 sm:p-6 shadow-lg border-l-4 border-l-rose-500 border border-white/60 hover:border-purple-200/60 hover:shadow-xl transition-all duration-300">
+          <div class="group bg-white/60 backdrop-blur-2xl rounded-3xl p-4 sm:p-6 shadow-xl border-l-4 border-l-rose-500 border border-white/70 hover:border-purple-300/60 hover:shadow-2xl transition-all duration-300">
             <div class="flex items-start justify-between mb-3">
               <div class="text-3xl text-rose-500">
-                <i class="ri-close-line"></i>
+                <i class="fas fa-xmark"></i>
               </div>
               <div class="text-3xl text-rose-100">
-                <i class="ri-error-warning-fill"></i>
+                <i class="fas fa-triangle-exclamation"></i>
               </div>
             </div>
             <p class="text-4xl font-bold text-rose-600 mb-1">{{ cancelled_bookings }}</p>
@@ -399,58 +375,56 @@
         </div>
       </div>
 
-      <!-- Recent Bookings Table -->
-      <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/60 overflow-hidden animate-fade-in" style="animation-delay: 0.5s">
-        <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-white/40 bg-white/60 backdrop-blur-sm">
+      <!-- Recent Bookings Table (Matching merchant_applications.html design) -->
+      <div class="bookings-card animate-fade-in" style="animation-delay: 0.5s">
+        <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-white/40 bg-white/50 backdrop-blur-md">
           <h3 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-3">
-            <i class="ri-time-line text-purple-600 text-xl sm:text-2xl"></i> Recent Bookings
+            <i class="fas fa-calendar-check text-purple-600 text-xl sm:text-2xl"></i> Recent Bookings
           </h3>
         </div>
         
         {% if recent_bookings %}
-          <div class="overflow-x-auto w-full">
-            <table class="w-full min-w-max">
+          <div class="table-container">
+            <table class="bookings-table">
               <thead>
-                <tr class="border-b border-white/40 bg-white/40 backdrop-blur-sm">
-                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Booking ID</th>
-                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Customer</th>
-                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Dates</th>
-                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Status</th>
-                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Amount</th>
-                  <th class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-center text-xs font-bold text-gray-700 uppercase whitespace-nowrap">Action</th>
+                <tr>
+                  <th class="th-booking-id">Booking</th>
+                  <th class="th-customer">Customer</th>
+                  <th class="th-dates">Dates</th>
+                  <th class="th-status">Status</th>
+                  <th class="th-amount">Amount</th>
+                  <th class="th-actions">Action</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-white/40">
+              <tbody>
                 {% for booking in recent_bookings %}
-                <tr class="hover:bg-purple-50/50 transition-colors duration-200 backdrop-blur-sm">
-                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4">
-                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200 whitespace-nowrap">
-                      {{ booking.booking_number }}
-                    </span>
+                <tr>
+                  <td class="td-booking-id" data-label="Booking">
+                    <span class="booking-badge">{{ booking.booking_number }}</span>
                   </td>
-                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4">
-                    <div>
-                      <p class="font-semibold text-gray-900 text-xs sm:text-sm break-words">{{ booking.customer_name }}</p>
-                      <p class="text-xs text-gray-500 break-all">{{ booking.customer_email }}</p>
+                  <td class="td-customer" data-label="Customer">
+                    <div class="customer-info">
+                      <p class="customer-name" title="{{ booking.customer_name }}">{{ booking.customer_name }}</p>
+                      <p class="customer-email" title="{{ booking.customer_email }}">{{ booking.customer_email }}</p>
                     </div>
                   </td>
-                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-gray-700 text-xs sm:text-sm whitespace-nowrap">
-                    {{ booking.check_in_date.strftime('%b %d') }} - {{ booking.check_out_date.strftime('%b %d, %Y') }}
+                  <td class="td-dates" data-label="Dates">
+                    <span class="date-range">{{ booking.check_in_date.strftime('%b %d') }} - {{ booking.check_out_date.strftime('%b %d, %Y') }}</span>
                   </td>
-                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4">
-                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold whitespace-nowrap
-                      {% if booking.status == 'confirmed' %}bg-emerald-100 text-emerald-700 border border-emerald-200{% elif booking.status == 'pending' %}bg-amber-100 text-amber-700 border border-amber-200{% elif booking.status == 'completed' %}bg-cyan-100 text-cyan-700 border border-cyan-200{% else %}bg-rose-100 text-rose-700 border border-rose-200{% endif %}">
-                      <i class="ri-{% if booking.status == 'confirmed' %}check-line{% elif booking.status == 'pending' %}time-line{% elif booking.status == 'completed' %}verified-badge-line{% else %}close-line{% endif %} mr-1"></i>
+                  <td class="td-status" data-label="Status">
+                    <span class="status-badge {% if booking.status == 'confirmed' %}confirmed{% elif booking.status == 'pending' %}pending{% elif booking.status == 'completed' %}completed{% else %}cancelled{% endif %}">
                       {{ booking.status.capitalize() }}
                     </span>
                   </td>
-                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 font-semibold text-gray-900 text-xs sm:text-sm whitespace-nowrap">
-                    ₱{{ '%.2f'|format(booking.total_amount) }}
+                  <td class="td-amount" data-label="Amount">
+                    <span class="amount">₱{{ '%.2f'|format(booking.total_amount) }}</span>
                   </td>
-                  <td class="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-center">
-                    <button class="inline-flex items-center justify-center w-8 sm:w-9 h-8 sm:h-9 rounded-lg bg-white/60 hover:bg-purple-600 text-gray-600 hover:text-white transition-all duration-300 border border-gray-200 hover:border-purple-600 shadow-sm hover:shadow-md transform hover:scale-110 active:scale-95 flex-shrink-0">
-                      <i class="ri-eye-line text-sm sm:text-base"></i>
-                    </button>
+                  <td class="td-actions" data-label="Action">
+                    <div class="action-group">
+                      <button class="action-btn view" title="View Details">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 {% endfor %}
@@ -458,12 +432,14 @@
             </table>
           </div>
         {% else %}
-          <div class="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
-            <div class="text-4xl sm:text-5xl mb-4 text-purple-200">
-              <i class="ri-calendar-blank-line"></i>
+          <div class="empty-state">
+            <div class="empty-content">
+              <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10m-10 8a2 2 0 100-4 2 2 0 000 4z"/>
+              </svg>
+              <p class="font-semibold text-gray-900 mb-2">No Bookings Yet</p>
+              <p class="text-sm text-gray-600">Your first booking will appear here</p>
             </div>
-            <h4 class="text-base sm:text-lg font-bold text-gray-900 mb-2">No Bookings Yet</h4>
-            <p class="text-gray-600 text-xs sm:text-sm">Your first booking will appear here</p>
           </div>
         {% endif %}
       </div>
@@ -472,12 +448,12 @@
       <!-- No Store Information -->
       <div class="flex flex-col items-center justify-center py-16 sm:py-24 px-4 sm:px-6">
         <div class="text-6xl sm:text-8xl mb-4 sm:mb-6 text-purple-200">
-          <i class="ri-shopping-cart-2-line"></i>
+          <i class="fas fa-cart-shopping"></i>
         </div>
         <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">No Store Information Found</h2>
         <p class="text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base max-w-sm text-center">Complete your merchant application to set up your store</p>
         <a href="{{ url_for('merchant.apply') }}" class="bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold py-2 sm:py-3 px-6 sm:px-8 rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg text-sm sm:text-base">
-          <i class="ri-add-line text-base sm:text-lg"></i>
+          <i class="fas fa-plus text-base sm:text-lg"></i>
           Start Application
         </a>
       </div>
@@ -489,12 +465,12 @@
 <div id="logoUploadModal" class="fixed inset-0 bg-black/30 backdrop-blur-md hidden z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in" onclick="if(event.target === this) closeLogoUploadModal()">
   <div class="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl max-w-md w-full animate-scale-in border border-white/60 overflow-hidden">
     <!-- Modal Header -->
-    <div class="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-white/40 bg-white/60 backdrop-blur-sm">
+    <div class="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-white/40 bg-white/50 backdrop-blur-md">
       <h2 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
-        <i class="ri-image-add-line text-purple-600 text-xl sm:text-2xl"></i> Upload Store Logo
+        <i class="fas fa-image text-purple-600 text-xl sm:text-2xl"></i> Upload Store Logo
       </h2>
       <button type="button" onclick="closeLogoUploadModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 text-lg sm:text-xl">
-        <i class="ri-close-line"></i>
+        <i class="fas fa-xmark"></i>
       </button>
     </div>
 
@@ -509,7 +485,7 @@
           <p class="text-xs text-gray-500 mb-4 sm:mb-5">JPG, PNG • Max 5MB • Recommended: 300×300px</p>
 
           <button type="button" id="chooseImageBtn" class="inline-flex items-center gap-2 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg hover:shadow-lg transition-all duration-300 shadow-md transform hover:scale-105 active:scale-95 text-sm sm:text-base">
-            <i class="ri-upload-cloud-2-line"></i> Choose Image
+            <i class="fas fa-cloud-arrow-up"></i> Choose Image
           </button>
 
           <input
@@ -542,12 +518,12 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-white/40 bg-white/60 backdrop-blur-sm">
+      <div class="flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-white/40 bg-white/50 backdrop-blur-md">
         <button type="button" onclick="closeLogoUploadModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-300 text-sm">
           Cancel
         </button>
         <button type="submit" id="uploadBtn" class="flex-1 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-md transform hover:scale-105 active:scale-95 text-sm">
-          <i class="ri-upload-fill"></i>
+          <i class="fas fa-arrow-up-from-bracket"></i>
           <span>Upload</span>
         </button>
       </div>
@@ -592,7 +568,8 @@
   }
 
   #uploadArea.drag-over {
-    @apply border-purple-500 bg-purple-100/50;
+    border-color: #a855f7;
+    background-color: rgba(243, 232, 255, 0.5);
   }
 
   .hidden { display: none; }
@@ -609,6 +586,386 @@
     transition-property: background-color, border-color, color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* ==========================================
+     BOOKINGS TABLE - MATCHING merchant_applications.html
+     ========================================== */
+
+  :root {
+    --primary: #a855f7;
+    --primary-dark: #9333ea;
+    --primary-light: #c084fc;
+    --text-dark: #111827;
+    --text-gray: #6b7280;
+    --border-radius: 12px;
+  }
+
+  .bookings-card {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1.5px solid rgba(168, 85, 247, 0.28);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 
+      0 20px 64px rgba(168, 85, 247, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 0 3px rgba(168, 85, 247, 0.12);
+    border-radius: 24px;
+    overflow: hidden;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bookings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .bookings-table thead {
+    background: rgba(168, 85, 247, 0.12);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    backdrop-filter: blur(20px);
+  }
+
+  .bookings-table th {
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    white-space: nowrap;
+    border: none;
+  }
+
+  .th-booking-id { width: 15%; }
+  .th-customer { width: 30%; }
+  .th-dates { width: 25%; }
+  .th-status { width: 15%; }
+  .th-amount { width: 10%; }
+  .th-actions { width: 5%; text-align: center; }
+
+  .bookings-table tbody tr {
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    transition: all 0.2s ease;
+  }
+
+  .bookings-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+  }
+
+  .bookings-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .bookings-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: var(--text-dark);
+    border: none;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .td-booking-id { width: 15%; font-weight: 600; }
+  .td-customer { width: 30%; }
+  .td-dates { width: 25%; text-align: left; }
+  .td-status { width: 15%; text-align: left; }
+  .td-amount { width: 10%; text-align: left; }
+  .td-actions { width: 5%; text-align: center; }
+
+  .booking-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--primary);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+  }
+
+  .customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .customer-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .customer-email {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .date-range {
+    font-size: 0.875rem;
+    color: var(--text-dark);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+    border: 1px solid transparent;
+  }
+
+  .status-badge.confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+
+  .status-badge.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+
+  .status-badge.completed {
+    background: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+    border-color: rgba(6, 182, 212, 0.2);
+  }
+
+  .status-badge.cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  .amount {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.875rem;
+  }
+
+  .action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.08);
+    backdrop-filter: blur(10px);
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+    font-weight: 600;
+    padding: 0;
+  }
+
+  .action-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+  }
+
+  .action-btn.view {
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .action-btn.view:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .empty-content {
+    color: var(--text-gray);
+  }
+
+  .empty-content svg {
+    opacity: 0.5;
+    color: var(--primary);
+  }
+
+  .empty-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  /* Responsive Table Design */
+  @media (max-width: 1024px) {
+    .bookings-table th,
+    .bookings-table td {
+      padding: 0.875rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .bookings-card {
+      border-radius: var(--border-radius);
+    }
+
+    .table-container {
+      overflow-x: visible;
+    }
+
+    .bookings-table thead {
+      display: none;
+    }
+
+    .bookings-table,
+    .bookings-table tbody,
+    .bookings-table tr,
+    .bookings-table td {
+      display: block;
+      width: 100%;
+    }
+
+    .bookings-table tbody tr {
+      margin-bottom: 1rem;
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(168, 85, 247, 0.15);
+      padding: 1.25rem;
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.08);
+      transition: all 0.2s ease;
+    }
+
+    .bookings-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 6px 16px rgba(168, 85, 247, 0.12);
+    }
+
+    .bookings-table td {
+      padding: 0.875rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--text-dark);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    }
+
+    .bookings-table td:last-child {
+      border-bottom: none;
+    }
+
+    .bookings-table td::before {
+      content: attr(data-label);
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      flex-shrink: 0;
+      min-width: 80px;
+    }
+
+    .td-booking-id,
+    .td-customer,
+    .td-dates,
+    .td-status,
+    .td-amount,
+    .td-actions {
+      width: 100%;
+      text-align: right;
+    }
+
+    .booking-badge,
+    .customer-name,
+    .date-range,
+    .status-badge,
+    .amount {
+      white-space: normal;
+      text-align: right;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .customer-info {
+      flex: 1;
+      align-items: flex-end;
+    }
+
+    .action-group {
+      flex: 1;
+      justify-content: flex-end;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .bookings-table tbody tr {
+      padding: 1rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .bookings-table td {
+      padding: 0.625rem 0;
+      font-size: 0.8125rem;
+    }
+
+    .bookings-table td::before {
+      font-size: 0.6875rem;
+      min-width: 70px;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+    }
+
+    .action-btn i {
+      font-size: 0.875rem;
+    }
+  }
+}
 </style>
 
 <!-- Scripts -->

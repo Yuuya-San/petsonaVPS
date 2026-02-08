@@ -19,16 +19,23 @@ import pyotp
 import secrets
 
 
-
 DEFAULT_AVATARS = [
-    "images/avatar/cat.png",
-    "images/avatar/dog.png",
-    "images/avatar/frog-.png",
-    "images/avatar/hamster.png",
-    "images/avatar/penguin.png",
-    "images/avatar/puffer-fish.png",
-    "images/avatar/rabbit.png",
-    "images/avatar/snake.png"
+    "images/avatar/avatar-1.png",
+    "images/avatar/avatar-2.png",
+    "images/avatar/avatar-3.png",
+    "images/avatar/avatar-4.png",
+    "images/avatar/avatar-5.png",
+    "images/avatar/avatar-6.png",
+    "images/avatar/avatar-7.png",
+    "images/avatar/avatar-8.png",
+    "images/avatar/avatar-9.png",
+    "images/avatar/avatar-10.png",
+    "images/avatar/avatar-11.png",
+    "images/avatar/avatar-12.png",
+    "images/avatar/avatar-13.png",
+    "images/avatar/avatar-14.png",
+    "images/avatar/avatar-15.png",
+    "images/avatar/avatar-16.png",
 ]
 
 def get_serializer():

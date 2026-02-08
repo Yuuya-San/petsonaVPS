@@ -554,6 +554,10 @@
                     <h3 class="card-title-modern">Personal Information</h3>
                 </div>
                 <div class="info-row">
+                    <span class="info-label"><i class="fa-solid fa-id-badge"></i> User ID</span>
+                    <span class="info-value">USER-{{ user.created_at.year}}-{{ user.id or '—' }}</span>
+                </div>
+                <div class="info-row">
                     <span class="info-label"><i class="fas fa-user"></i> First Name</span>
                     <span class="info-value">{{ user.first_name or '—' }}</span>
                 </div>

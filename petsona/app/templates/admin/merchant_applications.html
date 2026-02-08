@@ -283,7 +283,7 @@
                                 </div>
                                 <div>
                                     <p class="text-gray-600 text-xs font-semibold uppercase">ID</p>
-                                    <p class="text-gray-900 font-bold text-sm mt-1.5 font-mono" x-text="'MC-2026-' + selectedApp.id"></p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5 font-mono" x-text="'MC-' + selectedApp.year + '-' + selectedApp.id"></p>
                                 </div>
                                 <div>
                                     <p class="text-gray-600 text-xs font-semibold uppercase">Type</p>
@@ -719,6 +719,7 @@ function merchantApplications() {
                     console.log('Processing merchant:', m.id, m.business_name, m.application_status);
                     return {
                         id: m.id,
+                        year: m.created_at ? m.created_at.split('T')[0].split('-')[0] : '',
                         business_name: m.business_name,
                         business_type: m.business_type,
                         owner_name: m.owner_manager_name,

@@ -651,13 +651,12 @@
                             title="View"
                             data-toggle="modal"
                             data-target="#viewUserModal"
-                            data-user-id="{{ user.id }}"
+                            data-user-id="USER-{{ user.created_at.year }}-{{ user.id }}"
                             data-user-name="{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}"
                             data-user-email="{{ user.email }}"
                             data-user-role="{{ user.role | capitalize }}"
                             data-user-first-name="{{ user.first_name or '' }}"
                             data-user-last-name="{{ user.last_name or '' }}"
-                            data-user-phone="{{ user.phone or 'N/A' }}"
                             data-user-created="{{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}">
                       <i class="fas fa-eye"></i>
                     </button>
@@ -749,7 +748,7 @@
         <div class="user-preview">
           <div class="preview-item">
             <span class="preview-label">ID</span>
-            <span id="viewUserId" class="preview-value">USER-2026-<span id="viewUserIdNum"></span></span>
+            <span id="viewUserId" class="preview-value"><span id="viewUserIdNum"></span></span>
           </div>
           <div class="preview-item">
             <span class="preview-label">Full Name</span>
@@ -762,10 +761,6 @@
           <div class="preview-item">
             <span class="preview-label">Role</span>
             <span id="viewUserRole" class="preview-value"></span>
-          </div>
-          <div class="preview-item">
-            <span class="preview-label">Phone</span>
-            <span id="viewUserPhone" class="preview-value"></span>
           </div>
           <div class="preview-item">
             <span class="preview-label">Joined</span>

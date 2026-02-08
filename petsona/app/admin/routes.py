@@ -462,6 +462,7 @@ def get_merchants():
             try:
                 merchant_dict = {
                     'id': merchant.id,
+                    'year': merchant.created_at.year,
                     'business_name': merchant.business_name or 'N/A',
                     'business_type': merchant.business_type or 'N/A',
                     'owner_manager_name': merchant.owner_manager_name or 'N/A',

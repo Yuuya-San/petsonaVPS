@@ -10,6 +10,7 @@ from .forms import (
 from app.extensions import limiter, csrf
 from app.models import User, AuditLog, Merchant
 from app import db
+from sqlalchemy import func
 import random
 from app.auth.emails import send_temp_credentials
 from app.utils.audit import log_event, user_snapshot
@@ -450,26 +451,53 @@ def get_merchants():
     try:
         status = request.args.get('status', 'all')
         
-        query = Merchant.query.filter(Merchant.deleted_at == None)
+        print(f"[DEBUG] get_merchants called with status={status}")
+        
+        # First, check total merchants in DB (including soft-deleted)
+        total_merchants = Merchant.query.count()
+        print(f"[DEBUG] Total merchants in database: {total_merchants}")
+        
+        # Check how many have deleted_at set
+        deleted_merchants = Merchant.query.filter(Merchant.deleted_at.isnot(None)).count()
+        print(f"[DEBUG] Soft-deleted merchants: {deleted_merchants}")
+        
+        # Query merchants - not soft deleted
+        query = Merchant.query.filter(Merchant.deleted_at.is_(None))
+        print(f"[DEBUG] After filtering deleted_at.is_(None): {query.count()}")
         
         if status and status != 'all':
             query = query.filter_by(application_status=status)
+            print(f"[DEBUG] After filtering status={status}: {query.count()}")
         
-        merchants = query.order_by(Merchant.submitted_at.desc()).all()
+        # Use COALESCE to sort by submitted_at if available, else by created_at, as fallback
+        merchants = query.order_by(func.coalesce(Merchant.submitted_at, Merchant.created_at).desc()).all()
+        
+        print(f"[DEBUG] Found {len(merchants)} merchants")
+        if merchants:
+            print(f"[DEBUG] First merchant: ID={merchants[0].id}, name={merchants[0].business_name}, status={merchants[0].application_status}")
         
         merchants_data = []
         for merchant in merchants:
             try:
+                # Safe access to user data
+                user_email = 'N/A'
+                user_name = 'N/A'
+                if merchant.user_id:
+                    user = User.query.get(merchant.user_id)
+                    if user:
+                        user_email = user.email or 'N/A'
+                        user_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or 'N/A'
+                
                 merchant_dict = {
                     'id': merchant.id,
-                    'year': merchant.created_at.year,
+                    'year': merchant.created_at.year if merchant.created_at else '',
                     'business_name': merchant.business_name or 'N/A',
-                    'business_type': merchant.business_type or 'N/A',
+                    'business_category': merchant.business_category or 'N/A',
                     'owner_manager_name': merchant.owner_manager_name or 'N/A',
                     'contact_email': merchant.contact_email or 'N/A',
                     'contact_phone': merchant.contact_phone or 'N/A',
-                    'user_email': merchant.user.email if merchant.user else 'N/A',
-                    'user_name': f"{merchant.user.first_name} {merchant.user.last_name}" if merchant.user else 'N/A',
+                    'user_email': user_email,
+                    'user_name': user_name,
                     'city': merchant.city or 'N/A',
                     'province': merchant.province or 'N/A',
                     'barangay': merchant.barangay or 'N/A',
@@ -479,9 +507,7 @@ def get_merchants():
                     'full_address': merchant.full_address or 'N/A',
                     'services_offered': merchant.services_offered or [],
                     'pets_accepted': merchant.pets_accepted or [],
-                    'max_pets_per_day': merchant.max_pets_per_day or 0,
-                    'min_price_per_day': float(merchant.min_price_per_day) if merchant.min_price_per_day else 0.0,
-                    'max_price_per_day': float(merchant.max_price_per_day) if merchant.max_price_per_day else 0.0,
+                    'service_pricing': merchant.service_pricing or {},
                     'cancellation_policy': merchant.cancellation_policy or '',
                     'government_id_path': merchant.government_id_path or '',
                     'business_permit_path': merchant.business_permit_path or '',
@@ -489,7 +515,7 @@ def get_merchants():
                     'submitted_at': merchant.submitted_at.isoformat() if merchant.submitted_at else '',
                     'reviewed_at': merchant.reviewed_at.isoformat() if merchant.reviewed_at else None,
                     'rejection_reason': merchant.rejection_reason or '',
-                    'years_in_operation': merchant.years_in_operation or 0,
+                    'years_in_operation': merchant.years_in_operation or 'N/A',
                     'application_status': merchant.application_status or 'pending',
                     'business_description': merchant.business_description or '',
                     'opening_time': merchant.opening_time or '',
@@ -504,11 +530,15 @@ def get_merchants():
                     'updated_at': merchant.updated_at.isoformat() if merchant.updated_at else ''
                 }
                 merchants_data.append(merchant_dict)
+                print(f"[DEBUG] Added merchant: {merchant.business_name}")
             except Exception as e:
+                print(f"[ERROR] Failed to process merchant {merchant.id}: {str(e)}")
                 continue
         
+        print(f"[DEBUG] Returning {len(merchants_data)} merchants")
         return jsonify({'merchants': merchants_data})
     except Exception as e:
+        print(f"[ERROR] Error in get_merchants: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -524,10 +554,18 @@ def approve_merchant(merchant_id):
         if merchant.application_status != 'pending':
             return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
         
+        # Update merchant record
         merchant.application_status = 'approved'
         merchant.reviewed_at = datetime.utcnow()
         merchant.reviewed_by = current_user.id
         merchant.is_verified = True
+        
+        # Update associated user's role to merchant
+        user = User.query.get(merchant.user_id)
+        if user:
+            user.role = 'merchant'
+        else:
+            return jsonify({'success': False, 'message': 'Associated user not found'}), 404
         
         db.session.commit()
         
@@ -537,7 +575,8 @@ def approve_merchant(merchant_id):
             details={
                 'merchant_id': merchant.id,
                 'business_name': merchant.business_name,
-                'approved_by': current_user.email
+                'approved_by': current_user.email,
+                'user_id': user.id
             }
         )
         

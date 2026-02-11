@@ -19,7 +19,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'pdf'}
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'pdf', 'gif', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 def allowed_file(filename):
@@ -360,7 +360,7 @@ def upload_logo():
                 logger.error(f"Error deleting old logo: {e}")
         
         # Update merchant record with full relative path (using user_id)
-        merchant.logo_path = f"uploads/merchants/{current_user.id}/{filename}"
+        merchant.logo_path = f"merchants/{current_user.id}/{filename}"
         merchant.updated_at = datetime.utcnow()
         db.session.add(merchant)
         db.session.commit()
@@ -421,7 +421,7 @@ def store_edit():
             # Store previous values for audit log
             previous_values = {
                 'business_name': merchant.business_name,
-                'business_type': merchant.business_type,
+                'business_category': merchant.business_category,
                 'business_description': merchant.business_description,
                 'owner_manager_name': merchant.owner_manager_name,
                 'contact_email': merchant.contact_email,
@@ -434,9 +434,6 @@ def store_edit():
                 'google_maps_link': merchant.google_maps_link,
                 'services_offered': merchant.services_offered,
                 'pets_accepted': merchant.pets_accepted,
-                'max_pets_per_day': merchant.max_pets_per_day,
-                'min_price_per_day': merchant.min_price_per_day,
-                'max_price_per_day': merchant.max_price_per_day,
                 'opening_time': merchant.opening_time,
                 'closing_time': merchant.closing_time,
                 'operating_days': merchant.operating_days,
@@ -446,13 +443,13 @@ def store_edit():
             
             # Update merchant information - SECTION 1: BUSINESS INFO
             merchant.business_name = form.business_name.data
-            merchant.business_type = form.business_type.data
+            merchant.business_category = form.business_category.data
             merchant.business_description = form.business_description.data
             merchant.years_in_operation = form.years_in_operation.data
             
             # Handle logo upload if provided
-            if 'logo_path' in request.files and request.files['logo_path'].filename:
-                logo_file = request.files['logo_path']
+            if 'store_logo' in request.files and request.files['store_logo'].filename:
+                logo_file = request.files['store_logo']
                 if allowed_file(logo_file.filename):
                     # Validate file size
                     logo_file.seek(0, os.SEEK_END)
@@ -482,8 +479,106 @@ def store_edit():
                         logo_file.save(filepath)
                         
                         # Update merchant with full path
-                        merchant.logo_path = f"uploads/merchants/{current_user.id}/{filename}"
+                        merchant.logo_path = f"merchants/{current_user.id}/{filename}"
                         logger.info(f"Logo updated for merchant {merchant.id}: {merchant.logo_path}")
+            
+            # Handle government ID upload
+            if request.files.get('government_id') and request.files['government_id'].filename:
+                file = request.files['government_id']
+                if file and allowed_file(file.filename):
+                    # Validate file size
+                    file.seek(0, os.SEEK_END)
+                    file_size = file.tell()
+                    file.seek(0)
+                    
+                    if file_size <= MAX_FILE_SIZE:
+                        # Create merchant upload directory
+                        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                        os.makedirs(upload_dir, exist_ok=True)
+                        
+                        # Delete old file if exists
+                        if merchant.government_id_path:
+                            old_filename = merchant.government_id_path.split('/')[-1] if '/' in merchant.government_id_path else merchant.government_id_path
+                            old_path = os.path.join(upload_dir, old_filename)
+                            try:
+                                if os.path.exists(old_path):
+                                    os.remove(old_path)
+                            except Exception as e:
+                                logger.error(f"Error deleting old government ID: {e}")
+                        
+                        # Generate unique filename and save
+                        timestamp = datetime.utcnow().timestamp()
+                        file_extension = file.filename.rsplit('.', 1)[1].lower()
+                        filename = secure_filename(f"gov_id_{timestamp}.{file_extension}")
+                        filepath = os.path.join(upload_dir, filename)
+                        file.save(filepath)
+                        
+                        # Update merchant with full path
+                        merchant.government_id_path = f"merchants/{current_user.id}/{filename}"
+                        logger.info(f"Government ID updated for merchant {merchant.id}: {merchant.government_id_path}")
+            
+            # Handle business permit upload
+            if request.files.get('business_permit') and request.files['business_permit'].filename:
+                file = request.files['business_permit']
+                if file and allowed_file(file.filename):
+                    # Validate file size
+                    file.seek(0, os.SEEK_END)
+                    file_size = file.tell()
+                    file.seek(0)
+                    
+                    if file_size <= MAX_FILE_SIZE:
+                        # Create merchant upload directory
+                        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                        os.makedirs(upload_dir, exist_ok=True)
+                        
+                        # Delete old file if exists
+                        if merchant.business_permit_path:
+                            old_filename = merchant.business_permit_path.split('/')[-1] if '/' in merchant.business_permit_path else merchant.business_permit_path
+                            old_path = os.path.join(upload_dir, old_filename)
+                            try:
+                                if os.path.exists(old_path):
+                                    os.remove(old_path)
+                            except Exception as e:
+                                logger.error(f"Error deleting old business permit: {e}")
+                        
+                        # Generate unique filename and save
+                        timestamp = datetime.utcnow().timestamp()
+                        file_extension = file.filename.rsplit('.', 1)[1].lower()
+                        filename = secure_filename(f"permit_{timestamp}.{file_extension}")
+                        filepath = os.path.join(upload_dir, filename)
+                        file.save(filepath)
+                        
+                        # Update merchant with full path
+                        merchant.business_permit_path = f"merchants/{current_user.id}/{filename}"
+                        logger.info(f"Business permit updated for merchant {merchant.id}: {merchant.business_permit_path}")
+            
+            # Handle facility photos upload
+            facility_photos = []
+            if request.files.getlist('facility_photos'):
+                files = request.files.getlist('facility_photos')
+                upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                for idx, file in enumerate(files):
+                    if file and file.filename and allowed_file(file.filename):
+                        # Validate file size
+                        file.seek(0, os.SEEK_END)
+                        file_size = file.tell()
+                        file.seek(0)
+                        
+                        if file_size <= MAX_FILE_SIZE:
+                            # Generate unique filename and save
+                            timestamp = datetime.utcnow().timestamp()
+                            file_extension = file.filename.rsplit('.', 1)[1].lower()
+                            filename = secure_filename(f"facility_{idx}_{timestamp}.{file_extension}")
+                            filepath = os.path.join(upload_dir, filename)
+                            file.save(filepath)
+                            facility_photos.append(f"merchants/{current_user.id}/{filename}")
+                
+                if len(facility_photos) > 0:
+                    # Update facility photos (allow editing existing ones)
+                    merchant.facility_photos_paths = facility_photos
+                    logger.info(f"Facility photos updated for merchant {merchant.id}: {len(facility_photos)} photos")
             
             # SECTION 2: CONTACT PERSON
             merchant.owner_manager_name = form.owner_manager_name.data
@@ -520,12 +615,15 @@ def store_edit():
             # SECTION 5: PETS ACCEPTED
             merchant.pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
             
-            # SECTION 6: CAPACITY & PRICING
-            merchant.max_pets_per_day = form.max_pets_per_day.data
-            merchant.min_price_per_day = form.min_price_per_day.data
-            merchant.max_price_per_day = form.max_price_per_day.data
+            # Parse service pricing JSON from form
+            service_pricing_json = form.service_pricing_json.data
+            if service_pricing_json:
+                try:
+                    merchant.service_pricing = json.loads(service_pricing_json)
+                except (json.JSONDecodeError, TypeError):
+                    logger.warning(f"Invalid service pricing JSON provided: {service_pricing_json}")
             
-            # SECTION 7: OPERATING SCHEDULE
+            # SECTION 6: OPERATING SCHEDULE
             merchant.opening_time = form.opening_time.data
             merchant.closing_time = form.closing_time.data
             merchant.operating_days = form.operating_days.data if form.operating_days.data else []
@@ -555,7 +653,7 @@ def store_edit():
                 'previous_values': previous_values,
                 'new_values': {
                     'business_name': merchant.business_name,
-                    'business_type': merchant.business_type,
+                    'business_category': merchant.business_category,
                     'business_description': merchant.business_description,
                     'owner_manager_name': merchant.owner_manager_name,
                     'contact_email': merchant.contact_email,
@@ -568,9 +666,6 @@ def store_edit():
                     'google_maps_link': merchant.google_maps_link,
                     'services_offered': merchant.services_offered,
                     'pets_accepted': merchant.pets_accepted,
-                    'max_pets_per_day': merchant.max_pets_per_day,
-                    'min_price_per_day': merchant.min_price_per_day,
-                    'max_price_per_day': merchant.max_price_per_day,
                     'opening_time': merchant.opening_time,
                     'closing_time': merchant.closing_time,
                     'operating_days': merchant.operating_days,
@@ -588,31 +683,38 @@ def store_edit():
             db.session.rollback()
             logger.error(f"Error updating store: {str(e)}", exc_info=True)
             flash(f'Error updating store information: {str(e)}', 'danger')
+            return render_template('merchant/store_edit.html', form=form, merchant=merchant)
     
     elif request.method == 'GET':
         # Pre-fill form with existing data
         form.business_name.data = merchant.business_name
-        form.business_type.data = merchant.business_type
+        form.business_category.data = merchant.business_category
         form.business_description.data = merchant.business_description
         form.years_in_operation.data = merchant.years_in_operation
         form.owner_manager_name.data = merchant.owner_manager_name
         form.contact_email.data = merchant.contact_email
         form.contact_phone.data = merchant.contact_phone
         form.full_address.data = merchant.full_address
-        form.city.data = merchant.city
-        form.province.data = merchant.province
-        form.barangay.data = merchant.barangay
+        # Skip province/city/barangay - they're names in DB but form expects codes
+        # These will be handled by JavaScript loading from API
         form.postal_code.data = merchant.postal_code
         form.google_maps_link.data = merchant.google_maps_link
         form.services_offered.data = merchant.services_offered or []
         form.pets_accepted.data = merchant.pets_accepted or []
-        form.max_pets_per_day.data = merchant.max_pets_per_day
-        form.min_price_per_day.data = merchant.min_price_per_day
-        form.max_price_per_day.data = merchant.max_price_per_day
         form.opening_time.data = merchant.opening_time
         form.closing_time.data = merchant.closing_time
         form.operating_days.data = merchant.operating_days or []
         form.cancellation_policy.data = merchant.cancellation_policy
+        
+        # Pre-fill service pricing JSON
+        if merchant.service_pricing:
+            form.service_pricing_json.data = json.dumps(merchant.service_pricing)
+        
+        # Pre-fill coordinates
+        if merchant.latitude:
+            form.latitude.data = str(merchant.latitude)
+        if merchant.longitude:
+            form.longitude.data = str(merchant.longitude)
     
     return render_template('merchant/store_edit.html', form=form, merchant=merchant)
 
@@ -736,7 +838,7 @@ def apply():
             
             # Fill basic information
             merchant.business_name = form.business_name.data
-            merchant.business_type = form.business_type.data
+            merchant.business_category = form.business_category.data
             merchant.business_description = form.business_description.data
             merchant.years_in_operation = form.years_in_operation.data or None
             
@@ -753,18 +855,30 @@ def apply():
             merchant.full_address = form.full_address.data
             merchant.google_maps_link = form.google_maps_link.data or None
             
-            # Store coordinates
-            if form.latitude.data and form.longitude.data:
-                merchant.set_coordinates(form.latitude.data, form.longitude.data)
+            # Store coordinates - safely convert to float
+            try:
+                if form.latitude.data and form.longitude.data:
+                    lat = float(form.latitude.data)
+                    lng = float(form.longitude.data)
+                    merchant.set_coordinates(lat, lng)
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid coordinates provided: lat={form.latitude.data}, lng={form.longitude.data}")
             
             # Services and pets (convert to JSON)
             merchant.services_offered = form.services_offered.data if form.services_offered.data else []
             merchant.pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
             
-            # Capacity and pricing
-            merchant.max_pets_per_day = form.max_pets_per_day.data
-            merchant.min_price_per_day = form.min_price_per_day.data
-            merchant.max_price_per_day = form.max_price_per_day.data
+            # Parse service pricing JSON from form
+            service_pricing_json = form.service_pricing_json.data
+            if service_pricing_json:
+                try:
+                    merchant.service_pricing = json.loads(service_pricing_json)
+                except (json.JSONDecodeError, TypeError):
+                    logger.warning(f"Invalid service pricing JSON provided: {service_pricing_json}")
+                    merchant.service_pricing = {}
+            else:
+                merchant.service_pricing = {}
+            
             
             # Operating schedule
             merchant.opening_time = form.opening_time.data
@@ -776,8 +890,16 @@ def apply():
             merchant.cancellation_policy = form.cancellation_policy.data or None
             
             # Create merchant uploads directory
-            merchant_upload_dir = os.path.join('app/static/uploads/merchants', f'merchant_{current_user.id}')
+            merchant_upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
             os.makedirs(merchant_upload_dir, exist_ok=True)
+            
+            # Handle store logo upload
+            if request.files.get('store_logo') and request.files['store_logo'].filename:
+                file = request.files['store_logo']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(f"logo_{datetime.utcnow().timestamp()}_{file.filename}")
+                    file.save(os.path.join(merchant_upload_dir, filename))
+                    merchant.logo_path = f'merchants/{current_user.id}/{filename}'
             
             # Handle file uploads
             if request.files.get('government_id') and request.files['government_id'].filename:
@@ -785,14 +907,14 @@ def apply():
                 if file and allowed_file(file.filename):
                     filename = secure_filename(f"gov_id_{datetime.utcnow().timestamp()}_{file.filename}")
                     file.save(os.path.join(merchant_upload_dir, filename))
-                    merchant.government_id_path = f'merchants/merchant_{current_user.id}/{filename}'
+                    merchant.government_id_path = f'merchants/{current_user.id}/{filename}'
             
             if request.files.get('business_permit') and request.files['business_permit'].filename:
                 file = request.files['business_permit']
                 if file and allowed_file(file.filename):
                     filename = secure_filename(f"permit_{datetime.utcnow().timestamp()}_{file.filename}")
                     file.save(os.path.join(merchant_upload_dir, filename))
-                    merchant.business_permit_path = f'merchants/merchant_{current_user.id}/{filename}'
+                    merchant.business_permit_path = f'merchants/{current_user.id}/{filename}'
             
             # Handle multiple facility photos
             facility_photos = []
@@ -802,7 +924,7 @@ def apply():
                     if file and file.filename and allowed_file(file.filename):
                         filename = secure_filename(f"facility_{idx}_{datetime.utcnow().timestamp()}_{file.filename}")
                         file.save(os.path.join(merchant_upload_dir, filename))
-                        facility_photos.append(f'merchants/merchant_{current_user.id}/{filename}')
+                        facility_photos.append(f'merchants/{current_user.id}/{filename}')
                 
                 if len(facility_photos) >= 3:
                     merchant.facility_photos_paths = facility_photos
@@ -965,6 +1087,21 @@ def get_barangays(city_code):
         return jsonify({'error': 'Failed to fetch barangays'}), 500
 
 
+@bp.route('/api/get-services/<category>')
+def get_services_for_category(category):
+    """Get services allowed for a given business category"""
+    from app.utils.merchant_service_config import CATEGORY_TO_SERVICES
+    
+    category_services = CATEGORY_TO_SERVICES.get(category, [])
+    
+    if not category_services:
+        return jsonify({'error': f'No services found for category: {category}'}), 404
+    
+    return jsonify({
+        'category': category,
+        'services': category_services
+    })
+
 
 @bp.route('/api/geocode', methods=['POST'])
 def geocode():
@@ -1122,22 +1259,6 @@ def booking(merchant_id):
         flash('Store not found.', 'danger')
         return redirect(url_for('user.nearby_services'))
     
-    # Get user's pets if authenticated
-    user_pets = []
-    if current_user.is_authenticated:
-        from app.models.user import User
-        from app.models.breed import Breed
-        from app.models.species import Species
-        
-        # Query pets for current user - assuming a pets relationship exists
-        # This may need to be adjusted based on your actual pet model structure
-        try:
-            user_pets = db.session.query(db.func.json_extract(db.func.json_array_elements(User.pets), '$.id')).filter(
-                User.id == current_user.id
-            ).all()
-        except:
-            user_pets = []
-    
     # Get merchant ratings
     avg_rating = db.session.query(func.avg(Booking.customer_rating)).filter(
         Booking.merchant_id == merchant_id,
@@ -1154,12 +1275,173 @@ def booking(merchant_id):
     
     return render_template('merchant/booking.html', 
                          merchant=merchant,
-                         user_pets=user_pets,
                          store_rating=store_rating,
                          total_reviews=total_reviews)
 
 
-@bp.route('/api/booking/create', methods=['POST'])
+@bp.route('/booking/<int:merchant_id>/create', methods=['POST'])
+@login_required
+def create_booking(merchant_id):
+    """Create a new booking from form submission"""
+    try:
+        merchant = Merchant.query.filter_by(id=merchant_id).first()
+        
+        if not merchant:
+            flash('Store not found.', 'danger')
+            return redirect(url_for('user.nearby_services'))
+        
+        # Get form data
+        services_booked = request.form.getlist('services_booked')
+        total_pets = int(request.form.get('total_pets', 1))
+        check_in_date_str = request.form.get('check_in_date')
+        check_out_date_str = request.form.get('check_out_date')
+        check_in_time = request.form.get('check_in_time', '09:00')
+        check_out_time = request.form.get('check_out_time', '17:00')
+        
+        # Pet information
+        pet_species = request.form.get('pet_species', '')
+        pet_name = request.form.get('pet_name', '')
+        pet_breed = request.form.get('pet_breed', '')
+        pet_age = request.form.get('pet_age', '')
+        pet_weight = request.form.get('pet_weight', '')
+        pet_medical_conditions = request.form.get('pet_medical_conditions', '')
+        pet_behavioral_notes = request.form.get('pet_behavioral_notes', '')
+        pet_dietary_notes = request.form.get('pet_dietary_notes', '')
+        
+        # Shipment/delivery options
+        requires_pickup = 'requires_pickup' in request.form
+        requires_delivery = 'requires_delivery' in request.form
+        pickup_location = request.form.get('pickup_location', '')
+        delivery_location = request.form.get('delivery_location', '')
+        
+        # Special requests
+        special_requests = request.form.get('special_requests', '')
+        
+        # Validate required fields
+        if not services_booked:
+            flash('Please select at least one service.', 'warning')
+            return redirect(url_for('merchant.booking', merchant_id=merchant_id))
+        
+        if not check_in_date_str or not check_out_date_str:
+            flash('Please select both check-in and check-out dates.', 'warning')
+            return redirect(url_for('merchant.booking', merchant_id=merchant_id))
+        
+        if total_pets <= 0:
+            flash('Please specify the number of pets.', 'warning')
+            return redirect(url_for('merchant.booking', merchant_id=merchant_id))
+        
+        # Parse dates
+        try:
+            check_in_date = datetime.strptime(check_in_date_str, '%Y-%m-%d').replace(hour=int(check_in_time.split(':')[0]), minute=int(check_in_time.split(':')[1]))
+            check_out_date = datetime.strptime(check_out_date_str, '%Y-%m-%d').replace(hour=int(check_out_time.split(':')[0]), minute=int(check_out_time.split(':')[1]))
+        except Exception as e:
+            logger.error(f"Date parsing error: {str(e)}")
+            flash('Invalid date format.', 'danger')
+            return redirect(url_for('merchant.booking', merchant_id=merchant_id))
+        
+        if check_out_date <= check_in_date:
+            flash('Check-out date must be after check-in date.', 'warning')
+            return redirect(url_for('merchant.booking', merchant_id=merchant_id))
+        
+        
+        # Calculate duration
+        duration_days = (check_out_date - check_in_date).days
+        if duration_days <= 0:
+            duration_days = 1
+        
+        # Get pricing info
+        base_price = float(merchant.min_price or 0)
+        
+        # Calculate pricing
+        service_cost = base_price * duration_days * total_pets
+        pickup_fee = 300 if requires_pickup else 0
+        delivery_fee = 300 if requires_delivery else 0
+        additional_services_fee = 0
+        discount_amount = 0
+        subtotal = service_cost + pickup_fee + delivery_fee + additional_services_fee
+        total_amount = subtotal - discount_amount
+        
+        # Generate booking number and confirmation code
+        import random
+        import string
+        booking_number = f"BK-{datetime.now().year}-{random.randint(100000, 999999)}"
+        confirmation_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        
+        # Prepare pet information dict
+        pets_data = {
+            'species': pet_species,
+            'name': pet_name,
+            'breed': pet_breed,
+            'age': pet_age,
+            'weight': pet_weight,
+            'medical_conditions': pet_medical_conditions,
+            'behavioral_notes': pet_behavioral_notes,
+            'dietary_notes': pet_dietary_notes
+        }
+        
+        # Create booking
+        booking = Booking(
+            user_id=current_user.id,
+            merchant_id=merchant_id,
+            booking_number=booking_number,
+            confirmation_code=confirmation_code,
+            status='pending',
+            customer_name=f"{current_user.first_name} {current_user.last_name}".strip() or current_user.email,
+            customer_email=current_user.email,
+            customer_phone=request.form.get('customer_phone', ''),
+            services_booked=services_booked,
+            pets_booked=[pets_data],
+            total_pets=total_pets,
+            check_in_date=check_in_date,
+            check_out_date=check_out_date,
+            check_in_time=check_in_time,
+            check_out_time=check_out_time,
+            duration_days=duration_days,
+            base_price_per_day=base_price,
+            total_service_cost=service_cost,
+            pickup_fee=pickup_fee,
+            delivery_fee=delivery_fee,
+            additional_services_fee=additional_services_fee,
+            discount_amount=discount_amount,
+            subtotal=subtotal,
+            total_amount=total_amount,
+            requires_pickup=requires_pickup,
+            requires_delivery=requires_delivery,
+            pickup_location=pickup_location,
+            delivery_location=delivery_location,
+            payment_method='simulated',
+            payment_status='pending',
+            special_requests=special_requests,
+            service_description=', '.join(services_booked),
+            pet_special_notes=special_requests,
+            source='web',
+        )
+        
+        # Calculate merchant split
+        booking.calculate_merchant_split()
+        
+        db.session.add(booking)
+        db.session.commit()
+        
+        # Log the booking creation
+        audit_log = AuditLog(
+            user_id=current_user.id,
+            action='booking_created',
+            resource_type='Booking',
+            resource_id=booking.id,
+            details=f'Booking {booking.booking_number} created for merchant {merchant.business_name}',
+            ip_address=request.remote_addr
+        )
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        flash('Booking created successfully! The merchant will review your request.', 'success')
+        return redirect(url_for('merchant.booking_confirmation', booking_id=booking.id))
+        
+    except Exception as e:
+        logger.error(f"Error creating booking: {str(e)}", exc_info=True)
+        flash('An error occurred while creating your booking. Please try again.', 'danger')
+        return redirect(url_for('merchant.booking', merchant_id=merchant_id))
 @login_required
 def api_create_booking():
     """Create a new booking"""
@@ -1201,7 +1483,7 @@ def api_create_booking():
             duration_days = 1
         
         # Get pricing info
-        base_price = float(merchant.max_price_per_day or 0)
+        base_price = float(merchant.max_price or 0)
         pets_count = len(data.get('pets_booked', []))
         
         # Calculate pricing
@@ -1299,4 +1581,151 @@ def booking_confirmation(booking_id):
             return redirect(url_for('user.dashboard'))
     
     return render_template('merchant/booking_confirmation.html', booking=booking)
+
+
+@bp.route('/bookings-list')
+@login_required
+@merchant_required
+def bookings_list():
+    """Display all bookings for the merchant"""
+    if current_user.role != 'merchant':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    merchant = Merchant.query.filter_by(user_id=current_user.id).first()
+    
+    if not merchant:
+        flash('Store information not found.', 'warning')
+        return redirect(url_for('merchant.apply'))
+    
+    # Get page pagination parameter
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', '', type=str)
+    
+    # Base query for merchant's bookings
+    query = Booking.query.filter(
+        Booking.merchant_id == merchant.id,
+        Booking.deleted_at.is_(None)
+    )
+    
+    # Apply status filter if provided
+    if status_filter and status_filter != '':
+        query = query.filter(Booking.status == status_filter)
+    
+    # Order by most recent first
+    query = query.order_by(Booking.created_at.desc())
+    
+    # Paginate with 10 bookings per page
+    pagination = query.paginate(page=page, per_page=10, error_out=False)
+    
+    # Get unique statuses for filter dropdown
+    statuses = db.session.query(Booking.status.distinct()).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.deleted_at.is_(None)
+    ).all()
+    statuses = [s[0] for s in statuses if s[0]]
+    
+    return render_template(
+        'merchant/bookings_list.html',
+        bookings=pagination,
+        merchant=merchant,
+        selected_status=status_filter,
+        statuses=statuses
+    )
+
+
+@bp.route('/bookings/<int:booking_id>/confirm', methods=['POST'])
+@login_required
+@merchant_required
+def confirm_booking(booking_id):
+    """Confirm a pending booking"""
+    if current_user.role != 'merchant':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    booking = Booking.query.get(booking_id)
+    
+    if not booking:
+        flash('Booking not found.', 'danger')
+        return redirect(url_for('merchant.bookings_list'))
+    
+    # Check if merchant owns this booking
+    merchant = Merchant.query.filter_by(user_id=current_user.id).first()
+    if booking.merchant_id != merchant.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('merchant.bookings_list'))
+    
+    try:
+        booking.status = 'confirmed'
+        booking.merchant_confirmed_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Log the action
+        audit_log = AuditLog(
+            event='booking_confirmed',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=datetime.utcnow()
+        )
+        audit_log.set_details({'booking_id': booking.id, 'booking_number': booking.booking_number})
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        flash('Booking confirmed successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error confirming booking: {str(e)}")
+        flash('Error confirming booking.', 'danger')
+    
+    return redirect(url_for('merchant.bookings_list'))
+
+
+@bp.route('/bookings/<int:booking_id>/cancel', methods=['POST'])
+@login_required
+@merchant_required
+def cancel_booking(booking_id):
+    """Cancel a booking"""
+    if current_user.role != 'merchant':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    booking = Booking.query.get(booking_id)
+    
+    if not booking:
+        flash('Booking not found.', 'danger')
+        return redirect(url_for('merchant.bookings_list'))
+    
+    # Check if merchant owns this booking
+    merchant = Merchant.query.filter_by(user_id=current_user.id).first()
+    if booking.merchant_id != merchant.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('merchant.bookings_list'))
+    
+    try:
+        booking.status = 'cancelled'
+        booking.cancellation_date = datetime.utcnow()
+        db.session.commit()
+        
+        # Log the action
+        audit_log = AuditLog(
+            event='booking_cancelled',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=datetime.utcnow()
+        )
+        audit_log.set_details({'booking_id': booking.id, 'booking_number': booking.booking_number})
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        flash('Booking cancelled successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error cancelling booking: {str(e)}")
+        flash('Error cancelling booking.', 'danger')
+    
+    return redirect(url_for('merchant.bookings_list'))
 

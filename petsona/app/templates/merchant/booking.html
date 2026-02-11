@@ -1,588 +1,1054 @@
 {% extends "user/base.html" %}
 
 {% block content %}
-<!-- FontAwesome CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Alpine.js -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- Icons Library - Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
-<style>
-  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-  
-  @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+<!-- Leaflet Map Library -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-  .animate-fade-in { animation: fadeIn 0.6s ease-out; }
-  .animate-slide-in { animation: slideInUp 0.6s ease-out; }
-  .animate-slide-down { animation: slideInDown 0.4s ease-out; }
-  .animate-pulse-custom { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-  
-  .step-indicator {
-    @apply relative flex items-center justify-center w-9 h-9 rounded-full font-bold text-xs transition-all duration-300;
-  }
-
-  .step-active { @apply bg-purple-600 text-white; }
-  .step-inactive { @apply bg-slate-200 text-slate-600; }
-  .step-completed { @apply bg-emerald-500 text-white; }
-
-  .service-badge {
-    @apply p-3 rounded-lg border-2 border-slate-200 cursor-pointer transition-all duration-200 flex items-center gap-2 hover:border-slate-300;
-  }
-
-  .service-badge.selected {
-    @apply bg-purple-50 border-purple-500 shadow-md;
-  }
-
-  .pet-card {
-    @apply p-3 border-2 border-slate-200 rounded-lg cursor-pointer transition-all duration-200 hover:border-slate-300;
-  }
-
-  .pet-card.selected {
-    @apply bg-rose-50 border-rose-400 shadow-md;
-  }
-
-  .date-input {
-    @apply w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm;
-  }
-
-  .error-message {
-    @apply text-red-600 text-xs mt-1.5 flex items-center gap-1;
-  }
-
-  .form-section {
-    @apply bg-white rounded-xl p-4 shadow-sm border border-slate-100;
-  }
-
-  .section-title {
-    @apply text-base font-bold text-slate-900 mb-3 flex items-center gap-2;
-  }
-
-  .info-box {
-    @apply p-3 rounded-lg border flex items-start gap-2 text-xs bg-slate-50 border-slate-200 text-slate-700;
-  }
-</style>
-
-<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50" 
-     x-data="bookingApp()"
-     @submit.prevent="submitBooking">
-  
-  <!-- Sticky Header -->
-  <div class="sticky top-0 z-50 bg-white border-b border-slate-200/50 shadow-sm animate-slide-down">
-    <div class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-      <a href="javascript:history.back()" class="inline-flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-purple-600 font-semibold transition-colors text-xs sm:text-sm">
-        <i class="fas fa-chevron-left"></i>
-        <span>Back</span>
-      </a>
-      <h1 class="text-center text-sm sm:text-base font-bold text-slate-900 flex-1 px-2">Book Service</h1>
-      <div class="w-12"></div>
+<!-- Global Loader -->
+<div id="loader-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden z-50 flex items-center justify-center">
+  <div class="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl max-w-sm mx-4 animate-fade-in border border-white/20">
+    <div class="flex flex-col items-center gap-4">
+      <div class="relative w-16 h-16">
+        <div class="text-4xl animate-bounce">🐾</div>
+        <div class="absolute inset-0 border-4 border-transparent border-t-purple-400 rounded-full animate-spin"></div>
+      </div>
+      <div class="text-center">
+        <p class="text-gray-700 font-semibold mb-3">Processing your booking</p>
+        <div class="w-48 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
     </div>
   </div>
+</div>
 
-  {% if merchant %}
-  <div class="w-full px-4 sm:px-6 py-6 sm:py-8">
-    <div class="max-w-2xl mx-auto">
-      
-      <!-- Merchant Header - Simple -->
-      <div class="mb-6 sm:mb-8 animate-fade-in">
-        <div class="flex items-center gap-3 sm:gap-4">
-          <div class="flex-shrink-0">
-            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
-              {% if merchant.logo_path %}
-                {% if merchant.logo_path.startswith('/') or merchant.logo_path.startswith('http') %}
-                  <img src="{{ merchant.logo_path }}" alt="{{ merchant.business_name }}" class="w-full h-full object-cover">
-                {% else %}
-                  <img src="{{ url_for('static', filename=merchant.logo_path) }}" alt="{{ merchant.business_name }}" class="w-full h-full object-cover">
+<div class="min-h-screen bg-gradient-to-b from-white via-purple-50/20 to-white py-8 sm:py-12 lg:py-16 px-2 sm:px-3 lg:px-6">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Page Header with Back Button -->
+    <div class="mb-8 sm:mb-10 lg:mb-12 animate-fade-in flex items-center gap-4">
+      <a href="javascript:history.back()" class="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/70 backdrop-blur-lg border border-white/60 hover:shadow-lg transition-all hover:bg-white/90">
+        <i class="fas fa-arrow-left text-gray-700 text-lg"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Book a Service</h1>
+        <p class="text-gray-600 text-sm sm:text-base mt-1">Fast, easy, and convenient</p>
+      </div>
+    </div>
+
+    {% if merchant %}
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-8">
+        
+        <!-- Main Content (Left Column) -->
+        <div class="lg:col-span-2 space-y-6 sm:space-y-7">
+          
+          <!-- Merchant Info Card -->
+          <div class="group bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 hover:shadow-2xl transition-all duration-300 animate-fade-in" style="animation-delay: 0.1s">
+            <!-- Banner Background -->
+            <div class="h-32 sm:h-40 bg-gradient-to-br from-purple-100 via-purple-50 to-pink-100 relative overflow-hidden">
+              <div class="absolute inset-0 opacity-10">
+                <svg class="w-full h-full" viewBox="0 0 1200 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0,100 Q300,50 600,100 T1200,100 L1200,0 L0,0 Z" fill="currentColor"/>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Content Section -->
+            <div class="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
+              <!-- Logo & Header -->
+              <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-20 sm:-mt-24 mb-6 sm:mb-8 relative z-10">
+                <!-- Store Logo -->
+                <div class="relative">
+                  {% if merchant.logo_path %}
+                    <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-white shadow-lg border-4 border-white">
+                      <img src="/static/uploads/{{ merchant.logo_path }}" alt="{{ merchant.business_name }}" class="w-full h-full object-cover">
+                    </div>
+                  {% else %}
+                    <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white shadow-lg border-4 border-white">
+                      <i class="fas fa-store text-5xl opacity-50"></i>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- Store Info -->
+                <div class="flex-1">
+                  <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                    {{ merchant.business_name }}
+                  </h2>
+                  <p class="text-gray-600 text-sm sm:text-base mt-1">
+                    {{ merchant.business_category }}
+                  </p>
+                  
+                  <!-- Quick Info Row -->
+                  <div class="flex flex-wrap items-center gap-3 mt-3">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 text-xs sm:text-sm font-semibold rounded-full">
+                      <i class="fas fa-phone text-xs"></i>
+                      {{ merchant.contact_phone }}
+                    </span>
+                    {% if merchant.is_verified %}
+                      <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-semibold rounded-full">
+                        <i class="fas fa-check-circle text-xs"></i>
+                        Verified
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Info Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-6">
+                <!-- Operating Hours -->
+                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/70 hover:shadow-xl transition-all">
+                  <p class="text-gray-600 text-xs font-semibold uppercase mb-2 flex items-center gap-2">
+                    <i class="fas fa-clock text-purple-600"></i> Hours
+                  </p>
+                  <p class="text-gray-900 font-semibold text-sm">
+                    {% if merchant.opening_time and merchant.closing_time %}
+                      {% set open_hour = merchant.opening_time.split(':')[0]|int %}
+                      {% set open_min = merchant.opening_time.split(':')[1] %}
+                      {% set open_ampm = 'AM' if open_hour < 12 else 'PM' %}
+                      {% set open_display = open_hour if open_hour <= 12 else open_hour - 12 %}
+                      {% if open_display == 0 %}{% set open_display = 12 %}{% endif %}
+                      {% set close_hour = merchant.closing_time.split(':')[0]|int %}
+                      {% set close_min = merchant.closing_time.split(':')[1] %}
+                      {% set close_ampm = 'AM' if close_hour < 12 else 'PM' %}
+                      {% set close_display = close_hour if close_hour <= 12 else close_hour - 12 %}
+                      {% if close_display == 0 %}{% set close_display = 12 %}{% endif %}
+                      {{ open_display }}:{{ open_min }} {{ open_ampm }} - {{ close_display }}:{{ close_min }} {{ close_ampm }}
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </p>
+                </div>
+
+                <!-- Max Capacity -->
+                {% if merchant.max_pets_per_day %}
+                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/70 hover:shadow-xl transition-all">
+                  <p class="text-gray-600 text-xs font-semibold uppercase mb-2 flex items-center gap-2">
+                    <i class="fas fa-users text-blue-600"></i> Max Pets/Day
+                  </p>
+                  <p class="text-gray-900 font-semibold text-sm">{{ merchant.max_pets_per_day }} pets</p>
+                </div>
                 {% endif %}
-              {% else %}
-                <i class="fas fa-store text-2xl text-purple-200"></i>
+
+                <!-- Price Range -->
+                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/70 hover:shadow-xl transition-all">
+                  <p class="text-gray-600 text-xs font-semibold uppercase mb-2 flex items-center gap-2">
+                    <i class="fas fa-tag text-green-600"></i> Price Range
+                  </p>
+                  <p class="text-gray-900 font-semibold text-sm">
+                    {% if merchant.min_price and merchant.max_price %}
+                      ₱{{ "%.2f"|format(merchant.min_price) }} - ₱{{ "%.2f"|format(merchant.max_price) }}
+                    {% else %}
+                      Contact store
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Services & Pets Info -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <!-- Services Offered -->
+            {% if merchant.get_services_list() %}
+            <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all">
+              <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
+                <i class="fas fa-briefcase text-purple-600"></i> Available Services
+              </h4>
+              <div class="space-y-2">
+                {% for service in merchant.get_services_list() %}
+                <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
+                  <i class="fas fa-check text-purple-600 text-sm"></i>
+                  <span class="text-gray-700 text-sm">{{ service }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Pets Accepted -->
+            {% if merchant.get_pets_list() %}
+            <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all">
+              <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
+                <i class="fas fa-paw text-purple-600"></i> Pets Accepted
+              </h4>
+              <div class="space-y-2">
+                {% for pet in merchant.get_pets_list() %}
+                <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
+                  <i class="fas fa-check text-purple-600 text-sm"></i>
+                  <span class="text-gray-700 text-sm">{{ pet }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Booking Form -->
+          <form id="bookingForm" method="POST" action="{{ url_for('merchant.create_booking', merchant_id=merchant.id) }}" class="space-y-6 sm:space-y-7" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <!-- Customer Contact Information -->
+            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
+              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white">
+                  <i class="fas fa-user"></i>
+                </div>
+                Contact Information
+              </h3>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Name (Pre-filled from current user) -->
+                <div>
+                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <i class="fas fa-id-card text-purple-600"></i> Full Name
+                  </label>
+                  <input 
+                    type="text" 
+                    name="customer_name"
+                    value="{% if current_user.first_name or current_user.last_name %}{{ current_user.first_name }} {{ current_user.last_name }}{% endif %}"
+                    readonly
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-700"
+                  >
+                </div>
+
+                <!-- Email (Pre-filled from current user) -->
+                <div>
+                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <i class="fas fa-envelope text-purple-600"></i> Email
+                  </label>
+                  <input 
+                    type="email" 
+                    name="customer_email"
+                    value="{{ current_user.email }}"
+                    readonly
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-700"
+                  >
+                </div>
+
+                <!-- Phone -->
+                <div class="sm:col-span-2">
+                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <i class="fas fa-phone text-purple-600"></i> Phone Number
+                  </label>
+                  <input 
+                    type="tel" 
+                    name="customer_phone"
+                    placeholder="e.g., +63 XXX XXXX XXX"
+                    required
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800"
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Services Selection -->
+            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
+              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white">
+                  <i class="fas fa-briefcase"></i>
+                </div>
+                Select Services
+              </h3>
+
+              <div class="space-y-3">
+                {% for service in merchant.get_services_list() %}
+                <label class="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-lg rounded-2xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50/30 cursor-pointer transition-all group">
+                  <input 
+                    type="checkbox" 
+                    name="services_booked" 
+                    value="{{ service }}"
+                    class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                  >
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">{{ service }}</p>
+                    <p class="text-xs text-gray-500">Professional {{ service|lower }} service</p>
+                  </div>
+                  <i class="fas fa-check-circle text-purple-600 text-lg opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% if not merchant.get_services_list() %}
+              <p class="text-gray-500 text-center py-4">No services available</p>
               {% endif %}
             </div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <h2 class="text-lg sm:text-xl font-bold text-slate-900">{{ merchant.business_name }}</h2>
-            <p class="text-slate-600 text-xs sm:text-sm">{{ merchant.business_type }}</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Simple Progress Steps -->
-      <div class="mb-6 sm:mb-8 animate-fade-in">
-        <div class="flex items-center justify-between gap-2">
-          <!-- Step 1 -->
-          <div class="flex-1 text-center">
-            <div class="step-indicator mx-auto mb-2" :class="currentStep >= 1 ? (currentStep > 1 ? 'step-completed' : 'step-active') : 'step-inactive'">
-              <template x-if="currentStep > 1"><i class="fas fa-check"></i></template>
-              <template x-if="currentStep <= 1">1</template>
-            </div>
-            <p class="text-xs font-medium text-slate-900">Services</p>
-          </div>
+            <!-- Pet Details (Dynamic) -->
+            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
+              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
+                  <i class="fas fa-paw"></i>
+                </div>
+                Your Pets
+              </h3>
 
-          <!-- Line -->
-          <div class="flex-1 h-0.5 mx-1" :class="currentStep > 1 ? 'bg-purple-600' : 'bg-slate-200'"></div>
-
-          <!-- Step 2 -->
-          <div class="flex-1 text-center">
-            <div class="step-indicator mx-auto mb-2" :class="currentStep >= 2 ? (currentStep > 2 ? 'step-completed' : 'step-active') : 'step-inactive'">
-              <template x-if="currentStep > 2"><i class="fas fa-check"></i></template>
-              <template x-if="currentStep <= 2">2</template>
-            </div>
-            <p class="text-xs font-medium text-slate-900">Details</p>
-          </div>
-
-          <!-- Line -->
-          <div class="flex-1 h-0.5 mx-1" :class="currentStep > 2 ? 'bg-purple-600' : 'bg-slate-200'"></div>
-
-          <!-- Step 3 -->
-          <div class="flex-1 text-center">
-            <div class="step-indicator mx-auto mb-2" :class="currentStep >= 3 ? 'step-active' : 'step-inactive'">
-              <template x-if="currentStep <= 3">3</template>
-            </div>
-            <p class="text-xs font-medium text-slate-900">Confirm</p>
-          </div>
-        </div>
-      </div>
-
-      <form @submit.prevent="submitBooking" class="space-y-5">
-      
-        <!-- STEP 1: SELECT SERVICES -->
-        <template x-if="currentStep === 1">
-          <div class="animate-slide-in">
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="fas fa-briefcase text-purple-600"></i>
-                Select services
-              </h2>
-              
-              {% if merchant.services_offered and merchant.services_offered|length > 0 %}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-                  {% for service in merchant.services_offered %}
-                  <label class="service-badge" :class="selectedServices.includes('{{ service }}') ? 'selected' : ''">
-                    <input type="checkbox" 
-                           name="services" 
-                           value="{{ service }}"
-                           @change="toggleService('{{ service }}')"
-                           class="hidden">
-                    <div class="flex-shrink-0 w-4 h-4 rounded bg-slate-200 flex items-center justify-center transition-all" :class="selectedServices.includes('{{ service }}') ? 'bg-purple-600' : ''">
-                      <i class="fas fa-check text-white text-xs opacity-0 transition-opacity" :class="selectedServices.includes('{{ service }}') ? 'opacity-100' : ''"></i>
-                    </div>
-                    <span class="font-medium text-slate-900 text-sm flex-1">{{ service }}</span>
+              <!-- Number of Pets Selector -->
+              <div class="mb-8 pb-8 border-b border-orange-200">
+                <label class="block text-gray-900 font-semibold text-sm mb-4 flex items-center gap-2">
+                  <i class="fas fa-hashtag text-orange-600"></i> How many pets? (1-10)
+                </label>
+                <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                  {% for num in range(1, 11) %}
+                  <label class="flex items-center justify-center p-2 bg-white border-2 border-gray-300 hover:border-orange-400 rounded-lg cursor-pointer transition-all group" title="Select {{num}}">
+                    <input 
+                      type="radio" 
+                      name="total_pets" 
+                      value="{{ num }}"
+                      class="hidden"
+                      {% if num == 1 %}checked{% endif %}
+                    >
+                    <span class="font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{{ num }}</span>
                   </label>
                   {% endfor %}
                 </div>
-              {% else %}
-                <p class="text-slate-600 text-center py-4 text-sm">No services available</p>
-              {% endif %}
 
-              <!-- Button navigation -->
-              <div class="flex justify-between gap-3 mt-5 pt-4 border-t border-slate-200">
-                <button type="button" 
-                        @click="goToPreviousStep()"
-                        disabled
-                        class="px-4 py-2 text-slate-400 font-medium rounded-lg border border-slate-300 disabled:opacity-30 text-sm">
-                  Back
-                </button>
-                <button type="button"
-                        @click="goToNextStep()"
-                        :disabled="selectedServices.length === 0"
-                        class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm">
-                  Next
-                </button>
+                <!-- Capacity Warning -->
+                <div id="capacityWarning" class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200 hidden">
+                  <p class="text-amber-700 font-semibold text-sm">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Requesting more than capacity (<span id="capacityText"></span>). Store will confirm availability.
+                  </p>
+                </div>
               </div>
+
+              <!-- Dynamic Pet Fields Container -->
+              <div id="multiPetsContainer" class="space-y-6"></div>
             </div>
-          </div>
-        </template>
 
-        <!-- STEP 2: SELECT PETS & DATES -->
-        <template x-if="currentStep === 2">
-          <div class="animate-slide-in space-y-4">
-            <!-- Select Pets -->
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="fas fa-paw text-rose-600"></i>
-                Select pets
-              </h2>
+            <!-- Date & Time Selection -->
+            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
+              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center text-white">
+                  <i class="fas fa-calendar"></i>
+                </div>
+                Reservation Dates & Times
+              </h3>
 
-              {% if current_user.is_authenticated %}
-                {% if user_pets and user_pets|length > 0 %}
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                    {% for pet in user_pets %}
-                    <label class="pet-card" :class="selectedPets.includes({{ pet.id }}) ? 'selected' : ''">
-                      <input type="checkbox" 
-                             name="pets" 
-                             value="{{ pet.id }}"
-                             @change="togglePet({{ pet.id }})"
-                             class="hidden">
-                      <div class="flex items-center gap-2 flex-1">
-                        <div class="flex-shrink-0">
-                          {% if pet.photo_url %}
-                            <img src="{{ pet.photo_url }}" alt="{{ pet.name }}" class="w-8 h-8 rounded object-cover">
-                          {% else %}
-                            <div class="w-8 h-8 rounded bg-slate-200 flex items-center justify-center text-slate-400">
-                              <i class="fas fa-paw text-xs"></i>
-                            </div>
-                          {% endif %}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <p class="font-bold text-slate-900 text-sm">{{ pet.name }}</p>
-                          <p class="text-xs text-slate-600 truncate">{{ pet.species or 'Pet' }}</p>
-                        </div>
-                      </div>
-                    </label>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  <p class="text-slate-600 text-center py-3 text-sm">No pets yet. Add one in your profile.</p>
-                {% endif %}
-              {% else %}
-                <p class="text-center py-3 text-sm">
-                  <a href="{{ url_for('auth.login') }}" class="text-purple-600 hover:underline font-semibold">Login</a> to continue
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Check-in Date -->
+                <div>
+                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <i class="fas fa-arrow-right text-blue-600"></i> Check-in Date
+                  </label>
+                  <input 
+                    type="date" 
+                    name="check_in_date"
+                    id="checkInDate"
+                    required
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
+                  >
+                </div>
+
+                <!-- Check-in Time -->
+                <div>
+                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <i class="fas fa-clock text-blue-600"></i> Check-in Time
+                  </label>
+                  <input 
+                    type="time" 
+                    name="check_in_time"
+                    id="checkInTime"
+                    required
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
+                  >
+                </div>
+
+                <!-- Check-out Date -->
+                <div>
+                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-blue-600"></i> Check-out Date
+                  </label>
+                  <input 
+                    type="date" 
+                    name="check_out_date"
+                    id="checkOutDate"
+                    required
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
+                  >
+                </div>
+
+                <!-- Check-out Time -->
+                <div>
+                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <i class="fas fa-clock text-blue-600"></i> Check-out Time
+                  </label>
+                  <input 
+                    type="time" 
+                    name="check_out_time"
+                    id="checkOutTime"
+                    required
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
+                  >
+                </div>
+              </div>
+
+              <!-- Duration Info -->
+              <div id="durationInfo" class="mt-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-200/50 hidden">
+                <p class="text-blue-700 font-semibold text-sm">
+                  <i class="fas fa-info-circle"></i>
+                  Duration: <span id="durationText"></span>
                 </p>
+              </div>
+            </div>
+
+            <!-- Pickup & Delivery Options (Only if Pet Transport offered) -->
+            {% if "Pet Transport" in merchant.get_services_list() %}
+            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
+              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center text-white">
+                  <i class="fas fa-truck"></i>
+                </div>
+                Transport Options
+              </h3>
+
+              <div class="space-y-4">
+                <!-- Pickup Option -->
+                <label class="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-lg rounded-2xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50/30 cursor-pointer transition-all group">
+                  <input 
+                    type="checkbox" 
+                    name="requires_pickup"
+                    id="requiresPickup"
+                    class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500 cursor-pointer"
+                  >
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">Pickup Service</p>
+                    <p class="text-xs text-gray-500">+₱300 • We'll pick up your pet</p>
+                  </div>
+                </label>
+
+                <!-- Delivery Option -->
+                <label class="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-lg rounded-2xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50/30 cursor-pointer transition-all group">
+                  <input 
+                    type="checkbox" 
+                    name="requires_delivery"
+                    id="requiresDelivery"
+                    class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500 cursor-pointer"
+                  >
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">Delivery Service</p>
+                    <p class="text-xs text-gray-500">+₱300 • We'll return your pet</p>
+                  </div>
+                </label>
+
+                <!-- Pickup Address -->
+                <div id="pickupAddressField" class="hidden">
+                  <label class="block text-gray-900 font-semibold text-sm mb-2">Pickup Address</label>
+                  <input 
+                    type="text" 
+                    name="pickup_location"
+                    placeholder="Your pickup address"
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none transition-colors bg-white text-gray-800"
+                  >
+                </div>
+
+                <!-- Delivery Address -->
+                <div id="deliveryAddressField" class="hidden">
+                  <label class="block text-gray-900 font-semibold text-sm mb-2">Delivery Address</label>
+                  <input 
+                    type="text" 
+                    name="delivery_location"
+                    placeholder="Your delivery address"
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none transition-colors bg-white text-gray-800"
+                  >
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Special Requests -->
+            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
+              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center text-white">
+                  <i class="fas fa-note-sticky"></i>
+                </div>
+                Special Requests & Notes
+              </h3>
+
+              <textarea 
+                name="special_requests"
+                placeholder="Add any special requests, dietary notes, behavioral information, or medical needs we should know about..."
+                rows="5"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-amber-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400 resize-vertical"
+              ></textarea>
+              <p class="text-xs text-gray-500 mt-2">Examples: Dietary restrictions, anxiety, medications, behavioral notes, etc.</p>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex gap-4 sm:gap-5">
+              <a 
+                href="javascript:history.back()" 
+                class="flex-1 inline-flex items-center justify-center gap-2 
+                      px-6 py-3 
+                      bg-white/70 backdrop-blur-lg 
+                      hover:bg-gray-100 
+                      text-gray-900 font-semibold 
+                      rounded-xl shadow 
+                      border border-gray-200 
+                      transition-all duration-200 
+                      active:scale-95"
+              >
+                <i class="fas fa-arrow-left"></i>
+                Cancel
+              </a>
+              <button 
+                type="submit"
+                class="flex-1 inline-flex items-center justify-center gap-2 
+                      px-6 py-3 
+                      bg-gradient-to-br from-purple-500 to-purple-700 
+                      hover:from-purple-600 hover:to-purple-800 
+                      text-white font-semibold 
+                      rounded-xl shadow hover:shadow-lg 
+                      transition-all duration-200 
+                      active:scale-95"
+              >
+                <i class="fas fa-calendar-check"></i>
+                Book Now
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right Sidebar (Summary & Map) -->
+        <div class="lg:col-span-1 space-y-6 sm:space-y-7 animate-fade-in" style="animation-delay: 0.2s">
+          
+          <!-- Booking Summary Card -->
+          <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/70 p-5 sticky top-24">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="fas fa-receipt text-purple-600"></i> Summary
+            </h3>
+            
+            <div class="space-y-3 mb-6">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Duration:</span>
+                <span id="summaryDuration" class="font-bold text-gray-900">-</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Pets:</span>
+                <span id="summaryPets" class="font-bold text-gray-900">0</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Services:</span>
+                <span id="summaryServices" class="font-bold text-gray-900">0</span>
+              </div>
+
+              <!-- Selected Services Display -->
+              <div id="selectedServicesDisplay" class="mt-4 pt-3 border-t border-gray-200 hidden">
+                <p class="text-xs font-semibold text-gray-700 mb-2">Selected Services:</p>
+                <div id="selectedServicesList" class="space-y-2"></div>
+              </div>
+
+              <div class="border-t border-gray-200 pt-3 flex justify-between text-sm">
+                <span class="text-gray-700 font-medium">Price/Day:</span>
+                <span id="summaryBasePrice" class="font-bold text-green-600">₱{{ "%.2f"|format(merchant.min_price or 0) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-700 font-medium">Subtotal:</span>
+                <span id="summarySubtotal" class="font-bold text-gray-900">₱0.00</span>
+              </div>
+
+              <!-- Additional Fees -->
+              <div id="additionalFeesCard" class="bg-gray-50 rounded-lg p-3 hidden">
+                <div id="pickupFeeRow" class="flex justify-between text-xs hidden mb-2">
+                  <span class="text-gray-600">Pickup:</span>
+                  <span id="pickupFeeAmount" class="font-semibold">₱0.00</span>
+                </div>
+                <div id="deliveryFeeRow" class="flex justify-between text-xs hidden">
+                  <span class="text-gray-600">Delivery:</span>
+                  <span id="deliveryFeeAmount" class="font-semibold">₱0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl p-4 text-white">
+              <p class="text-white/90 text-xs font-semibold mb-1">Total Amount</p>
+              <p id="summaryTotal" class="text-3xl font-bold">₱0.00</p>
+            </div>
+
+            <p class="text-blue-700 text-xs mt-3 bg-blue-50 p-2 rounded-lg">
+              <i class="fas fa-info-circle mr-1"></i>
+              Prices are estimates. Store will confirm final price.
+            </p>
+          </div>
+
+          <!-- Store Location Map -->
+          <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/70 overflow-hidden">
+            <div id="storeMap" class="w-full h-80 rounded-3xl" style="z-index: 1;"></div>
+            
+            <!-- Store Address Below Map -->
+            <div class="p-5">
+              <h4 class="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
+                <i class="fas fa-location-dot text-red-600"></i> Location
+              </h4>
+              <address class="not-italic text-gray-600 text-xs leading-relaxed mb-3">
+                {{ merchant.full_address }}
+                {% if merchant.city %}<br><strong>{{ merchant.city }}</strong>{% endif %}
+                {% if merchant.province %}, {{ merchant.province }}{% endif %}
+              </address>
+              {% if merchant.google_maps_link %}
+              <a href="{{ merchant.google_maps_link }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-xs">
+                <i class="fas fa-map"></i> Open in Google Maps
+              </a>
               {% endif %}
             </div>
+          </div>
 
-            <!-- Dates -->
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="fas fa-calendar text-blue-600"></i>
-                When do you need it?
-              </h2>
-
-              <div class="space-y-2.5">
-                <!-- Check-in -->
-                <div>
-                  <label class="block text-xs font-bold text-slate-900 mb-1">Check-in</label>
-                  <input type="date" 
-                         x-model="formData.check_in_date"
-                         :min="minDate"
-                         class="date-input"
-                         @change="validateDates()"
-                         required>
-                  <template x-if="errors.check_in_date">
-                    <p class="error-message"><i class="fas fa-exclamation-circle"></i> <span x-text="errors.check_in_date"></span></p>
-                  </template>
-                </div>
-
-                <!-- Check-out -->
-                <div>
-                  <label class="block text-xs font-bold text-slate-900 mb-1">Check-out</label>
-                  <input type="date" 
-                         x-model="formData.check_out_date"
-                         :min="formData.check_in_date || minDate"
-                         class="date-input"
-                         @change="validateDates()"
-                         required>
-                  <template x-if="errors.check_out_date">
-                    <p class="error-message"><i class="fas fa-exclamation-circle"></i> <span x-text="errors.check_out_date"></span></p>
-                  </template>
-                </div>
-
-                <!-- Times -->
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
-                    <label class="block text-xs font-bold text-slate-900 mb-1">Time In</label>
-                    <input type="time" 
-                           x-model="formData.check_in_time"
-                           class="date-input"
-                           required>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-bold text-slate-900 mb-1">Time Out</label>
-                    <input type="time" 
-                           x-model="formData.check_out_time"
-                           class="date-input"
-                           required>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Navigation -->
-            <div class="flex justify-between gap-3">
-              <button type="button" 
-                      @click="goToPreviousStep()"
-                      class="px-4 py-2 text-slate-700 font-medium rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">
-                Back
-              </button>
-              <button type="button"
-                      @click="goToNextStep()"
-                      :disabled="selectedPets.length === 0 || !formData.check_in_date || !formData.check_out_date"
-                      class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm">
-                Next
-              </button>
+          <!-- Quick Contact -->
+          <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/70 p-5">
+            <h4 class="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
+              <i class="fas fa-phone text-blue-600"></i> Contact
+            </h4>
+            <div class="space-y-2 text-xs">
+              <a href="tel:{{ merchant.contact_phone }}" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">
+                <i class="fas fa-phone text-blue-500"></i> {{ merchant.contact_phone }}
+              </a>
+              <a href="mailto:{{ merchant.contact_email }}" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors break-all">
+                <i class="fas fa-envelope text-blue-500"></i> {{ merchant.contact_email }}
+              </a>
             </div>
           </div>
-        </template>
-
-        <!-- STEP 3: CUSTOMER DETAILS & REVIEW -->
-        <template x-if="currentStep === 3">
-          <div class="animate-slide-in space-y-4">
-            <!-- Customer Info -->
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="fas fa-user text-indigo-600"></i>
-                Your info
-              </h2>
-
-              <div class="space-y-2.5">
-                <div>
-                  <label class="block text-xs font-bold text-slate-900 mb-1">Full name</label>
-                  <input type="text" 
-                         x-model="formData.customer_name"
-                         placeholder="Your name"
-                         class="date-input"
-                         required>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-bold text-slate-900 mb-1">Email</label>
-                  <input type="email" 
-                         x-model="formData.customer_email"
-                         placeholder="your@email.com"
-                         class="date-input"
-                         required>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-bold text-slate-900 mb-1">Phone</label>
-                  <input type="tel" 
-                         x-model="formData.customer_phone"
-                         placeholder="+63 912 345 6789"
-                         class="date-input"
-                         required>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-bold text-slate-900 mb-1">Notes (optional)</label>
-                  <textarea x-model="formData.special_requests"
-                            placeholder="Any special requests?"
-                            rows="2"
-                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm resize-none"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- Summary -->
-            <div class="form-section bg-purple-50 border-purple-200">
-              <h3 class="font-bold text-slate-900 mb-3 text-sm">Summary</h3>
-              <div class="space-y-1.5 text-xs">
-                <div class="flex justify-between">
-                  <span class="text-slate-700">Services:</span>
-                  <span class="font-bold text-right max-w-xs" x-text="selectedServices.slice(0, 2).join(', ') + (selectedServices.length > 2 ? '...' : '')"></span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-700">Pets:</span>
-                  <span class="font-bold" x-text="selectedPets.length + ' pet(s)'"></span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-700">Duration:</span>
-                  <span class="font-bold" x-text="calculateDuration() + ' day(s)'"></span>
-                </div>
-                <div class="border-t border-purple-300 pt-1.5 mt-1.5 flex justify-between">
-                  <span class="font-bold">Total:</span>
-                  <span class="text-base font-bold text-purple-600" x-text="'₱' + calculateTotal().toFixed(2)"></span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Terms -->
-            <div class="form-section">
-              <label class="flex items-start gap-2 cursor-pointer">
-                <input type="checkbox" 
-                       x-model="formData.agree_terms"
-                       class="w-4 h-4 mt-0.5 rounded"
-                       required>
-                <span class="text-xs text-slate-700">
-                  I agree this is a reservation. The merchant will confirm within 24 hours.
-                </span>
-              </label>
-            </div>
-
-            <!-- Error Message -->
-            <template x-if="formError">
-              <div class="form-section bg-red-50 border-red-200">
-                <p class="text-red-700 text-sm font-medium" x-text="formError"></p>
-              </div>
-            </template>
-
-            <!-- Submit Buttons -->
-            <div class="flex justify-between gap-3">
-              <button type="button" 
-                      @click="goToPreviousStep()"
-                      class="flex-1 px-4 py-2 text-slate-700 font-medium rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">
-                Back
-              </button>
-              <button type="submit"
-                      :disabled="isSubmitting"
-                      class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 text-sm">
-                <template x-if="!isSubmitting">
-                  <span><i class="fas fa-check-circle mr-1"></i>Reserve</span>
-                </template>
-                <template x-if="isSubmitting">
-                  <span><i class="fas fa-spinner animate-pulse-custom mr-1"></i>Processing...</span>
-                </template>
-              </button>
-            </div>
-          </div>
-        </template>
-
-        <input type="hidden" name="merchant_id" :value="merchantId">
-        <input type="hidden" name="services" :value="JSON.stringify(selectedServices)">
-        <input type="hidden" name="pets" :value="JSON.stringify(selectedPets)">
-      </form>
-
-    </div>
-  </div>
-
-  {% else %}
-  <div class="w-full px-4 py-12">
-    <div class="max-w-sm mx-auto text-center">
-      <div class="text-5xl mb-3 text-slate-300">
-        <i class="fas fa-lock"></i>
+        </div>
       </div>
-      <h2 class="text-2xl font-bold text-slate-900 mb-2">Not Found</h2>
-      <p class="text-slate-600 mb-6 text-sm">This store is not available.</p>
-      <a href="javascript:history.back()" class="inline-flex items-center gap-2 px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-sm transition">
-        <i class="fas fa-arrow-left"></i>Go Back
-      </a>
-    </div>
-  </div>
-  {% endif %}
 
+      <!-- Merchant Data for JavaScript -->
+      <script type="application/json" id="merchantDataJson">
+        {
+          "acceptedPets": {{ merchant.get_pets_list() | tojson | safe }},
+          "offeredServices": {{ merchant.get_services_list() | tojson | safe }},
+          "hasPetTransport": {{ ('Pet Transport' in merchant.get_services_list()) | tojson | safe }}
+        }
+      </script>
+
+    {% else %}
+      <!-- Store Not Found -->
+      <div class="max-w-2xl mx-auto bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl p-12 text-center border border-white/60">
+        <i class="fas fa-shop text-6xl text-gray-300 mb-4 block"></i>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Store Not Found</h2>
+        <p class="text-gray-600 mb-6">Sorry, we couldn't find the store you're looking for.</p>
+        <a 
+          href="{{ url_for('merchant.public_stores') }}" 
+          class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold rounded-lg shadow hover:shadow-lg transition-all"
+        >
+          <i class="fas fa-arrow-left"></i>
+          Back to Stores
+        </a>
+      </div>
+    {% endif %}
+  </div>
 </div>
 
+<!-- CSS Animations -->
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out forwards;
+  }
+</style>
+
+<!-- JavaScript for Dynamic Functionality -->
 <script>
-function bookingApp() {
-  return {
-    currentStep: 1,
-    merchantId: {{ merchant.id if merchant else 0 }},
-    
-    selectedServices: [],
-    selectedPets: [],
-    
-    formData: {
-      check_in_date: '',
-      check_out_date: '',
-      check_in_time: '10:00',
-      check_out_time: '16:00',
-      customer_name: '{{ current_user.first_name + " " + current_user.last_name if current_user.is_authenticated else "" }}',
-      customer_email: '{{ current_user.email if current_user.is_authenticated else "" }}',
-      customer_phone: '',
-      special_requests: '',
-      agree_terms: false,
-    },
-    
-    minDate: new Date().toISOString().split('T')[0],
-    errors: {},
-    formError: '',
-    isSubmitting: false,
-    basePrice: {{ merchant.max_price_per_day if merchant else 500 }},
-
-    toggleService(service) {
-      const index = this.selectedServices.indexOf(service);
-      if (index > -1) {
-        this.selectedServices.splice(index, 1);
-      } else {
-        this.selectedServices.push(service);
-      }
-    },
-
-    togglePet(petId) {
-      const index = this.selectedPets.indexOf(petId);
-      if (index > -1) {
-        this.selectedPets.splice(index, 1);
-      } else {
-        this.selectedPets.push(petId);
-      }
-    },
-
-    calculateDuration() {
-      if (!this.formData.check_in_date || !this.formData.check_out_date) return 0;
-      const checkIn = new Date(this.formData.check_in_date);
-      const checkOut = new Date(this.formData.check_out_date);
-      const timeDiff = checkOut - checkIn;
-      return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) || 0;
-    },
-
-    calculateTotal() {
-      const duration = this.calculateDuration();
-      const petMultiplier = this.selectedPets.length;
-      return (this.basePrice * duration * petMultiplier) || 0;
-    },
-
-    formatDate(dateStr) {
-      if (!dateStr) return '';
-      const date = new Date(dateStr + 'T00:00:00');
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    },
-
-    validateDates() {
-      this.errors = {};
-      if (this.formData.check_in_date < this.minDate) {
-        this.errors.check_in_date = 'Date must be in the future';
-      }
-      if (this.formData.check_out_date <= this.formData.check_in_date) {
-        this.errors.check_out_date = 'Must be after check-in date';
-      }
-    },
-
-    goToNextStep() {
-      if (this.currentStep < 3) {
-        this.currentStep++;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    },
-
-    goToPreviousStep() {
-      if (this.currentStep > 1) {
-        this.currentStep--;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    },
-
-    async submitBooking() {
-      this.formError = '';
-      this.isSubmitting = true;
-
-      try {
-        const response = await fetch('{{ url_for("merchant.api_create_booking") }}', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || '',
-          },
-          body: JSON.stringify({
-            merchant_id: this.merchantId,
-            services_booked: this.selectedServices,
-            pets_booked: this.selectedPets,
-            check_in_date: this.formData.check_in_date,
-            check_out_date: this.formData.check_out_date,
-            check_in_time: this.formData.check_in_time,
-            check_out_time: this.formData.check_out_time,
-            customer_name: this.formData.customer_name,
-            customer_email: this.formData.customer_email,
-            customer_phone: this.formData.customer_phone,
-            special_requests: this.formData.special_requests,
-          }),
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-          window.location.href = '/merchant/booking/confirmation/' + data.booking_id;
-        } else {
-          this.formError = data.error || 'Booking failed. Please try again.';
-        }
-      } catch (error) {
-        this.formError = 'An error occurred. Please try again.';
-        console.error('Booking error:', error);
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
+  // Data from server - convert to proper types
+  const merchantData = {
+    minPrice: parseFloat("{{ merchant.min_price or 0 }}"),
+    maxPrice: parseFloat("{{ merchant.max_price or 0 }}"),
+    maxPetsPerDay: parseInt("{{ merchant.max_pets_per_day or 999 }}")
   };
-}
+  
+  // Load additional data from JSON block
+  try {
+    const dataBlock = document.getElementById('merchantDataJson');
+    if (dataBlock) {
+      const extraData = JSON.parse(dataBlock.textContent);
+      Object.assign(merchantData, extraData);
+    }
+  } catch (e) {
+    console.error('Error loading merchant data:', e);
+    merchantData.acceptedPets = [];
+    merchantData.offeredServices = [];
+    merchantData.hasPetTransport = false;
+  }
+
+  const form = document.getElementById('bookingForm');
+  const checkInDate = document.getElementById('checkInDate');
+  const checkInTime = document.getElementById('checkInTime');
+  const checkOutDate = document.getElementById('checkOutDate');
+  const checkOutTime = document.getElementById('checkOutTime');
+  
+  // Get service icons based on service name
+  function getServiceIcon(service) {
+    const icons = {
+      'Pet Boarding': 'fa-bed',
+      'Pet Daycare': 'fa-sun',
+      'Pet Grooming': 'fa-shower',
+      'Pet Training': 'fa-graduation-cap',
+      'Pet Transport': 'fa-truck',
+      'Veterinary Clinic': 'fa-stethoscope',
+      'Pet Sitting': 'fa-hand-holding',
+      'Pet Walking': 'fa-person-hiking',
+      'Pet Bathing': 'fa-water'
+    };
+    return icons[service] || 'fa-check-circle';
+  }
+
+  // Update summary on form changes
+  function updateSummary() {
+    // Calculate duration
+    if (checkInDate.value && checkOutDate.value) {
+      const checkIn = new Date(checkInDate.value);
+      const checkOut = new Date(checkOutDate.value);
+      const duration = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)) || 0;
+      
+      document.getElementById('summaryDuration').textContent = duration > 0 ? `${duration} day${duration !== 1 ? 's' : ''}` : '-';
+      document.getElementById('durationText').textContent = `${duration} day${duration !== 1 ? 's' : ''}`;
+      document.getElementById('durationInfo').classList.toggle('hidden', duration <= 0);
+    }
+
+    // Count selected pets (from radio button)
+    const selectedPets = parseInt(document.querySelector('input[name="total_pets"]:checked')?.value) || 0;
+    document.getElementById('summaryPets').textContent = selectedPets;
+
+    // Get selected services with details
+    const selectedServiceElements = document.querySelectorAll('input[name="services_booked"]:checked');
+    const selectedServices = Array.from(selectedServiceElements).map(el => el.value);
+    document.getElementById('summaryServices').textContent = selectedServices.length;
+    
+    // Update service details display
+    updateServiceDetails(selectedServices);
+
+    // Calculate pricing
+    const checkIn = new Date(checkInDate.value);
+    const checkOut = new Date(checkOutDate.value);
+    const duration = Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)));
+    const basePrice = merchantData.minPrice || 0;
+    
+    const subtotal = duration * selectedPets * basePrice;
+    document.getElementById('summarySubtotal').textContent = `₱${subtotal.toFixed(2)}`;
+    document.getElementById('summaryBasePrice').textContent = `₱${basePrice.toFixed(2)}`;
+
+    // Calculate additional fees
+    const requiresPickup = document.getElementById('requiresPickup').checked;
+    const requiresDelivery = document.getElementById('requiresDelivery').checked;
+    const pickupFee = requiresPickup ? 300 : 0;
+    const deliveryFee = requiresDelivery ? 300 : 0;
+    const totalFees = pickupFee + deliveryFee;
+
+    document.getElementById('pickupFeeRow').classList.toggle('hidden', pickupFee === 0);
+    document.getElementById('deliveryFeeRow').classList.toggle('hidden', deliveryFee === 0);
+    document.getElementById('pickupFeeAmount').textContent = `₱${pickupFee.toFixed(2)}`;
+    document.getElementById('deliveryFeeAmount').textContent = `₱${deliveryFee.toFixed(2)}`;
+    document.getElementById('additionalFeesCard').classList.toggle('hidden', totalFees === 0);
+
+    const total = subtotal + totalFees;
+    document.getElementById('summaryTotal').textContent = `₱${total.toFixed(2)}`;
+  }
+
+  // Update service-specific details
+  function updateServiceDetails(services) {
+    const summaryBasePrice = document.getElementById('summaryBasePrice');
+    const selectedServicesDisplay = document.getElementById('selectedServicesDisplay');
+    const selectedServicesList = document.getElementById('selectedServicesList');
+    
+    // Build services list with icons
+    if (services.length > 0) {
+      selectedServicesDisplay.classList.remove('hidden');
+      selectedServicesList.innerHTML = services.map(service => `
+        <div class="flex items-center gap-2 p-2 bg-purple-50 rounded text-xs">
+          <i class="fas ${getServiceIcon(service)} text-purple-600"></i>
+          <span class="text-gray-700 font-medium">${service}</span>
+        </div>
+      `).join('');
+    } else {
+      selectedServicesDisplay.classList.add('hidden');
+      selectedServicesList.innerHTML = '';
+    }
+
+    let serviceNote = '';
+    if (services.length === 0) {
+      serviceNote = 'Select services';
+    } else if (services.includes('Pet Boarding') || services.includes('Pet Daycare')) {
+      serviceNote = '🏠 Accommodation & care';
+    } else if (services.includes('Pet Grooming')) {
+      serviceNote = '✨ Grooming service';
+    } else if (services.includes('Pet Training')) {
+      serviceNote = '🎓 Training sessions';
+    } else if (services.includes('Pet Sitting')) {
+      serviceNote = '🤝 Pet sitting';
+    } else if (services.includes('Pet Walking')) {
+      serviceNote = '🚶 Daily walks';
+    } else {
+      serviceNote = `${services[0]} service`;
+    }
+  }
+
+  // Event listeners
+  checkInDate.addEventListener('change', updateSummary);
+  checkInTime.addEventListener('change', updateSummary);
+  checkOutDate.addEventListener('change', updateSummary);
+  checkOutTime.addEventListener('change', updateSummary);
+  
+  document.querySelectorAll('input[name="total_pets"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      updateSummary();
+      updatePetFieldsCount(parseInt(this.value));
+      
+      // Check capacity
+      if (merchantData.maxPetsPerDay && parseInt(this.value) > merchantData.maxPetsPerDay) {
+        document.getElementById('capacityWarning').classList.remove('hidden');
+        document.getElementById('capacityText').textContent = merchantData.maxPetsPerDay + ' pets/day';
+      } else {
+        document.getElementById('capacityWarning').classList.add('hidden');
+      }
+    });
+  });
+
+  document.querySelectorAll('input[name="services_booked"]').forEach(checkbox => {
+    checkbox.addEventListener('change', updateSummary);
+  });
+
+  document.getElementById('requiresPickup').addEventListener('change', function() {
+    document.getElementById('pickupAddressField').classList.toggle('hidden', !this.checked);
+    updateSummary();
+  });
+
+  document.getElementById('requiresDelivery').addEventListener('change', function() {
+    document.getElementById('deliveryAddressField').classList.toggle('hidden', !this.checked);
+    updateSummary();
+  });
+
+  // Update pet form fields based on count
+  function updatePetFieldsCount(count) {
+    const container = document.getElementById('multiPetsContainer');
+    container.innerHTML = '';
+    
+    for (let i = 1; i <= count; i++) {
+      const petDiv = document.createElement('div');
+      petDiv.className = 'bg-white/50 backdrop-blur-lg rounded-2xl p-6 border-2 border-orange-200';
+      petDiv.innerHTML = `
+        <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-paw text-orange-600"></i> Pet ${i} Details
+        </h4>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Pet Species -->
+          <div class="sm:col-span-2">
+            <label class="block text-gray-900 font-semibold text-sm mb-2">
+              <i class="fas fa-dna text-orange-600"></i> Pet Type *
+            </label>
+            <select 
+              name="pet_${i}_species"
+              required
+              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
+            >
+              <option value="">Select species...</option>
+              ${merchantData.acceptedPets.map(pet => `<option value="${pet}">${pet}</option>`).join('')}
+            </select>
+          </div>
+          
+          <!-- Pet Name -->
+          <div>
+            <label class="block text-gray-900 font-semibold text-sm mb-2">
+              <i class="fas fa-name text-orange-600"></i> Name
+            </label>
+            <input 
+              type="text" 
+              name="pet_${i}_name"
+              placeholder="Buddy"
+              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
+            >
+          </div>
+
+          <!-- Pet Breed -->
+          <div>
+            <label class="block text-gray-900 font-semibold text-sm mb-2">
+              <i class="fas fa-list text-orange-600"></i> Breed
+            </label>
+            <input 
+              type="text" 
+              name="pet_${i}_breed"
+              placeholder="Golden Retriever"
+              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
+            >
+          </div>
+
+          <!-- Pet Age -->
+          <div>
+            <label class="block text-gray-900 font-semibold text-sm mb-2">
+              <i class="fas fa-calendar-days text-orange-600"></i> Age (years)
+            </label>
+            <input 
+              type="number" 
+              name="pet_${i}_age"
+              min="0"
+              step="0.5"
+              placeholder="3"
+              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
+            >
+          </div>
+
+          <!-- Medical Notes -->
+          <div class="sm:col-span-2">
+            <label class="block text-gray-900 font-semibold text-sm mb-2">
+              <i class="fas fa-heartbeat text-orange-600"></i> Medical Notes
+            </label>
+            <input 
+              type="text" 
+              name="pet_${i}_medical"
+              placeholder="Allergies, medications, conditions..."
+              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
+            >
+          </div>
+        </div>
+      `;
+      container.appendChild(petDiv);
+    }
+  }
+
+  // Set minimum check-in date to today
+  const today = new Date().toISOString().split('T')[0];
+  checkInDate.setAttribute('min', today);
+
+  // Set minimum check-out date to be after check-in date
+  checkInDate.addEventListener('change', function() {
+    checkOutDate.setAttribute('min', this.value);
+  });
+
+  // Form submission
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Validate selections
+    const totalPets = parseInt(document.querySelector('input[name="total_pets"]:checked')?.value) || 0;
+    const selectedServices = document.querySelectorAll('input[name="services_booked"]:checked').length;
+
+    if (totalPets === 0) {
+      alert('Please select the number of pets you want to book');
+      return;
+    }
+
+    if (selectedServices === 0) {
+      alert('Please select at least one service');
+      return;
+    }
+
+    // Validate all pets have species
+    for (let i = 1; i <= totalPets; i++) {
+      const species = document.querySelector(`input[name="pet_${i}_species"], select[name="pet_${i}_species"]`)?.value;
+      if (!species) {
+        alert(`Please select a species for Pet ${i}`);
+        return;
+      }
+    }
+
+    if (checkInDate.value === '') {
+      alert('Please select a check-in date');
+      return;
+    }
+
+    if (checkOutDate.value === '') {
+      alert('Please select a check-out date');
+      return;
+    }
+
+    const checkIn = new Date(checkInDate.value);
+    const checkOut = new Date(checkOutDate.value);
+    
+    if (checkOut <= checkIn) {
+      alert('Check-out date must be after check-in date');
+      return;
+    }
+
+    // Validate capacity
+    if (merchantData.maxPetsPerDay && totalPets > merchantData.maxPetsPerDay) {
+      if (!confirm(`You're requesting ${totalPets} pets but the store's daily capacity is ${merchantData.maxPetsPerDay}. Continue?`)) {
+        return;
+      }
+    }
+
+    // Show loader and submit
+    document.getElementById('loader-overlay').classList.remove('hidden');
+    
+    // Simulate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 30;
+      progress = Math.min(progress, 90);
+      document.getElementById('progressBar').style.width = progress + '%';
+    }, 300);
+
+    // Submit form after delay
+    setTimeout(() => {
+      clearInterval(progressInterval);
+      document.getElementById('progressBar').style.width = '100%';
+      form.submit();
+    }, 1500);
+  });
+
+  // Initialize Map
+  function initializeStoreMap() {
+    const latitude = parseFloat("{{ merchant.latitude or 14.5995 }}");
+    const longitude = parseFloat("{{ merchant.longitude or 120.9842 }}");
+    const businessName = "{{ merchant.business_name or 'Pet Store' }}";
+    
+    // Create map centered on store location
+    const map = L.map('storeMap', {
+      center: [latitude, longitude],
+      zoom: 16,
+      dragging: false,
+      doubleClickZoom: false,
+      scrollWheelZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      zoomControl: true
+    });
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Add red marker at store location
+    const marker = L.marker([latitude, longitude], {
+      icon: L.icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      })
+    }).addTo(map);
+
+    // Add popup with store name
+    marker.bindPopup(`<div class="text-center"><strong>${businessName}</strong></div>`).openPopup();
+  }
+
+  // Initialize
+  updateSummary();
+  updatePetFieldsCount(1);
+  
+  // Initialize map when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeStoreMap);
+  } else {
+    initializeStoreMap();
+  }
 </script>
 
 {% endblock %}

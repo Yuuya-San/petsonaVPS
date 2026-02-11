@@ -1,856 +1,1711 @@
 {% extends "merchant/base.html" %}
 
+{% block title %}Edit Store Information - PetSona{% endblock %}
+
 {% block content %}
-<div x-data="storeEditForm()" @mount="init()" x-cloak class="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white py-8">
-  
-  <div class="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    <!-- Header Section -->
-    <div class="mb-8">
-      <a href="{{ url_for('merchant.store') }}" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold mb-4 transition-colors">
-        <i class="fas fa-arrow-left"></i>
-        Back to Store
-      </a>
-      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Edit Store Information</h1>
-      <p class="text-gray-600">Update your store profile information</p>
-    </div>
+<div class="min-h-screen bg-gradient-to-b from-purple-50 via-white to-purple-50">
+  <!-- Purple gradient background -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-blob animation-delay-2000"></div>
+    <div class="absolute top-1/2 right-1/4 w-64 h-64 bg-purple-150 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+  </div>
 
-    <!-- Error Display -->
-    {% if form.errors %}
-      <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-        <div class="flex-shrink-0 mt-0.5">
-          <i class="fas fa-circle-exclamation text-red-500 text-lg"></i>
-        </div>
-        <div class="flex-1">
-          <h3 class="font-semibold text-red-900 mb-2">Please fix the following errors:</h3>
-          <ul class="text-sm text-red-800 space-y-1">
-            {% for field, errors in form.errors.items() %}
-              {% if field != 'csrf_token' %}
-                {% for error in errors %}
-                  <li><i class="fas fa-circle text-xs mr-2"></i>{{ error }}</li>
-                {% endfor %}
-              {% endif %}
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    {% endif %}
+  <!-- Main Content -->
+  <div class="relative z-10">
 
-    <!-- Main Form -->
-    <form method="POST" enctype="multipart/form-data" @submit="validateForm($event)" novalidate class="space-y-6">
-      {{ form.hidden_tag() }}
-      
-      <!-- SECTION 1: BUSINESS INFORMATION -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">1</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Business Information</h2>
-            <p class="text-gray-600 text-sm mt-1">Update your business details</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="md:col-span-2">
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Business Name <span class="text-red-500">*</span></label>
-            {{ form.business_name(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
-            <div data-error-for="business_name" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Business Type <span class="text-red-500">*</span></label>
-            {{ form.business_type(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
-            <div data-error-for="business_type" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Years in Operation</label>
-            {{ form.years_in_operation(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Business Description <span class="text-red-500">*</span></label>
-            {{ form.business_description(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 resize-none text-sm", rows="4") }}
-            <div data-error-for="business_description" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Store Logo</label>
-            <div class="relative">
-              <label class="flex items-center justify-center w-full p-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all group">
-                <input type="file" @change="updateFileName($event, 'logo_name')" name="logo_path" class="hidden" accept=".jpg,.jpeg,.png,.webp">
-                <div class="text-center">
-                  <i class="fas fa-image text-purple-400 text-3xl group-hover:text-purple-600 mb-2 block"></i>
-                  <p class="text-sm font-medium text-gray-900 group-hover:text-purple-700">Click to upload logo</p>
-                  <p class="text-xs text-gray-500 mt-1">or drag and drop</p>
-                  <p class="text-xs text-gray-400 mt-2">JPG, PNG, WebP • Max 5MB • Recommended: 300×300px</p>
-                </div>
-              </label>
-            </div>
-            <div class="mt-2 text-sm" x-text="logo_name" :style="logo_name.includes('✓') ? 'color: #10b981' : ''"></div>
-            <div data-error-for="logo_path" class="mt-2 text-sm text-red-600 hidden"></div>
-            <template x-if="currentLogo">
-              <div class="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p class="text-xs font-semibold text-gray-700 mb-2">Current Logo</p>
-                <img :src="currentLogo" alt="Current Logo" class="h-24 w-24 object-cover rounded border border-purple-300">
-              </div>
-            </template>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 2: CONTACT PERSON -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">2</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Contact Information</h2>
-            <p class="text-gray-600 text-sm mt-1">Update your contact details</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Owner/Manager Name <span class="text-red-500">*</span></label>
-            {{ form.owner_manager_name(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
-            <div data-error-for="owner_manager_name" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Email Address <span class="text-red-500">*</span></label>
-            {{ form.contact_email(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
-            <div data-error-for="contact_email" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Phone Number <span class="text-red-500">*</span></label>
-            {{ form.contact_phone(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
-            <div data-error-for="contact_phone" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 3: LOCATION -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">3</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Business Location</h2>
-            <p class="text-gray-600 text-sm mt-1">Update your store location and current location information</p>
-          </div>
-        </div>
-
-        <input type="hidden" name="province" x-model="selectedProvince">
-        <input type="hidden" name="city" x-model="selectedCity">
-        <input type="hidden" name="barangay" x-model="selectedBarangay">
-        <input type="hidden" name="latitude" x-model="selectedLatitude">
-        <input type="hidden" name="longitude" x-model="selectedLongitude">
-        <input type="hidden" name="full_address" x-model="fullAddress">
-
-        <!-- Current Location Display -->
-        <div class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <h3 class="font-semibold text-gray-900 mb-3 text-sm">Current Location</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <div>
-              <span class="text-gray-600">Province:</span>
-              <p class="font-medium text-gray-900" x-text="currentProvinceName || 'Not set'"></p>
-            </div>
-            <div>
-              <span class="text-gray-600">City:</span>
-              <p class="font-medium text-gray-900" x-text="currentCityName || 'Not set'"></p>
-            </div>
-            <div>
-              <span class="text-gray-600">Barangay:</span>
-              <p class="font-medium text-gray-900" x-text="currentBarangayName || 'Not set'"></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Province <span class="text-red-500">*</span></label>
-            <select @change="loadCities()" x-model="selectedProvince" class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm">
-              <option value="">-- Select Province --</option>
-              <template x-for="(prov, idx) in provinces" :key="idx">
-                <option :value="prov.code" x-text="prov.name"></option>
-              </template>
-            </select>
-            <div data-error-for="province" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">City/Municipality <span class="text-red-500">*</span></label>
-            <select @change="loadBarangays()" x-model="selectedCity" class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" :disabled="!selectedProvince">
-              <option value="">-- Select City --</option>
-              <template x-for="(city, idx) in cities" :key="idx">
-                <option :value="city.code" x-text="city.name"></option>
-              </template>
-            </select>
-            <div data-error-for="city" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Barangay <span class="text-red-500">*</span></label>
-            <select x-model="selectedBarangay" class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" :disabled="!selectedCity">
-              <option value="">-- Select Barangay --</option>
-              <template x-for="(barangay, idx) in barangays" :key="idx">
-                <option :value="barangay.code || barangay" x-text="barangay.name || barangay"></option>
-              </template>
-            </select>
-            <div data-error-for="barangay" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Postal Code</label>
-            {{ form.postal_code(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Google Maps Link (Optional)</label>
-            {{ form.google_maps_link(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 text-sm") }}
-          </div>
-        </div>
-
-        <div class="mb-6">
-          <label class="block text-sm font-semibold text-gray-900 mb-2">Full Address <span class="text-red-500">*</span></label>
-          {{ form.full_address(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-purple-50 text-gray-900 text-sm", placeholder="Auto-populated from map") }}
-          <div data-error-for="full_address" class="mt-2 text-sm text-red-600 hidden"></div>
-        </div>
-
-        <div class="bg-gradient-to-br from-purple-50 to-white rounded-lg p-6 border border-purple-200 mb-6">
-          <h3 class="font-semibold text-gray-900 mb-4 text-sm flex items-center gap-2">
-            <i class="fas fa-map-location-dot text-purple-600"></i>Pin Your Store Location
-          </h3>
-          <div id="editStoreMap" style="width: 100%; height: 300px; min-height: 300px; border-radius: 0.5rem; border: 2px solid #e9d5ff; background-color: #f5f3ff;"></div>
-          <div data-error-for="map" class="mt-2 text-sm text-red-600 hidden"></div>
-          <p class="text-sm text-gray-600 mt-3"><i class="fas fa-info-circle text-purple-600 mr-2"></i>Click on the map to update your store location</p>
-          {{ form.latitude() }}
-          {{ form.longitude() }}
-        </div>
-
-        <style>
-          @media (min-width: 640px) {
-            #editStoreMap {
-              height: 400px;
-              min-height: 400px;
-            }
-          }
-
-          @media (min-width: 1024px) {
-            #editStoreMap {
-              height: 500px;
-              min-height: 500px;
-            }
-          }
-        </style>
-      </div>
-
-      <!-- SECTION 4: SERVICES OFFERED -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">4</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Services Offered</h2>
-            <p class="text-gray-600 text-sm mt-1">Select all services your business provides</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {% for field in form.services_offered %}
-            <label class="flex items-center p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all group">
-              {{ field(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
-              <span class="ml-3 text-sm font-medium text-gray-900 group-hover:text-purple-700">{{ field.label.text }}</span>
-            </label>
-          {% endfor %}
-        </div>
-
-        <div data-error-for="services_offered" class="mt-3 text-sm text-red-600 hidden"></div>
-      </div>
-
-      <!-- SECTION 5: PETS ACCEPTED -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">5</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Pets Accepted</h2>
-            <p class="text-gray-600 text-sm mt-1">Select all pet types your business can accommodate</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {% for field in form.pets_accepted %}
-            <label class="flex items-center p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all group">
-              {{ field(class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
-              <span class="ml-3 text-sm font-medium text-gray-900 group-hover:text-purple-700">{{ field.label.text }}</span>
-            </label>
-          {% endfor %}
-        </div>
-
-        <div data-error-for="pets_accepted" class="mt-3 text-sm text-red-600 hidden"></div>
-      </div>
-
-      <!-- SECTION 6: CAPACITY & PRICING -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">6</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Capacity & Pricing</h2>
-            <p class="text-gray-600 text-sm mt-1">Update your business capacity and pricing</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Max Pets Per Day <span class="text-red-500">*</span></label>
-            {{ form.max_pets_per_day(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm", type="number") }}
-            <div data-error-for="max_pets_per_day" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Min Price (₱) <span class="text-red-500">*</span></label>
-            {{ form.min_price_per_day(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm", type="number", step="0.01") }}
-            <div data-error-for="min_price_per_day" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Max Price (₱) <span class="text-red-500">*</span></label>
-            {{ form.max_price_per_day(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm", type="number", step="0.01") }}
-            <div data-error-for="max_price_per_day" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-        </div>
-
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-6">
-          <p class="text-sm text-purple-900"><i class="fas fa-lightbulb text-purple-600 mr-2"></i>Update your pricing. These changes will be reviewed by admin.</p>
-        </div>
-      </div>
-
-      <!-- SECTION 7: OPERATING SCHEDULE -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">7</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Operating Schedule</h2>
-            <p class="text-gray-600 text-sm mt-1">Update your business hours</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Opening Time <span class="text-red-500">*</span></label>
-            {{ form.opening_time(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
-            <div data-error-for="opening_time" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Closing Time <span class="text-red-500">*</span></label>
-            {{ form.closing_time(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 text-sm") }}
-            <div data-error-for="closing_time" class="mt-2 text-sm text-red-600 hidden"></div>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-semibold text-gray-900 mb-4">Operating Days <span class="text-red-500">*</span></label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {% for field in form.operating_days %}
-              <label class="flex items-center p-3 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all">
-                {{ field(class="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer") }}
-                <span class="ml-2 text-sm font-medium text-gray-900">{{ field.label.text }}</span>
-              </label>
-            {% endfor %}
-          </div>
-          <div data-error-for="operating_days" class="mt-3 text-sm text-red-600 hidden"></div>
-        </div>
-      </div>
-
-      <!-- SECTION 8: POLICIES -->
-      <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-6 sm:p-8 hover:shadow-md transition-shadow duration-300">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-lg font-bold">8</div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Policies</h2>
-            <p class="text-gray-600 text-sm mt-1">Update your store policies</p>
-          </div>
-        </div>
-
-        <div class="mb-6">
-          <label class="flex items-start p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all">
-            <input type="checkbox" x-model="hasCancellationPolicy" class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer mt-0.5">
-            <span class="ml-3 text-sm font-medium text-gray-900">I have a specific cancellation policy</span>
-          </label>
-          <p class="text-gray-500 text-xs mt-2 ml-2">Leave unchecked to use default policy</p>
-        </div>
-
-        <div x-show="hasCancellationPolicy" class="space-y-4">
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Cancellation Policy</label>
-            {{ form.cancellation_policy(class="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400 resize-none text-sm", rows="4") }}
-          </div>
-        </div>
-      </div>
-
-      <!-- SUBMIT SECTION -->
-      <div class="bg-gradient-to-br from-white to-purple-50 border-2 border-purple-300 rounded-xl shadow-sm p-6 sm:p-8">
-        <div class="flex items-start gap-4 mb-6">
-          <div class="flex-shrink-0">
-            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 text-white text-lg font-bold"><i class="fas fa-check"></i></div>
-          </div>
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Submit Changes</h2>
-            <p class="text-gray-600 text-sm mt-1">Confirm and save your updates</p>
-          </div>
-        </div>
-
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-          <p class="text-sm text-purple-900"><i class="fas fa-info-circle text-purple-600 mr-2"></i>Your changes will be submitted for review by our admin team.</p>
-        </div>
-
-        <label class="flex items-start p-4 border-2 border-purple-100 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all mb-6">
-          <input type="checkbox" x-model="agreedToTerms" class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer mt-0.5">
-          <span class="ml-3 text-sm text-gray-900">
-            I confirm that all information provided is accurate and complete.
-            <span class="text-red-500">*</span>
-          </span>
-        </label>
-
-        <div class="flex flex-col sm:flex-row gap-3">
-          <a href="{{ url_for('merchant.store') }}" class="flex-1 px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-            <i class="fas fa-arrow-left text-sm"></i> <span>Cancel</span>
+    <!-- Form Container -->
+    <div class="px-4 sm:px-4 lg:px-6 py-8">
+      <div class="max-w-6xl mx-auto">
+        
+        <!-- Back Button -->
+        <div class="mb-8">
+          <a href="{{ url_for('merchant.store') }}" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm sm:text-base transition-colors">
+            <i class="fas fa-arrow-left"></i>
+            Back to Store
           </a>
-          <button type="submit" :disabled="!agreedToTerms" class="flex-1 px-8 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all disabled:transform-none flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-            <i class="fas fa-check text-sm"></i> <span>Save Changes</span>
-          </button>
         </div>
+
+        <!-- Header -->
+        <div class="mb-8">
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Edit Store Information</h1>
+          <p class="text-gray-600">Update your store profile information</p>
+        </div>
+        
+        <!-- Error Alert -->
+        {% if form.errors %}
+          <div class="mb-8 bg-red-50 border-2 border-red-300 rounded-xl p-4 sm:p-6 shadow-lg">
+            <div class="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+              <div class="flex-shrink-0 mt-0 sm:mt-1 text-2xl">
+                <i class="fas fa-triangle-exclamation text-red-600"></i>
+              </div>
+              <div class="flex-1 w-full">
+                <h3 class="font-bold text-red-800 text-base sm:text-lg mb-2 sm:mb-3">Please correct these fields:</h3>
+                <ul class="space-y-1 sm:space-y-2">
+                  {% for field, errors in form.errors.items() %}
+                    {% if field != 'csrf_token' %}
+                      {% for error in errors %}
+                        <li class="text-red-700 text-xs sm:text-sm flex items-start gap-2">
+                          <i class="fas fa-circle-xmark text-red-600 flex-shrink-0 mt-0.5"></i>
+                          <span class="flex-1 break-words">
+                            <strong>{{ field|replace('_', ' ')|title }}:</strong> {{ error }}
+                          </span>
+                        </li>
+                      {% endfor %}
+                    {% endif %}
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" novalidate id="merchantForm" class="space-y-8">
+        {{ form.hidden_tag() }}
+
+          <!-- SECTION 1: BUSINESS INFORMATION -->
+          <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+              <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+                <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                  <i class="fas fa-building text-base sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Business Information</h2>
+                  <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">Core details about your pet service business</p>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-6">
+              <div class="sm:col-span-2">
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-store text-purple-700 mr-2"></i>Business Name <span class="text-red-600">*</span>
+                </label>
+                {{ form.business_name(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 font-medium text-sm sm:text-base", placeholder="e.g., Happy Paws Hotel & Grooming") }}
+                {% if form.business_name.errors %}
+                  <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.business_name.errors[0] }}</span></p>
+                {% endif %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-tag text-purple-700 mr-2"></i>Business Category <span class="text-red-600">*</span>
+                </label>
+                {{ form.business_category(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium text-sm sm:text-base") }}
+                {% if form.business_category.errors %}
+                  <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.business_category.errors[0] }}</span></p>
+                {% endif %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-calendar-alt text-purple-700 mr-2"></i>Years in Business
+                </label>
+                {{ form.years_in_operation(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 font-medium text-sm sm:text-base", type="number", placeholder="e.g., 5") }}
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-align-left text-purple-700 mr-2"></i>Business Description <span class="text-red-600">*</span>
+                </label>
+                {{ form.business_description(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 resize-none font-medium text-sm sm:text-base", rows="4", placeholder="Describe your services, specialties, and what makes your business unique...") }}
+                {% if form.business_description.errors %}
+                  <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.business_description.errors[0] }}</span></p>
+                {% endif %}
+                <p class="text-xs sm:text-sm text-gray-500 mt-2"><i class="fas fa-info-circle mr-1"></i>Minimum 20 characters</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: CONTACT INFORMATION -->
+          <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+              <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+                <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                  <i class="fas fa-user-circle text-base sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Contact Information</h2>
+                  <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">How customers can reach you</p>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-user text-purple-700 mr-2"></i>Owner / Manager Name <span class="text-red-600">*</span>
+                </label>
+                {{ form.owner_manager_name(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 font-medium text-sm sm:text-base", placeholder="e.g., Juan Dela Cruz") }}
+                {% if form.owner_manager_name.errors %}
+                  <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.owner_manager_name.errors[0] }}</span></p>
+                {% endif %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-envelope text-purple-700 mr-2"></i>Email <span class="text-red-600">*</span>
+                </label>
+                {{ form.contact_email(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 font-medium text-sm sm:text-base", placeholder="you@example.com", type="email") }}
+                {% if form.contact_email.errors %}
+                  <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.contact_email.errors[0] }}</span></p>
+                {% endif %}
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-phone text-purple-700 mr-2"></i>Phone Number <span class="text-red-600">*</span>
+                </label>
+                {{ form.contact_phone(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 font-medium text-sm sm:text-base", placeholder="09XX-XXX-XXXX or +63-XXX-XXX-XXXX") }}
+                {% if form.contact_phone.errors %}
+                  <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.contact_phone.errors[0] }}</span></p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: LOCATION -->
+          <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+            <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+              <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                <i class="fas fa-map-pin text-base sm:text-lg lg:text-xl"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Business Location</h2>
+                <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">Where is your business located?</p>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-map text-purple-700 mr-2"></i>Province <span class="text-red-600">*</span></label>
+                  <select id="province" name="province" class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium text-sm sm:text-base" required>
+                    <option value="">Loading provinces...</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-city text-purple-700 mr-2"></i>City/Municipality <span class="text-red-600">*</span></label>
+                  {{ form.city(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium placeholder-gray-400 text-sm sm:text-base", id="city", placeholder="Select province first...") }}
+                  {% if form.city.errors %}
+                    <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.city.errors[0] }}</span></p>
+                  {% endif %}
+                </div>
+
+                <div>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-home text-purple-700 mr-2"></i>Barangay <span class="text-red-600">*</span></label>
+                  {{ form.barangay(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium placeholder-gray-400 text-sm sm:text-base", id="barangay", placeholder="Select city first...") }}
+                  {% if form.barangay.errors %}
+                    <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.barangay.errors[0] }}</span></p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-mailbox text-purple-700 mr-2"></i>Postal Code</label>
+                  {{ form.postal_code(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 font-medium text-sm sm:text-base", placeholder="e.g., 1200") }}
+                </div>
+
+                <div>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3">
+                    <i class="fas fa-link text-purple-700 mr-2"></i>Google Maps Link
+                  </label>
+                  {{ form.google_maps_link(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 placeholder-gray-500 font-medium text-sm sm:text-base", placeholder="https://maps.google.com/...") }}
+                </div>
+              </div>
+
+              <!-- MAP SECTION -->
+              <div style="background: white; border-radius: 12px; border: 2px solid #ddd; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                
+                <!-- Header -->
+                <div style="padding: 1.5rem; border-bottom: 1px solid #eee;">
+                  <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #333;">
+                    📍 Pin Your Store Location
+                  </h3>
+                </div>
+
+                <!-- Search -->
+                <div style="padding: 1rem 1.5rem; border-bottom: 1px solid #eee; background: #fafafa;">
+                  <div style="display: flex; gap: 0.75rem; align-items: center; background: white; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem 1rem;">
+                    <span style="color: #999; font-size: 0.9rem;">🔍</span>
+                    <input type="text" id="addressSearch" placeholder="Search location..." style="flex: 1; border: none; outline: none; font-size: 0.9rem; background: transparent;">
+                  </div>
+                  <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #666;">Press Enter to search</p>
+                </div>
+
+                <!-- MAP CONTAINER -->
+                <div id="storeMap" style="width: 100%; height: 500px; background: #f0f0f0; position: relative;"></div>
+
+                <!-- Info at bottom -->
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid #eee; background: #f9f9f9;">
+                  <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; font-weight: 600; color: #666; text-transform: uppercase;">Location Info</p>
+                  <p id="addressDisplay" style="margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 500; color: #333;">Click on map to select</p>
+                  <div style="font-size: 0.85rem; color: #666; font-family: monospace;">
+                    <span id="coordsDisplay"></span>
+                  </div>
+                </div>
+
+                <!-- Hidden Inputs -->
+                <input type="hidden" name="latitude" id="latitude" value="">
+                <input type="hidden" name="longitude" id="longitude" value="">
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-purple-900 mb-3">
+                  <i class="fas fa-location-dot text-purple-700 mr-2"></i>Full Address
+                </label>
+                {{ form.full_address(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-300 rounded-lg outline-none text-purple-900 cursor-not-allowed font-medium text-sm sm:text-base", readonly=True, placeholder="Auto-filled from map") }}
+              <p class="text-xs sm:text-sm text-purple-700"><i class="fas fa-lightbulb text-purple-600 mr-2"></i>Auto-populated when you pin a location on the map</p>
+              </div>
+
+              {{ form.latitude(class="hidden") }}
+              {{ form.longitude(class="hidden") }}
+            </div>
+          </div>
+
+          <!-- SECTION 4: SERVICES & PETS - DUAL LAYOUT -->
+          <div class="grid lg:grid-cols-2 gap-8">
+            <!-- Services -->
+            <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+              <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+                <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                  <i class="fas fa-concierge-bell text-base sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Services</h2>
+                  <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">What services do you offer?</p>
+                </div>
+              </div>
+
+              <div class="space-y-2 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
+                {% for field in form.services_offered %}
+                  <label class="flex items-center p-3 bg-purple-50 border border-purple-200 hover:border-purple-400 hover:bg-purple-100 rounded-lg cursor-pointer transition-all">
+                    {{ field(class="w-5 h-5 text-purple-600 rounded cursor-pointer accent-purple-600 flex-shrink-0") }}
+                    <span class="ml-3 text-sm font-medium text-gray-800 hover:text-purple-700">{{ field.label.text }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+              {% if form.services_offered.errors %}
+                <p class="text-red-600 text-xs sm:text-sm mt-4 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.services_offered.errors[0] }}</span></p>
+              {% endif %}
+            </div>
+
+            <!-- Pets Accepted -->
+            <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+              <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+                <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                  <i class="fas fa-paw text-base sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Pets</h2>
+                  <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">Which pets do you accept?</p>
+                </div>
+              </div>
+
+              <div class="space-y-2 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
+                {% for field in form.pets_accepted %}
+                  <label class="flex items-center p-3 bg-purple-50 border border-purple-200 hover:border-purple-400 hover:bg-purple-100 rounded-lg cursor-pointer transition-all">
+                    {{ field(class="w-5 h-5 text-purple-600 rounded cursor-pointer accent-purple-600 flex-shrink-0") }}
+                    <span class="ml-3 text-sm font-medium text-gray-800 hover:text-purple-700">{{ field.label.text }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+              {% if form.pets_accepted.errors %}
+                <p class="text-red-600 text-xs sm:text-sm mt-4 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.pets_accepted.errors[0] }}</span></p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- SECTION 4.5: SERVICE PRICING -->
+          <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500" id="pricingSection" style="display: none;">
+            <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+              <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                <i class="fas fa-tags text-base sm:text-lg lg:text-xl"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Service Pricing</h2>
+                <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">Set pricing for each service</p>
+              </div>
+            </div>
+
+            <div id="dynamicPricingContainer" class="space-y-6">
+              <!-- Pricing inputs will be dynamically generated here -->
+            </div>
+
+            {{ form.service_pricing_json(class="hidden") }}
+          </div>
+
+
+          <!-- SECTION 6: OPERATING SCHEDULE -->
+          <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+            <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+              <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                <i class="fas fa-clock text-base sm:text-lg lg:text-xl"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Operating Schedule</h2>
+                <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">When are you available?</p>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-sun text-purple-600 mr-2"></i>Opening Time <span class="text-red-600">*</span>
+                  </label>
+                  {{ form.opening_time(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border border-purple-200 hover:border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-gray-900 text-sm sm:text-base") }}
+                  {% if form.opening_time.errors %}
+                    <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.opening_time.errors[0] }}</span></p>
+                  {% endif %}
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-moon text-purple-600 mr-2"></i>Closing Time <span class="text-red-600">*</span>
+                  </label>
+                  {{ form.closing_time(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border border-purple-200 hover:border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-gray-900 text-sm sm:text-base") }}
+                  {% if form.closing_time.errors %}
+                    <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.closing_time.errors[0] }}</span></p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs sm:text-sm font-semibold text-gray-800 mb-3 sm:mb-4">
+                  <i class="fas fa-calendar-days text-purple-600 mr-2"></i>Operating Days <span class="text-red-600">*</span>
+                </label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                  {% for field in form.operating_days %}
+                    <label class="flex items-center p-2 sm:p-2.5 bg-purple-50 border border-purple-200 hover:border-purple-400 hover:bg-purple-100 rounded-lg cursor-pointer transition-all">
+                      {{ field(class="w-4 h-4 text-purple-600 rounded accent-purple-600 cursor-pointer flex-shrink-0") }}
+                      <span class="ml-2 text-xs sm:text-sm font-medium text-gray-800 truncate">{{ field.label.text }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+                {% if form.operating_days.errors %}
+                  <p class="text-red-600 text-xs sm:text-sm mt-3 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.operating_days.errors[0] }}</span></p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 7: POLICIES & DOCUMENTS -->
+          <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-300 hover:border-purple-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+            <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8 pb-3 sm:pb-4 lg:pb-6 border-b-2 border-purple-300">
+              <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                <i class="fas fa-file-shield text-base sm:text-lg lg:text-xl"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Policies & Documents</h2>
+                <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">Complete your business profile</p>
+              </div>
+            </div>
+
+            <div class="space-y-8">
+              <!-- Cancellation Policy Checkbox -->
+              <div>
+                <label class="flex items-center p-4 bg-purple-50 border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-100 rounded-lg cursor-pointer transition-all">
+                  <input type="checkbox" name="has_custom_policy" class="w-5 h-5 text-purple-600 rounded accent-purple-600 cursor-pointer flex-shrink-0">
+                  <span class="ml-3 text-sm font-medium text-gray-800">I have a custom cancellation policy</span>
+                </label>
+                <div id="cancellation-policy-section" class="mt-4 hidden">
+                  <label class="block text-sm font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-scroll text-purple-600 mr-2"></i>Cancellation Policy
+                  </label>
+                  {{ form.cancellation_policy(class="w-full px-5 py-3.5 bg-white border border-purple-200 hover:border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-gray-900 placeholder-gray-400 resize-none", rows="4", placeholder="Describe your cancellation terms (e.g., Free cancellation up to 48 hours before service)") }}
+              <p class="text-xs sm:text-sm text-gray-500 mt-2"><i class="fas fa-info-circle mr-1"></i>Leave blank to use PetSona's default policy</p>
+                </div>
+              </div>
+
+              <!-- File Uploads -->
+              <div class="border-t border-purple-200 pt-6">
+                <p class="text-sm font-semibold text-gray-800 mb-4">
+                  <i class="fas fa-cloud-arrow-up text-purple-600 mr-2"></i>Upload Documents & Logo <span class="text-red-600">*</span>
+                </p>
+
+                <!-- Store Logo -->
+                <div class="mb-6">
+                  <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider"><i class="fas fa-image mr-1"></i>Store Logo</p>
+                  
+                  <!-- Current Logo Display -->
+                  {% if merchant and merchant.logo_path %}
+                  <div id="current_logo_display" class="mb-3 p-4 bg-blue-50 border border-blue-300 rounded-lg">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <img src="{{ url_for('static', filename='uploads/' + merchant.logo_path) }}" alt="Current logo" style="max-width: 80px; max-height: 80px; border-radius: 6px;">
+                        <div>
+                          <p class="text-sm font-medium text-blue-800">Current Logo</p>
+                          <p class="text-xs text-blue-700">Click to replace</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
+                  
+                  <div id="logo_preview" class="hidden mb-3 p-4 bg-blue-50 border border-blue-300 rounded-lg">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <img id="logo_image" src="" alt="Logo preview" style="max-width: 80px; max-height: 80px; border-radius: 6px;">
+                        <div>
+                          <p id="logo_name" class="text-sm font-medium text-blue-800"></p>
+                          <p id="logo_size" class="text-xs text-blue-700"></p>
+                        </div>
+                      </div>
+                      <button type="button" onclick="clearFileInput('store_logo_input')" class="text-red-600 hover:text-red-800 text-sm font-medium"><i class="fas fa-trash"></i> Remove</button>
+                    </div>
+                  </div>
+                  
+                  <label for="store_logo_input" class="flex flex-col items-center justify-center p-6 bg-purple-50 border-2 border-dashed border-purple-300 hover:border-purple-600 hover:bg-purple-100 rounded-xl cursor-pointer transition-all">
+                    <input type="file" id="store_logo_input" name="store_logo" class="hidden" accept=".jpg,.jpeg,.png,.gif,.webp" onchange="handleLogoSelect(event)">
+                    <i class="fas fa-store text-3xl text-purple-600 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-800">Click to upload logo</p>
+                    <p class="text-xs text-gray-500">JPG, PNG, GIF, WebP • Max 5MB</p>
+                  </label>
+                  <p class="text-xs sm:text-sm text-gray-500 mt-2"><i class="fas fa-lightbulb mr-1"></i>Upload a logo for your store (recommended: 500x500px or square)</p>
+                  {% if form.store_logo.errors %}
+                    <p class="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.store_logo.errors[0] }}</span></p>
+                  {% endif %}
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-6">
+                  <!-- Government ID -->
+                  <div>
+                    <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider"><i class="fas fa-id-card mr-1"></i>Government ID <span class="text-red-600">*</span></p>
+                    
+                    <!-- Current Government ID Display -->
+                    {% if merchant and merchant.government_id_path %}
+                    <div id="current_gov_id_display" class="mb-3 p-4 bg-green-50 border border-green-300 rounded-lg">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <i class="fas fa-file-check text-green-600 text-lg"></i>
+                          <a href="{{ url_for('static', filename='uploads/' + merchant.government_id_path) }}" target="_blank" class="text-sm font-medium text-green-800 hover:text-green-600 underline">Current File</a>
+                        </div>
+                        <p class="text-xs text-green-700">Click to replace</p>
+                      </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div id="gov_id_preview" class="hidden mb-3 p-4 bg-green-50 border border-green-300 rounded-lg">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <i class="fas fa-file-check text-green-600 text-lg"></i>
+                          <span id="gov_id_name" class="text-sm font-medium text-green-800"></span>
+                        </div>
+                        <button type="button" onclick="clearFileInput('government_id_input')" class="text-red-600 hover:text-red-800 text-sm font-medium"><i class="fas fa-trash"></i> Remove</button>
+                      </div>
+                    </div>
+                    <label for="government_id_input" class="flex flex-col items-center justify-center p-6 bg-purple-50 border-2 border-dashed border-purple-300 hover:border-purple-600 hover:bg-purple-100 rounded-xl cursor-pointer transition-all">
+                      <input type="file" id="government_id_input" name="government_id" class="hidden" accept=".jpg,.jpeg,.png,.pdf" onchange="handleFileSelect(event, 'gov_id_preview', 'gov_id_name')">
+                      <i class="fas fa-file-pdf text-3xl text-purple-600 mb-2"></i>
+                      <p class="text-sm font-medium text-gray-800">Click to upload</p>
+                      <p class="text-xs text-gray-500">JPG, PNG, PDF • Max 5MB</p>
+                    </label>
+                    {% if form.government_id.errors %}
+                      <p class="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.government_id.errors[0] }}</span></p>
+                    {% endif %}
+                  </div>
+
+                  <!-- Business Permit -->
+                  <div>
+                    <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider"><i class="fas fa-certificate mr-1"></i>Business Permit/License <span class="text-red-600">*</span></p>
+                    
+                    <!-- Current Business Permit Display -->
+                    {% if merchant and merchant.business_permit_path %}
+                    <div id="current_permit_display" class="mb-3 p-4 bg-green-50 border border-green-300 rounded-lg">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <i class="fas fa-file-check text-green-600 text-lg"></i>
+                          <a href="{{ url_for('static', filename='uploads/' + merchant.business_permit_path) }}" target="_blank" class="text-sm font-medium text-green-800 hover:text-green-600 underline">Current File</a>
+                        </div>
+                        <p class="text-xs text-green-700">Click to replace</p>
+                      </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div id="permit_preview" class="hidden mb-3 p-4 bg-green-50 border border-green-300 rounded-lg">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <i class="fas fa-file-check text-green-600 text-lg"></i>
+                          <span id="permit_name" class="text-sm font-medium text-green-800"></span>
+                        </div>
+                        <button type="button" onclick="clearFileInput('business_permit_input')" class="text-red-600 hover:text-red-800 text-sm font-medium"><i class="fas fa-trash"></i> Remove</button>
+                      </div>
+                    </div>
+                    <label for="business_permit_input" class="flex flex-col items-center justify-center p-6 bg-purple-50 border-2 border-dashed border-purple-300 hover:border-purple-600 hover:bg-purple-100 rounded-xl cursor-pointer transition-all">
+                      <input type="file" id="business_permit_input" name="business_permit" class="hidden" accept=".jpg,.jpeg,.png,.pdf" onchange="handleFileSelect(event, 'permit_preview', 'permit_name')">
+                      <i class="fas fa-file-contract text-3xl text-purple-600 mb-2"></i>
+                      <p class="text-sm font-medium text-gray-800">Click to upload</p>
+                      <p class="text-xs text-gray-500">JPG, PNG, PDF • Max 5MB</p>
+                    </label>
+                    {% if form.business_permit.errors %}
+                      <p class="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.business_permit.errors[0] }}</span></p>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Facility Photos -->
+                <div class="mt-6">
+                  <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider"><i class="fas fa-images mr-1"></i>Facility Photos (3+ photos)</p>
+                  
+                  <!-- Current Facility Photos Display -->
+                  {% if merchant and merchant.facility_photos_paths %}
+                  <div id="current_photos_display" class="mb-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <p class="col-span-full text-sm font-medium text-green-800 mb-2">
+                      <i class="fas fa-check text-green-600 mr-2"></i>Current Photos ({{ merchant.facility_photos_paths|length }})
+                    </p>
+                    {% for photo in merchant.facility_photos_paths %}
+                    <div class="relative">
+                      <img src="{{ url_for('static', filename='uploads/' + photo) }}" alt="Facility photo" class="w-full h-32 object-cover rounded-lg border border-green-300">
+                      <span class="absolute top-1 right-1 bg-green-600 text-white text-xs px-2 py-1 rounded">Current</span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                  
+                  <div id="photos_preview" class="hidden mb-4 grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                  
+                  <label for="facility_photos_input" class="flex flex-col items-center justify-center p-8 bg-purple-50 border-2 border-dashed border-purple-300 hover:border-purple-600 hover:bg-purple-100 rounded-xl cursor-pointer transition-all">
+                    <input type="file" id="facility_photos_input" name="facility_photos" multiple class="hidden" accept=".jpg,.jpeg,.png" onchange="handlePhotoSelect(event)">
+                    <i class="fas fa-image text-4xl text-purple-600 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-800">Click to upload photos</p>
+                    <p class="text-xs sm:text-sm text-gray-500">JPG or PNG • Max 5MB each</p>
+                  </label>
+                  <p class="text-xs sm:text-sm text-gray-500 mt-3"><i class="fas fa-lightbulb mr-1"></i>Upload at least 3 photos showcasing your facility</p>
+                  <p id="photo_count" class="text-xs sm:text-sm text-purple-700 font-medium mt-2 hidden"></p>
+                  {% if form.facility_photos.errors %}
+                    <p class="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.facility_photos.errors[0] }}</span></p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-white to-purple-50 border-3 border-purple-400 rounded-2xl p-8 shadow-lg">
+            <div class="flex items-start gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8">
+              <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg flex-shrink-0 mt-0.5">
+                <i class="fas fa-thumbs-up text-base sm:text-lg lg:text-xl"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h2 class="text-base sm:text-lg lg:text-2xl font-bold text-purple-800 leading-tight">Ready to Submit?</h2>
+                <p class="text-purple-700 mt-0.5 sm:mt-1 text-xs sm:text-xs lg:text-sm leading-snug">Review and accept our terms</p>
+              </div>
+            </div>
+
+            <div class="bg-purple-100 border-2 border-purple-300 rounded-lg p-3 sm:p-4 lg:p-5 mb-4 sm:mb-5 lg:mb-6">
+              <p class="text-xs sm:text-sm text-purple-900 leading-relaxed mb-2 sm:mb-3 font-medium flex items-start gap-2">
+                <i class="fas fa-info-circle text-purple-700 flex-shrink-0 mt-0.5"></i>
+                <span>By submitting this application, you agree to:</span>
+              </p>
+              <ul class="text-xs sm:text-sm text-purple-900 space-y-1.5 sm:space-y-2 ml-5 sm:ml-6 font-medium">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-purple-700 flex-shrink-0 mt-0.5"></i>
+                  <span class="flex-1">Provide accurate and truthful information</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-purple-700 flex-shrink-0 mt-0.5"></i>
+                  <span class="flex-1">Maintain professional standards and customer care</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-purple-700 flex-shrink-0 mt-0.5"></i>
+                  <span class="flex-1">Comply with all local and national regulations</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-purple-700 flex-shrink-0 mt-0.5"></i>
+                  <span class="flex-1">PetSona's Terms of Service and Privacy Policy</span>
+                </li>
+              </ul>
+            </div>
+
+            <label class="flex items-start p-3 sm:p-4 bg-purple-100 border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-150 rounded-lg cursor-pointer transition-all mb-4 sm:mb-5 lg:mb-6">
+              <input type="checkbox" name="agree_terms" id="agree_terms" class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 rounded accent-purple-600 cursor-pointer mt-1 flex-shrink-0" required>
+              <span class="ml-2 sm:ml-3 text-xs sm:text-sm text-purple-900 font-medium leading-relaxed">
+                I agree to PetSona's <a href="#" class="text-purple-700 hover:text-purple-900 font-bold underline">Terms of Service</a> and <a href="#" class="text-purple-700 hover:text-purple-900 font-bold underline">Privacy Policy</a>, and confirm all information is accurate. <span class="text-red-600 font-bold">*</span>
+              </span>
+            </label>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <a href="{{ url_for('merchant.store') }}" class="flex-1 py-2.5 sm:py-3 px-4 sm:px-5 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base">
+                <i class="fas fa-arrow-left"></i> <span>Back to Store</span>
+              </a>
+              <button type="submit" id="submitBtn" disabled class="flex-1 py-2.5 sm:py-3 px-4 sm:px-5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base">
+                <i class="fas fa-paper-plane"></i> <span class="hidden sm:inline">Submit Application</span><span class="sm:hidden">Submit</span>
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   </div>
 </div>
 
 <!-- Leaflet CSS & JS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Axios for API calls -->
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<style>
+  #storeMap {
+    width: 100% !important;
+    height: 500px !important;
+    display: block !important;
+    position: relative !important;
+    background: white !important;
+  }
+
+  #storeMap.leaflet-container {
+    background: white !important;
+    z-index: 1 !important;
+  }
+
+  #storeMap .leaflet-pane {
+    z-index: 2 !important;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+</style>
+
+<!-- Merchant data as JSON (processed by Jinja2 before this script is seen by JS linter) -->
+<script type="application/json" id="merchant-data">
+{
+  "province": "{{ merchant.province if merchant else '' }}",
+  "city": "{{ merchant.city if merchant else '' }}",
+  "barangay": "{{ merchant.barangay if merchant else '' }}",
+  "lat": "{{ merchant.latitude if merchant else '' }}",
+  "lng": "{{ merchant.longitude if merchant else '' }}",
+  "hasData": {% if merchant %}true{% else %}false{% endif %}
+}
+</script>
 
 <script>
-  function storeEditForm() {
-    return {
-      selectedProvince: '{{ merchant.province or "" }}',
-      selectedCity: '{{ merchant.city or "" }}',
-      selectedBarangay: '{{ merchant.barangay or "" }}',
-      selectedLatitude: '{{ merchant.latitude or "" }}',
-      selectedLongitude: '{{ merchant.longitude or "" }}',
-      fullAddress: '{{ merchant.full_address or "" }}',
-      currentProvinceName: '{{ merchant.province or "" }}',
-      currentCityName: '{{ merchant.city or "" }}',
-      currentBarangayName: '{{ merchant.barangay or "" }}',
-      currentLogo: "{{ merchant.logo_path if (merchant.logo_path and (merchant.logo_path.startswith('/') or merchant.logo_path.startswith('http'))) else (url_for('static', filename=merchant.logo_path) if merchant.logo_path else '') }}",
-      provinces: [],
-      cities: [],
-      barangays: [],
-      map: null,
-      marker: null,
-      agreedToTerms: false,
-      logo_name: '',
-      hasCancellationPolicy: "{{ 'true' if merchant.cancellation_policy else 'false' }}",
-      mapInitialized: false,
+  // Load merchant data from the JSON script tag
+  const merchantDataEl = document.getElementById('merchant-data');
+  const merchantData = merchantDataEl ? JSON.parse(merchantDataEl.textContent) : { hasData: false };
 
-      async init() {
-        await this.loadProvinces();
-        this.loadExistingData();
-        
-        // Initialize map after provinces load
-        setTimeout(() => this.initializeMap(), 500);
-      },
+  console.log('✅ Script starting...');
 
-      updateFileName(event, fieldName) {
-        const file = event.target.files[0];
-        if (file) this[fieldName] = `✓ ${file.name}`;
-      },
-
-      loadExistingData() {
-        // Get coordinates from form inputs
-        const latInput = document.querySelector('input[name="latitude"]');
-        const lngInput = document.querySelector('input[name="longitude"]');
-        
-        if (latInput?.value) this.selectedLatitude = latInput.value;
-        if (lngInput?.value) this.selectedLongitude = lngInput.value;
-
-        // Load cities for current province if set
-        if (this.selectedProvince) {
-          this.loadCities();
-        }
-      },
-
-      initializeMap() {
-        if (typeof L === 'undefined') return;
-
-        const mapElement = document.getElementById('editStoreMap');
-        if (!mapElement) return;
-
-        if (this.mapInitialized && this.map) {
-          this.map.invalidateSize();
-          return;
-        }
-
-        try {
-          const defaultLat = 14.5994;
-          const defaultLng = 120.9842;
-
-          this.map = L.map('editStoreMap').setView([defaultLat, defaultLng], 12);
-
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-          }).addTo(this.map);
-
-          this.map.on('click', (e) => {
-            this.placeMarker(e.latlng.lat, e.latlng.lng);
-          });
-
-          this.mapInitialized = true;
-          this.addMapControls();
-
-          if (this.selectedLatitude && this.selectedLongitude) {
-            const lat = parseFloat(this.selectedLatitude);
-            const lng = parseFloat(this.selectedLongitude);
-            if (!isNaN(lat) && !isNaN(lng)) {
-              this.placeMarker(lat, lng);
-            }
-          }
-
-          setTimeout(() => this.map.invalidateSize(), 100);
-        } catch (error) {
-          console.error('Map error:', error);
-        }
-      },
-
-      addMapControls() {
-        const self = this;
-        
-        const controlContainer = document.createElement('div');
-        controlContainer.style.cssText = `
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          z-index: 1000;
-          display: flex;
-        `;
-
-        const locIconBtn = document.createElement('button');
-        locIconBtn.innerHTML = '<i class="fas fa-location-arrow"></i>';
-        locIconBtn.title = 'Use current location';
-        locIconBtn.style.cssText = `
-          width: 44px;
-          height: 44px;
-          background: white;
-          color: #a855f7;
-          border: 2px solid #a855f7;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
-          transition: all 0.2s;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        `;
-        locIconBtn.onmouseover = () => { 
-          locIconBtn.style.background = '#a855f7';
-          locIconBtn.style.color = 'white';
-          locIconBtn.style.transform = 'scale(1.1)';
-        };
-        locIconBtn.onmouseout = () => { 
-          locIconBtn.style.background = 'white';
-          locIconBtn.style.color = '#a855f7';
-          locIconBtn.style.transform = 'scale(1)';
-        };
-        locIconBtn.onclick = (e) => {
-          e.preventDefault();
-          self.getCurrentLocation();
-        };
-
-        controlContainer.appendChild(locIconBtn);
-        const mapElement = document.getElementById('editStoreMap');
-        mapElement.parentElement.style.position = 'relative';
-        mapElement.parentElement.appendChild(controlContainer);
-      },
-
-      placeMarker(lat, lng) {
-        if (this.marker) {
-          this.marker.setLatLng([lat, lng]);
-        } else {
-          this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
-          this.marker.on('dragend', () => {
-            const pos = this.marker.getLatLng();
-            this.updateCoordinates(pos.lat, pos.lng);
-          });
-        }
-        this.updateCoordinates(lat, lng);
-        this.map.setView([lat, lng], 15);
-      },
-
-      updateCoordinates(lat, lng) {
-        this.selectedLatitude = lat;
-        this.selectedLongitude = lng;
-        document.querySelector('input[name="latitude"]').value = lat;
-        document.querySelector('input[name="longitude"]').value = lng;
-        this.reverseGeocode(lat, lng);
-      },
-
-      async reverseGeocode(lat, lng) {
-        try {
-          lat = parseFloat(lat);
-          lng = parseFloat(lng);
-          
-          if (isNaN(lat) || isNaN(lng)) throw new Error('Invalid coordinates');
-          
-          const response = await axios.post('{{ url_for("merchant.reverse_geocode") }}', {
-            lat: lat,
-            lon: lng
-          }, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            }
-          });
-          
-          const data = response.data;
-          const address = data.address || {};
-          let fullAddress = '';
-          
-          if (address.house_number && address.road) {
-            fullAddress = `${address.house_number} ${address.road}`;
-          } else if (address.road) {
-            fullAddress = address.road;
-          } else if (address.place) {
-            fullAddress = address.place;
-          } else if (address.town) {
-            fullAddress = address.town;
-          } else if (address.city) {
-            fullAddress = address.city;
-          }
-          
-          if (address.village) {
-            fullAddress = fullAddress ? `${fullAddress}, ${address.village}` : address.village;
-          }
-          
-          if (address.municipality && !fullAddress.includes(address.municipality)) {
-            fullAddress = fullAddress ? `${fullAddress}, ${address.municipality}` : address.municipality;
-          } else if (address.city && !fullAddress.includes(address.city)) {
-            fullAddress = fullAddress ? `${fullAddress}, ${address.city}` : address.city;
-          }
-          
-          if (address.state && !fullAddress.includes(address.state)) {
-            fullAddress = fullAddress ? `${fullAddress}, ${address.state}` : address.state;
-          }
-          
-          if (address.postcode) {
-            fullAddress = fullAddress ? `${fullAddress} ${address.postcode}` : address.postcode;
-          }
-          
-          document.querySelector('input[name="full_address"]').value = fullAddress;
-          this.fullAddress = fullAddress;
-        } catch (error) {
-          console.error('Reverse geocoding error:', error);
-        }
-      },
-
-      getCurrentLocation() {
-        if (!navigator.geolocation) {
-          alert('Geolocation is not supported');
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            this.placeMarker(lat, lng);
-          },
-          (error) => {
-            console.error('Geolocation error:', error);
-            alert('Unable to get your location');
-          }
-        );
-      },
-
-      async loadProvinces() {
-        try {
-          const response = await axios.get('{{ url_for("merchant.get_provinces") }}');
-          this.provinces = Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-          console.error('Error loading provinces:', error);
-        }
-      },
-
-      async loadCities() {
-        if (!this.selectedProvince) return;
-        try {
-          const url = '{{ url_for("merchant.get_cities", province_code="PLACEHOLDER") }}'.replace('PLACEHOLDER', this.selectedProvince);
-          const response = await axios.get(url);
-          this.cities = Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-          console.error('Error loading cities:', error);
-        }
-      },
-
-      async loadBarangays() {
-        if (!this.selectedCity) return;
-        try {
-          const url = '{{ url_for("merchant.get_barangays", city_code="PLACEHOLDER") }}'.replace('PLACEHOLDER', this.selectedCity);
-          const response = await axios.get(url);
-          this.barangays = Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-          console.error('Error loading barangays:', error);
-        }
-      },
-
-      validateForm(event) {
-        if (!this.agreedToTerms) {
-          event.preventDefault();
-          alert('Please confirm that your information is accurate');
-          return false;
-        }
-        return this.validateAllSections();
-      },
-
-      validateBusiness() {
-        const name = document.querySelector('input[name="business_name"]')?.value?.trim();
-        const type = document.querySelector('select[name="business_type"]')?.value?.trim();
-        const desc = document.querySelector('textarea[name="business_description"]')?.value?.trim();
-        
-        this.clearErrors();
-        if (!name) this.showError('business_name', 'Business name is required');
-        if (!type) this.showError('business_type', 'Business type is required');
-        if (!desc) this.showError('business_description', 'Description is required');
-        
-        return name && type && desc;
-      },
-
-      validateContact() {
-        const name = document.querySelector('input[name="owner_manager_name"]')?.value?.trim();
-        const email = document.querySelector('input[name="contact_email"]')?.value?.trim();
-        const phone = document.querySelector('input[name="contact_phone"]')?.value?.trim();
-        
-        this.clearErrors();
-        if (!name) this.showError('owner_manager_name', 'Manager name is required');
-        if (!email || !this.isValidEmail(email)) this.showError('contact_email', 'Valid email required');
-        if (!phone || !this.isValidPhone(phone)) this.showError('contact_phone', 'Valid PH phone required');
-        
-        return name && email && this.isValidEmail(email) && phone && this.isValidPhone(phone);
-      },
-
-      validateLocation() {
-        this.clearErrors();
-        if (!this.selectedProvince) this.showError('province', 'Select a province');
-        if (!this.selectedCity) this.showError('city', 'Select a city');
-        if (!this.selectedBarangay) this.showError('barangay', 'Select a barangay');
-        if (!document.querySelector('input[name="latitude"]')?.value) this.showError('map', 'Pin your location on the map');
-        
-        return this.selectedProvince && this.selectedCity && this.selectedBarangay && document.querySelector('input[name="latitude"]')?.value;
-      },
-
-      validateServices() {
-        this.clearErrors();
-        const checkboxes = document.querySelectorAll('input[name="services_offered"]');
-        const checked = Array.from(checkboxes).filter(cb => cb.checked).length > 0;
-        if (!checked) this.showError('services_offered', 'Select at least one service');
-        return checked;
-      },
-
-      validatePets() {
-        this.clearErrors();
-        const checkboxes = document.querySelectorAll('input[name="pets_accepted"]');
-        const checked = Array.from(checkboxes).filter(cb => cb.checked).length > 0;
-        if (!checked) this.showError('pets_accepted', 'Select at least one pet type');
-        return checked;
-      },
-
-      validatePricing() {
-        const max = document.querySelector('input[name="max_pets_per_day"]')?.value;
-        const min = document.querySelector('input[name="min_price_per_day"]')?.value;
-        const maxPrice = document.querySelector('input[name="max_price_per_day"]')?.value;
-        
-        this.clearErrors();
-        if (!max || parseInt(max) <= 0) this.showError('max_pets_per_day', 'Valid capacity required');
-        if (!min || parseFloat(min) <= 0) this.showError('min_price_per_day', 'Valid min price required');
-        if (!maxPrice || parseFloat(maxPrice) <= 0) this.showError('max_price_per_day', 'Valid max price required');
-        if (min && maxPrice && parseFloat(maxPrice) < parseFloat(min)) this.showError('max_price_per_day', 'Max must be >= min');
-        
-        return max && min && maxPrice && parseFloat(max) > 0 && parseFloat(min) > 0 && parseFloat(maxPrice) > 0 && parseFloat(maxPrice) >= parseFloat(min);
-      },
-
-      validateSchedule() {
-        const opening = document.querySelector('input[name="opening_time"]')?.value;
-        const closing = document.querySelector('input[name="closing_time"]')?.value;
-        const dayCheckboxes = document.querySelectorAll('input[name="operating_days"]');
-        const days = Array.from(dayCheckboxes).filter(cb => cb.checked).length > 0;
-        
-        this.clearErrors();
-        if (!opening) this.showError('opening_time', 'Opening time required');
-        if (!closing) this.showError('closing_time', 'Closing time required');
-        if (!days) this.showError('operating_days', 'Select at least one day');
-        
-        return opening && closing && days;
-      },
-
-      validateAllSections() {
-        if (!this.validateBusiness()) return false;
-        if (!this.validateContact()) return false;
-        if (!this.validateLocation()) return false;
-        if (!this.validateServices()) return false;
-        if (!this.validatePets()) return false;
-        if (!this.validatePricing()) return false;
-        if (!this.validateSchedule()) return false;
-        return true;
-      },
-
-      clearErrors() {
-        document.querySelectorAll('[data-error-for]').forEach(el => {
-          el.style.display = 'none';
-          el.textContent = '';
-        });
-      },
-
-      showError(field, message) {
-        const errorEl = document.querySelector(`[data-error-for="${field}"]`);
-        if (errorEl) {
-          errorEl.innerHTML = `<i class="fas fa-circle-exclamation mr-2"></i>${message}`;
-          errorEl.style.display = 'block';
-        }
-      },
-
-      isValidEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      },
-
-      isValidPhone(phone) {
-        return /^(\+63|0)[0-9]{9,}$/.test(phone.replace(/[-\s]/g, ''));
+  // Wait for page to fully load
+  window.addEventListener('load', function() {
+    console.log('✅ Page loaded, initializing map in 500ms...');
+    setTimeout(function() {
+      console.log('✅ Checking map container...');
+      const container = document.getElementById('storeMap');
+      console.log('Map container:', container);
+      console.log('Container size:', container?.offsetWidth, 'x', container?.offsetHeight);
+      console.log('Leaflet available?', typeof L !== 'undefined');
+      
+      if (typeof L !== 'undefined' && container) {
+        startMap();
+      } else {
+        console.error('❌ Leaflet or container not ready');
       }
+    }, 500);
+  });
+
+  function startMap() {
+    console.log('🌍 Creating map...');
+    
+    try {
+      // Use merchant coordinates if available
+      let defaultLat = 14.5995;
+      let defaultLng = 120.9842;
+      
+      if (merchantData.hasData && merchantData.lat && merchantData.lng) {
+        defaultLat = parseFloat(merchantData.lat);
+        defaultLng = parseFloat(merchantData.lng);
+      }
+
+      // Create the map with minimal options
+      const map = L.map('storeMap', {
+        center: [defaultLat, defaultLng],
+        zoom: 13,
+        attributionControl: true
+      });
+
+      console.log('✅ Map instance created');
+
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19,
+        minZoom: 1
+      }).addTo(map);
+
+      console.log('✅ Tiles added');
+
+      // Create marker
+      const marker = L.marker([defaultLat, defaultLng], {
+        draggable: true
+      }).addTo(map).bindPopup('Your Location');
+
+      console.log('✅ Marker added');
+
+      // Update coordinates when dragging
+      marker.on('dragend', function() {
+        const pos = marker.getLatLng();
+        updateCoords(pos.lat, pos.lng, true);
+      });
+
+      // Click to place marker
+      map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateCoords(e.latlng.lat, e.latlng.lng, true);
+      });
+
+      // Search functionality
+      const searchInput = document.getElementById('addressSearch');
+      if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            const query = this.value.trim();
+            if (query) {
+              searchLocation(query, map, marker);
+            }
+          }
+        });
+      }
+
+      // Initial coordinate update
+      updateCoords(defaultLat, defaultLng);
+
+      // Force map to resize
+      setTimeout(() => {
+        map.invalidateSize(true);
+        console.log('✅ Map resized');
+      }, 100);
+
+      console.log('✅✅✅ MAP READY!!!');
+
+    } catch(err) {
+      console.error('❌ MAP ERROR:', err.message);
+      console.error(err);
+    }
+  }
+
+  function updateCoords(lat, lng, shouldUpdateAddress = false) {
+    console.log('📍 Updating coords:', lat, lng);
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    document.getElementById('coordsDisplay').textContent = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    
+    // Only reverse geocode if user is actively moving the marker
+    if (shouldUpdateAddress) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.address) {
+            const addr = [data.address.road, data.address.city || data.address.town, data.address.state]
+              .filter(Boolean).join(', ');
+            document.getElementById('addressDisplay').textContent = addr || 'Location selected';
+            const field = document.querySelector('input[name="full_address"]');
+            if (field) field.value = addr;
+          }
+        })
+        .catch(e => console.log('Geocode error:', e));
+    }
+  }
+
+  function searchLocation(query, map, marker) {
+    console.log('🔍 Searching:', query);
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=ph`)
+      .then(r => r.json())
+      .then(data => {
+        if (data[0]) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          map.setView([lat, lng], 15);
+          marker.setLatLng([lat, lng]);
+          updateCoords(lat, lng, true);
+          console.log('✅ Location found:', lat, lng);
+        } else {
+          console.log('❌ Location not found');
+        }
+      })
+      .catch(e => console.error('Search error:', e));
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadProvinces();
+    
+    // Initialize services based on category selection
+    const categorySelect = document.getElementById('business_category');
+    if (categorySelect && categorySelect.value) {
+      updateServicesForCategory(categorySelect.value);
+    } else {
+      // Hide all services if no category selected
+      document.querySelectorAll('input[name="services_offered"]').forEach(checkbox => {
+        const parentLabel = checkbox.closest('label');
+        parentLabel.style.display = 'none';
+      });
+    }
+    
+    setupEventListeners();
+    setupFormSubmitHandler();
+  });
+
+  // ==================== LOCATION LOADING ====================
+  async function loadProvinces() {
+    try {
+      const response = await fetch('{{ url_for("merchant.get_provinces") }}');
+      const provinces = await response.json();
+      
+      const provinceSelect = document.getElementById('province');
+      provinceSelect.innerHTML = '<option value="">Select Province...</option>';
+      
+      let selectedCode = null;
+      provinces.forEach(province => {
+        const option = document.createElement('option');
+        option.value = province.code;
+        option.textContent = province.name;
+        if (merchantData.hasData && merchantData.province && province.name === merchantData.province) {
+          option.selected = true;
+          selectedCode = province.code;
+        }
+        provinceSelect.appendChild(option);
+      });
+
+      if (merchantData.hasData && merchantData.province && selectedCode) {
+        await loadCities(selectedCode);
+      }
+    } catch (error) {
+      console.error('Error loading provinces:', error);
+    }
+  }
+
+  async function loadCities(provinceCode) {
+    const citySelect = document.getElementById('city');
+    const barangaySelect = document.getElementById('barangay');
+    
+    if (!provinceCode) {
+      citySelect.innerHTML = '<option value="">Select province first...</option>';
+      barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      return;
+    }
+    
+    try {
+      citySelect.innerHTML = '<option value="">Loading cities...</option>';
+      const response = await fetch(`{{ url_for("merchant.get_cities", province_code="") }}${provinceCode}`);
+      const cities = await response.json();
+      
+      citySelect.innerHTML = '<option value="">Select City/Municipality...</option>';
+      let selectedCode = null;
+      cities.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city.code;
+        option.textContent = city.name;
+        if (merchantData.hasData && merchantData.city && city.name === merchantData.city) {
+          option.selected = true;
+          selectedCode = city.code;
+        }
+        citySelect.appendChild(option);
+      });
+      
+      if (merchantData.hasData && merchantData.city && selectedCode) {
+        await loadBarangays(selectedCode);
+      } else {
+        barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      }
+    } catch (error) {
+      console.error('Error loading cities:', error);
+      citySelect.innerHTML = '<option value="">Error loading cities</option>';
+    }
+  }
+
+  async function loadBarangays(cityCode) {
+    const barangaySelect = document.getElementById('barangay');
+    
+    if (!cityCode) {
+      barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      return;
+    }
+    
+    try {
+      barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
+      const response = await fetch(`{{ url_for("merchant.get_barangays", city_code="") }}${cityCode}`);
+      const barangays = await response.json();
+      
+      barangaySelect.innerHTML = '<option value="">Select Barangay...</option>';
+      barangays.forEach(barangay => {
+        const option = document.createElement('option');
+        option.value = barangay.code;
+        option.textContent = barangay.name;
+        if (merchantData.hasData && merchantData.barangay && barangay.name === merchantData.barangay) {
+          option.selected = true;
+        }
+        barangaySelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading barangays:', error);
+      barangaySelect.innerHTML = '<option value="">Error loading barangays</option>';
+    }
+  }
+
+  // ==================== EVENT LISTENERS ====================
+  function setupEventListeners() {
+    // Province selector
+    const provinceSelect = document.getElementById('province');
+    if (provinceSelect) {
+      provinceSelect.addEventListener('change', function() {
+        loadCities(this.value);
+      });
+    }
+
+    // City selector
+    const citySelect = document.getElementById('city');
+    if (citySelect) {
+      citySelect.addEventListener('change', function() {
+        loadBarangays(this.value);
+      });
+    }
+
+    // Barangay selector
+    const barangaySelect = document.getElementById('barangay');
+    if (barangaySelect) {
+      barangaySelect.addEventListener('change', function() {
+        // Validation will happen here if needed
+      });
+    }
+
+    // Operating time inputs
+    const openingTime = document.querySelector('input[name="opening_time"]');
+    const closingTime = document.querySelector('input[name="closing_time"]');
+    // Listeners for time changes if needed
+
+    // Operating days checkboxes - no special handling needed
+
+    // Cancellation policy checkbox
+    const customPolicyCheckbox = document.getElementById('has_custom_policy');
+    const policySection = document.getElementById('cancellation-policy-section');
+    if (customPolicyCheckbox && policySection) {
+      customPolicyCheckbox.addEventListener('change', function() {
+        policySection.classList.toggle('hidden', !this.checked);
+      });
+    }
+
+    // Form validation for text inputs and selects
+    initializeFormValidation();
+  }
+
+  // ==================== FORM VALIDATION ====================
+  function initializeFormValidation() {
+    const submitBtn = document.getElementById('submitBtn');
+    const confirmCheckbox = document.getElementById('agree_terms');
+    
+    if (!submitBtn || !confirmCheckbox) {
+      console.log('❌ Cannot find submitBtn or agree_terms checkbox');
+      return;
+    }
+    
+    console.log('✅ Form validation initialized');
+    
+    // Simple check: just enable button when checkbox is checked
+    confirmCheckbox.addEventListener('change', function() {
+      console.log('✅ Checkbox changed:', this.checked);
+      submitBtn.disabled = !this.checked;
+    });
+  }
+
+  function checkFormValidity() {
+    // This function is no longer used - validation is now simple checkbox-based
+  }
+
+  function validateAllRequiredFields() {
+    // Not used - validation now happens on backend in POST handler
+    return true;
+  }
+
+  function setupFormSubmitHandler() {
+    const form = document.getElementById('merchantForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (!form || !submitBtn) return;
+    
+    form.addEventListener('submit', function(e) {
+      // Validate form before submission
+      if (!validateAllRequiredFields()) {
+        e.preventDefault();
+        alert('Please fill in all required fields before submitting.');
+        return false;
+      }
+
+      const confirmCheckbox = document.getElementById('agree_terms');
+      if (!confirmCheckbox || !confirmCheckbox.checked) {
+        e.preventDefault();
+        alert('Please confirm that all information is accurate before submitting.');
+        return false;
+      }
+
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i>Saving...';
+    });
+  }
+
+  // ==================== FILE UPLOAD HANDLERS ====================
+  function handleLogoSelect(event) {
+    const input = event.currentTarget || event.target;
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file size
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('File size exceeds 5MB limit');
+      input.value = '';
+      return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please select a valid image file (JPG, PNG, GIF, or WebP)');
+      input.value = '';
+      return;
+    }
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('logo_preview');
+      const img = preview.querySelector('img');
+      const nameSpan = preview.querySelector('#logo_name');
+      const sizeSpan = preview.querySelector('#logo_size');
+      
+      img.src = e.target.result;
+      nameSpan.textContent = file.name;
+      sizeSpan.textContent = (file.size / 1024).toFixed(2) + ' KB';
+      
+      // Hide current display and show preview
+      const currentDisplay = document.getElementById('current_logo_display');
+      if (currentDisplay) currentDisplay.classList.add('hidden');
+      preview.classList.remove('hidden');
     };
+    reader.readAsDataURL(file);
+  }
+
+  function handleFileSelect(event, previewId, nameId) {
+    const input = event.currentTarget || event.target;
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file size
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('File size exceeds 5MB limit');
+      input.value = '';
+      return;
+    }
+    
+    // Show preview
+    const preview = document.getElementById(previewId);
+    const nameSpan = document.getElementById(nameId);
+    nameSpan.textContent = file.name;
+    preview.classList.remove('hidden');
+  }
+
+  function handlePhotoSelect(event) {
+    const input = event.currentTarget || event.target;
+    const files = input.files;
+    
+    if (files.length === 0) return;
+    
+    const preview = document.getElementById('photos_preview');
+    const photoCount = document.getElementById('photo_count');
+    
+    preview.innerHTML = '';
+    let validCount = 0;
+    
+    Array.from(files).forEach((file, index) => {
+      // Validate file
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        alert(`File "${file.name}" exceeds 5MB limit`);
+        return;
+      }
+      
+      const allowedTypes = ['image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        alert(`File "${file.name}" is not a valid image (JPG/PNG only)`);
+        return;
+      }
+      
+      validCount++;
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const photoDiv = document.createElement('div');
+        photoDiv.className = 'relative';
+        photoDiv.innerHTML = `
+          <img src="${e.target.result}" alt="Photo preview" class="w-full h-32 object-cover rounded-lg border-2 border-purple-300">
+          <span class="absolute top-1 left-1 bg-purple-600 text-white text-xs px-2 py-1 rounded">New</span>
+        `;
+        preview.appendChild(photoDiv);
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    if (validCount > 0) {
+      // Hide current photos display
+      const currentDisplay = document.getElementById('current_photos_display');
+      if (currentDisplay) currentDisplay.classList.add('hidden');
+      
+      preview.classList.remove('hidden');
+      photoCount.textContent = `${validCount} photo(s) selected`;
+      photoCount.classList.remove('hidden');
+    }
+  }
+  
+  function clearFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    input.value = '';
+    
+    // Hide preview and show current data if exists
+    if (inputId === 'store_logo_input') {
+      document.getElementById('logo_preview').classList.add('hidden');
+      const currentDisplay = document.getElementById('current_logo_display');
+      if (currentDisplay) currentDisplay.classList.remove('hidden');
+    } else if (inputId === 'government_id_input') {
+      document.getElementById('gov_id_preview').classList.add('hidden');
+      const currentDisplay = document.getElementById('current_gov_id_display');
+      if (currentDisplay) currentDisplay.classList.remove('hidden');
+    } else if (inputId === 'business_permit_input') {
+      document.getElementById('permit_preview').classList.add('hidden');
+      const currentDisplay = document.getElementById('current_permit_display');
+      if (currentDisplay) currentDisplay.classList.remove('hidden');
+    }
+  }
+  
+  // Setup drag and drop
+  const logoDropZone = document.getElementById('logoDropZone');
+  if (logoDropZone) {
+    logoDropZone.addEventListener('click', function() {
+      document.getElementById('store_logo_input').click();
+    });
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      logoDropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      logoDropZone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      logoDropZone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight(e) {
+      logoDropZone.style.borderColor = '#ec4899';
+      logoDropZone.style.backgroundColor = '#fce7f3';
+    }
+    
+    function unhighlight(e) {
+      logoDropZone.style.borderColor = '#d8b4fe';
+      logoDropZone.style.backgroundColor = '#f3e8ff';
+    }
+    
+    logoDropZone.addEventListener('drop', handleDrop, false);
+  }
+  
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    const input = document.getElementById('store_logo_input');
+    input.files = files;
+    handleLogoSelect({currentTarget: input});
+  }
+  
+  // Setup file input listener
+  const logoInput = document.getElementById('store_logo_input');
+  if (logoInput) {
+    logoInput.addEventListener('change', function() {
+      handleLogoSelect({currentTarget: this});
+    });
+  }
+  
+  // Setup clear button
+  const clearBtn = document.getElementById('clearLogoBtn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      clearFileInput('store_logo_input');
+    });
   }
 </script>
 
+<!-- SERVICE CONFIG & PRICING SETUP -->
+<script type="application/json" id="serviceConfig">
+{
+  "CATEGORY_TO_SERVICES": {
+    "Health & Wellness": ["Veterinary Clinic", "Vaccination Services", "Pet Rehabilitation"],
+    "Care & Handling": ["Pet Boarding", "Pet Daycare", "Pet Sitting", "Pet Training", "Pet Transport"],
+    "Personal Care & Aesthetics": ["Pet Grooming", "Pet Photography"],
+    "Support & Specialty": ["Pet Events", "Pet Cremation & Memorial"],
+    "Retail & Lifestyle": ["Pet Supplies Store", "Pet Food & Treats", "Pet Bakery", "Pet Café"]
+  },
+  "SERVICE_PRICING_TYPES": {
+    "Veterinary Clinic": "flat",
+    "Vaccination Services": "flat",
+    "Pet Rehabilitation": "flat",
+    "Pet Training": "flat",
+    "Pet Events": "flat",
+    "Pet Cremation & Memorial": "flat",
+    "Pet Photography": "flat",
+    "Pet Supplies Store": "flat",
+    "Pet Food & Treats": "flat",
+    "Pet Bakery": "flat",
+    "Pet Café": "flat",
+    "Pet Grooming": "size",
+    "Pet Transport": "size",
+    "Pet Boarding": "duration+size",
+    "Pet Daycare": "duration+size",
+    "Pet Sitting": "duration"
+  },
+  "PET_SIZE_TIERS": [
+    {"id": "small", "label": "Small (up to 10kg)"},
+    {"id": "medium", "label": "Medium (10-30kg)"},
+    {"id": "large", "label": "Large (30-60kg)"},
+    {"id": "xlarge", "label": "XL (60kg+)"}
+  ],
+  "PET_SIZE_MAPPING": {
+    "Dogs": ["small", "medium", "large", "xlarge"],
+    "Cats": ["small"],
+    "Small Mammals": ["small"],
+    "Birds": ["small"],
+    "Reptiles & Amphibians": ["small"],
+    "Aquatic Pets": ["small"],
+    "Exotic": ["small"]
+  },
+  "DURATION_UNITS": [
+    {"id": "hour", "label": "Per Hour"},
+    {"id": "halfday", "label": "Half Day (4 hours)"},
+    {"id": "day", "label": "Per Day"},
+    {"id": "night", "label": "Per Night"},
+    {"id": "overnight", "label": "Overnight (24 hours)"}
+  ]
+}
+</script>
+
+<script>
+  // ==================== DYNAMIC PRICING FUNCTIONS ====================
+  function getServiceConfig() {
+    const configElement = document.getElementById('serviceConfig');
+    if (configElement) {
+      return JSON.parse(configElement.textContent);
+    }
+    return {};
+  }
+
+  function updateServicesForCategory(category) {
+    const config = getServiceConfig();
+    const allowedServices = config.CATEGORY_TO_SERVICES?.[category] || [];
+    
+    // Show/hide service checkboxes based on category
+    document.querySelectorAll('input[name="services_offered"]').forEach(checkbox => {
+      const serviceName = checkbox.value;
+      const parentLabel = checkbox.closest('label');
+      
+      if (allowedServices.includes(serviceName)) {
+        parentLabel.style.display = 'flex';
+        parentLabel.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        parentLabel.style.display = 'none';
+        checkbox.checked = false;
+      }
+    });
+
+    // Trigger pricing update
+    updatePricingInputs();
+    savePricingToJSON();
+  }
+
+  function getAllSizeTiers() {
+    const config = getServiceConfig();
+    return config.PET_SIZE_TIERS?.map(tier => tier.id) || ['small', 'medium', 'large', 'xlarge'];
+  }
+
+  function getAllDurationUnits() {
+    const config = getServiceConfig();
+    return config.DURATION_UNITS?.map(unit => unit.id) || ['hour', 'halfday', 'day', 'night', 'overnight'];
+  }
+
+  function updatePricingInputs() {
+    const config = getServiceConfig();
+    const selectedServices = Array.from(document.querySelectorAll('input[name="services_offered"]:checked')).map(cb => cb.value);
+    const pricingSection = document.getElementById('pricingSection');
+    const container = document.getElementById('dynamicPricingContainer');
+
+    if (selectedServices.length === 0) {
+      pricingSection.style.display = 'none';
+      return;
+    }
+
+    pricingSection.style.display = 'block';
+    container.innerHTML = '';
+
+    selectedServices.forEach(service => {
+      const pricingType = config.SERVICE_PRICING_TYPES?.[service] || 'flat';
+      const serviceDiv = document.createElement('div');
+      serviceDiv.className = 'border-b border-purple-200 pb-6';
+      serviceDiv.innerHTML = `<h3 class="text-sm font-semibold text-purple-900 mb-4"><i class="fas fa-tag text-purple-600 mr-2"></i>${service}</h3>`;
+
+      if (pricingType === 'flat') {
+        serviceDiv.innerHTML += generateFlatPricingInputs(service);
+      } else if (pricingType === 'size') {
+        serviceDiv.innerHTML += generateSizePricingInputs(service, config);
+      } else if (pricingType === 'duration') {
+        serviceDiv.innerHTML += generateDurationPricingInputs(service, config);
+      } else if (pricingType === 'duration+size') {
+        serviceDiv.innerHTML += generateDurationSizePricingInputs(service, config);
+      }
+
+      container.appendChild(serviceDiv);
+    });
+
+    savePricingToJSON();
+  }
+
+  function generateFlatPricingInputs(service) {
+    return `
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-2">Min Price (₱)</label>
+          <input type="number" name="price_${service}_min" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-2">Max Price (₱)</label>
+          <input type="number" name="price_${service}_max" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="1000">
+        </div>
+      </div>
+    `;
+  }
+
+  function generateSizePricingInputs(service, config) {
+    const sizeTiers = getAllSizeTiers();
+    let html = '<div class="space-y-3">';
+
+    sizeTiers.forEach(sizeId => {
+      const sizeLabel = config.PET_SIZE_TIERS?.find(s => s.id === sizeId)?.label || sizeId;
+      html += `
+        <div class="pl-4 border-l-2 border-purple-300">
+          <p class="text-xs font-medium text-purple-700 mb-2">${sizeLabel}</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Min (₱)</label>
+              <input type="number" name="price_${service}_${sizeId}_min" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Min">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Max (₱)</label>
+              <input type="number" name="price_${service}_${sizeId}_max" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Max">
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += '</div>';
+    return html;
+  }
+
+  function generateDurationPricingInputs(service, config) {
+    const durationUnits = getAllDurationUnits();
+    const serviceKey = service.replace(/\s+/g, '_');
+    
+    let html = `
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-purple-900 mb-2">
+            <i class="fas fa-clock text-purple-600 mr-2"></i>Select Duration Type
+          </label>
+          <select name="duration_${serviceKey}" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" onchange="updateDurationPricing('${service}', this.value)">
+            <option value="">Choose duration unit...</option>
+    `;
+    
+    durationUnits.forEach(unitId => {
+      const unitLabel = config.DURATION_UNITS?.find(u => u.id === unitId)?.label || unitId;
+      html += `<option value="${unitId}">${unitLabel}</option>`;
+    });
+    
+    html += `
+          </select>
+        </div>
+        <div id="duration_pricing_${serviceKey}" class="hidden">
+          <div class="pl-4 border-l-2 border-purple-300">
+            <p class="text-xs font-medium text-purple-700 mb-2"><span id="selected_duration_label_${serviceKey}"></span></p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Min (₱)</label>
+                <input type="number" name="price_${service}___min" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Min">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Max (₱)</label>
+                <input type="number" name="price_${service}___max" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Max">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    return html;
+  }
+
+  function generateDurationSizePricingInputs(service, config) {
+    const sizeTiers = getAllSizeTiers();
+    const durationUnits = getAllDurationUnits();
+    const serviceKey = service.replace(/\s+/g, '_');
+    
+    let html = `
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-purple-900 mb-2">
+            <i class="fas fa-clock text-purple-600 mr-2"></i>Select Duration Type
+          </label>
+          <select name="duration_${serviceKey}" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" onchange="updateDurationSizePricing('${service}', this.value)">
+            <option value="">Choose duration unit...</option>
+    `;
+    
+    durationUnits.forEach(unitId => {
+      const unitLabel = config.DURATION_UNITS?.find(u => u.id === unitId)?.label || unitId;
+      html += `<option value="${unitId}">${unitLabel}</option>`;
+    });
+    
+    html += `
+          </select>
+        </div>
+        <div id="duration_size_pricing_${serviceKey}" class="hidden">
+          <p class="text-xs font-medium text-purple-700 mb-3"><i class="fas fa-box text-purple-600 mr-2"></i>Pricing by Pet Size for <span id="selected_duration_label_size_${serviceKey}"></span></p>
+          <div class="space-y-2">
+    `;
+    
+    sizeTiers.forEach(sizeId => {
+      const sizeLabel = config.PET_SIZE_TIERS?.find(s => s.id === sizeId)?.label || sizeId;
+      html += `
+        <div class="grid grid-cols-2 gap-3 pl-4 border-l-2 border-purple-300">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">${sizeLabel} Min (₱)</label>
+            <input type="number" name="price_${service}___${sizeId}_min" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Min">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">${sizeLabel} Max (₱)</label>
+            <input type="number" name="price_${service}___${sizeId}_max" step="0.01" min="0" class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Max">
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `
+          </div>
+        </div>
+      </div>
+    `;
+    
+    return html;
+  }
+
+  function updateDurationPricing(service, durationId) {
+    const config = getServiceConfig();
+    const serviceKey = service.replace(/\s+/g, '_');
+    const pricingDiv = document.getElementById(`duration_pricing_${serviceKey}`);
+    const labelSpan = document.getElementById(`selected_duration_label_${serviceKey}`);
+    
+    if (!durationId) {
+      pricingDiv.classList.add('hidden');
+      return;
+    }
+    
+    const durationLabel = config.DURATION_UNITS?.find(u => u.id === durationId)?.label || durationId;
+    labelSpan.textContent = durationLabel;
+    
+    // Update input field names to include the selected duration
+    const minInput = pricingDiv.querySelector('input[name*="_min"]');
+    const maxInput = pricingDiv.querySelector('input[name*="_max"]');
+    
+    if (minInput) minInput.name = `price_${service}_${durationId}_min`;
+    if (maxInput) maxInput.name = `price_${service}_${durationId}_max`;
+    
+    pricingDiv.classList.remove('hidden');
+    savePricingToJSON();
+  }
+
+  function updateDurationSizePricing(service, durationId) {
+    const config = getServiceConfig();
+    const serviceKey = service.replace(/\s+/g, '_');
+    const pricingDiv = document.getElementById(`duration_size_pricing_${serviceKey}`);
+    const labelSpan = document.getElementById(`selected_duration_label_size_${serviceKey}`);
+    
+    if (!durationId) {
+      pricingDiv.classList.add('hidden');
+      return;
+    }
+    
+    const durationLabel = config.DURATION_UNITS?.find(u => u.id === durationId)?.label || durationId;
+    labelSpan.textContent = durationLabel;
+    
+    // Update all input field names to include the selected duration
+    const allInputs = pricingDiv.querySelectorAll('input');
+    allInputs.forEach(input => {
+      const baseName = input.name.replace(/price_[^_]+___/, `price_${service}_${durationId}_`);
+      input.name = baseName;
+    });
+    
+    pricingDiv.classList.remove('hidden');
+    savePricingToJSON();
+  }
+
+  function savePricingToJSON() {
+    const inputs = document.querySelectorAll('input[name^="price_"]');
+    const pricing = {};
+    const knownSizes = ['small', 'medium', 'large', 'xlarge'];
+    const knownDurations = ['hour', 'halfday', 'day', 'night', 'overnight'];
+
+    inputs.forEach(input => {
+      if (!input.value) return;
+
+      const fullName = input.name.replace('price_', '');
+      const parts = fullName.split('_');
+      const value = parseFloat(input.value);
+      const isMin = input.name.includes('_min');
+
+      // Remove min/max from the end
+      const lastPart = parts.pop();
+
+      // Now determine pricing type and service name
+      let serviceName, pricingType, durationId, sizeId;
+
+      if (parts.length >= 2) {
+        const secondToLast = parts[parts.length - 1];
+        const thirdToLast = parts[parts.length - 2];
+
+        // Check duration+size FIRST (most specific)
+        if (knownDurations.includes(thirdToLast) && knownSizes.includes(secondToLast)) {
+          serviceName = parts.slice(0, -2).join(' ');
+          durationId = thirdToLast;
+          sizeId = secondToLast;
+          pricingType = 'duration+size';
+        } else if (knownSizes.includes(secondToLast)) {
+          serviceName = parts.slice(0, -1).join(' ');
+          sizeId = secondToLast;
+          pricingType = 'size';
+        } else if (knownDurations.includes(secondToLast)) {
+          serviceName = parts.slice(0, -1).join(' ');
+          durationId = secondToLast;
+          pricingType = 'duration';
+        } else {
+          serviceName = parts.join(' ');
+          pricingType = 'flat';
+        }
+      } else {
+        serviceName = parts.join(' ');
+        pricingType = 'flat';
+      }
+
+      // Initialize pricing structure
+      if (!pricing[serviceName]) {
+        pricing[serviceName] = { type: pricingType };
+      }
+
+      // Store the value based on pricing type
+      if (pricingType === 'flat') {
+        pricing[serviceName][isMin ? 'min_price' : 'max_price'] = value;
+      } else if (pricingType === 'size') {
+        if (!pricing[serviceName].by_size) pricing[serviceName].by_size = {};
+        if (!pricing[serviceName].by_size[sizeId]) pricing[serviceName].by_size[sizeId] = {};
+        pricing[serviceName].by_size[sizeId][isMin ? 'min_price' : 'max_price'] = value;
+      } else if (pricingType === 'duration') {
+        if (!pricing[serviceName].by_duration) pricing[serviceName].by_duration = {};
+        if (!pricing[serviceName].by_duration[durationId]) pricing[serviceName].by_duration[durationId] = {};
+        pricing[serviceName].by_duration[durationId][isMin ? 'min_price' : 'max_price'] = value;
+      } else if (pricingType === 'duration+size') {
+        if (!pricing[serviceName].by_duration_and_size) pricing[serviceName].by_duration_and_size = {};
+        if (!pricing[serviceName].by_duration_and_size[durationId]) {
+          pricing[serviceName].by_duration_and_size[durationId] = { by_size: {} };
+        }
+        if (!pricing[serviceName].by_duration_and_size[durationId].by_size[sizeId]) {
+          pricing[serviceName].by_duration_and_size[durationId].by_size[sizeId] = {};
+        }
+        pricing[serviceName].by_duration_and_size[durationId].by_size[sizeId][isMin ? 'min_price' : 'max_price'] = value;
+      }
+    });
+
+    if (document.getElementById('service_pricing_json')) {
+      document.getElementById('service_pricing_json').value = JSON.stringify(pricing);
+    }
+  }
+
+  // Setup event listeners for services and pets
+  document.querySelectorAll('input[name="services_offered"], input[name="pets_accepted"]').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      updatePricingInputs();
+      savePricingToJSON();
+    });
+  });
+
+  // Price inputs - save to JSON
+  document.addEventListener('input', function(e) {
+    if (e.target.name && e.target.name.startsWith('price_')) {
+      savePricingToJSON();
+    }
+  });
+
+  // Setup category change listener
+  const categorySelect = document.getElementById('business_category');
+  if (categorySelect) {
+    categorySelect.addEventListener('change', function() {
+      updateServicesForCategory(this.value);
+    });
+  }
+
+</script>
+
 <style>
-  [x-cloak] { display: none; }
+  @keyframes blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: rgba(243, 232, 255, 0.8);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(147, 51, 234, 0.5);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(147, 51, 234, 0.7);
+  }
 
   input:focus,
   select:focus,
@@ -862,26 +1717,6 @@
   input[type="radio"]:focus {
     outline: 2px solid #a855f7;
     outline-offset: 2px;
-  }
-
-  #editStoreMap {
-    width: 100%;
-    height: 300px;
-    border-radius: 0.5rem;
-    border: 2px solid #e9d5ff;
-    background-color: #f5f3ff;
-  }
-
-  @media (min-width: 640px) {
-    #editStoreMap {
-      height: 400px;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    #editStoreMap {
-      height: 500px;
-    }
   }
 
   .leaflet-container {

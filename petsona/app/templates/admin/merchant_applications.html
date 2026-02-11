@@ -202,23 +202,15 @@
             </div>
 
             <!-- Empty State -->
-            <template x-if="getFilteredApplications().length === 0 && !isLoading">
-                <div class="empty-state">
-                    <div class="empty-content">
-                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                        </svg>
-                        <p class="font-semibold text-gray-900 mb-2">
-                            <template x-if="applications.length === 0">No Applications Found</template>
-                            <template x-if="applications.length > 0">No Matching Applications</template>
-                        </p>
-                        <p class="text-sm text-gray-600">
-                            <template x-if="applications.length === 0">There are no merchant applications yet. Merchants will appear here when they submit their applications.</template>
-                            <template x-if="applications.length > 0">Try adjusting your search or filter criteria to see more results.</template>
-                        </p>
-                    </div>
+            <div x-show="getFilteredApplications().length === 0 && !isLoading" class="empty-state">
+                <div class="empty-content">
+                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <p class="font-semibold text-gray-900 mb-2" x-text="applications.length === 0 ? 'No Applications Found' : 'No Matching Applications'"></p>
+                    <p class="text-sm text-gray-600" x-text="applications.length === 0 ? 'There are no merchant applications yet. Merchants will appear here when they submit their applications.' : 'Try adjusting your search or filter criteria to see more results.'"></p>
                 </div>
-            </template>
+            </div>
         </div>
 
         <!-- Loading State -->
@@ -235,314 +227,416 @@
 
     <!-- Premium Detail Modal with Glassmorphism -->
     <template x-if="selectedApp">
-        <div class="fixed inset-0 bg-black/30 z-40 flex items-center justify-center p-2 sm:p-3 lg:p-4 backdrop-blur-md mt-16 sm:mt-20 overflow-y-auto" style="position: fixed; top: 0; margin-top: 4rem;" @click.self="selectedApp = null">
-            <div class="bg-white/80 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl my-4 sm:my-6 overflow-hidden flex flex-col max-h-[calc(100vh-8rem)] border border-white/50 border-t border-t-white/80" @click.stop>
+        <div class="fixed inset-0 bg-black/30 z-40 flex items-center justify-center p-2 sm:p-3 lg:p-4 backdrop-blur-md mt-20" @click.self="selectedApp = null">
+            <div class="bg-white/80 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl h-[85vh]  overflow-hidden flex flex-col border border-white/50 border-t border-t-white/80" @click.stop>
                 
                 <!-- Modal Header with Gradient -->
-                <div class="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-600 px-4 sm:px-6 py-5 sm:py-6 flex items-center justify-between gap-4 flex-shrink-0">
-                    <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                        <!-- Merchant Logo -->
-                        <div class="flex-shrink-0 p-2 bg-white/20 backdrop-blur-xl rounded-lg sm:rounded-xl border border-white/30 overflow-hidden">
-                            <template x-if="selectedApp.logo_url">
-                                <img :src="selectedApp.logo_url" alt="Merchant Logo" class="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-                                <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white/70 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m5.581 0a2 2 0 100-4 2 2 0 000 4m0 0a2 2 0 100-4 2 2 0 000 4m-6 0a2 2 0 100-4 2 2 0 000 4m0 0H4m9.581 0H9"/>
-                                </svg>
-                            </template>
-                            <template x-if="!selectedApp.logo_url">
-                                <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m5.581 0a2 2 0 100-4 2 2 0 000 4m0 0a2 2 0 100-4 2 2 0 000 4m-6 0a2 2 0 100-4 2 2 0 000 4m0 0H4m9.581 0H9"/>
-                                </svg>
-                            </template>
+                <div class="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-600 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <!-- Merchant Logo - Enhanced -->
+                        <div class="flex-shrink-0 p-1 bg-white/20 backdrop-blur-xl rounded border border-white/30 overflow-hidden shadow-lg">
+                            <img 
+                                :src="'/static/uploads/' + selectedApp.logo_path" 
+                                alt="Merchant Logo" 
+                                class="w-8 h-8 sm:w-10 sm:h-10 object-cover rounded" 
+                                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+                            >
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded flex items-center justify-center hidden">
+                                <span class="text-white font-bold text-xs sm:text-sm" x-text="selectedApp.business_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase()"></span>
+                            </div>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h2 class="text-lg sm:text-2xl font-bold text-white break-words" x-text="selectedApp.business_name"></h2>
-                            <p class="text-white/80 text-xs sm:text-sm break-words" x-text="selectedApp.user_email"></p>
+                            <h2 class="text-base sm:text-lg font-bold text-white break-words" x-text="selectedApp.business_name"></h2>
+                            <p class="text-white/80 text-xs break-words" x-text="'ID: MC-' + selectedApp.year + '-' + selectedApp.id"></p>
                         </div>
                     </div>
                     <button 
                         @click="selectedApp = null"
-                        class="text-white hover:bg-white/20 p-2 rounded-lg transition flex-shrink-0 backdrop-blur-xl"
+                        class="text-white hover:bg-white/20 p-1.5 transition flex-shrink-0 backdrop-blur-xl"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
 
                 <!-- Modal Body - Scrollable Content -->
-                <div class="overflow-y-auto flex-1">
-                    <div class="p-4 sm:p-6 space-y-4 sm:space-y-5">
+                <div class="overflow-y-auto flex-1 min-h-0">
+                    <div class="p-3 sm:p-4 space-y-3 sm:space-y-4">
                         
-                        <!-- Quick Info - Status, ID, Type, Date -->
-                        <div class="bg-white/40 backdrop-blur-lg border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
+                        <!-- Quick Status Bar -->
+                        <div class="bg-gradient-to-r from-purple-50 to-purple-100/50 backdrop-blur-lg border border-purple-200 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                                 <div>
-                                    <p class="text-gray-600 text-xs font-semibold uppercase">Status</p>
-                                    <p class="text-gray-900 font-bold text-sm mt-1.5" x-text="selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)"></p>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Status</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5 flex items-center gap-1">
+                                        <span :class="{'bg-amber-100 text-amber-700': selectedApp.status === 'pending', 'bg-green-100 text-green-700': selectedApp.status === 'approved', 'bg-red-100 text-red-700': selectedApp.status === 'rejected'}" class="px-2.5 py-0.5 rounded-full text-xs font-bold" x-text="selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)"></span>
+                                    </p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-600 text-xs font-semibold uppercase">ID</p>
-                                    <p class="text-gray-900 font-bold text-sm mt-1.5 font-mono" x-text="'MC-' + selectedApp.year + '-' + selectedApp.id"></p>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Category</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5 break-words" x-text="selectedApp.business_category || selectedApp.business_type || 'N/A'"></p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-600 text-xs font-semibold uppercase">Type</p>
-                                    <p class="text-gray-900 font-bold text-sm mt-1.5 break-words" x-text="selectedApp.business_type"></p>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Year</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5" x-text="selectedApp.year"></p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-600 text-xs font-semibold uppercase">Submitted</p>
-                                    <p class="text-gray-900 font-bold text-sm mt-1.5" x-text="new Date(selectedApp.submitted_at).toLocaleDateString()"></p>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Verified</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5">
+                                        <span x-show="selectedApp.is_verified" class="text-green-600">✓ Yes</span>
+                                        <span x-show="!selectedApp.is_verified" class="text-gray-500">✗ No</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Business & Contact Info Section -->
-                        <div class="space-y-3 sm:space-y-4">
-                            <div class="bg-white/40 backdrop-blur-lg border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                                <h4 class="font-semibold text-gray-900 text-sm mb-4 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Business Details
-                                </h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Owner Name</p>
-                                        <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.owner_name || 'N/A'"></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Business Name</p>
-                                        <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.business_name"></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Contact Number</p>
-                                        <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.phone || 'N/A'"></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Email</p>
-                                        <p class="text-gray-900 font-semibold mt-1 truncate" x-text="selectedApp.user_email"></p>
-                                    </div>
+                        <!-- Business Information Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2 pb-2 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m5.581 0a2 2 0 100-4 2 2 0 000 4m0 0a2 2 0 100-4 2 2 0 000 4m-6 0a2 2 0 100-4 2 2 0 000 4m0 0H4m9.581 0H9"/>
+                                </svg>
+                                Business Information
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Owner/Manager Name</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.owner_name || 'N/A'"></p>
                                 </div>
-                            </div>
-
-                            <div class="bg-white/40 backdrop-blur-lg border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                                <h4 class="font-semibold text-gray-900 text-sm mb-4 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/>
-                                    </svg>
-                                    Location Info
-                                </h4>
-                                <div class="space-y-2 text-sm">
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Full Address</p>
-                                        <p class="text-gray-900 mt-1" x-text="selectedApp.full_address || 'N/A'"></p>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <p class="text-gray-600 text-xs font-semibold uppercase">Province</p>
-                                            <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.province || 'N/A'"></p>
-                                        </div>
-                                        <div>
-                                            <p class="text-gray-600 text-xs font-semibold uppercase">City</p>
-                                            <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.city || 'N/A'"></p>
-                                        </div>
-                                        <div>
-                                            <p class="text-gray-600 text-xs font-semibold uppercase">Barangay</p>
-                                            <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.barangay || 'N/A'"></p>
-                                        </div>
-                                        <div>
-                                            <p class="text-gray-600 text-xs font-semibold uppercase">Postal Code</p>
-                                            <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.postal_code || 'N/A'"></p>
-                                        </div>
-                                    </div>
-                                    <template x-if="selectedApp.google_maps_link">
-                                        <a :href="selectedApp.google_maps_link" target="_blank" class="inline-block text-purple-600 hover:text-purple-700 font-semibold text-xs mt-2">View on Google Maps →</a>
-                                    </template>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Years in Operation</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.years_in_operation + ' years' || 'N/A'"></p>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Business Description</p>
+                                    <p class="text-gray-900 font-medium mt-1 break-words" x-text="selectedApp.business_description || 'Not provided'"></p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Services & Operations -->
-                        <div class="space-y-3 sm:space-y-4">
-                            <div class="bg-white/40 backdrop-blur-lg border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                                <h4 class="font-semibold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7 8a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <!-- Contact Information Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                Contact Information
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Contact Email</p>
+                                    <p class="text-blue-600 font-medium mt-1 break-all" x-text="selectedApp.contact_email"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">User Email</p>
+                                    <p class="text-blue-600 font-medium mt-1 break-all" x-text="selectedApp.user_email"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Phone Number</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.phone"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">User Name</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.user_name"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Information Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                </svg>
+                                Location Information
+                            </h4>
+                            <div class="space-y-3 text-sm">
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Full Address</p>
+                                    <p class="text-gray-900 font-medium mt-1 break-words" x-text="selectedApp.full_address"></p>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">City</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.city"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Province</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.province"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Barangay</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.barangay"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Postal Code</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.postal_code"></p>
+                                    </div>
+                                </div>
+                                <template x-if="selectedApp.latitude && selectedApp.longitude">
+                                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-purple-200">
+                                        <div>
+                                            <p class="text-gray-600 font-semibold uppercase text-xs">Latitude</p>
+                                            <p class="text-gray-900 font-medium mt-1 font-mono text-xs" x-text="selectedApp.latitude.toFixed(6)"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-600 font-semibold uppercase text-xs">Longitude</p>
+                                            <p class="text-gray-900 font-medium mt-1 font-mono text-xs" x-text="selectedApp.longitude.toFixed(6)"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="selectedApp.google_maps_link">
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Google Maps</p>
+                                        <a :href="selectedApp.google_maps_link" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium mt-1 break-all text-xs">View on Google Maps →</a>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Services & Pets Section -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                            <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                                <h4 class="font-bold text-gray-900 text-base mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
                                     </svg>
                                     Services Offered
                                 </h4>
                                 <div class="flex flex-wrap gap-2">
-                                    <template x-for="service in (selectedApp.services || [])">
-                                        <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700 border border-purple-300" x-text="service"></span>
+                                    <template x-for="service in (selectedApp.services || [])" :key="service">
+                                        <span class="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-xs font-semibold" x-text="service"></span>
+                                    </template>
+                                    <template x-if="(!selectedApp.services || selectedApp.services.length === 0)">
+                                        <span class="text-gray-500 text-sm">Not specified</span>
                                     </template>
                                 </div>
                             </div>
 
-                            <div class="bg-white/40 backdrop-blur-lg border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                                <h4 class="font-semibold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                                <h4 class="font-bold text-gray-900 text-base mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                                     </svg>
-                                    Operating Days & Hours
+                                    Pets Accepted
                                 </h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Days</p>
-                                        <div class="flex flex-wrap gap-1.5 mt-2">
-                                            <template x-for="day in (selectedApp.operating_days || [])">
-                                                <span class="px-2 py-1 text-xs font-medium rounded bg-cyan-100 text-cyan-700 border border-cyan-300" x-text="day"></span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Hours</p>
-                                        <p class="text-gray-900 font-semibold mt-2"><span x-text="selectedApp.opening_time || 'N/A'"></span> - <span x-text="selectedApp.closing_time || 'N/A'"></span></p>
-                                    </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="pet in (selectedApp.pets_accepted || [])" :key="pet">
+                                        <span class="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-xs font-semibold" x-text="pet"></span>
+                                    </template>
+                                    <template x-if="(!selectedApp.pets_accepted || selectedApp.pets_accepted.length === 0)">
+                                        <span class="text-gray-500 text-sm">Not specified</span>
+                                    </template>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="bg-white/40 backdrop-blur-lg border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                                <h4 class="font-semibold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Pricing & Capacity
-                                </h4>
-                                <div class="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Max Pets/Day</p>
-                                        <p class="text-gray-900 font-semibold mt-1" x-text="selectedApp.max_pets_per_day || 'N/A'"></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-600 text-xs font-semibold uppercase">Price Range</p>
-                                        <p class="text-gray-900 font-semibold mt-1">₱<span x-text="selectedApp.min_price_per_day"></span> - ₱<span x-text="selectedApp.max_price_per_day"></span>/day</p>
+                        <!-- Operating Hours & Days Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Operating Schedule
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Opening Time</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="formatTime12Hr(selectedApp.opening_time)"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Closing Time</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="formatTime12Hr(selectedApp.closing_time)"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Operating Days</p>
+                                    <div class="flex flex-wrap gap-1.5 mt-1">
+                                        <template x-for="day in (selectedApp.operating_days || [])" :key="day">
+                                            <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-semibold" x-text="day"></span>
+                                        </template>
+                                        <template x-if="(!selectedApp.operating_days || selectedApp.operating_days.length === 0)">
+                                            <span class="text-gray-500 text-xs">Not specified</span>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Cancellation Policy -->
-                        <template x-if="selectedApp.cancellation_policy">
-                            <div class="bg-amber-100/40 backdrop-blur-lg border border-amber-200/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                                <h4 class="font-semibold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <!-- Pricing Information Section -->
+                        <template x-if="Object.keys(selectedApp.service_pricing).length > 0">
+                            <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                                <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    Cancellation Policy
+                                    Service Pricing
                                 </h4>
-                                <p class="text-gray-900 text-sm leading-relaxed" x-text="selectedApp.cancellation_policy"></p>
+                                <div class="space-y-3">
+                                    <template x-for="(priceData, service) in selectedApp.service_pricing">
+                                        <div class="flex items-center justify-between p-3 bg-purple-50/50 rounded-lg">
+                                            <p class="text-gray-700 font-semibold capitalize break-words" x-text="service.replace(/_/g, ' ')"></p>
+                                            <p class="text-purple-600 font-bold text-sm" x-text="formatPriceDisplay(priceData)"></p>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         </template>
 
-                        <!-- Documents -->
-                        <div class="bg-white/40 backdrop-blur-lg border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                            <h4 class="font-semibold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Cancellation Policy -->
+                        <template x-if="selectedApp.cancellation_policy">
+                            <div class="bg-amber-50/60 backdrop-blur-lg border border-amber-200 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
+                                <h4 class="font-bold text-amber-900 text-base mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2M12 3a9 9 0 110 18 9 9 0 010-18z"/>
+                                    </svg>
+                                    Cancellation Policy
+                                </h4>
+                                <p class="text-amber-900 text-sm leading-relaxed break-words" x-text="selectedApp.cancellation_policy"></p>
+                            </div>
+                        </template>
+
+                        <!-- Documents Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
-                                Documents
+                                Documents & Files
                             </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                                <div>
-                                    <p class="text-gray-600 text-xs font-semibold uppercase mb-2">ID</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
+                                <div class="bg-blue-50 border border-blue-200 p-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs mb-2">Government ID</p>
                                     <template x-if="selectedApp.government_id_path">
-                                        <a :href="'/static/uploads/' + selectedApp.government_id_path" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded bg-red-100 text-red-700 hover:bg-red-200 border border-red-300 transition">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <a :href="'/static/uploads/' + selectedApp.government_id_path" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium text-xs break-all flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-6h.01M16 20H4"/>
                                             </svg>
-                                            View
+                                            View Document
                                         </a>
                                     </template>
                                     <template x-if="!selectedApp.government_id_path">
-                                        <p class="text-xs text-gray-500">Not uploaded</p>
+                                        <span class="text-gray-400 text-xs">Not provided</span>
                                     </template>
                                 </div>
-                                <div>
-                                    <p class="text-gray-600 text-xs font-semibold uppercase mb-2">Permit</p>
+
+                                <div class="bg-green-50 border border-green-200 p-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs mb-1">Business Permit</p>
                                     <template x-if="selectedApp.business_permit_path">
-                                        <a :href="'/static/uploads/' + selectedApp.business_permit_path" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <a :href="'/static/uploads/' + selectedApp.business_permit_path" target="_blank" class="text-green-600 hover:text-green-800 font-medium text-xs break-all flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-6h.01M16 20H4"/>
                                             </svg>
-                                            View
+                                            View Document
                                         </a>
                                     </template>
                                     <template x-if="!selectedApp.business_permit_path">
-                                        <p class="text-xs text-gray-500">Not uploaded</p>
+                                        <span class="text-gray-400 text-xs">Not provided</span>
                                     </template>
                                 </div>
-                                <div>
-                                    <p class="text-gray-600 text-xs font-semibold uppercase mb-2">Photos</p>
-                                    <template x-if="(selectedApp.facility_photos_paths || []).length > 0">
-                                        <div class="flex flex-wrap gap-2">
-                                            <template x-for="(photo, idx) in (selectedApp.facility_photos_paths || [])">
-                                                <a :href="'/static/uploads/' + photo" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300 transition" :title="'Photo ' + (idx + 1)">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    </svg>
-                                                    <span x-text="'Photo ' + (idx + 1)"></span>
-                                                </a>
-                                            </template>
-                                        </div>
+
+                                <div class="bg-purple-50 border border-purple-200 p-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs mb-1">Facility Photos</p>
+                                    <template x-if="selectedApp.facility_photos_paths && selectedApp.facility_photos_paths.length > 0">
+                                        <button @click="openPhotosGallery()" class="text-purple-600 hover:text-purple-800 font-medium text-xs flex items-center gap-1 hover:underline">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span x-text="selectedApp.facility_photos_paths.length + ' Photo(s)'"></span>
+                                        </button>
                                     </template>
-                                    <template x-if="(!selectedApp.facility_photos_paths || selectedApp.facility_photos_paths.length === 0)">
-                                        <p class="text-xs text-gray-500">No photos</p>
+                                    <template x-if="!selectedApp.facility_photos_paths || selectedApp.facility_photos_paths.length === 0">
+                                        <span class="text-gray-400 text-xs">Not provided</span>
                                     </template>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Rejection Reason -->
+                        <!-- Rejection Reason (if applicable) -->
                         <template x-if="selectedApp.status === 'rejected' && selectedApp.rejection_reason">
-                            <div class="bg-red-100/40 backdrop-blur-lg border border-red-200/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-                                <h4 class="font-semibold text-red-900 text-sm mb-2 flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <div class="bg-red-50/60 backdrop-blur-lg border border-red-200 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
+                                <h4 class="font-bold text-red-900 text-base mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                                     </svg>
                                     Rejection Reason
                                 </h4>
-                                <p class="text-red-800 text-sm" x-text="selectedApp.rejection_reason"></p>
+                                <p class="text-red-800 text-sm leading-relaxed break-words" x-text="selectedApp.rejection_reason"></p>
                             </div>
                         </template>
-
                     </div>
                 </div>
 
                 <!-- Modal Footer with Actions -->
-                <template x-if="selectedApp.status === 'pending'">
-                    <div class="border-t border-white/30 bg-white/20 backdrop-blur-lg px-4 sm:px-6 py-3 sm:py-4 flex gap-2 sm:gap-3 flex-shrink-0">
-                        <button 
-                            @click="selectedApp = null"
-                            class="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-200/60 hover:bg-gray-300/70 text-gray-900 font-semibold text-xs sm:text-sm rounded-lg transition-all border border-gray-300/50 backdrop-blur-md"
-                        >
-                            Close
-                        </button>
-                        <button 
-                            @click="confirmReject(selectedApp.id)"
-                            class="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-red-100/60 hover:bg-red-200/70 text-red-700 font-semibold text-xs sm:text-sm rounded-lg transition-all border border-red-300/50 backdrop-blur-md"
-                        >
-                            <span>Reject</span>
-                        </button>
-                        <button 
-                            @click="confirmApprove(selectedApp.id)"
-                            class="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-green-100/60 hover:bg-green-200/70 text-green-700 font-semibold text-xs sm:text-sm rounded-lg transition-all border border-green-300/50 backdrop-blur-md"
-                        >
-                            <span>Approve</span>
-                        </button>
-                    </div>
-                </template>
+                <div class="border-t border-purple-200/40 bg-gradient-to-r from-purple-50/40 to-purple-100/30 backdrop-blur-lg 
+                            px-3 sm:px-4 py-2 sm:py-2.5 flex gap-2 flex-shrink-0 
+                            rounded-b-2xl">
+                    
+                    <template x-if="selectedApp.status === 'pending'">
+                        <div class="flex gap-2 w-full">
+                            <button 
+                                @click="confirmReject(selectedApp.id)"
+                                class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 
+                                    bg-red-500/80 hover:bg-red-600/90 
+                                    text-white font-semibold text-xs sm:text-sm 
+                                    transition-all duration-200 
+                                    border border-red-400/40 
+                                    backdrop-blur-md 
+                                    rounded-xl 
+                                    shadow-sm hover:shadow-md hover:-translate-y-[1px] active:translate-y-0"
+                            >
+                                Reject
+                            </button>
+                            <button 
+                                @click="confirmApprove(selectedApp.id)"
+                                class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 
+                                    bg-green-500/80 hover:bg-green-600/90 
+                                    text-white font-semibold text-xs sm:text-sm 
+                                    transition-all duration-200 
+                                    border border-green-400/40 
+                                    backdrop-blur-md 
+                                    rounded-xl 
+                                    shadow-sm hover:shadow-md hover:-translate-y-[1px] active:translate-y-0"
+                            >
+                                Approve
+                            </button>
+                        </div>
+                    </template>
+                    
+                    <template x-if="selectedApp.status !== 'pending'">
+                        <div class="w-full flex items-center justify-center">
+                            <span 
+                            class="text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full 
+                                    backdrop-blur-md border shadow-sm"
+                            :class="{
+                                'text-green-700 bg-green-100/60 border-green-300/50': selectedApp.status === 'approved',
+                                'text-red-700 bg-red-100/60 border-red-300/50': selectedApp.status === 'rejected'
+                            }"
+                            >
+                                <span x-show="selectedApp.status === 'approved'">✓ Approved</span>
+                                <span x-show="selectedApp.status === 'rejected'">✗ Rejected</span>
+                            </span>
+                        </div>
+                    </template>
+                </div>
+
             </div>
         </div>
     </template>
 
-    <!-- Confirmation Modal (Tailwind Styled) -->
+    <!-- Confirmation Modal (Glassmorphism + Soft UI) -->
     <template x-if="showConfirmModal">
-        <div class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm" @click.self="cancelConfirm()">
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-purple-100" @click.stop>
+        <div class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md" @click.self="cancelConfirm()">
+            <div class="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full border border-purple-200/40 overflow-hidden" @click.stop>
+                
                 <!-- Modal Header -->
-                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between gap-4">
+                <div class="bg-gradient-to-r from-purple-600/90 to-purple-700/90 px-4 sm:px-6 py-4 sm:py-6 
+                            flex items-center justify-between gap-4 rounded-t-2xl sm:rounded-t-3xl">
                     <h3 class="text-base sm:text-xl font-bold text-white" x-text="confirmTitle"></h3>
-                    <button @click="cancelConfirm()" class="text-white hover:bg-white/20 p-1.5 sm:p-2 rounded-lg transition flex-shrink-0">
+                    <button @click="cancelConfirm()" 
+                            class="text-white/90 hover:text-white hover:bg-white/20 
+                                p-1.5 sm:p-2 rounded-full transition-all duration-200 
+                                ring-1 ring-white/20">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -553,14 +647,21 @@
                 <div class="px-4 sm:px-6 py-4 sm:py-6">
                     <p class="text-gray-700 text-sm sm:text-base text-center mb-4 sm:mb-5" x-text="confirmMessage"></p>
                     
-                    <!-- Rejection Reason Input (only for reject action) -->
+                    <!-- Rejection Reason Input -->
                     <template x-if="confirmAction === 'reject'">
-                        <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Reason for Rejection</label>
+                        <div class="bg-white/60 backdrop-blur-md border border-purple-200/40 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
+                                Reason for Rejection
+                            </label>
                             <textarea 
                                 x-model="rejectionReason"
                                 placeholder="Provide a detailed reason for rejection..."
-                                class="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none text-xs sm:text-sm"
+                                class="w-full px-3 sm:px-4 py-2 sm:py-3 
+                                    bg-white/70 backdrop-blur 
+                                    border border-purple-200/60 
+                                    rounded-lg sm:rounded-xl 
+                                    focus:ring-2 focus:ring-purple-500 focus:border-purple-500 
+                                    transition-all resize-none text-xs sm:text-sm"
                                 rows="4"
                             ></textarea>
                         </div>
@@ -568,22 +669,35 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="border-t border-purple-100 px-4 sm:px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
+                <div class="border-t border-purple-200/40 bg-gradient-to-r from-purple-50/40 to-purple-100/30 
+                            backdrop-blur-lg px-4 sm:px-6 py-3 sm:py-4 flex gap-2 sm:gap-3 rounded-b-2xl sm:rounded-b-3xl">
+                    
                     <button 
                         @click="cancelConfirm()"
-                        class="flex-1 px-3 sm:px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold text-xs sm:text-sm rounded-lg transition-all"
+                        class="flex-1 px-3 sm:px-4 py-2 
+                            bg-gray-200/70 hover:bg-gray-300/80 
+                            text-gray-900 font-semibold text-xs sm:text-sm 
+                            rounded-xl 
+                            transition-all duration-200 
+                            border border-gray-300/40 
+                            shadow-sm hover:shadow-md"
                     >
                         Cancel
                     </button>
+
                     <button 
                         @click="executeConfirmedAction()"
                         :disabled="confirmAction === 'reject' && !rejectionReason.trim()"
                         :class="{
-                            'bg-green-600 hover:bg-green-700': confirmAction === 'approve',
-                            'bg-red-600 hover:bg-red-700': confirmAction === 'reject',
-                            'disabled:opacity-50 disabled:cursor-not-allowed': !rejectionReason.trim() && confirmAction === 'reject'
+                            'bg-green-500/90 hover:bg-green-600/90 border-green-400/50': confirmAction === 'approve',
+                            'bg-red-500/90 hover:bg-red-600/90 border-red-400/50': confirmAction === 'reject',
+                            'opacity-50 cursor-not-allowed': confirmAction === 'reject' && !rejectionReason.trim()
                         }"
-                        class="flex-1 px-3 sm:px-4 py-2 text-white font-semibold text-xs sm:text-sm rounded-lg transition-all"
+                        class="flex-1 px-3 sm:px-4 py-2 
+                            text-white font-semibold text-xs sm:text-sm 
+                            rounded-xl 
+                            transition-all duration-200 
+                            border shadow-sm hover:shadow-md"
                     >
                         <span x-show="confirmAction === 'approve'">Approve</span>
                         <span x-show="confirmAction === 'reject'">Reject</span>
@@ -592,6 +706,72 @@
             </div>
         </div>
     </template>
+
+
+    <!-- Photos Gallery Modal (Soft Rounded + Glassmorphism) -->
+    <template x-if="showPhotosModal && currentPhotoIndex !== null">
+        <div class="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md" @click.self="showPhotosModal = false">
+            <div class="bg-white/90 backdrop-blur-xl shadow-2xl max-w-2xl w-full border border-purple-100 rounded-2xl sm:rounded-3xl overflow-hidden" @click.stop>
+
+                <!-- Gallery Header -->
+                <div class="bg-gradient-to-r from-purple-600/90 to-purple-700/90 px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between gap-4 rounded-t-2xl sm:rounded-t-3xl">
+                    <h3 class="text-base sm:text-xl font-bold text-white"
+                        x-text="'Photo ' + (currentPhotoIndex + 1) + ' of ' + selectedApp.facility_photos_paths.length"></h3>
+
+                    <button @click="showPhotosModal = false"
+                        class="text-white hover:bg-white/20 p-2 rounded-full transition flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Gallery Content -->
+                <div class="p-4 sm:p-6">
+                    <div class="bg-gray-100/80 backdrop-blur aspect-video flex items-center justify-center overflow-hidden mb-4 rounded-2xl">
+                        <img 
+                            :src="'/static/uploads/' + selectedApp.facility_photos_paths[currentPhotoIndex]"
+                            alt="Facility Photo"
+                            class="w-full h-full object-contain rounded-xl"
+                        >
+                    </div>
+                </div>
+
+                <!-- Gallery Footer with Navigation -->
+                <div class="border-t border-purple-100 px-4 sm:px-6 py-3 sm:py-4 flex gap-2 sm:gap-3 items-center justify-between bg-white/80 backdrop-blur rounded-b-2xl sm:rounded-b-3xl">
+
+                    <button 
+                        @click="currentPhotoIndex = currentPhotoIndex === 0 ? selectedApp.facility_photos_paths.length - 1 : currentPhotoIndex - 1"
+                        class="px-4 py-2 bg-gray-200/80 hover:bg-gray-300/90 text-gray-900 font-semibold text-xs sm:text-sm transition-all rounded-full shadow-sm hover:shadow-md"
+                    >
+                        ← Previous
+                    </button>
+
+                    <div class="flex gap-2">
+                        <template x-for="(photo, idx) in selectedApp.facility_photos_paths" :key="idx">
+                            <button 
+                                @click="currentPhotoIndex = idx"
+                                :class="{
+                                    'bg-purple-600 w-3 h-3': currentPhotoIndex === idx,
+                                    'bg-gray-300 w-2 h-2': currentPhotoIndex !== idx
+                                }"
+                                class="rounded-full transition-all hover:scale-125"
+                            ></button>
+                        </template>
+                    </div>
+
+                    <button 
+                        @click="currentPhotoIndex = currentPhotoIndex === selectedApp.facility_photos_paths.length - 1 ? 0 : currentPhotoIndex + 1"
+                        class="px-4 py-2 bg-gray-200/80 hover:bg-gray-300/90 text-gray-900 font-semibold text-xs sm:text-sm transition-all rounded-full shadow-sm hover:shadow-md"
+                    >
+                        Next →
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </template>
+
 </div>
 
 <script>
@@ -619,6 +799,7 @@ function getCSRFToken() {
 
 function merchantApplications() {
     return {
+        // Initialize all reactive properties with safe defaults
         applications: [],
         filteredApplications: [],
         selectedApp: null,
@@ -631,6 +812,8 @@ function merchantApplications() {
         confirmMessage: '',
         confirmMerchantId: null,
         rejectionReason: '',
+        showPhotosModal: false,
+        currentPhotoIndex: null,
         totalStats: {
             total: 0,
             pending: 0,
@@ -639,17 +822,35 @@ function merchantApplications() {
         },
 
         init() {
-            console.log('Initializing merchant applications component');
-            // Watch for search/filter changes
-            this.$watch('searchTerm', () => {
-                console.log('Search term changed:', this.searchTerm);
-                this.filterApplications();
-            });
-            this.$watch('statusFilter', () => {
-                console.log('Status filter changed:', this.statusFilter);
-                this.filterApplications();
-            });
-            this.loadApplications();
+            try {
+                console.log('🟢 Initializing merchant applications component');
+                console.log('Alpine version:', typeof Alpine);
+                
+                // Initialize data
+                this.applications = [];
+                this.filteredApplications = [];
+                this.totalStats = {
+                    total: 0,
+                    pending: 0,
+                    approved: 0,
+                    rejected: 0
+                };
+                
+                // Watch for search/filter changes
+                this.$watch('searchTerm', () => {
+                    console.log('🔍 Search term changed:', this.searchTerm);
+                    this.filterApplications();
+                });
+                this.$watch('statusFilter', () => {
+                    console.log('🔽 Status filter changed:', this.statusFilter);
+                    this.filterApplications();
+                });
+                
+                console.log('🟡 Starting loadApplications...');
+                this.loadApplications();
+            } catch (error) {
+                console.error('❌ Error in init():', error);
+            }
         },
 
         confirmApprove(merchantId) {
@@ -688,79 +889,111 @@ function merchantApplications() {
 
         async loadApplications() {
             this.isLoading = true;
+            console.log('🟡 LoadApplications starting...');
             try {
-                console.log('Fetching merchants from API...');
+                console.log('📡 Fetching merchants from API: /admin/api/merchants?status=all');
                 const response = await fetch('/admin/api/merchants?status=all');
                 
-                console.log('Response status:', response.status);
+                console.log('✅ API Response status:', response.status);
+                console.log('📋 Response headers:', response.headers.get('content-type'));
                 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ HTTP Error:', response.status, errorText);
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
-                console.log('API Response:', data);
+                console.log('📦 Parsed JSON data:', data);
                 
                 if (data.error) {
-                    console.error('API Error:', data.error);
+                    console.error('❌ API Error:', data.error);
                     alert('Error loading applications: ' + data.error);
+                    this.applications = [];
+                    this.updateStats();
+                    this.isLoading = false;
                     return;
                 }
                 
                 const merchants = data.merchants || [];
-                console.log(`Loaded ${merchants.length} merchants from API`);
+                console.log(`✅ Loaded ${merchants.length} merchants from API`);
                 
                 if (merchants.length === 0) {
-                    console.warn('No merchants returned from API');
+                    console.warn('⚠️ No merchants returned from API - database might be empty');
+                    this.applications = [];
+                    this.updateStats();
+                    this.filterApplications();
+                    this.isLoading = false;
+                    return;
                 }
                 
+                console.log('🔄 Processing merchants...');
+                
                 // Normalize field names to match template expectations
-                this.applications = merchants.map(m => {
-                    console.log('Processing merchant:', m.id, m.business_name, m.application_status);
+                this.applications = merchants.map((m, idx) => {
+                    console.log(`Processing merchant ${idx + 1}/${merchants.length}:`, {
+                        id: m.id,
+                        name: m.business_name,
+                        status: m.application_status,
+                        submitted: m.submitted_at
+                    });
+                    
                     return {
                         id: m.id,
-                        year: m.created_at ? m.created_at.split('T')[0].split('-')[0] : '',
-                        business_name: m.business_name,
-                        business_type: m.business_type,
-                        owner_name: m.owner_manager_name,
-                        contact_email: m.contact_email,
-                        user_email: m.user_email,
-                        user_name: m.user_name,
-                        phone: m.contact_phone,
-                        city: m.city,
-                        province: m.province,
-                        barangay: m.barangay,
-                        postal_code: m.postal_code,
-                        full_address: m.full_address,
-                        services: m.services_offered,
-                        pets_accepted: m.pets_accepted,
-                        max_pets_per_day: m.max_pets_per_day,
-                        min_price_per_day: m.min_price_per_day,
-                        max_price_per_day: m.max_price_per_day,
-                        cancellation_policy: m.cancellation_policy,
-                        government_id_path: m.government_id_path,
-                        business_permit_path: m.business_permit_path,
-                        facility_photos_paths: m.facility_photos_paths,
-                        submitted_at: m.submitted_at,
-                        rejection_reason: m.rejection_reason,
-                        years_in_operation: m.years_in_operation,
-                        status: m.application_status,
-                        business_description: m.business_description,
-                        opening_time: m.opening_time,
-                        closing_time: m.closing_time,
-                        operating_days: m.operating_days,
-                        google_maps_link: m.google_maps_link,
-                        logo_url: m.logo_path ? '/static/' + m.logo_path : ''
+                        year: m.created_at ? m.created_at.split('T')[0].split('-')[0] : 'N/A',
+                        business_name: m.business_name || 'N/A',
+                        business_category: m.business_category || 'N/A',
+                        business_type: m.business_category || 'N/A',
+                        owner_name: m.owner_manager_name || 'N/A',
+                        contact_email: m.contact_email || 'N/A',
+                        user_email: m.user_email || 'N/A',
+                        user_name: m.user_name || 'N/A',
+                        phone: m.contact_phone || 'N/A',
+                        city: m.city || 'N/A',
+                        province: m.province || 'N/A',
+                        barangay: m.barangay || 'N/A',
+                        postal_code: m.postal_code || 'N/A',
+                        full_address: m.full_address || 'N/A',
+                        services: Array.isArray(m.services_offered) ? m.services_offered : (m.services_offered ? [m.services_offered] : []),
+                        pets_accepted: Array.isArray(m.pets_accepted) ? m.pets_accepted : (m.pets_accepted ? [m.pets_accepted] : []),
+                        service_pricing: m.service_pricing || {},
+                        cancellation_policy: m.cancellation_policy || '',
+                        government_id_path: m.government_id_path || '',
+                        business_permit_path: m.business_permit_path || '',
+                        facility_photos_paths: Array.isArray(m.facility_photos_paths) ? m.facility_photos_paths : (m.facility_photos_paths ? [m.facility_photos_paths] : []),
+                        submitted_at: m.submitted_at ? new Date(m.submitted_at).toISOString() : new Date().toISOString(),
+                        rejection_reason: m.rejection_reason || '',
+                        years_in_operation: m.years_in_operation || 0,
+                        status: m.application_status || 'pending',
+                        business_description: m.business_description || '',
+                        opening_time: m.opening_time || 'N/A',
+                        closing_time: m.closing_time || 'N/A',
+                        operating_days: Array.isArray(m.operating_days) ? m.operating_days : (m.operating_days ? [m.operating_days] : []),
+                        google_maps_link: m.google_maps_link || '',
+                        logo_url: m.logo_path ? '/static/uploads/' + m.logo_path : '',
+                        logo_path: m.logo_path || '',
+                        latitude: m.latitude || null,
+                        longitude: m.longitude || null,
+                        is_verified: m.is_verified || false,
+                        reviewed_at: m.reviewed_at || null,
+                        created_at: m.created_at || new Date().toISOString(),
+                        updated_at: m.updated_at || new Date().toISOString()
                     };
                 });
                 
-                console.log('Processed applications:', this.applications);
+                console.log(`✅ Successfully processed ${this.applications.length} applications`);
+                console.log('📊 Processed applications:', this.applications);
+                
                 this.updateStats();
                 this.filterApplications();
             } catch (error) {
-                console.error('Error loading applications:', error);
-                alert('Failed to load applications. Please try again. Error: ' + error.message);
+                console.error('❌ Error loading applications:', error);
+                console.error('Stack trace:', error.stack);
+                alert('Failed to load applications. Please check the console for errors. Error: ' + error.message);
+                this.applications = [];
+                this.updateStats();
             } finally {
+                console.log('✅ LoadApplications complete');
                 this.isLoading = false;
             }
         },
@@ -786,16 +1019,22 @@ function merchantApplications() {
                 const matchesStatus = this.statusFilter === 'all' || app.status === this.statusFilter;
                 const searchLower = this.searchTerm.toLowerCase();
                 const matchesSearch = !this.searchTerm || 
-                    app.business_name.toLowerCase().includes(searchLower) ||
+                    (app.business_name && app.business_name.toLowerCase().includes(searchLower)) ||
                     (app.owner_name && app.owner_name.toLowerCase().includes(searchLower)) ||
+                    (app.user_name && app.user_name.toLowerCase().includes(searchLower)) ||
+                    (app.contact_email && app.contact_email.toLowerCase().includes(searchLower)) ||
+                    (app.user_email && app.user_email.toLowerCase().includes(searchLower)) ||
+                    (app.phone && app.phone.toLowerCase().includes(searchLower)) ||
                     (app.city && app.city.toLowerCase().includes(searchLower)) ||
                     (app.province && app.province.toLowerCase().includes(searchLower)) ||
+                    (app.barangay && app.barangay.toLowerCase().includes(searchLower)) ||
                     app.id.toString().includes(searchLower);
                 
                 return matchesStatus && matchesSearch;
             });
             
             console.log('Filtered results:', this.filteredApplications.length, 'items');
+            console.log('Filtered applications:', this.filteredApplications);
         },
 
         getFilteredApplications() {
@@ -807,6 +1046,65 @@ function merchantApplications() {
         viewApplication(app) {
             this.selectedApp = app;
             this.rejectionReason = '';
+        },
+
+        formatTime12Hr(time24hr) {
+            if (!time24hr || time24hr === 'N/A') return 'N/A';
+            try {
+                const [hours, minutes] = time24hr.split(':');
+                const hour = parseInt(hours);
+                const minute = minutes || '00';
+                const period = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                return `${hour12}:${minute} ${period}`;
+            } catch (e) {
+                return time24hr;
+            }
+        },
+
+        formatPriceDisplay(priceData) {
+            // Handle number
+            if (typeof priceData === 'number') {
+                return '₱ ' + priceData.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            }
+            
+            // Handle string
+            if (typeof priceData === 'string') {
+                return '₱ ' + priceData;
+            }
+            
+            // Handle object
+            if (typeof priceData === 'object' && priceData !== null) {
+                // Check for min_price and max_price
+                if (priceData.min_price && priceData.max_price) {
+                    const minPrice = parseFloat(priceData.min_price).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    const maxPrice = parseFloat(priceData.max_price).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    return `₱ ${minPrice} - ₱ ${maxPrice}`;
+                }
+                
+                // Check for single price property
+                if (priceData.price) {
+                    return '₱ ' + parseFloat(priceData.price).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                }
+                
+                // Check for amount property
+                if (priceData.amount) {
+                    return '₱ ' + parseFloat(priceData.amount).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                }
+                
+                // Fallback: show as "Price range" if has multiple numeric fields
+                const numericValues = Object.values(priceData).filter(v => typeof v === 'number' || !isNaN(parseFloat(v)));
+                if (numericValues.length > 0) {
+                    return '₱ ' + numericValues.map(v => parseFloat(v).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 })).join(' / ₱ ');
+                }
+            }
+            
+            return '₱ -';
+        },
+
+        openPhotosGallery() {
+            this.showPhotosModal = true;
+            this.currentPhotoIndex = 0;
         },
 
         async approveApplication(merchantId) {

@@ -11,12 +11,14 @@ class Merchant(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True)
     user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('merchant', uselist=False, cascade='all, delete-orphan'), primaryjoin='Merchant.user_id==User.id')
     
-    reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Admin who reviewed
+    reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     reviewer = db.relationship('User', foreign_keys=[reviewed_by], primaryjoin='Merchant.reviewed_by==User.id')
 
     # ========== SECTION 1: BUSINESS INFORMATION ==========
     business_name = db.Column(db.String(255), nullable=False)
-    business_type = db.Column(db.String(50), nullable=False)  # Hotel, Boarding, Grooming, Vet, Trainer, Transport
+
+    business_category = db.Column(db.String(50), nullable=False)
+
     business_description = db.Column(LONGTEXT, nullable=True)
     years_in_operation = db.Column(db.Integer, nullable=True)
 
@@ -33,53 +35,43 @@ class Merchant(db.Model):
     postal_code = db.Column(db.String(10), nullable=True)
     google_maps_link = db.Column(db.String(500), nullable=True)
     
-    # Coordinates for mapping and "nearest services" feature
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
 
-    # ========== SECTION 4: SERVICES OFFERED (JSON array) ==========
-    # Services: ['Pet Hotel', 'Pet Boarding', 'Pet Grooming', 'Pet Training', 'Pet Transport', 'Veterinary Clinic']
+    # ========== SECTION 4: SERVICES OFFERED (Checkboxes) ==========
     services_offered = db.Column(JSON, nullable=False, default=[])
 
-    # ========== SECTION 5: PETS ACCEPTED (JSON array) ==========
-    # Pets: ['Dogs', 'Cats', 'Birds', 'Rabbits', 'Reptiles', 'Exotic Pets']
+    # ========== SECTION 5: PETS ACCEPTED (Checkboxes) ==========
     pets_accepted = db.Column(JSON, nullable=False, default=[])
 
-    # ========== SECTION 6: CAPACITY & PRICING ==========
-    max_pets_per_day = db.Column(db.Integer, nullable=False)
-    min_price_per_day = db.Column(db.Float, nullable=False)
-    max_price_per_day = db.Column(db.Float, nullable=False)
+    service_pricing = db.Column(JSON, nullable=True)
 
     # ========== SECTION 7: OPERATING SCHEDULE ==========
-    opening_time = db.Column(db.String(5), nullable=False)  # HH:MM format
-    closing_time = db.Column(db.String(5), nullable=False)  # HH:MM format
-    operating_days = db.Column(JSON, nullable=False, default=[])  # Array of days: ['Mon', 'Tue', ...]
+    opening_time = db.Column(db.String(5), nullable=True)  # HH:MM
+    closing_time = db.Column(db.String(5), nullable=True)
+    operating_days = db.Column(JSON, nullable=True, default=[])
 
     # ========== SECTION 8: POLICIES ==========
     cancellation_policy = db.Column(LONGTEXT, nullable=True)
 
     # ========== SECTION 9: VERIFICATION UPLOADS ==========
-    # File paths stored in storage/uploads/merchants/{merchant_id}/
-    logo_path = db.Column(db.String(255), nullable=True)  # Store logo file path
+    logo_path = db.Column(db.String(255), nullable=True)
     government_id_path = db.Column(db.String(255), nullable=True)
     business_permit_path = db.Column(db.String(255), nullable=True)
-    facility_photos_paths = db.Column(JSON, nullable=True, default=[])  # Array of file paths
+    facility_photos_paths = db.Column(JSON, nullable=True, default=[])
 
     # ========== SECTION 10: SYSTEM FIELDS ==========
     application_status = db.Column(db.String(50), default='pending')  # pending, approved, rejected, under_review
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    submitted_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     reviewed_at = db.Column(db.DateTime, nullable=True)
     rejection_reason = db.Column(LONGTEXT, nullable=True)
 
-    # Metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
-    # For scalability: store searchable geospatial data
-    # These will be indexed for quick "nearest services" queries
     is_verified = db.Column(db.Boolean, default=False)
-    search_keywords = db.Column(db.String(500), nullable=True)  # Denormalized for search performance
+    search_keywords = db.Column(db.String(500), nullable=True)
 
     def __repr__(self):
         return f'<Merchant {self.business_name}>'
@@ -148,6 +140,57 @@ class Merchant(db.Model):
         """Returns facility photos as list"""
         return self.facility_photos_paths if isinstance(self.facility_photos_paths, list) else []
 
+    def get_service_pricing(self):
+        """Returns service pricing configuration"""
+        return self.service_pricing if isinstance(self.service_pricing, dict) else {}
+
+    def get_price_for_service(self, service_name, size=None, duration=None):
+        """
+        Get price range for a specific service with optional size/duration
+        Returns dict with 'min' and 'max' keys or None
+        """
+        pricing = self.get_service_pricing()
+        if service_name not in pricing:
+            return None
+        
+        config = pricing[service_name]
+        
+        if config.get('type') == 'flat':
+            return {
+                'min': config.get('min_price'),
+                'max': config.get('max_price'),
+                'unit': config.get('unit', 'services')
+            }
+        elif config.get('type') == 'size' and size:
+            size_data = config.get('by_size', {}).get(size, {})
+            if size_data:
+                return {
+                    'min': size_data.get('min_price'),
+                    'max': size_data.get('max_price'),
+                    'unit': config.get('unit', 'services'),
+                    'size': size
+                }
+        elif config.get('type') == 'duration' and duration:
+            duration_data = config.get('by_duration', {}).get(duration, {})
+            if duration_data:
+                return {
+                    'min': duration_data.get('min_price'),
+                    'max': duration_data.get('max_price'),
+                    'unit': duration,
+                }
+        elif config.get('type') == 'duration+size' and duration and size:
+            duration_data = config.get('by_duration_and_size', {}).get(duration, {})
+            if duration_data:
+                size_data = duration_data.get('by_size', {}).get(size, {})
+                if size_data:
+                    return {
+                        'min': size_data.get('min_price'),
+                        'max': size_data.get('max_price'),
+                        'duration': duration,
+                        'size': size,
+                    }
+        return None
+
     def get_logo_url(self):
         """Returns logo URL or placeholder"""
         from flask import url_for
@@ -162,18 +205,31 @@ class Merchant(db.Model):
         return {
             'id': self.id,
             'business_name': self.business_name,
-            'business_type': self.business_type,
+            'business_category': self.business_category,  
+
             'latitude': self.latitude,
             'longitude': self.longitude,
+
             'full_address': self.full_address,
             'city': self.city,
             'province': self.province,
+            'barangay': self.barangay,
+
             'services_offered': self.get_services_list(),
             'pets_accepted': self.get_pets_list(),
+
             'contact_phone': self.contact_phone,
             'contact_email': self.contact_email,
-            'min_price_per_day': self.min_price_per_day,
-            'max_price_per_day': self.max_price_per_day,
+
+            'min_price': self.min_price,
+            'max_price': self.max_price,
+
+            'opening_time': self.opening_time,
+            'closing_time': self.closing_time,
+            'operating_days': self.get_operating_days(),
+
             'application_status': self.application_status,
-            'is_approved': self.is_approved
+            'is_verified': self.is_verified,
+            'is_approved': self.is_approved,
         }
+

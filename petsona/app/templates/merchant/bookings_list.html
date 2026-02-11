@@ -1,0 +1,469 @@
+{% extends "merchant/base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='merchant/css/bookings_list.css') }}">
+
+<section class="bookings-section">
+  <div class="bookings-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Bookings</h1>
+        <p class="page-subtitle">Manage customer bookings and reservations</p>
+      </div>
+      
+      <div class="header-right">
+        <form method="GET" class="filter-form">
+          <select name="status" class="status-select" onchange="this.form.submit()">
+            <option value="">All Status</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+            <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            <option value="no-show" {% if selected_status == 'no-show' %}selected{% endif %}>No Show</option>
+          </select>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bookings Card -->
+    <div class="bookings-card">
+      
+      <div class="table-container">
+        <table class="bookings-table">
+          <thead>
+            <tr>
+              <th class="th-booking">Booking ID</th>
+              <th class="th-customer">Customer</th>
+              <th class="th-dates">Check-in / Check-out</th>
+              <th class="th-status">Status</th>
+              <th class="th-amount">Amount</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if bookings.items|length > 0 %}
+              {% for booking in bookings.items %}
+              <tr>
+                <td class="td-booking" data-label="Booking ID">
+                  <div class="booking-info">
+                    <span class="booking-id">{{ booking.booking_number }}</span>
+                  </div>
+                </td>
+                
+                <td class="td-customer" data-label="Customer">
+                  <div class="user-info">
+                    <div class="user-avatar">
+                      {% if booking.user.photo_url %}
+                        <img src="{% if booking.user.photo_url.startswith('http') %}{{ booking.user.photo_url }}{% else %}/static/{{ booking.user.photo_url }}{% endif %}" 
+                             alt="{{ booking.customer_name }}"
+                             onerror="this.parentElement.textContent = '{{ (booking.customer_name[0] if booking.customer_name else booking.customer_email[0]) | upper }}'">
+                      {% else %}
+                        {{ (booking.customer_name[0] if booking.customer_name else booking.customer_email[0]) | upper }}
+                      {% endif %}
+                    </div>
+                    <div class="customer-details">
+                      <span class="customer-name">{{ booking.customer_name }}</span>
+                      <span class="customer-email">{{ booking.customer_email }}</span>
+                    </div>
+                  </div>
+                </td>
+                
+                <td class="td-dates" data-label="Check-in / Check-out">
+                  <div class="dates-info">
+                    <span class="date-label">In:</span>
+                    <span class="date-value">{{ booking.check_in_date.strftime('%b %d, %Y') if booking.check_in_date else 'N/A' }}</span>
+                    <br>
+                    <span class="date-label">Out:</span>
+                    <span class="date-value">{{ booking.check_out_date.strftime('%b %d, %Y') if booking.check_out_date else 'N/A' }}</span>
+                  </div>
+                </td>
+                
+                <td class="td-status" data-label="Status">
+                  {% set status_color = {
+                    'pending': 'pending',
+                    'confirmed': 'confirmed',
+                    'completed': 'completed',
+                    'cancelled': 'cancelled',
+                    'no-show': 'noshow'
+                  } %}
+                  <span class="status-badge {{ status_color.get(booking.status, 'pending') }}">
+                    <i class="fas fa-{% if booking.status == 'pending' %}hourglass-half{% elif booking.status == 'confirmed' %}check-circle{% elif booking.status == 'completed' %}check-double{% elif booking.status == 'cancelled' %}times-circle{% else %}exclamation-circle{% endif %}"></i>
+                    <span>{{ booking.status | capitalize }}</span>
+                  </span>
+                </td>
+                
+                <td class="td-amount" data-label="Amount">
+                  <span class="amount">₱{{ "%.2f"|format(booking.total_amount) }}</span>
+                </td>
+                
+                <td class="td-actions" data-label="Actions">
+                  <div class="action-group">
+                    <button type="button"
+                            class="action-btn view"
+                            title="View Details"
+                            data-toggle="modal"
+                            data-target="#viewBookingModal"
+                            data-booking-id="{{ booking.id }}"
+                            data-booking-number="{{ booking.booking_number }}"
+                            data-customer-name="{{ booking.customer_name }}"
+                            data-customer-email="{{ booking.customer_email }}"
+                            data-customer-phone="{{ booking.customer_phone }}"
+                            data-check-in="{{ booking.check_in_date.strftime('%B %d, %Y at %H:%M') if booking.check_in_date else 'N/A' }}"
+                            data-check-out="{{ booking.check_out_date.strftime('%B %d, %Y at %H:%M') if booking.check_out_date else 'N/A' }}"
+                            data-status="{{ booking.status }}"
+                            data-total-amount="{{ "%.2f"|format(booking.total_amount) }}"
+                            data-pets="{{ booking.total_pets }}"
+                            data-services="{{ booking.services_booked | tojson }}">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    
+                    {% if booking.status == 'pending' %}
+                    <button type="button"
+                            class="action-btn confirm"
+                            title="Confirm Booking"
+                            data-toggle="modal"
+                            data-target="#confirmBookingModal"
+                            data-booking-id="{{ booking.id }}"
+                            data-booking-number="{{ booking.booking_number }}">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    {% endif %}
+                    
+                    {% if booking.status in ['pending', 'confirmed'] %}
+                    <button type="button"
+                            class="action-btn cancel"
+                            title="Cancel Booking"
+                            data-toggle="modal"
+                            data-target="#cancelBookingModal"
+                            data-booking-id="{{ booking.id }}"
+                            data-booking-number="{{ booking.booking_number }}"
+                            data-customer-name="{{ booking.customer_name }}">
+                      <i class="fas fa-ban"></i>
+                    </button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="6" class="empty-state">
+                <div class="empty-content">
+                  <i class="fas fa-calendar-times"></i>
+                  <p>No bookings found</p>
+                </div>
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          <span>Page <strong>{{ bookings.page }}</strong> of <strong>{{ bookings.pages }}</strong></span>
+        </div>
+        
+        <div class="pagination-controls">
+          {% if bookings.has_prev %}
+            <a href="{{ url_for('merchant.bookings_list', page=bookings.prev_num, status=selected_status) }}" 
+               class="pagination-btn">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          {% endif %}
+
+          {% if bookings.has_next %}
+            <a href="{{ url_for('merchant.bookings_list', page=bookings.next_num, status=selected_status) }}" 
+               class="pagination-btn">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- View Booking Modal -->
+<div class="modal fade" id="viewBookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content view-modal">
+      
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-check"></i>
+          Booking Details
+        </h5>
+        <button type="button" class="modal-close" data-dismiss="modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="booking-preview">
+          <div class="preview-section">
+            <h6 class="section-title">Booking Information</h6>
+            <div class="preview-item">
+              <span class="preview-label">Booking Number</span>
+              <span id="viewBookingNumber" class="preview-value"></span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-label">Status</span>
+              <span id="viewBookingStatus" class="preview-value"></span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-label">Total Amount</span>
+              <span id="viewBookingAmount" class="preview-value"></span>
+            </div>
+          </div>
+
+          <div class="preview-section">
+            <h6 class="section-title">Customer Information</h6>
+            <div class="preview-item">
+              <span class="preview-label">Name</span>
+              <span id="viewCustomerName" class="preview-value"></span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-label">Email</span>
+              <span id="viewCustomerEmail" class="preview-value"></span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-label">Phone</span>
+              <span id="viewCustomerPhone" class="preview-value"></span>
+            </div>
+          </div>
+
+          <div class="preview-section">
+            <h6 class="section-title">Reservation Details</h6>
+            <div class="preview-item">
+              <span class="preview-label">Check-in</span>
+              <span id="viewCheckIn" class="preview-value"></span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-label">Check-out</span>
+              <span id="viewCheckOut" class="preview-value"></span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-label">Number of Pets</span>
+              <span id="viewPetsCount" class="preview-value"></span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-label">Services</span>
+              <span id="viewServices" class="preview-value"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Booking Modal -->
+<div class="modal fade" id="confirmBookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content action-modal">
+      
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-check-circle"></i>
+          Confirm Booking
+        </h5>
+        <button type="button" class="modal-close" data-dismiss="modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description">
+          Confirm this booking request from customer?
+        </p>
+
+        <div class="booking-preview">
+          <div class="preview-item">
+            <span class="preview-label">Booking</span>
+            <span id="confirmBookingNumber" class="preview-value"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <form id="confirmBookingForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="button" class="btn btn-cancel" data-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-confirm" id="confirmSubmitBtn">
+            <span id="confirmButtonContent">
+              <i class="fas fa-check"></i>
+              Confirm Booking
+            </span>
+            <span id="confirmSpinner" class="spinner" style="display: none;"></span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Booking Modal -->
+<div class="modal fade" id="cancelBookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content action-modal">
+      
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-exclamation-triangle"></i>
+          Cancel Booking
+        </h5>
+        <button type="button" class="modal-close" data-dismiss="modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description">
+          You are about to cancel this booking:
+        </p>
+
+        <div class="booking-preview">
+          <div class="preview-item">
+            <span class="preview-label">Booking</span>
+            <span id="cancelBookingNumber" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Customer</span>
+            <span id="cancelCustomerName" class="preview-value"></span>
+          </div>
+        </div>
+
+        <div class="alert-warning">
+          <i class="fas fa-info-circle"></i>
+          <span>The customer will be notified of this cancellation</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <form id="cancelBookingForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="button" class="btn btn-cancel" data-dismiss="modal">
+            Keep Booking
+          </button>
+          <button type="submit" class="btn btn-danger" id="cancelSubmitBtn">
+            <span id="cancelButtonContent">
+              <i class="fas fa-ban"></i>
+              Cancel Booking
+            </span>
+            <span id="cancelSpinner" class="spinner" style="display: none;"></span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // View Booking Modal Handler
+  $('#viewBookingModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    const bookingNumber = button.data('booking-number');
+    const customerName = button.data('customer-name');
+    const customerEmail = button.data('customer-email');
+    const customerPhone = button.data('customer-phone');
+    const checkIn = button.data('check-in');
+    const checkOut = button.data('check-out');
+    const status = button.data('status');
+    const totalAmount = button.data('total-amount');
+    const petsCount = button.data('pets');
+    const services = button.data('services');
+
+    $('#viewBookingNumber').text(bookingNumber);
+    $('#viewBookingStatus').text(status.charAt(0).toUpperCase() + status.slice(1));
+    $('#viewBookingAmount').text('₱' + parseFloat(totalAmount).toFixed(2));
+    $('#viewCustomerName').text(customerName);
+    $('#viewCustomerEmail').text(customerEmail);
+    $('#viewCustomerPhone').text(customerPhone);
+    $('#viewCheckIn').text(checkIn);
+    $('#viewCheckOut').text(checkOut);
+    $('#viewPetsCount').text(petsCount + ' pet(s)');
+    
+    // Format services list
+    try {
+      const servicesList = typeof services === 'string' ? JSON.parse(services) : services;
+      const servicesText = Array.isArray(servicesList) ? servicesList.join(', ') : 'N/A';
+      $('#viewServices').text(servicesText);
+    } catch (e) {
+      $('#viewServices').text('N/A');
+    }
+  });
+
+  // Confirm Booking Modal Handler
+  $('#confirmBookingModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    const bookingId = button.data('booking-id');
+    const bookingNumber = button.data('booking-number');
+
+    $('#confirmBookingNumber').text(bookingNumber);
+    $('#confirmBookingForm').attr('action', '/merchant/bookings/' + bookingId + '/confirm');
+
+    // Reset button state
+    $('#confirmSubmitBtn').prop('disabled', false);
+    $('#confirmButtonContent').show();
+    $('#confirmSpinner').hide();
+  });
+
+  // Cancel Booking Modal Handler
+  $('#cancelBookingModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    const bookingId = button.data('booking-id');
+    const bookingNumber = button.data('booking-number');
+    const customerName = button.data('customer-name');
+
+    $('#cancelBookingNumber').text(bookingNumber);
+    $('#cancelCustomerName').text(customerName);
+    $('#cancelBookingForm').attr('action', '/merchant/bookings/' + bookingId + '/cancel');
+
+    // Reset button state
+    $('#cancelSubmitBtn').prop('disabled', false);
+    $('#cancelButtonContent').show();
+    $('#cancelSpinner').hide();
+  });
+
+  $('#confirmBookingForm').on('submit', function (e) {
+    const submitBtn = $('#confirmSubmitBtn');
+    submitBtn.prop('disabled', true);
+    $('#confirmButtonContent').hide();
+    $('#confirmSpinner').show();
+  });
+
+  $('#cancelBookingForm').on('submit', function (e) {
+    const submitBtn = $('#cancelSubmitBtn');
+    submitBtn.prop('disabled', true);
+    $('#cancelButtonContent').hide();
+    $('#cancelSpinner').show();
+  });
+</script>
+{% endblock %}

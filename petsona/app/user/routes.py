@@ -175,20 +175,21 @@ def get_nearby_merchants():
         service_filter = data.get('service', '').lower()
         sort_by = data.get('sort_by', 'distance')
         
-        # Get all approved and verified merchants  
-        merchants = Merchant.query.filter_by(
-            application_status='approved',
-            is_verified=True
+        print(f"[DEBUG] Nearby merchants request: lat={user_lat}, lon={user_lon}, dist={max_distance}, search={search_query}, service={service_filter}")
+        
+        # Get all approved merchants with coordinates
+        merchants = Merchant.query.filter(
+            Merchant.application_status == 'approved',
+            Merchant.latitude.isnot(None),
+            Merchant.longitude.isnot(None)
         ).all()
+        
+        print(f"[DEBUG] Found {len(merchants)} approved merchants with coordinates")
         
         nearby_list = []
         from datetime import datetime
         
         for merchant in merchants:
-            # Skip merchants without coordinates
-            if not merchant.latitude or not merchant.longitude:
-                continue
-            
             # Calculate distance
             distance = haversine_distance(
                 user_lat, user_lon,
@@ -230,19 +231,71 @@ def get_nearby_merchants():
                     except (ValueError, TypeError):
                         is_open = False
             
-            # Get merchant reviews for rating and count
-            reviews = merchant.merchant_reviews if hasattr(merchant, 'merchant_reviews') else []
-            if reviews:
-                avg_rating = sum([r.rating for r in reviews]) / len(reviews)
-                review_count = len(reviews)
-            else:
-                avg_rating = 4.5
-                review_count = 0
+            # Default rating if no reviews
+            avg_rating = 4.5
+            review_count = 0
+            
+            # Extract min and max prices from service_pricing JSON
+            min_price = 999999
+            max_price = 0
+            service_pricing = merchant.get_service_pricing()
+            
+            if service_pricing:
+                for service_name, config in service_pricing.items():
+                    if isinstance(config, dict):
+                        # Handle different pricing types
+                        if config.get('type') == 'flat':
+                            min_p = config.get('min_price', 0)
+                            max_p = config.get('max_price', 0)
+                            if min_p > 0:
+                                min_price = min(min_price, min_p)
+                            if max_p > 0:
+                                max_price = max(max_price, max_p)
+                        
+                        elif config.get('type') == 'size':
+                            by_size = config.get('by_size', {})
+                            for size_data in by_size.values():
+                                if isinstance(size_data, dict):
+                                    min_p = size_data.get('min_price', 0)
+                                    max_p = size_data.get('max_price', 0)
+                                    if min_p > 0:
+                                        min_price = min(min_price, min_p)
+                                    if max_p > 0:
+                                        max_price = max(max_price, max_p)
+                        
+                        elif config.get('type') == 'duration':
+                            by_duration = config.get('by_duration', {})
+                            for duration_data in by_duration.values():
+                                if isinstance(duration_data, dict):
+                                    min_p = duration_data.get('min_price', 0)
+                                    max_p = duration_data.get('max_price', 0)
+                                    if min_p > 0:
+                                        min_price = min(min_price, min_p)
+                                    if max_p > 0:
+                                        max_price = max(max_price, max_p)
+                        
+                        elif config.get('type') == 'duration+size':
+                            by_duration_size = config.get('by_duration_and_size', {})
+                            for duration_data in by_duration_size.values():
+                                if isinstance(duration_data, dict):
+                                    by_size = duration_data.get('by_size', {})
+                                    for size_data in by_size.values():
+                                        if isinstance(size_data, dict):
+                                            min_p = size_data.get('min_price', 0)
+                                            max_p = size_data.get('max_price', 0)
+                                            if min_p > 0:
+                                                min_price = min(min_price, min_p)
+                                            if max_p > 0:
+                                                max_price = max(max_price, max_p)
+            
+            # Reset to 0 if no prices found
+            if min_price == 999999:
+                min_price = 0
             
             merchant_data = {
                 'id': merchant.id,
                 'business_name': merchant.business_name,
-                'business_type': merchant.business_type,
+                'business_category': merchant.business_category,
                 'city': merchant.city,
                 'province': merchant.province,
                 'barangay': merchant.barangay or '',
@@ -250,8 +303,8 @@ def get_nearby_merchants():
                 'contact_phone': merchant.contact_phone,
                 'services_offered': merchant.services_offered or [],
                 'pets_accepted': merchant.pets_accepted or [],
-                'min_price': int(merchant.min_price_per_day) if merchant.min_price_per_day else 0,
-                'max_price': int(merchant.max_price_per_day) if merchant.max_price_per_day else 0,
+                'min_price': int(min_price),
+                'max_price': int(max_price),
                 'opening_time': merchant.opening_time or '09:00',
                 'closing_time': merchant.closing_time or '18:00',
                 'is_open': is_open,
@@ -264,6 +317,8 @@ def get_nearby_merchants():
                 'longitude': float(merchant.longitude)
             }
             nearby_list.append(merchant_data)
+        
+        print(f"[DEBUG] After filtering: {len(nearby_list)} merchants within {max_distance}km")
         
         # Sort results
         if sort_by == 'distance':

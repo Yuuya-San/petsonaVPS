@@ -1,185 +1,86 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <!-- Brand Logo -->
   <a href="{{ url_for('admin.dashboard') }}" class="brand-link">
     <img src="{{ url_for('static', filename='images/logo/petsona-logo.png') }}" alt="PetSona Logo" class="brand-logo">
     <span class="brand-text font-weight-light">PetSona</span>
   </a>
 
+  <!-- Sidebar -->
   <div class="sidebar">
     <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+      <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
 
         <!-- Dashboard -->
         <li class="nav-item">
-          <a href="{{ url_for('admin.dashboard') }}" class="nav-link">
+          <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
             <i class="nav-icon fas fa-home"></i>
             <p>Dashboard</p>
           </a>
         </li>
 
         <!-- Users -->
-        <li class="nav-item has-treeview">
-          <a href="#" class="nav-link">
+        <li class="nav-item">
+          <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
             <i class="nav-icon fas fa-users"></i>
-            <p>
-              Users
-              <i class="right fas fa-angle-left"></i>
-            </p>
+            <p>All Users</p>
           </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="{{ url_for('admin.users') }}" class="nav-link">
-                <i class="far fa-user nav-icon"></i>
-                <p>All Users</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.admin_add_user') }}" class="nav-link">
-                <i class="fas fa-user-plus nav-icon"></i>
-                <p>Add User</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.merchant_applications') }}" class="nav-link">
-                <i class="fas fa-list nav-icon"></i>
-                <p>Pending Applications</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.archive_users') }}" class="nav-link">
-                <i class="fas fa-archive nav-icon"></i>
-                <p>Archive Users</p>
-              </a>
-            </li>
-          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('admin.admin_add_user') }}" class="nav-link {% if request.endpoint == 'admin.admin_add_user' %}active{% endif %}">
+            <i class="nav-icon fas fa-user-plus"></i>
+            <p>Add User</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('admin.merchant_applications') }}" class="nav-link {% if request.endpoint == 'admin.merchant_applications' %}active{% endif %}">
+            <i class="nav-icon fas fa-list"></i>
+            <p>Pending Applications</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('admin.archive_users') }}" class="nav-link {% if request.endpoint == 'admin.archive_users' %}active{% endif %}">
+            <i class="nav-icon fas fa-archive"></i>
+            <p>Archive Users</p>
+          </a>
         </li>
 
         <!-- Pets -->
-        <li class="nav-item has-treeview">
-          <a href="#" class="nav-link">
+        <li class="nav-item">
+          <a href="{{ url_for('pets.species_index') }}" class="nav-link {% if request.endpoint == 'pets.species_index' %}active{% endif %}">
             <i class="nav-icon fas fa-paw"></i>
-            <p>
-              Pets
-              <i class="right fas fa-angle-left"></i>
-            </p>
+            <p>Pet Database</p>
           </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="{{ url_for('pets.species_index') }}" class="nav-link">
-                <i class="fas fa-dog nav-icon"></i>
-                <p>Pet Database</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('matching.history') }}" class="nav-link">
-                <i class="fas fa-history nav-icon"></i>
-                <p>Match History</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('pets.archived_items') }}" class="nav-link">
-                <i class="fas fa-paw nav-icon"></i>
-                <p>Archived Pets</p>
-              </a>
-            </li>
-          </ul>
         </li>
-
-        <!-- Orders -->
         <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-receipt"></i>
-            <p>Orders</p>
+          <a href="{{ url_for('matching.history') }}" class="nav-link {% if request.endpoint == 'matching.history' %}active{% endif %}">
+            <i class="nav-icon fas fa-history"></i>
+            <p>Match History</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('pets.archived_items') }}" class="nav-link {% if request.endpoint == 'pets.archived_items' %}active{% endif %}">
+            <i class="nav-icon fas fa-paw"></i>
+            <p>Archived Pets</p>
           </a>
         </li>
 
-        <!-- Violations -->
+        <!-- System Audits -->
         <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-exclamation-circle"></i>
-            <p>Violations</p>
-          </a>
-        </li>
-
-        <!-- Audit Logs -->
-        <li class="nav-item">
-          <a href="{{ url_for('admin.audit_logs') }}" class="nav-link">
+          <a href="{{ url_for('admin.audit_logs') }}" class="nav-link {% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">
             <i class="nav-icon fas fa-file-alt"></i>
             <p>Audit Logs</p>
           </a>
         </li>
-
-        <!-- Archive Audit -->
         <li class="nav-item">
-          <a href="{{ url_for('admin.archive_audit_logs') }}" class="nav-link">
+          <a href="{{ url_for('admin.archive_audit_logs') }}" class="nav-link {% if request.endpoint == 'admin.archive_audit_logs' %}active{% endif %}">
             <i class="nav-icon fas fa-archive"></i>
             <p>Archive Audit</p>
           </a>
         </li>
 
-        <!-- Settings (Collapsible) -->
-        <li class="nav-item has-treeview">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-cogs"></i>
-            <p>
-              Settings
-              <i class="right fas fa-angle-left"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='general') }}" class="nav-link">
-                <i class="fas fa-sliders-h nav-icon"></i>
-                <p>General Settings</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='appearance') }}" class="nav-link">
-                <i class="fas fa-paint-brush nav-icon"></i>
-                <p>Appearance & Theme</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='security') }}" class="nav-link">
-                <i class="fas fa-shield-alt nav-icon"></i>
-                <p>Security</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='audit') }}" class="nav-link">
-                <i class="fas fa-file-signature nav-icon"></i>
-                <p>Audit & Logging</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='email') }}" class="nav-link">
-                <i class="fas fa-envelope nav-icon"></i>
-                <p>Email & Notifications</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='api') }}" class="nav-link">
-                <i class="fas fa-plug nav-icon"></i>
-                <p>API & Integrations</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='backup') }}" class="nav-link">
-                <i class="fas fa-database nav-icon"></i>
-                <p>Backup & Maintenance</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('admin.system_settings', section='compliance') }}" class="nav-link">
-                <i class="fas fa-gavel nav-icon"></i>
-                <p>Compliance & Legal</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-
         <!-- Support -->
         <li class="nav-item">
-          <a href="#" class="nav-link">
+          <a href="#" class="nav-link {% if request.endpoint == 'support.page' %}active{% endif %}">
             <i class="nav-icon fas fa-headset"></i>
             <p>Support</p>
           </a>
@@ -189,3 +90,18 @@
     </nav>
   </div>
 </aside>
+
+<!-- CSS for tab underline -->
+<style>
+  .nav-link {
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .nav-link.active {
+    border-bottom: 3px solid #8C00FF; /* highlight color */
+    color: #8C00FF;
+  }
+  .nav-link.active i {
+    color: #8C00FF;
+  }
+</style>

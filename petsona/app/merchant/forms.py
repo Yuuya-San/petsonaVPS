@@ -3,12 +3,76 @@ from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, IntegerField, FloatField, SelectField, SelectMultipleField, TimeField, BooleanField, SubmitField, HiddenField
 from wtforms.validators import DataRequired, Email, Length, NumberRange, URL, Optional, Regexp, ValidationError
 from wtforms.widgets import CheckboxInput, ListWidget
+from wtforms.fields import Field
+from werkzeug.datastructures import FileStorage
+
+# ========== ALLOWED VALUES CONSTANTS ==========
+ALLOWED_BUSINESS_CATEGORIES = [
+    'Health & Wellness',
+    'Care & Handling',
+    'Personal Care & Aesthetics',
+    'Retail & Lifestyle',
+    'Support & Specialty',
+]
+
+ALLOWED_SERVICES = [
+    'Pet Boarding',
+    'Pet Daycare',
+    'Pet Sitting',
+    'Pet Grooming',
+    'Pet Training',
+    'Pet Transport',
+    'Veterinary Clinic',
+    'Vaccination Services',
+    'Pet Rehabilitation',
+    'Pet Supplies Store',
+    'Pet Food & Treats',
+    'Pet Bakery',
+    'Pet Café',
+    'Pet Cremation & Memorial',
+    'Pet Photography',
+    'Pet Events',
+]
+
+ALLOWED_PETS = [
+    'Dogs',
+    'Cats',
+    'Small Mammals',
+    'Birds',
+    'Reptiles & Amphibians',
+    'Aquatic Pets',
+    'Exotic',
+]
 
 
 class MultiCheckboxField(SelectMultipleField):
     """Custom field for multi-checkbox selection"""
     widget = ListWidget(prefix_label=False)
     option_widget = CheckboxInput()
+
+
+class MultiFileField(Field):
+    """Custom field for multiple file uploads"""
+    def __init__(self, label=None, validators=None, **kwargs):
+        super().__init__(label, validators, **kwargs)
+        self.data = []
+
+    def _value(self):
+        return ''
+
+    def process_formdata(self, valuelist):
+        """Process form data from file input"""
+        if valuelist:
+            self.data = valuelist
+        else:
+            self.data = []
+
+    def process_data(self, value):
+        """Process object data"""
+        if value:
+            self.data = value if isinstance(value, list) else [value]
+        else:
+            self.data = []
 
 
 class MerchantApplicationForm(FlaskForm):
@@ -27,18 +91,10 @@ class MerchantApplicationForm(FlaskForm):
         }
     )
 
-    business_type = SelectField(
-        'Business Type',
-        choices=[
-            ('', '-- Select Business Type --'),
-            ('hotel', 'Pet Hotel'),
-            ('boarding', 'Pet Boarding Facility'),
-            ('grooming', 'Pet Grooming Salon'),
-            ('vet', 'Veterinary Clinic'),
-            ('trainer', 'Pet Training Center'),
-            ('transport', 'Pet Transport Service'),
-        ],
-        validators=[DataRequired(message='Please select a business type')],
+    business_category = SelectField(
+        'Business Category',
+        choices=[(cat, cat) for cat in ALLOWED_BUSINESS_CATEGORIES],
+        validators=[DataRequired(message='Please select a business category')],
         render_kw={'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800'}
     )
 
@@ -58,7 +114,7 @@ class MerchantApplicationForm(FlaskForm):
     years_in_operation = IntegerField(
         'Years in Operation (Optional)',
         validators=[
-            Optional(),
+            DataRequired(message='Please enter the number of years in operation'),
             NumberRange(min=0, max=100, message='Please enter a valid number of years')
         ],
         render_kw={
@@ -153,7 +209,7 @@ class MerchantApplicationForm(FlaskForm):
     google_maps_link = StringField(
         'Google Maps Link (Optional)',
         validators=[
-            Optional(),
+            DataRequired(message='Google Maps link is required'),
             URL(message='Please provide a valid Google Maps URL')
         ],
         render_kw={
@@ -178,14 +234,7 @@ class MerchantApplicationForm(FlaskForm):
     # ========== SECTION 4: SERVICES OFFERED ==========
     services_offered = MultiCheckboxField(
         'Services Offered',
-        choices=[
-            ('Pet Hotel', 'Pet Hotel (Overnight Stay)'),
-            ('Pet Boarding', 'Pet Boarding (Daycare)'),
-            ('Pet Grooming', 'Pet Grooming'),
-            ('Pet Training', 'Pet Training'),
-            ('Pet Transport', 'Pet Transport'),
-            ('Veterinary Clinic', 'Veterinary Clinic'),
-        ],
+        choices=[(svc, svc) for svc in ALLOWED_SERVICES],
         validators=[DataRequired(message='Please select at least one service')],
         render_kw={'class': 'space-y-2'}
     )
@@ -193,62 +242,14 @@ class MerchantApplicationForm(FlaskForm):
     # ========== SECTION 5: PETS ACCEPTED ==========
     pets_accepted = MultiCheckboxField(
         'Pets Accepted',
-        choices=[
-            ('Dogs', 'Dogs'),
-            ('Cats', 'Cats'),
-            ('Birds', 'Birds'),
-            ('Rabbits', 'Rabbits'),
-            ('Reptiles', 'Reptiles'),
-            ('Exotic Pets', 'Exotic Pets'),
-        ],
+        choices=[(pet, pet) for pet in ALLOWED_PETS],
         validators=[DataRequired(message='Please select at least one pet type')],
         render_kw={'class': 'space-y-2'}
     )
 
-    # ========== SECTION 6: CAPACITY & PRICING ==========
-    max_pets_per_day = IntegerField(
-        'Maximum Pets Per Day',
-        validators=[
-            DataRequired(message='Capacity is required'),
-            NumberRange(min=1, max=10000, message='Capacity must be between 1 and 10,000 pets')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400',
-            'placeholder': 'e.g., 50',
-            'type': 'number',
-            'min': '1'
-        }
-    )
 
-    min_price_per_day = FloatField(
-        'Minimum Price Per Day (₱)',
-        validators=[
-            DataRequired(message='Minimum price is required'),
-            NumberRange(min=0, max=999999, message='Price must be a positive number')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400',
-            'placeholder': 'e.g., 500.00',
-            'type': 'number',
-            'min': '0',
-            'step': '0.01'
-        }
-    )
-
-    max_price_per_day = FloatField(
-        'Maximum Price Per Day (₱)',
-        validators=[
-            DataRequired(message='Maximum price is required'),
-            NumberRange(min=0, max=999999, message='Price must be a positive number')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400',
-            'placeholder': 'e.g., 1500.00',
-            'type': 'number',
-            'min': '0',
-            'step': '0.01'
-        }
-    )
+    # Hidden field for service pricing JSON structure
+    service_pricing_json = HiddenField('Service Pricing', validators=[Optional()])
 
     # ========== SECTION 7: OPERATING SCHEDULE ==========
     opening_time = StringField(
@@ -310,6 +311,15 @@ class MerchantApplicationForm(FlaskForm):
     )
 
     # ========== SECTION 9: VERIFICATION UPLOADS ==========
+    store_logo = FileField(
+        'Store Logo',
+        validators=[
+            DataRequired(message='Store logo is required'),
+            FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'], message='Only JPG, PNG, GIF, and WebP files are allowed')
+        ],
+        render_kw={'class': 'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200'}
+    )
+
     government_id = FileField(
         'Government-Issued ID',
         validators=[
@@ -336,11 +346,17 @@ class MerchantApplicationForm(FlaskForm):
             'accept': 'image/*'
         },
         validators=[
-            DataRequired(message='Please upload at least 3 facility photos')
+            Optional()  # Handle validation in route since this is a multi-file field
         ]
     )
 
     # ========== SUBMIT ==========
+    agree_terms = BooleanField(
+        'I agree to the terms and conditions',
+        validators=[DataRequired(message='You must agree to the terms and conditions')],
+        render_kw={'class': 'w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500'}
+    )
+
     submit = SubmitField(
         'Submit Application',
         render_kw={
@@ -349,10 +365,10 @@ class MerchantApplicationForm(FlaskForm):
     )
 
     # ========== CUSTOM VALIDATORS ==========
-    def validate_max_price_per_day(self, field):
+    def validate_max_price(self, field):
         """Ensure max price is greater than or equal to min price"""
-        if self.min_price_per_day.data and field.data:
-            if field.data < self.min_price_per_day.data:
+        if self.min_price.data and field.data:
+            if field.data < self.min_price.data:
                 raise ValidationError('Maximum price must be greater than or equal to minimum price')
 
     def validate_closing_time(self, field):
@@ -392,18 +408,10 @@ class MerchantStoreUpdateForm(FlaskForm):
         }
     )
 
-    business_type = SelectField(
-        'Business Type',
-        choices=[
-            ('', '-- Select Business Type --'),
-            ('hotel', 'Pet Hotel'),
-            ('boarding', 'Pet Boarding Facility'),
-            ('grooming', 'Pet Grooming Salon'),
-            ('vet', 'Veterinary Clinic'),
-            ('trainer', 'Pet Training Center'),
-            ('transport', 'Pet Transport Service'),
-        ],
-        validators=[DataRequired(message='Please select a business type')],
+    business_category = SelectField(
+        'Business Category',
+        choices=[(cat, cat) for cat in ALLOWED_BUSINESS_CATEGORIES],
+        validators=[DataRequired(message='Please select a business category')],
         render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
     )
 
@@ -421,9 +429,9 @@ class MerchantStoreUpdateForm(FlaskForm):
     )
 
     years_in_operation = IntegerField(
-        'Years in Operation (Optional)',
+        'Years in Operation',
         validators=[
-            Optional(),
+            DataRequired(message='Years in operation is required'),
             NumberRange(min=0, max=100, message='Please enter a valid number of years')
         ],
         render_kw={
@@ -518,7 +526,7 @@ class MerchantStoreUpdateForm(FlaskForm):
     google_maps_link = StringField(
         'Google Maps Link (Optional)',
         validators=[
-            Optional(),
+            DataRequired(message='Google Maps link is required'),
             URL(message='Please provide a valid Google Maps URL')
         ],
         render_kw={
@@ -543,14 +551,7 @@ class MerchantStoreUpdateForm(FlaskForm):
     # ========== SECTION 4: SERVICES OFFERED ==========
     services_offered = MultiCheckboxField(
         'Services Offered',
-        choices=[
-            ('Pet Hotel', 'Pet Hotel (Overnight Stay)'),
-            ('Pet Boarding', 'Pet Boarding (Daycare)'),
-            ('Pet Grooming', 'Pet Grooming'),
-            ('Pet Training', 'Pet Training'),
-            ('Pet Transport', 'Pet Transport'),
-            ('Veterinary Clinic', 'Veterinary Clinic'),
-        ],
+        choices=[(svc, svc) for svc in ALLOWED_SERVICES],
         validators=[DataRequired(message='Please select at least one service')],
         render_kw={'class': 'space-y-2'}
     )
@@ -558,62 +559,15 @@ class MerchantStoreUpdateForm(FlaskForm):
     # ========== SECTION 5: PETS ACCEPTED ==========
     pets_accepted = MultiCheckboxField(
         'Pets Accepted',
-        choices=[
-            ('Dogs', 'Dogs'),
-            ('Cats', 'Cats'),
-            ('Birds', 'Birds'),
-            ('Rabbits', 'Rabbits'),
-            ('Reptiles', 'Reptiles'),
-            ('Exotic Pets', 'Exotic Pets'),
-        ],
+        choices=[(pet, pet) for pet in ALLOWED_PETS],
         validators=[DataRequired(message='Please select at least one pet type')],
         render_kw={'class': 'space-y-2'}
     )
 
-    # ========== SECTION 6: CAPACITY & PRICING ==========
-    max_pets_per_day = IntegerField(
-        'Maximum Pets Per Day',
-        validators=[
-            DataRequired(message='Capacity is required'),
-            NumberRange(min=1, max=10000, message='Capacity must be between 1 and 10,000 pets')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
-            'placeholder': 'e.g., 50',
-            'type': 'number',
-            'min': '1'
-        }
-    )
 
-    min_price_per_day = FloatField(
-        'Minimum Price Per Day (₱)',
-        validators=[
-            DataRequired(message='Minimum price is required'),
-            NumberRange(min=0, max=999999, message='Price must be a positive number')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
-            'placeholder': 'e.g., 500.00',
-            'type': 'number',
-            'min': '0',
-            'step': '0.01'
-        }
-    )
 
-    max_price_per_day = FloatField(
-        'Maximum Price Per Day (₱)',
-        validators=[
-            DataRequired(message='Maximum price is required'),
-            NumberRange(min=0, max=999999, message='Price must be a positive number')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
-            'placeholder': 'e.g., 1500.00',
-            'type': 'number',
-            'min': '0',
-            'step': '0.01'
-        }
-    )
+    # Hidden field for service pricing JSON structure
+    service_pricing_json = HiddenField('Service Pricing', validators=[Optional()])
 
     # ========== SECTION 7: OPERATING SCHEDULE ==========
     opening_time = StringField(
@@ -669,6 +623,39 @@ class MerchantStoreUpdateForm(FlaskForm):
         }
     )
 
+    # ========== SECTION 8: FILE UPLOADS ==========
+    store_logo = FileField(
+        'Store Logo',
+        validators=[
+            Optional(),
+            FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'], message='Only JPG, PNG, GIF, and WebP files are allowed')
+        ]
+    )
+
+    government_id = FileField(
+        'Government ID',
+        validators=[
+            Optional(),
+            FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], message='Only JPG, PNG, and PDF files are allowed')
+        ]
+    )
+
+    business_permit = FileField(
+        'Business Permit/License',
+        validators=[
+            Optional(),
+            FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], message='Only JPG, PNG, and PDF files are allowed')
+        ]
+    )
+
+    facility_photos = MultiFileField(
+        'Facility Photos',
+        validators=[
+            Optional(),
+            FileAllowed(['jpg', 'jpeg', 'png'], message='Only JPG and PNG files are allowed')
+        ]
+    )
+
     # ========== SUBMIT ==========
     submit = SubmitField(
         'Save Changes',
@@ -678,10 +665,10 @@ class MerchantStoreUpdateForm(FlaskForm):
     )
 
     # ========== CUSTOM VALIDATORS ==========
-    def validate_max_price_per_day(self, field):
+    def validate_max_price(self, field):
         """Ensure max price is greater than or equal to min price"""
-        if self.min_price_per_day.data and field.data:
-            if field.data < self.min_price_per_day.data:
+        if self.min_price.data and field.data:
+            if field.data < self.min_price.data:
                 raise ValidationError('Maximum price must be greater than or equal to minimum price')
 
     def validate_closing_time(self, field):

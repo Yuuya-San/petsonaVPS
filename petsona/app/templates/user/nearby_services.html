@@ -334,11 +334,9 @@
           <div>
             <select x-model="selectedService" @change="fetchMerchants()" class="w-full px-4 lg:px-6 py-3 lg:py-3.5 rounded-2xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none bg-white text-slate-900 font-medium cursor-pointer transition-all duration-300 shadow-sm focus:shadow-md appearance-none text-sm lg:text-base">
               <option value="">All services</option>
-              <option value="grooming">Grooming</option>
-              <option value="boarding">Boarding</option>
-              <option value="veterinary">Vet</option>
-              <option value="training">Training</option>
-              <option value="transport">Transport</option>
+              <template x-for="service in availableServices" :key="service">
+                <option :value="service" x-text="service"></option>
+              </template>
             </select>
           </div>
 
@@ -430,7 +428,7 @@
                   x-text="merchant.business_name"></h3>
               <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
                 <i class="fas fa-map-pin text-purple-600 text-xs"></i>
-                <span x-text="merchant.city" class="truncate"></span>
+                <span class="truncate" x-text="formatAddress(merchant)"></span>
               </p>
             </div>
 
@@ -452,9 +450,7 @@
 
             <!-- Price -->
             <div class="mb-3 lg:mb-4 p-2 lg:p-2.5 bg-purple-50 rounded-2xl border border-purple-200/60 text-center backdrop-filter backdrop-blur-sm">
-              <p class="text-xs lg:text-sm text-purple-700 font-bold">
-                <i class="fas fa-peso-sign text-xs mr-0.5"></i><span x-text="(merchant.min_price/1000).toFixed(1) + 'k'" class="font-black"></span> - <span x-text="(merchant.max_price/1000).toFixed(1) + 'k'" class="font-black"></span>
-              </p>
+              <p class="text-xs lg:text-sm text-purple-700 font-bold" x-text="formatPrice(merchant)"></p>
             </div>
 
             <!-- Services Tag -->
@@ -517,6 +513,7 @@
 function premiumNearbyServices() {
   return {
     merchants: [],
+    availableServices: [],
     searchQuery: '',
     selectedService: '',
     maxDistance: '25',
@@ -593,12 +590,26 @@ function premiumNearbyServices() {
         if (data.success) {
           this.merchants = data.merchants;
           console.log('Loaded merchants:', this.merchants.length);
+          
+          // Extract unique services from all merchants
+          const services = new Set();
+          this.merchants.forEach(merchant => {
+            if (merchant.services_offered && Array.isArray(merchant.services_offered)) {
+              merchant.services_offered.forEach(service => {
+                services.add(service);
+              });
+            }
+          });
+          this.availableServices = Array.from(services).sort();
+          console.log('Available services:', this.availableServices);
         } else {
           this.merchants = [];
+          this.availableServices = [];
         }
       } catch (error) {
         console.error('Fetch error:', error);
         this.merchants = [];
+        this.availableServices = [];
       } finally {
         this.isLoading = false;
       }
@@ -610,6 +621,46 @@ function premiumNearbyServices() {
       this.maxDistance = '25';
       this.sortBy = this.hasLocation ? 'distance' : 'name';
       this.fetchMerchants();
+    },
+
+    formatAddress(merchant) {
+      const parts = [];
+      if (merchant.barangay) parts.push(merchant.barangay);
+      if (merchant.city) parts.push(merchant.city);
+      if (merchant.province) parts.push(merchant.province);
+      return parts.length > 0 ? parts.join(', ') : 'Location not specified';
+    },
+
+    formatPrice(merchant) {
+      // Check if service_pricing exists and has data
+      if (merchant.service_pricing && typeof merchant.service_pricing === 'object') {
+        const pricing = merchant.service_pricing;
+        
+        // Handle format with min_price and max_price
+        if (pricing.min_price && pricing.max_price) {
+          const minPrice = parseFloat(pricing.min_price);
+          const maxPrice = parseFloat(pricing.max_price);
+          const minFormatted = minPrice.toLocaleString('en-US', { maximumFractionDigits: 0 });
+          const maxFormatted = maxPrice.toLocaleString('en-US', { maximumFractionDigits: 0 });
+          return `₱ ${minFormatted} - ₱ ${maxFormatted}`;
+        }
+        
+        // Handle format with single price
+        if (pricing.price) {
+          const price = parseFloat(pricing.price);
+          const priceFormatted = price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+          return `₱ ${priceFormatted}`;
+        }
+      }
+      
+      // Fallback to legacy fields if they exist
+      if (merchant.min_price && merchant.max_price) {
+        const minFormatted = parseFloat(merchant.min_price).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const maxFormatted = parseFloat(merchant.max_price).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        return `₱ ${minFormatted} - ₱ ${maxFormatted}`;
+      }
+      
+      return '₱ -';
     }
   }
 }

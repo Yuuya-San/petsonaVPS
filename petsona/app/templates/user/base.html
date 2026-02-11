@@ -58,7 +58,7 @@
     {% block styles %}{% endblock %}
 </head>
 
-<body class="sidebar-mini sidebar-collapse">
+<body class="sidebar-mini sidebar-collapse bg-gradient-to-br from-white via-purple-50 to-white">
 
 <div class="wrapper">
 
@@ -128,8 +128,6 @@
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/socket-manager.js') }}"></script>
 
-<!-- ================= SETTINGS MODALS ================= -->
-{% include 'admin/partials/settings-modals.html' %}
 
 <!-- ================= SKELETON HANDLER ================= -->
 <script>

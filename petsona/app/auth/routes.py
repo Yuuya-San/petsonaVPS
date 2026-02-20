@@ -17,6 +17,22 @@ from app.utils.audit import log_event, user_snapshot
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 import pyotp
 import secrets
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 DEFAULT_AVATARS = [
@@ -317,7 +333,7 @@ def login():
             return redirect(url_for('auth.login'))
 
         # Lockout check
-        if user.lockout_until and user.lockout_until > datetime.utcnow():
+        if user.lockout_until and user.lockout_until > get_ph_datetime():
             log_event('user.login_locked', details={'locked_until': user.lockout_until.isoformat()})
             flash('Account temporarily locked due to too many failed login attempts. Try again later.', 'danger')
             return redirect(url_for('auth.login'))
@@ -360,7 +376,7 @@ def login():
             lockout_time = current_app.config.get('LOCKOUT_TIME', 900)  # 15 minutes default
 
             if user.failed_login_attempts >= max_attempts:
-                user.lockout_until = datetime.utcnow() + timedelta(seconds=lockout_time)
+                user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
                 db.session.commit()
                 log_event('user.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts})
                 flash('Account locked due to many failed attempts. Please try again later.', 'danger')
@@ -409,7 +425,7 @@ def admin_login():
             return redirect(url_for('auth.admin_login'))
 
         # Account locked
-        if user.lockout_until and user.lockout_until > datetime.utcnow():
+        if user.lockout_until and user.lockout_until > get_ph_datetime():
             log_event(
                 'admin.login_locked',
                 details={'locked_until': user.lockout_until.isoformat()}
@@ -457,7 +473,7 @@ def admin_login():
         lockout_time = current_app.config.get('LOCKOUT_TIME', 900)
 
         if user.failed_login_attempts >= max_attempts:
-            user.lockout_until = datetime.utcnow() + timedelta(seconds=lockout_time)
+            user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
             db.session.commit()
 
             log_event(

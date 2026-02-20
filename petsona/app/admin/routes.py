@@ -20,6 +20,14 @@ from app.utils.activity_formatter import format_activity
 from app.utils.activity_config import RECENT_ACTIVITY_EVENTS
 from app.utils.dashboard_stats import get_dashboard_stats
 from app.decorators import admin_required
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 DEFAULT_AVATARS = [
@@ -302,7 +310,7 @@ def delete_user(id):
 
     # Soft delete: mark inactive and store deletion timestamp
     user.is_active = False
-    user.deleted_at = datetime.utcnow()
+    user.deleted_at = get_ph_datetime()
     db.session.commit()
 
     snapshot = user_snapshot(user)
@@ -390,7 +398,7 @@ def delete_audit_log(log_id):
 
     log = AuditLog.query.get_or_404(log_id)
 
-    log.deleted_at = datetime.utcnow()
+    log.deleted_at = get_ph_datetime()
     db.session.commit()
 
     flash("Audit log deleted successfully (soft delete).", "success")
@@ -556,7 +564,7 @@ def approve_merchant(merchant_id):
         
         # Update merchant record
         merchant.application_status = 'approved'
-        merchant.reviewed_at = datetime.utcnow()
+        merchant.reviewed_at = get_ph_datetime()
         merchant.reviewed_by = current_user.id
         merchant.is_verified = True
         
@@ -608,7 +616,7 @@ def reject_merchant(merchant_id):
             return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
         
         merchant.application_status = 'rejected'
-        merchant.reviewed_at = datetime.utcnow()
+        merchant.reviewed_at = get_ph_datetime()
         merchant.rejection_reason = reason.strip()
         merchant.reviewed_by = current_user.id
         

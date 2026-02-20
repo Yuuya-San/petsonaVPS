@@ -39,7 +39,7 @@ class Merchant(db.Model):
     longitude = db.Column(db.Float, nullable=True)
 
     # ========== SECTION 4: SERVICES OFFERED (Checkboxes) ==========
-    services_offered = db.Column(JSON, nullable=False, default=[])
+    services_offered = db.Column(JSON, nullable=True, default=[])
 
     # ========== SECTION 5: PETS ACCEPTED (Checkboxes) ==========
     pets_accepted = db.Column(JSON, nullable=False, default=[])
@@ -47,6 +47,7 @@ class Merchant(db.Model):
     service_pricing = db.Column(JSON, nullable=True)
 
     # ========== SECTION 7: OPERATING SCHEDULE ==========
+    is_24h = db.Column(db.Boolean, default=False)  # True if operating 24/7
     opening_time = db.Column(db.String(5), nullable=True)  # HH:MM
     closing_time = db.Column(db.String(5), nullable=True)
     operating_days = db.Column(JSON, nullable=True, default=[])
@@ -71,6 +72,7 @@ class Merchant(db.Model):
     deleted_at = db.Column(db.DateTime, nullable=True)
 
     is_verified = db.Column(db.Boolean, default=False)
+    is_open = db.Column(db.Boolean, default=True)  # Store open/closed status
     search_keywords = db.Column(db.String(500), nullable=True)
 
     def __repr__(self):

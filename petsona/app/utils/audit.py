@@ -4,6 +4,14 @@ from datetime import datetime
 from app.models import *
 import json
 from app.extensions import db
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 def log_event(event: str, details: dict = None):
     log = AuditLog(
@@ -12,7 +20,7 @@ def log_event(event: str, details: dict = None):
         actor_email=current_user.email if current_user.is_authenticated else None,
         ip_address=request.remote_addr,
         user_agent=request.headers.get('User-Agent'),
-        timestamp=datetime.utcnow()
+        timestamp=get_ph_datetime()
     )
 
     if details:

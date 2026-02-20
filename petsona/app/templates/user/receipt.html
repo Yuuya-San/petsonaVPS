@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetSona Digital Receipt - {{ booking.booking_number }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .receipt-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 520px;
+            width: 100%;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .receipt-header {
+            background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .receipt-logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .receipt-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .receipt-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .receipt-content {
+            padding: 30px 20px;
+            background: #ffffff;
+        }
+
+        .receipt-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .receipt-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: #a855f7;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .receipt-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .receipt-value {
+            color: #333;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .receipt-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-confirmed,
+        .status-completed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .qr-code-section {
+            text-align: center;
+            padding: 30px 20px;
+            background: #f9f5ff;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .qr-code-section .section-title {
+            margin-bottom: 20px;
+        }
+
+        #receiptQR {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        #receiptQR img {
+            max-width: 180px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .receipt-footer {
+            background: linear-gradient(135deg, #f9f5ff 0%, #f3e8ff 100%);
+            padding: 20px;
+            border-top: 1px solid #e9d5ff;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .receipt-footer i {
+            color: #a855f7;
+            margin-right: 8px;
+        }
+
+        .print-button {
+            background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .print-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(168, 85, 247, 0.3);
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .print-button {
+                display: none;
+            }
+            .receipt-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .receipt-header {
+                padding: 20px 15px;
+            }
+
+            .receipt-header h1 {
+                font-size: 20px;
+            }
+
+            .receipt-content {
+                padding: 20px 15px;
+            }
+
+            .receipt-row {
+                font-size: 13px;
+            }
+
+            .section-title {
+                font-size: 11px;
+            }
+
+            #receiptQR img {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt-header">
+            <div class="receipt-logo">
+                <i class="fas fa-paw"></i>
+            </div>
+            <h1>PetSona Receipt</h1>
+            <p>Digital Booking Confirmation</p>
+        </div>
+
+        <div class="receipt-content">
+            <!-- Booking Information -->
+            <div class="receipt-section">
+                <div class="section-title">Booking Information</div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Booking Number:</span>
+                    <span class="receipt-value">{{ booking.booking_number }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Confirmation Code:</span>
+                    <span class="receipt-value">{{ booking.confirmation_code }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Status:</span>
+                    <span class="receipt-status status-{{ booking.status }}">{{ booking.status.capitalize() }}</span>
+                </div>
+            </div>
+
+            <!-- Merchant Information -->
+            <div class="receipt-section">
+                <div class="section-title">Service Provider</div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Business Name:</span>
+                    <span class="receipt-value">{{ booking.merchant.business_name if booking.merchant else 'N/A' }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Category:</span>
+                    <span class="receipt-value">{{ booking.merchant.service_category if booking.merchant else 'N/A' }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Email:</span>
+                    <span class="receipt-value" style="font-size: 12px;">{{ booking.merchant.email if booking.merchant else 'N/A' }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Phone:</span>
+                    <span class="receipt-value">{{ booking.merchant.phone_number if booking.merchant else 'N/A' }}</span>
+                </div>
+            </div>
+
+            <!-- Appointment Information -->
+            <div class="receipt-section">
+                <div class="section-title">Appointment Details</div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Date:</span>
+                    <span class="receipt-value">{{ booking.appointment_date.strftime('%b %d, %Y') }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Time:</span>
+                    <span class="receipt-value" id="appointmentTime">{{ booking.appointment_time }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Service Type:</span>
+                    <span class="receipt-value">{{ booking.service_type }}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Pets:</span>
+                    <span class="receipt-value">{{ booking.total_pets }} Pet{{ 's' if booking.total_pets != 1 else '' }}</span>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="qr-code-section">
+                <div class="section-title">QR Code</div>
+                <div id="receiptQR">
+                    {% if booking.qr_code_url %}
+                        <img src="{{ booking.qr_code_url }}" alt="Booking QR Code">
+                    {% else %}
+                        <div style="padding: 20px; color: #999; font-size: 14px;">QR Code not available</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Amount Information -->
+            <div class="receipt-section">
+                <div class="section-title">Amount</div>
+                <div class="receipt-row" style="border-bottom: 2px solid #a855f7; padding-bottom: 12px; margin-bottom: 0;">
+                    <span class="receipt-label" style="font-size: 16px; font-weight: 700;">Total Amount:</span>
+                    <span class="receipt-value" style="font-size: 18px; font-weight: 700; color: #a855f7;">₱{{ '%.2f'|format(booking.total_amount) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="receipt-footer">
+            <div id="receiptFooterStatus">
+                {% if booking.status in ['confirmed', 'completed'] %}
+                    <i class="fas fa-check-circle"></i> Booking Confirmed & Secure
+                {% elif booking.status == 'pending' %}
+                    <i class="fas fa-hourglass-half"></i> Booking Pending Confirmation
+                {% elif booking.status == 'cancelled' %}
+                    <i class="fas fa-circle-xmark"></i> Booking Cancelled
+                {% endif %}
+            </div>
+            <div style="margin-top: 15px; font-size: 11px;">
+                Generated: <span id="receiptGeneratedDate"></span>
+            </div>
+            <button class="print-button" onclick="window.print()">
+                <i class="fas fa-print"></i> Print or Save as PDF
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Format time from 24-hour to 12-hour with AM/PM
+        function formatTo12Hour(time24) {
+            if (!time24) return time24;
+            const [hours, minutes] = time24.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+
+        // Format appointment time
+        const timeElement = document.getElementById('appointmentTime');
+        if (timeElement) {
+            timeElement.textContent = formatTo12Hour(timeElement.textContent.trim());
+        }
+
+        // Set generated date and time
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('receiptGeneratedDate').textContent = `${dateStr} at ${timeStr}`;
+    </script>
+</body>
+</html>

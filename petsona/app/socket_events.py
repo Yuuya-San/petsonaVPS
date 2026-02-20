@@ -5,6 +5,15 @@ from app.extensions import socketio
 from app.models import Species
 from flask_login import current_user
 import logging
+from datetime import datetime
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +199,7 @@ def broadcast_vote_update(species_id, new_vote_count):
             {
                 'species_id': species_id,
                 'vote_count': new_vote_count,
-                'timestamp': __import__('datetime').datetime.utcnow().isoformat()
+                'timestamp': get_ph_datetime().isoformat()
             },
             room=room
         )
@@ -209,7 +218,7 @@ def broadcast_breed_vote_update(breed_id, total_votes, voted, user_id):
                 'total_votes': total_votes,
                 'voted': voted,
                 'user_id': user_id,
-                'timestamp': __import__('datetime').datetime.utcnow().isoformat()
+                'timestamp': get_ph_datetime().isoformat()
             }
         )
     except Exception as e:
@@ -245,7 +254,7 @@ def notify_unread_message_count(recipient_id, unread_count):
         logger.info(f"📡 Notifying user {recipient_id} of {unread_count} unread messages")
         socketio.emit('unread_count_update', {
             'unread_count': unread_count,
-            'timestamp': __import__('datetime').datetime.utcnow().isoformat()
+            'timestamp': get_ph_datetime().isoformat()
         }, room=f'user_{recipient_id}')
     except Exception as e:
         logger.error(f"Error notifying unread count: {str(e)}")
@@ -261,7 +270,7 @@ def broadcast_message_to_navbar(recipient_id, conversation_id, sender_id, sender
             'sender_name': sender_name,
             'sender_avatar': sender_avatar,
             'message_preview': message_preview,
-            'timestamp': __import__('datetime').datetime.utcnow().isoformat()
+            'timestamp': get_ph_datetime().isoformat()
         }, room=f'user_{recipient_id}')
     except Exception as e:
         logger.error(f"Error broadcasting navbar message update: {str(e)}")

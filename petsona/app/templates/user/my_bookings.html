@@ -1,0 +1,2243 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<style>
+  /* ========================================================================
+     MODERN BOOKINGS PAGE - GLASSMORPHISM + WHITE/PURPLE THEME
+     ======================================================================== */
+
+  :root {
+    --primary: #a855f7;
+    --primary-dark: #9333ea;
+    --primary-light: #c084fc;
+    
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    --text-dark: #111827;
+    --text-gray: #6b7280;
+    --text-light: #9ca3af;
+    
+    --border: #e5e7eb;
+    --border-light: #f3f4f6;
+    
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 12px 48px rgba(168, 85, 247, 0.1);
+  }
+
+  .bookings-section {
+    background: linear-gradient(135deg, #f8f7ff 0%, #fafbfc 100%);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .bookings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ===== HEADER ===== */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .page-title {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .page-subtitle {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .header-right {
+    flex-shrink: 0;
+  }
+
+  /* ===== FILTER DROPDOWN ===== */
+  .filter-form {
+    display: flex;
+    align-items: center;
+  }
+
+  .status-select {
+    min-width: 180px;
+    padding: 0.625rem 2.5rem 0.625rem 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  .status-select:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .status-select:focus {
+    outline: none;
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* ===== BOOKINGS CARD - GLASSMORPHISM ===== */
+  .bookings-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 12px 48px rgba(168, 85, 247, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  /* ===== TABLE ===== */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bookings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .bookings-table thead {
+    background: rgba(168, 85, 247, 0.08);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .bookings-table th {
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    white-space: nowrap;
+    border: none;
+  }
+
+  .th-booking { width: 20%; min-width: 150px; }
+  .th-merchant { width: 25%; min-width: 180px; }
+  .th-date { width: 20%; min-width: 140px; }
+  .th-status { width: 18%; min-width: 120px; text-align: center; }
+  .th-actions { width: 17%; min-width: 140px; text-align: center; }
+
+  .bookings-table tbody tr {
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    transition: all 0.2s ease;
+  }
+
+  .bookings-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+  }
+
+  .bookings-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .bookings-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: var(--text-dark);
+    border: none;
+  }
+
+  .td-booking {
+    font-weight: 600;
+  }
+
+  .booking-number {
+    display: block;
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .booking-date-text {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-top: 0.25rem;
+  }
+
+  .td-merchant {
+    font-weight: 600;
+  }
+
+  .merchant-name {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .merchant-category {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    font-weight: 400;
+  }
+
+  .td-date {
+    font-weight: 500;
+  }
+
+  .appointment-date {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .appointment-time {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+  }
+
+  .td-status {
+    text-align: center;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .status-badge.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+
+  .status-badge.confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .status-badge.completed {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .status-badge.cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .td-actions {
+    text-align: center;
+  }
+
+  .action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+
+  .action-btn i {
+    font-size: 0.875rem;
+  }
+
+  .action-btn.view {
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .action-btn.view:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .action-btn.delete {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.15);
+    background: rgba(239, 68, 68, 0.08);
+  }
+
+  .action-btn.delete:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  /* ===== PAGINATION ===== */
+  .pagination-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.02);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination-info {
+    font-size: 0.875rem;
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .pagination-info strong {
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pagination-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background: rgba(168, 85, 247, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--primary);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .pagination-btn i {
+    font-size: 0.75rem;
+  }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .empty-content {
+    color: var(--text-gray);
+  }
+
+  .empty-content i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    color: var(--primary);
+  }
+
+  .empty-content h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .empty-content p {
+    margin: 0 0 1.5rem;
+    color: var(--text-gray);
+    font-size: 0.95rem;
+  }
+
+  .empty-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+  }
+
+  .empty-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+  }
+
+  /* ===== MODALS - GLASSMORPHISM ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    overflow-y: auto;
+  }
+
+  .modal-overlay.hidden {
+    display: none;
+  }
+
+  .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 60px rgba(168, 85, 247, 0.15);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    max-width: 520px;
+    width: 100%;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(147, 51, 234, 0.08));
+    color: var(--text-dark);
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    color: var(--primary);
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 50%;
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+
+  .modal-close:hover {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  .modal-close i {
+    font-size: 1rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .booking-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .booking-detail:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+  }
+
+  .detail-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    text-align: right;
+  }
+
+  .modal-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.02);
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .btn-cancel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    color: var(--text-gray);
+  }
+
+  .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+
+  .btn-delete:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+  }
+
+  .btn-delete:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .btn-delete i {
+    font-size: 0.875rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.875rem;
+    resize: vertical;
+    min-height: 80px;
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+  }
+
+  .form-group textarea:focus {
+    outline: none;
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  }
+
+  /* ===== RECEIPT MODAL STYLES ===== */
+  .receipt-modal {
+    max-width: 520px;
+    width: 100%;
+    max-height: 82vh;
+    margin-top: 3rem;
+    background: white;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    border: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .receipt-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 82vh;
+  }
+
+  .receipt-header {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 0.875rem 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(147, 51, 234, 0.12));
+    border-bottom: 2px solid rgba(168, 85, 247, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .receipt-logo {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 0.4rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
+    flex-shrink: 0;
+  }
+
+  .receipt-title {
+    margin: 0 0 0.1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    word-wrap: break-word;
+  }
+
+  .receipt-subtitle {
+    margin: 0;
+    font-size: 0.65rem;
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .receipt-content {
+    padding: 1.25rem 1.125rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .qr-section {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px dashed rgba(168, 85, 247, 0.2);
+  }
+
+  .qr-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.8));
+    border: 2px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius);
+    margin-bottom: 0.75rem;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.08);
+    min-height: 130px;
+    min-width: 130px;
+  }
+
+  .qr-text {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    word-wrap: break-word;
+  }
+
+  .receipt-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(168, 85, 247, 0.2), transparent);
+    margin: 0.875rem 0;
+  }
+
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .receipt-row:last-child {
+    border-bottom: none;
+  }
+
+  .receipt-row-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 150px;
+    word-break: break-word;
+  }
+
+  .receipt-row-item.receipt-align-right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .receipt-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-gray);
+    margin-bottom: 0.35rem;
+  }
+
+  .receipt-value {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .receipt-booking-number {
+    color: var(--primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .receipt-status {
+    padding: 0.425rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--primary);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    box-shadow: 0 2px 6px rgba(168, 85, 247, 0.1);
+  }
+
+  .receipt-status.status-pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .receipt-status.status-confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .receipt-status.status-completed {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+
+  .receipt-status.status-cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  .receipt-section {
+    margin-bottom: 0.875rem;
+  }
+
+  .receipt-section-title {
+    margin: 0 0 0.875rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    word-break: break-word;
+  }
+
+  .receipt-section-title i {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .receipt-merchant-name {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .receipt-merchant-category {
+    margin: 0 0 0.875rem;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .receipt-merchant-contact {
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    word-break: break-all;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+  }
+
+  .receipt-merchant-contact i {
+    color: var(--primary);
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .receipt-amount-row {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(147, 51, 234, 0.12));
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    margin-bottom: 0;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+    word-break: break-word;
+  }
+
+  .receipt-amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+    word-break: break-word;
+  }
+
+  .receipt-footer {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.06), rgba(147, 51, 234, 0.06));
+    border-top: 2px solid rgba(168, 85, 247, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .receipt-footer-text {
+    margin: 0.3rem 0;
+    font-size: 0.75rem;
+    color: var(--text-gray);
+    line-height: 1.3;
+    font-weight: 500;
+    word-wrap: break-word;
+  }
+
+  .receipt-footer-text i {
+    margin-right: 0.4rem;
+    color: var(--primary);
+    font-size: 0.8rem;
+  }
+
+  .receipt-footer-small {
+    font-size: 0.65rem;
+    color: var(--text-light);
+    margin-top: 0.3rem;
+    word-wrap: break-word;
+  }
+
+  .receipt-actions {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 0.625rem;
+    padding: 1rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0), rgba(168, 85, 247, 0.02));
+    flex-wrap: wrap;
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(147, 51, 234, 0.15));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: var(--primary);
+    flex: 1;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  .btn-secondary:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(147, 51, 234, 0.25));
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* ===== RESPONSIVE DESIGN ===== */
+  @media (max-width: 1024px) {
+    .bookings-container {
+      max-width: 100%;
+    }
+    
+    .th-booking,
+    .th-merchant,
+    .th-date,
+    .th-status,
+    .th-actions {
+      min-width: auto;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .bookings-section {
+      padding: 1rem;
+    }
+    
+    .modal-overlay {
+      padding: 1rem;
+      align-items: center;
+    }
+
+    .modal-content {
+      max-width: calc(100vw - 2rem);
+    }
+
+    .receipt-modal {
+      max-height: 85vh;
+      height: auto;
+      margin-top: 2rem;
+    }
+
+    .receipt-container {
+      max-height: 85vh;
+    }
+
+    .receipt-header {
+      padding: 0.75rem 0.875rem;
+    }
+
+    .receipt-logo {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .receipt-title {
+      font-size: 0.95rem;
+    }
+
+    .receipt-subtitle {
+      font-size: 0.6rem;
+    }
+
+    .receipt-content {
+      padding: 1.25rem 1rem;
+    }
+
+    .receipt-footer {
+      padding: 0.875rem;
+    }
+
+    .receipt-footer-text {
+      font-size: 0.75rem;
+      margin: 0.3rem 0;
+    }
+
+    .receipt-footer-small {
+      font-size: 0.65rem;
+      margin-top: 0.4rem;
+    }
+
+    .receipt-actions {
+      padding: 1rem 0.875rem;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1.125rem;
+      font-size: 0.8rem;
+    }
+
+    .btn i {
+      font-size: 0.75rem;
+    }
+
+    /* Mobile Table */
+    .table-container {
+      overflow-x: visible;
+    }
+    
+    .bookings-table thead {
+      display: none;
+    }
+    
+    .bookings-table,
+    .bookings-table tbody,
+    .bookings-table tr,
+    .bookings-table td {
+      display: block;
+      width: 100%;
+    }
+    
+    .bookings-table tbody tr {
+      margin-bottom: 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 0;
+      background: white;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(168, 85, 247, 0.15);
+    }
+    
+    .bookings-table tbody tr:hover {
+      background: white;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .bookings-table td {
+      padding: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-light);
+      word-break: break-word;
+    }
+    
+    .bookings-table td:last-child {
+      border-bottom: none;
+    }
+    
+    .bookings-table td::before {
+      content: attr(data-label);
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      flex-shrink: 0;
+      min-width: 70px;
+    }
+    
+    .td-booking,
+    .td-merchant,
+    .td-date,
+    .td-status,
+    .td-actions {
+      width: 100%;
+      text-align: right;
+    }
+
+    .booking-number {
+      display: inline;
+      margin-bottom: 0;
+    }
+
+    .booking-date-text {
+      display: inline;
+      margin-top: 0;
+    }
+
+    .merchant-name {
+      display: inline;
+      margin-bottom: 0;
+    }
+
+    .merchant-category {
+      display: inline;
+      margin-left: 0.25rem;
+    }
+
+    .appointment-date,
+    .appointment-time {
+      display: inline;
+    }
+
+    .appointment-time::before {
+      content: " • ";
+      margin: 0 0.25rem;
+    }
+
+    .td-status {
+      text-align: right;
+    }
+    
+    .action-group {
+      flex: 1;
+      justify-content: flex-end;
+    }
+    
+    .pagination-footer {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .pagination-info {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .pagination-controls {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .header-left {
+      min-width: auto;
+    }
+    
+    .page-title {
+      font-size: 1.5rem;
+    }
+    
+    .header-right {
+      width: 100%;
+    }
+    
+    .status-select {
+      width: 100%;
+      min-width: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .bookings-section {
+      padding: 0.75rem;
+    }
+    
+    .page-title {
+      font-size: 1.25rem;
+    }
+    
+    .page-subtitle {
+      font-size: 0.8rem;
+    }
+    
+    .bookings-card {
+      border-radius: var(--radius);
+    }
+    
+    .bookings-table tbody tr {
+      padding: 0.75rem;
+    }
+    
+    .bookings-table td {
+      padding: 0.625rem;
+      font-size: 0.8rem;
+    }
+    
+    .bookings-table td::before {
+      font-size: 0.65rem;
+      min-width: 60px;
+    }
+    
+    .action-btn {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .action-btn i {
+      font-size: 0.75rem;
+    }
+    
+    .pagination-btn {
+      width: 32px;
+      height: 32px;
+    }
+
+    .modal-overlay {
+      padding: 0.5rem;
+    }
+
+    .modal-content {
+      max-width: calc(100vw - 1rem);
+    }
+
+    .receipt-modal {
+      max-height: 80vh;
+      height: auto;
+      margin-top: 1.5rem;
+    }
+
+    .receipt-container {
+      max-height: 80vh;
+    }
+
+    .receipt-header {
+      padding: 0.75rem 0.75rem;
+    }
+
+    .receipt-logo {
+      width: 38px;
+      height: 38px;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .receipt-title {
+      font-size: 0.9rem;
+    }
+
+    .receipt-subtitle {
+      font-size: 0.55rem;
+    }
+
+    .receipt-content {
+      padding: 0.875rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .receipt-section {
+      margin-bottom: 0.875rem;
+    }
+
+    .receipt-section-title {
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .receipt-row {
+      margin-bottom: 0.875rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .receipt-label {
+      font-size: 0.65rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .receipt-value {
+      font-size: 0.85rem;
+    }
+
+    .receipt-booking-number {
+      font-size: 1.1rem;
+    }
+
+    .receipt-merchant-name {
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .receipt-merchant-category {
+      font-size: 0.8rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .receipt-merchant-contact {
+      font-size: 0.8rem;
+      margin: 0.4rem 0;
+    }
+
+    .receipt-amount {
+      font-size: 1.4rem;
+    }
+
+    .receipt-amount-row {
+      padding: 1rem;
+      margin-bottom: 0;
+    }
+
+    .footer-status {
+      padding: 0.75rem;
+    }
+
+    .receipt-footer {
+      padding: 0.625rem;
+    }
+
+    .receipt-footer-text {
+      font-size: 0.65rem;
+      margin: 0.2rem 0;
+    }
+
+    .receipt-footer-small {
+      font-size: 0.6rem;
+      margin-top: 0.3rem;
+    }
+
+    .receipt-actions {
+      padding: 0.75rem;
+      gap: 0.4rem;
+      flex-direction: column;
+    }
+
+    .btn {
+      padding: 0.55rem 1rem;
+      font-size: 0.75rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn i {
+      font-size: 0.7rem;
+    }
+
+    .btn-secondary {
+      width: 100%;
+    }
+
+    .qr-code {
+      padding: 0.75rem;
+      min-height: 120px;
+      min-width: 120px;
+    }
+
+    .qr-text {
+      font-size: 0.65rem;
+    }
+
+    .qr-section {
+      margin-bottom: 1.25rem;
+      padding-bottom: 1.25rem;
+    }
+
+    .receipt-divider {
+      margin: 1rem 0;
+    }
+
+    .modal-body {
+      max-height: 55vh;
+    }
+
+    /* Fix for modal content not scrolling properly */
+    .receipt-content {
+      max-height: calc(80vh - 160px);
+    }
+  }
+
+  /* Extra small devices (360px and below) */
+  @media (max-width: 360px) {
+    .bookings-section {
+      padding: 0.5rem;
+    }
+
+    .page-title {
+      font-size: 1.1rem;
+    }
+
+    .modal-overlay {
+      padding: 0.25rem;
+    }
+
+    .receipt-modal {
+      max-height: 80vh;
+      height: auto;
+      margin-top: 1rem;
+    }
+
+    .receipt-header {
+      padding: 0.7rem 0.625rem;
+    }
+
+    .receipt-logo {
+      width: 36px;
+      height: 36px;
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .receipt-title {
+      font-size: 0.88rem;
+    }
+
+    .receipt-content {
+      padding: 0.875rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .receipt-subtitle {
+      font-size: 0.55rem;
+    }
+
+    .receipt-section {
+      margin-bottom: 0.75rem;
+    }
+
+    .receipt-row {
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.625rem;
+    }
+
+    .receipt-label {
+      font-size: 0.6rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .receipt-value {
+      font-size: 0.8rem;
+    }
+
+    .receipt-booking-number {
+      font-size: 0.95rem;
+    }
+
+    .receipt-amount {
+      font-size: 1.2rem;
+    }
+
+    .receipt-amount-row {
+      padding: 0.75rem;
+    }
+
+    .receipt-merchant-contact {
+      font-size: 0.75rem;
+    }
+
+    .receipt-actions {
+      padding: 0.65rem;
+      gap: 0.3rem;
+    }
+
+    .btn {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.7rem;
+    }
+
+    .qr-code {
+      min-height: 100px;
+      min-width: 100px;
+      padding: 0.625rem;
+    }
+
+    .qr-text {
+      font-size: 0.6rem;
+    }
+
+    .receipt-footer {
+      padding: 0.6rem;
+    }
+
+    .receipt-footer-text {
+      font-size: 0.6rem;
+      margin: 0.15rem 0;
+    }
+
+    .receipt-footer-small {
+      font-size: 0.55rem;
+      margin-top: 0.2rem;
+    }
+
+    .receipt-section-title {
+      font-size: 0.75rem;
+      margin-bottom: 0.625rem;
+    }
+
+    /* Fix for modal content not scrolling properly */
+    .receipt-content {
+      max-height: calc(80vh - 160px);
+    }
+  }
+
+</style>
+
+<section class="bookings-section">
+  <div class="bookings-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">
+          <i class="fas fa-shopping-cart"></i>
+          My Bookings
+        </h1>
+        <p class="page-subtitle">View and manage all your pet service bookings</p>
+      </div>
+      
+      <div class="header-right">
+        <form method="GET" class="filter-form">
+          <select name="status" class="status-select" onchange="this.form.submit()">
+            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Bookings</option>
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+          </select>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bookings Card - Table -->
+    {% if bookings.items %}
+    <div class="bookings-card">
+      <div class="table-container">
+        <table class="bookings-table">
+          <thead>
+            <tr>
+              <th class="th-booking">Booking #</th>
+              <th class="th-merchant">Merchant</th>
+              <th class="th-date">Appointment</th>
+              <th class="th-status">Status</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in bookings.items %}
+            <tr>
+              <td class="td-booking" data-label="Booking #">
+                <span class="booking-number">{{ booking.booking_number }}</span>
+                <span class="booking-date-text">₱{{ "%.2f"|format(booking.total_amount) }}</span>
+              </td>
+
+              <td class="td-merchant" data-label="Merchant">
+                <span class="merchant-name">{{ booking.merchant.business_name }}</span>
+                <span class="merchant-category">{{ booking.business_category }}</span>
+              </td>
+
+              <td class="td-date" data-label="Appointment">
+                <span class="appointment-date">{{ booking.appointment_date.strftime('%b %d, %Y') }}</span>
+                <span class="appointment-time">{{ booking.appointment_time }}</span>
+              </td>
+
+              <td class="td-status" data-label="Status">
+                {% if booking.status == 'pending' %}
+                  <span class="status-badge pending">
+                    <i class="fas fa-hourglass-half"></i> Pending
+                  </span>
+                {% elif booking.status == 'confirmed' %}
+                  <span class="status-badge confirmed">
+                    <i class="fas fa-check-circle"></i> Confirmed
+                  </span>
+                {% elif booking.status == 'completed' %}
+                  <span class="status-badge completed">
+                    <i class="fas fa-circle-check"></i> Completed
+                  </span>
+                {% elif booking.status == 'cancelled' %}
+                  <span class="status-badge cancelled">
+                    <i class="fas fa-circle-xmark"></i> Cancelled
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="td-actions" data-label="Actions">
+                <div class="action-group">
+                  <button class="action-btn view" title="View Details" 
+                          data-booking-id="{{ booking.id }}"
+                          data-booking-number="{{ booking.booking_number }}"
+                          data-merchant-name="{{ booking.merchant.business_name }}"
+                          data-merchant-email="{{ booking.merchant.contact_email }}"
+                          data-merchant-phone="{{ booking.merchant.contact_phone }}"
+                          data-business-category="{{ booking.business_category }}"
+                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          data-appointment-time="{{ booking.appointment_time }}"
+                          data-total-pets="{{ booking.total_pets }}"
+                          data-service-type="{{ booking.service_type }}"
+                          data-total-amount="{{ "%.2f"|format(booking.total_amount) }}"
+                          data-status="{{ booking.status }}"
+                          data-confirmation-code="{{ booking.confirmation_code }}"
+                          data-qr-code-url="{{ booking.qr_code_url or '' }}"
+                          onclick="showDetailsModal(this)">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  {% if booking.can_be_cancelled %}
+                  <button class="action-btn delete" title="Cancel Booking"
+                          data-booking-id="{{ booking.id }}"
+                          onclick="showCancelModal(this)">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if bookings.pages > 1 %}
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          <span>Page <strong>{{ bookings.page }}</strong> of <strong>{{ bookings.pages }}</strong></span>
+        </div>
+        
+        <div class="pagination-controls">
+          {% if bookings.has_prev %}
+            <a href="{{ url_for('user.my_bookings', page=bookings.prev_num, status=status_filter) }}" 
+               class="pagination-btn" title="Previous Page">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          {% endif %}
+
+          {% if bookings.has_next %}
+            <a href="{{ url_for('user.my_bookings', page=bookings.next_num, status=status_filter) }}" 
+               class="pagination-btn" title="Next Page">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="bookings-card">
+      <div class="empty-state">
+        <div class="empty-content">
+          <i class="fas fa-inbox"></i>
+          <h2>No Bookings Yet</h2>
+          <p>You haven't made any bookings yet. Visit nearby pet services and make your first booking!</p>
+          <a href="{{ url_for('user.nearby_services') }}" class="empty-action">
+            <i class="fas fa-search"></i>
+            Find Pet Services
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Receipt Modal (Electronic Booking Proof) -->
+<div id="detailsModal" class="modal-overlay hidden">
+  <div class="modal-content receipt-modal">
+    <div class="receipt-container">
+      <!-- Receipt Header -->
+      <div class="receipt-header">
+        <div class="receipt-logo">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="receipt-title">Booking Confirmation</h2>
+        <p class="receipt-subtitle">Your Digital Receipt</p>
+      </div>
+
+      <!-- Receipt Content -->
+      <div class="receipt-content">
+        <!-- QR Code Section -->
+        <div class="qr-section">
+          <div class="qr-code" id="receiptQR"></div>
+          <p class="qr-text">Scan for booking verification</p>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Booking Header -->
+        <div class="receipt-section">
+          <div class="receipt-row">
+            <div class="receipt-row-item">
+              <span class="receipt-label">Booking Reference</span>
+              <span class="receipt-value receipt-booking-number" id="receiptBookingNumber"></span>
+            </div>
+            <div class="receipt-row-item receipt-align-right">
+              <span class="receipt-label">Status</span>
+              <span class="receipt-value receipt-status" id="receiptStatus"></span>
+            </div>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Confirmation Code</span>
+            <span class="receipt-value" id="receiptConfirmationCode"></span>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Merchant Info Section -->
+        <div class="receipt-section">
+          <h3 class="receipt-section-title"><i class="fas fa-store"></i> Service Provider</h3>
+          <p class="receipt-merchant-name" id="receiptMerchantName"></p>
+          <p class="receipt-merchant-category" id="receiptMerchantCategory"></p>
+          <div style="margin-top: 0.625rem;">
+            <p class="receipt-merchant-contact">
+              <i class="fas fa-phone"></i> <span id="receiptMerchantPhone"></span>
+            </p>
+            <p class="receipt-merchant-contact">
+              <i class="fas fa-envelope"></i> <span id="receiptMerchantEmail"></span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Appointment Details Section -->
+        <div class="receipt-section">
+          <h3 class="receipt-section-title"><i class="fas fa-calendar-alt"></i> Appointment Details</h3>
+          <div class="receipt-row">
+            <div class="receipt-row-item">
+              <span class="receipt-label">Schedule</span>
+              <span class="receipt-value">
+                <span id="receiptAppointmentDate"></span><br>
+                <span style="color: var(--primary); font-weight: 600;" id="receiptAppointmentTime"></span>
+              </span>
+            </div>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Service Type</span>
+            <span class="receipt-value" id="receiptServiceType"></span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Pets Included</span>
+            <span class="receipt-value" id="receiptTotalPets"></span>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Amount Section with Highlight -->
+        <div class="receipt-section">
+          <div class="receipt-row receipt-amount-row">
+            <div style="width: 100%; text-align: center;">
+              <span class="receipt-label">Total Amount Booked</span>
+              <span class="receipt-value receipt-amount" id="receiptTotalAmount"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Important Notes -->
+        <div class="receipt-section" style="background: rgba(168, 85, 247, 0.05); padding: 0.75rem; border-radius: 8px; border-left: 3px solid var(--primary);">
+          <h4 style="margin: 0 0 0.5rem; font-size: 0.8rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Important Information</h4>
+          <p style="margin: 0.375rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.4;">
+            • Present this booking confirmation at the service provider
+          </p>
+          <p style="margin: 0.375rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.4;">
+            • Arrive 10 minutes before your scheduled appointment
+          </p>
+          <p style="margin: 0.375rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.4;">
+            • Keep this receipt for your records and service history
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">
+          <p class="receipt-footer-text" id="receiptFooterStatus">
+            <i class="fas fa-hourglass-half"></i>
+            Booking Status: Pending
+          </p>
+          <p class="receipt-footer-text receipt-footer-small" style="margin-top: 0.75rem;">
+            Generated on <span id="receiptGeneratedDate"></span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="receipt-actions">
+        <button type="button" class="btn btn-secondary" onclick="downloadQRCode()">
+          <i class="fas fa-download"></i>
+          Download QR Code
+        </button>
+        <button type="button" class="btn btn-cancel" onclick="closeDetailsModal()">
+          <i class="fas fa-times"></i>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-exclamation-triangle"></i>
+        Cancel Booking
+      </h3>
+      <button type="button" class="modal-close" onclick="closeCancelModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p style="margin: 0 0 1rem; color: var(--text-gray);">
+        Are you sure you want to cancel this booking? A refund will be processed according to the cancellation policy.
+      </p>
+      <form id="cancelForm">
+        <div class="form-group">
+          <label for="cancellationReason">Reason for Cancellation (Optional)</label>
+          <textarea id="cancellationReason" name="cancellation_reason" placeholder="Tell us why you're cancelling..."></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeCancelModal()">
+        Keep Booking
+      </button>
+      <button type="submit" class="btn btn-delete" onclick="submitCancellation()">
+        <i class="fas fa-trash-alt"></i>
+        Confirm Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HTML2Canvas Library - for converting receipt to image -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- jsPDF Library - for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  let currentBookingId = null;
+
+  // Format time from 24-hour to 12-hour with AM/PM
+  function formatTo12Hour(time24) {
+    if (!time24) return time24;
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+  }
+
+  function showDetailsModal(button) {
+    const bookingId = button.dataset.bookingId;
+    const bookingNumber = button.dataset.bookingNumber;
+    const merchantName = button.dataset.merchantName;
+    const merchantEmail = button.dataset.merchantEmail;
+    const merchantPhone = button.dataset.merchantPhone;
+    const businessCategory = button.dataset.businessCategory;
+    const appointmentDate = button.dataset.appointmentDate;
+    const appointmentTime = button.dataset.appointmentTime;
+    const totalPets = button.dataset.totalPets;
+    const serviceType = button.dataset.serviceType;
+    const totalAmount = button.dataset.totalAmount;
+    const status = button.dataset.status;
+    const confirmationCode = button.dataset.confirmationCode;
+    const qrCodeUrl = button.dataset.qrCodeUrl;
+
+    // Populate receipt data
+    document.getElementById('receiptBookingNumber').textContent = bookingNumber;
+    document.getElementById('receiptMerchantName').textContent = merchantName;
+    document.getElementById('receiptMerchantCategory').textContent = businessCategory;
+    document.getElementById('receiptMerchantEmail').textContent = merchantEmail;
+    document.getElementById('receiptMerchantPhone').textContent = merchantPhone;
+    document.getElementById('receiptAppointmentDate').textContent = appointmentDate;
+    document.getElementById('receiptAppointmentTime').textContent = formatTo12Hour(appointmentTime);
+    document.getElementById('receiptTotalPets').textContent = totalPets + ' pet' + (totalPets != 1 ? 's' : '');
+    document.getElementById('receiptServiceType').textContent = serviceType;
+    document.getElementById('receiptTotalAmount').textContent = '₱' + totalAmount;
+    document.getElementById('receiptConfirmationCode').textContent = confirmationCode;
+    
+    // Format status with badge
+    const statusElement = document.getElementById('receiptStatus');
+    statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    statusElement.className = 'receipt-value receipt-status status-' + status;
+
+    // Update footer status message based on booking status
+    const footerStatusElement = document.getElementById('receiptFooterStatus');
+    if (status === 'confirmed' || status === 'completed') {
+      footerStatusElement.innerHTML = '<i class="fas fa-check-circle"></i> Booking Confirmed & Secure';
+      footerStatusElement.style.color = 'var(--success)';
+    } else if (status === 'pending') {
+      footerStatusElement.innerHTML = '<i class="fas fa-hourglass-half"></i> Booking Pending Confirmation';
+      footerStatusElement.style.color = 'var(--warning)';
+    } else if (status === 'cancelled') {
+      footerStatusElement.innerHTML = '<i class="fas fa-circle-xmark"></i> Booking Cancelled';
+      footerStatusElement.style.color = 'var(--danger)';
+    }
+
+    // Set generated date
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('receiptGeneratedDate').textContent = `${dateStr} at ${timeStr}`;
+
+    // Display server-generated QR Code
+    const qrContainer = document.getElementById('receiptQR');
+    qrContainer.innerHTML = ''; // Clear previous QR code
+    
+    if (qrCodeUrl) {
+      const qrImage = document.createElement('img');
+      qrImage.src = qrCodeUrl;
+      qrImage.alt = 'Booking QR Code';
+      qrImage.style.width = '140px';
+      qrImage.style.height = '140px';
+      qrImage.style.borderRadius = '8px';
+      qrImage.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      qrContainer.appendChild(qrImage);
+    } else {
+      // Fallback message if QR code generation failed
+      qrContainer.innerHTML = '<div style="width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; border-radius: 8px; font-size: 12px; color: #999;">QR Code unavailable</div>';
+    }
+
+    document.getElementById('detailsModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDetailsModal() {
+    document.getElementById('detailsModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function showCancelModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    document.getElementById('cancelForm').reset();
+    document.getElementById('cancelModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCancelModal() {
+    document.getElementById('cancelModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+  }
+
+  function submitCancellation() {
+    if (currentBookingId) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/user/booking/' + currentBookingId + '/cancel';
+      
+      const reasonInput = document.getElementById('cancellationReason');
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'cancellation_reason';
+      input.value = reasonInput.value;
+      form.appendChild(input);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function downloadQRCode() {
+    // Get booking number and confirmation code for filename
+    const bookingNumber = document.getElementById('receiptBookingNumber').textContent;
+    const confirmationCode = document.getElementById('receiptConfirmationCode').textContent;
+    
+    // Get QR code image element
+    const qrImg = document.querySelector('#receiptQR img');
+    
+    if (!qrImg || !qrImg.src) {
+      alert('QR code not available');
+      return;
+    }
+    
+    // Create filename with booking details
+    const fileName = `PetSona_QR_${bookingNumber}_${confirmationCode}_${new Date().getTime()}.png`;
+    
+    // Show loading state
+    const downloadBtn = event.target.closest('.btn-secondary');
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+    downloadBtn.disabled = true;
+    
+    // Download the QR code image
+    const link = document.createElement('a');
+    link.href = qrImg.src;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Restore button state after a longer delay to show spinner
+    setTimeout(() => {
+      downloadBtn.innerHTML = originalText;
+      downloadBtn.disabled = false;
+    }, 1500);
+  }
+
+  function saveReceiptAsPDF() {
+    const element = document.querySelector('.receipt-container');
+    const bookingNumber = document.getElementById('receiptBookingNumber').textContent;
+    const fileName = `PetSona_Receipt_${bookingNumber}_${new Date().getTime()}.pdf`;
+    
+    // Show loading state
+    const saveBtn = event.target.closest('.btn-secondary');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    // Hide action buttons before capturing
+    const actionsDiv = element.querySelector('.receipt-actions');
+    const actionsDisplay = actionsDiv.style.display;
+    actionsDiv.style.display = 'none';
+    
+    // Disable scrolling on content to capture full view
+    const receiptContent = element.querySelector('.receipt-content');
+    const originalOverflow = receiptContent.style.overflow;
+    const originalHeight = receiptContent.style.height;
+    receiptContent.style.overflow = 'visible';
+    receiptContent.style.height = 'auto';
+    
+    // Ensure white background
+    const originalBgColor = receiptContent.style.backgroundColor;
+    receiptContent.style.backgroundColor = '#ffffff';
+    
+    // Give QR code time to fully render with logo
+    setTimeout(function() {
+      html2canvas(element, {
+        backgroundColor: '#ffffff',
+        scale: 3,
+        logging: false,
+        allowTaint: true,
+        useCORS: true,
+        width: 520,
+        windowHeight: 2200,
+        windowWidth: 520,
+        scrollY: 0,
+        scrollX: 0,
+        imageTimeout: 0,
+        removeContainer: false,
+        letterRendering: true
+      }).then(canvas => {
+        // Restore original styles
+        receiptContent.style.overflow = originalOverflow;
+        receiptContent.style.height = originalHeight;
+        receiptContent.style.backgroundColor = originalBgColor;
+        actionsDiv.style.display = actionsDisplay;
+        
+        // Create PDF with proper color preservation
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+          compress: false
+        });
+        
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        // Calculate image size to fit A4 with margins
+        const margin = 5;
+        const maxWidth = pageWidth - (margin * 2);
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgAspect = canvas.width / canvas.height;
+        let imgWidth = maxWidth;
+        let imgHeight = imgWidth / imgAspect;
+        
+        // If image is taller than one page, we'll need multiple pages or scale it down
+        const maxHeight = pageHeight - (margin * 2);
+        if (imgHeight > maxHeight) {
+          // Try to fit on single page by scaling
+          imgHeight = maxHeight;
+          imgWidth = imgHeight * imgAspect;
+        }
+        
+        // Center image horizontally
+        const xPos = (pageWidth - imgWidth) / 2;
+        const yPos = margin;
+        
+        // Add image to PDF with full color preservation
+        pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
+        
+        // Add footer information
+        const footerY = yPos + imgHeight + 4;
+        pdf.setFontSize(8);
+        pdf.setTextColor(107, 114, 128);
+        
+        const timestamp = new Date().toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        pdf.text(`Receipt Generated: ${timestamp}`, pageWidth / 2, footerY, { align: 'center' });
+        pdf.text('Keep this receipt for your records', pageWidth / 2, footerY + 4, { align: 'center' });
+        
+        // Save PDF
+        pdf.save(fileName);
+        
+        // Restore button state
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+      }).catch(err => {
+        // Restore original styles on error
+        receiptContent.style.overflow = originalOverflow;
+        receiptContent.style.height = originalHeight;
+        receiptContent.style.backgroundColor = originalBgColor;
+        // Restore button state on error
+        actionsDiv.style.display = actionsDisplay;
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        console.error('Error generating receipt:', err);
+        alert('Error saving receipt. Please try again.');
+      });
+    }, 1000); // Wait for logo image to fully load and render
+  }
+
+  // Close modals on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeDetailsModal();
+      closeCancelModal();
+    }
+  });
+
+  // Close modals on background click
+  document.getElementById('detailsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDetailsModal();
+  });
+
+  document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCancelModal();
+  });
+</script>
+
+{% endblock %}

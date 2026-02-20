@@ -8,30 +8,15 @@ from werkzeug.datastructures import FileStorage
 
 # ========== ALLOWED VALUES CONSTANTS ==========
 ALLOWED_BUSINESS_CATEGORIES = [
-    'Health & Wellness',
-    'Care & Handling',
-    'Personal Care & Aesthetics',
-    'Retail & Lifestyle',
-    'Support & Specialty',
+    'Pet Hotel',
+    'Pet Boarding',
+    'Pet Daycare',
 ]
 
 ALLOWED_SERVICES = [
+    'Pet Hotel',
     'Pet Boarding',
     'Pet Daycare',
-    'Pet Sitting',
-    'Pet Grooming',
-    'Pet Training',
-    'Pet Transport',
-    'Veterinary Clinic',
-    'Vaccination Services',
-    'Pet Rehabilitation',
-    'Pet Supplies Store',
-    'Pet Food & Treats',
-    'Pet Bakery',
-    'Pet Café',
-    'Pet Cremation & Memorial',
-    'Pet Photography',
-    'Pet Events',
 ]
 
 ALLOWED_PETS = [
@@ -111,21 +96,6 @@ class MerchantApplicationForm(FlaskForm):
         }
     )
 
-    years_in_operation = IntegerField(
-        'Years in Operation (Optional)',
-        validators=[
-            DataRequired(message='Please enter the number of years in operation'),
-            NumberRange(min=0, max=100, message='Please enter a valid number of years')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400',
-            'placeholder': 'e.g., 5',
-            'type': 'number',
-            'min': '0',
-            'max': '100'
-        }
-    )
-
     # ========== SECTION 2: CONTACT PERSON ==========
     owner_manager_name = StringField(
         'Owner / Manager Full Name',
@@ -156,11 +126,14 @@ class MerchantApplicationForm(FlaskForm):
         'Contact Phone',
         validators=[
             DataRequired(message='Phone number is required'),
-            Regexp(r'^\+?63\d{10}$|^09\d{9}$', message='Please provide a valid Philippine phone number (09XX-XXX-XXXX or +63...)')
+            Regexp(r'^\d{10}$', message='Phone number must be exactly 10 digits (Philippine format only)')
         ],
         render_kw={
             'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400',
-            'placeholder': 'e.g., 09XX-XXX-XXXX or +639XX-XXX-XXXX',
+            'placeholder': '9XX-XXX-XXXX (10 digits)',
+            'inputmode': 'numeric',
+            'pattern': '[0-9]{10}',
+            'maxlength': '10'
         }
     )
 
@@ -235,7 +208,7 @@ class MerchantApplicationForm(FlaskForm):
     services_offered = MultiCheckboxField(
         'Services Offered',
         choices=[(svc, svc) for svc in ALLOWED_SERVICES],
-        validators=[DataRequired(message='Please select at least one service')],
+        validators=[Optional()],
         render_kw={'class': 'space-y-2'}
     )
 
@@ -252,10 +225,16 @@ class MerchantApplicationForm(FlaskForm):
     service_pricing_json = HiddenField('Service Pricing', validators=[Optional()])
 
     # ========== SECTION 7: OPERATING SCHEDULE ==========
+    is_24h = BooleanField(
+        '24/7 Operation',
+        validators=[Optional()],
+        render_kw={'class': 'w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500'}
+    )
+
     opening_time = StringField(
         'Opening Time',
         validators=[
-            DataRequired(message='Opening time is required'),
+            Optional(),
             Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Please use HH:MM format (24-hour)')
         ],
         render_kw={
@@ -267,7 +246,7 @@ class MerchantApplicationForm(FlaskForm):
     closing_time = StringField(
         'Closing Time',
         validators=[
-            DataRequired(message='Closing time is required'),
+            Optional(),
             Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Please use HH:MM format (24-hour)')
         ],
         render_kw={
@@ -287,7 +266,7 @@ class MerchantApplicationForm(FlaskForm):
             ('Saturday', 'Saturday'),
             ('Sunday', 'Sunday'),
         ],
-        validators=[DataRequired(message='Please select at least one operating day')],
+        validators=[Optional()],
         render_kw={'class': 'space-y-2'}
     )
 
@@ -372,15 +351,12 @@ class MerchantApplicationForm(FlaskForm):
                 raise ValidationError('Maximum price must be greater than or equal to minimum price')
 
     def validate_closing_time(self, field):
-        """Ensure closing time is after opening time"""
-        if self.opening_time.data and field.data:
-            if field.data <= self.opening_time.data:
-                raise ValidationError('Closing time must be after opening time')
-
-    def validate_services_offered(self, field):
-        """Ensure at least one service is selected"""
-        if not field.data or len(field.data) == 0:
-            raise ValidationError('Please select at least one service')
+        """Ensure closing time is after opening time (only if both provided and Pet Daycare)"""
+        # Only validate for Pet Daycare if operating times are provided
+        if self.business_category.data == 'Pet Daycare':
+            if self.opening_time.data and field.data:
+                if field.data <= self.opening_time.data:
+                    raise ValidationError('Closing time must be after opening time')
 
     def validate_pets_accepted(self, field):
         """Ensure at least one pet type is selected"""
@@ -388,12 +364,21 @@ class MerchantApplicationForm(FlaskForm):
             raise ValidationError('Please select at least one pet type')
 
     def validate_operating_days(self, field):
-        """Ensure at least one operating day is selected"""
-        if not field.data or len(field.data) == 0:
-            raise ValidationError('Please select at least one operating day')
+        """Ensure operating days are selected only for Pet Daycare"""
+        # Only validate for Pet Daycare
+        if self.business_category.data == 'Pet Daycare':
+            if not field.data or len(field.data) == 0:
+                raise ValidationError('Please select at least one operating day')
 
 class MerchantStoreUpdateForm(FlaskForm):
     """Form for updating merchant store information - mirrors MerchantApplicationForm for editing"""
+
+    business_category = SelectField(
+        'Business Category',
+        choices=[(cat, cat) for cat in ALLOWED_BUSINESS_CATEGORIES],
+        validators=[DataRequired(message='Please select a business category')],
+        render_kw={'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800'}
+    )
 
     # ========== SECTION 1: BUSINESS INFORMATION ==========
     business_name = StringField(
@@ -428,22 +413,7 @@ class MerchantStoreUpdateForm(FlaskForm):
         }
     )
 
-    years_in_operation = IntegerField(
-        'Years in Operation',
-        validators=[
-            DataRequired(message='Years in operation is required'),
-            NumberRange(min=0, max=100, message='Please enter a valid number of years')
-        ],
-        render_kw={
-            'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
-            'placeholder': 'e.g., 5',
-            'type': 'number',
-            'min': '0',
-            'max': '100'
-        }
-    )
 
-    # ========== SECTION 2: CONTACT PERSON ==========
     owner_manager_name = StringField(
         'Owner / Manager Full Name',
         validators=[
@@ -473,11 +443,14 @@ class MerchantStoreUpdateForm(FlaskForm):
         'Contact Phone',
         validators=[
             DataRequired(message='Phone number is required'),
-            Regexp(r'^\+?63\d{10}$|^09\d{9}$', message='Please provide a valid Philippine phone number (09XX-XXX-XXXX or +63...)')
+            Regexp(r'^\d{10}$', message='Phone number must be exactly 10 digits (Philippine format only)')
         ],
         render_kw={
             'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm',
-            'placeholder': 'e.g., 09XX-XXX-XXXX or +639XX-XXX-XXXX',
+            'placeholder': '9XX-XXX-XXXX (10 digits)',
+            'inputmode': 'numeric',
+            'pattern': '[0-9]{10}',
+            'maxlength': '10'
         }
     )
 
@@ -552,7 +525,7 @@ class MerchantStoreUpdateForm(FlaskForm):
     services_offered = MultiCheckboxField(
         'Services Offered',
         choices=[(svc, svc) for svc in ALLOWED_SERVICES],
-        validators=[DataRequired(message='Please select at least one service')],
+        validators=[Optional()],
         render_kw={'class': 'space-y-2'}
     )
 
@@ -570,10 +543,16 @@ class MerchantStoreUpdateForm(FlaskForm):
     service_pricing_json = HiddenField('Service Pricing', validators=[Optional()])
 
     # ========== SECTION 7: OPERATING SCHEDULE ==========
+    is_24h = BooleanField(
+        '24/7 Operation',
+        validators=[Optional()],
+        render_kw={'class': 'w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500'}
+    )
+
     opening_time = StringField(
         'Opening Time',
         validators=[
-            DataRequired(message='Opening time is required'),
+            Optional(),
             Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Please use HH:MM format (24-hour)')
         ],
         render_kw={
@@ -585,7 +564,7 @@ class MerchantStoreUpdateForm(FlaskForm):
     closing_time = StringField(
         'Closing Time',
         validators=[
-            DataRequired(message='Closing time is required'),
+            Optional(),
             Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Please use HH:MM format (24-hour)')
         ],
         render_kw={
@@ -605,7 +584,7 @@ class MerchantStoreUpdateForm(FlaskForm):
             ('Saturday', 'Saturday'),
             ('Sunday', 'Sunday'),
         ],
-        validators=[DataRequired(message='Please select at least one operating day')],
+        validators=[Optional()],
         render_kw={'class': 'space-y-2'}
     )
 
@@ -672,15 +651,12 @@ class MerchantStoreUpdateForm(FlaskForm):
                 raise ValidationError('Maximum price must be greater than or equal to minimum price')
 
     def validate_closing_time(self, field):
-        """Ensure closing time is after opening time"""
-        if self.opening_time.data and field.data:
-            if field.data <= self.opening_time.data:
-                raise ValidationError('Closing time must be after opening time')
-
-    def validate_services_offered(self, field):
-        """Ensure at least one service is selected"""
-        if not field.data or len(field.data) == 0:
-            raise ValidationError('Please select at least one service')
+        """Ensure closing time is after opening time (only if both provided and Pet Daycare)"""
+        # Only validate for Pet Daycare if operating times are provided
+        if self.business_category.data == 'Pet Daycare':
+            if self.opening_time.data and field.data:
+                if field.data <= self.opening_time.data:
+                    raise ValidationError('Closing time must be after opening time')
 
     def validate_pets_accepted(self, field):
         """Ensure at least one pet type is selected"""
@@ -688,6 +664,8 @@ class MerchantStoreUpdateForm(FlaskForm):
             raise ValidationError('Please select at least one pet type')
 
     def validate_operating_days(self, field):
-        """Ensure at least one operating day is selected"""
-        if not field.data or len(field.data) == 0:
-            raise ValidationError('Please select at least one operating day')
+        """Ensure operating days are selected only for Pet Daycare"""
+        # Only validate for Pet Daycare
+        if self.business_category.data == 'Pet Daycare':
+            if not field.data or len(field.data) == 0:
+                raise ValidationError('Please select at least one operating day')

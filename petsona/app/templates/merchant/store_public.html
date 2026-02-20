@@ -4,6 +4,10 @@
 <!-- Icons Library - Font Awesome CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
+<!-- Leaflet Map Library -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
 <div class="min-h-screen bg-gradient-to-b from-white via-purple-50/20 to-white py-8 sm:py-12 lg:py-16 px-2 sm:px-3 lg:px-6">
   <div class="max-w-7xl mx-auto">
 
@@ -79,8 +83,9 @@
                     </a>
 
                     <!-- Book Now Button -->
+                    {% if current_user.is_authenticated %}
                     <a 
-                      href="#" 
+                      href="{{ url_for('merchant.book_now', merchant_id=merchant.id) }}" 
                       class="inline-flex items-center justify-center gap-1.5 
                             px-3 py-2 
                             bg-gradient-to-br from-green-500 to-green-700 
@@ -93,15 +98,21 @@
                       <i class="fas fa-calendar-check text-xs sm:text-sm"></i>
                       Book Now
                     </a>
-
-                    {% if merchant.years_in_operation %}
-                      <span class="inline-flex items-center gap-1 px-3 py-2 
-                                  bg-blue-100 text-blue-700 
-                                  text-[10px] sm:text-xs font-semibold 
-                                  rounded-lg whitespace-nowrap">
-                        <i class="fas fa-calendar text-[10px]"></i>
-                        {{ merchant.years_in_operation }} yrs
-                      </span>
+                    {% else %}
+                    <a 
+                      href="{{ url_for('auth.login') }}" 
+                      class="inline-flex items-center justify-center gap-1.5 
+                            px-3 py-2 
+                            bg-gradient-to-br from-green-500 to-green-700 
+                            hover:from-green-600 hover:to-green-800 
+                            text-white font-semibold text-xs sm:text-sm 
+                            rounded-lg shadow hover:shadow-md 
+                            transition-all duration-200 
+                            active:scale-95 whitespace-nowrap"
+                    >
+                      <i class="fas fa-calendar-check text-xs sm:text-sm"></i>
+                      Sign in to Book
+                    </a>
                     {% endif %}
 
                   </div>
@@ -148,7 +159,9 @@
                     <i class="fas fa-clock text-purple-600"></i> Hours
                   </p>
                   <p class="text-gray-900 font-semibold text-sm">
-                    {% if merchant.opening_time and merchant.closing_time %}
+                    {% if merchant.business_category and (merchant.business_category|lower == 'pet hotel' or merchant.business_category|lower == 'pet boarding') %}
+                      <span class="text-green-600 font-bold">24/7 Open</span>
+                    {% elif merchant.opening_time and merchant.closing_time %}
                       {% set open_hour = merchant.opening_time.split(':')[0]|int %}
                       {% set open_min = merchant.opening_time.split(':')[1] %}
                       {% set open_ampm = 'AM' if open_hour < 12 else 'PM' %}
@@ -192,74 +205,15 @@
               </div>
               {% endif %}
 
-              <!-- Services & Pets Grid -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-6 sm:mb-8">
-                <!-- Services Offered -->
-                {% if merchant.get_services_list() %}
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg">
-                  <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
-                    <i class="fas fa-briefcase text-purple-600"></i> Services Offered
-                  </h4>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {% for service in merchant.get_services_list() %}
-                    <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
-                      <i class="fas fa-check text-purple-600 text-sm"></i>
-                      <span class="text-gray-700 text-sm">{{ service }}</span>
-                    </div>
-                    {% endfor %}
-                  </div>
-                </div>
-                {% endif %}
-
-                <!-- Pets Accepted -->
-                {% if merchant.get_pets_list() %}
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg">
-                  <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
-                    <i class="fas fa-paw text-purple-600"></i> Pets Accepted
-                  </h4>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {% for pet in merchant.get_pets_list() %}
-                      <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
-                        <i class="fas fa-check text-purple-600 text-sm"></i>
-                        <span class="text-gray-700 text-sm">{{ pet }}</span>
-                      </div>
-                    {% endfor %}
-                  </div>
-                </div>
-                {% endif %}
-              </div>
-
-
-
-              <!-- Operating Days -->
-              {% if merchant.get_operating_days() %}
-              <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg mb-6 sm:mb-8">
-                <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
-                  <i class="fas fa-calendar-week text-purple-600"></i> Operating Days
-                </h4>
-                <div class="flex flex-wrap gap-2">
-                  {% set day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
-                  {% for day_num in merchant.get_operating_days() %}
-                    <span class="inline-flex px-3 py-1 bg-purple-100 text-purple-700 text-sm font-semibold rounded-full">
-                      {% if day_num is number %}
-                        {{ day_names[day_num] }}
-                      {% else %}
-                        {{ day_num }}
-                      {% endif %}
-                    </span>
-                  {% endfor %}
-                </div>
-              </div>
-              {% endif %}
-
-              <!-- Address & Map -->
-              <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg mb-6 sm:mb-8">
-                <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
-                  <i class="fas fa-location-dot text-orange-600"></i> Full Address
+              <!-- Full Address -->
+              <div class="bg-white/80 backdrop-blur-xl rounded-2xl p-5 sm:p-6 border border-white/60 shadow-lg hover:shadow-xl transition-all mb-8 sm:mb-12">
+                <h4 class="font-semibold text-gray-900 text-sm flex items-center gap-2 mb-3">
+                  <i class="fas fa-location-dot text-orange-600"></i>
+                  Full Address
                 </h4>
                 <div class="space-y-3">
                   <p class="text-gray-700 text-sm leading-relaxed">{{ merchant.full_address }}</p>
-                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div class="grid grid-cols-2 gap-3">
                     {% if merchant.barangay %}
                     <div>
                       <p class="text-gray-600 text-xs font-semibold uppercase mb-1">Barangay</p>
@@ -285,6 +239,24 @@
                 </div>
               </div>
 
+              <!-- Services Offered -->
+              {% if merchant.get_services_list() %}
+              <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg mb-6 sm:mb-8">
+                <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
+                  <i class="fas fa-briefcase text-purple-600"></i> Services Offered
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {% for service in merchant.get_services_list() %}
+                  <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
+                    <i class="fas fa-check text-purple-600 text-sm"></i>
+                    <span class="text-gray-700 text-sm">{{ service }}</span>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+
               <!-- Cancellation Policy -->
               {% if merchant.cancellation_policy %}
               <div class="bg-amber-50/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-amber-200/50 shadow-lg mb-6 sm:mb-8">
@@ -298,8 +270,59 @@
           </div>
         </div>
 
-        <!-- Right Sidebar (Stats & Actions) -->
+        <!-- Right Sidebar (Additional Info) -->
         <div class="lg:col-span-1 space-y-6 sm:space-y-7 animate-fade-in" style="animation-delay: 0.2s">
+
+          <!-- Pets Accepted & Operating Days Section -->
+          <div class="space-y-4">
+            <!-- Pets Accepted -->
+            {% if merchant.get_pets_list() %}
+            <div class="bg-white/70 backdrop-blur-lg rounded-2xl p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all">
+              <h4 class="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
+                <i class="fas fa-paw text-purple-600"></i> Pets Accepted
+              </h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                {% for pet in merchant.get_pets_list() %}
+                  <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
+                    <i class="fas fa-check text-purple-600 text-sm"></i>
+                    <span class="text-gray-700 text-sm truncate">{{ pet }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Operating Days -->
+            {% if merchant.get_operating_days() %}
+            <div class="bg-white/70 backdrop-blur-lg rounded-2xl p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all">
+              <h4 class="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
+                <i class="fas fa-calendar-week text-purple-600"></i> Operating Days
+              </h4>
+              <div class="flex flex-wrap gap-2">
+                {% set day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                {% for day_num in merchant.get_operating_days() %}
+                  <span class="inline-flex px-2.5 py-1.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full whitespace-nowrap">
+                    {% if day_num is number %}
+                      {{ day_names[day_num] }}
+                    {% else %}
+                      {{ day_num }}
+                    {% endif %}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Map Section -->
+          <div class="bg-white rounded-2xl p-0 border border-gray-200 shadow-lg overflow-hidden animate-fade-in">
+            <div id="storeMap" 
+                 data-lat="{{ merchant.latitude or 14.5995 }}"
+                 data-lng="{{ merchant.longitude or 120.9842 }}"
+                 data-name="{{ merchant.business_name }}"
+                 data-address="{{ merchant.full_address }}"
+                 style="height: 350px; width: 100%; border-radius: 1rem; background: #f5f5f5;"></div>
+          </div>
 
           <!-- Pricing & Capacity Section -->
           <div class="lg:col-span-1 space-y-5 sm:space-y-6 animate-fade-in" style="animation-delay: 0.2s">
@@ -319,44 +342,163 @@
 
                 {% set service_pricing = merchant.get_service_pricing() %}
                 {% if service_pricing and service_pricing|length > 0 %}
-                  <div class="space-y-3">
-                    {% for service_name, config in service_pricing.items() %}
-                      <div class="p-3 bg-purple-50/30 rounded-lg border border-purple-200/20">
-                        <p class="font-semibold text-gray-900 text-sm mb-1">{{ service_name }}</p>
+                  <div class="space-y-4">
+                    
+                    <!-- Pet Hotel Pricing -->
+                    {% if 'Pet Hotel' in service_pricing and service_pricing['Pet Hotel'] is mapping %}
+                      {% set hotel_pricing = service_pricing['Pet Hotel'] %}
+                      <div class="border-l-4 border-blue-500 pl-4 py-2">
+                        <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                          <i class="fas fa-hotel text-blue-600"></i> Pet Hotel
+                        </h5>
                         
-                        {% if config.get('type') == 'flat' %}
-                          <p class="text-purple-700 text-sm">
-                            ₱{{ config.get('min_price', 0)|int }}
-                            {% if config.get('min_price') != config.get('max_price') %}
-                              – ₱{{ config.get('max_price', 0)|int }}
-                            {% endif %}
-                            {% if config.get('unit') %}
-                              <span class="text-gray-600">(per {{ config.get('unit') }})</span>
-                            {% endif %}
-                          </p>
-                        {% elif config.get('type') == 'size' %}
-                          <div class="text-xs space-y-1 text-gray-700">
-                            {% for size, price_data in config.get('by_size', {}).items() %}
-                              <p>{{ size }}: ₱{{ price_data.get('min_price', 0)|int }}
-                                {% if price_data.get('min_price') != price_data.get('max_price') %}
-                                  – ₱{{ price_data.get('max_price', 0)|int }}
-                                {% endif %}
-                              </p>
-                            {% endfor %}
+                        <!-- Per Hour -->
+                        {% if 'hour' in hotel_pricing and hotel_pricing['hour'] is mapping %}
+                          <div class="mb-3 p-3 bg-blue-50/40 rounded-lg">
+                            <p class="text-xs font-semibold text-blue-700 mb-2">Per Hour</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                              {% for size, price in hotel_pricing['hour'].items() %}
+                                <span class="text-gray-700">
+                                  <span class="font-medium">{{ size|title }}:</span> ₱{{ price|int }}
+                                </span>
+                              {% endfor %}
+                            </div>
                           </div>
-                        {% elif config.get('type') == 'duration' %}
-                          <div class="text-xs space-y-1 text-gray-700">
-                            {% for duration, price_data in config.get('by_duration', {}).items() %}
-                              <p>{{ duration }}: ₱{{ price_data.get('min_price', 0)|int }}
-                                {% if price_data.get('min_price') != price_data.get('max_price') %}
-                                  – ₱{{ price_data.get('max_price', 0)|int }}
+                        {% endif %}
+                        
+                        <!-- Per Night -->
+                        {% if 'night' in hotel_pricing and hotel_pricing['night'] is mapping %}
+                          <div class="p-3 bg-blue-50/40 rounded-lg">
+                            <p class="text-xs font-semibold text-blue-700 mb-2">Per Night</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                              {% for size, price in hotel_pricing['night'].items() %}
+                                <span class="text-gray-700">
+                                  <span class="font-medium">{{ size|title }}:</span> ₱{{ price|int }}
+                                </span>
+                              {% endfor %}
+                            </div>
+                            {% if service_pricing.get('night_checkin_time') or service_pricing.get('night_checkout_time') %}
+                            <div class="mt-2 pt-2 border-t border-blue-200/50 text-xs">
+                              <p class="text-gray-600">
+                                {% if service_pricing.get('night_checkin_time') %}
+                                  <i class="fas fa-sign-in-alt text-blue-600 mr-1"></i> Check-in: <span data-time="{{ service_pricing.get('night_checkin_time') }}">{{ service_pricing.get('night_checkin_time') }}</span>
                                 {% endif %}
                               </p>
-                            {% endfor %}
+                              <p class="text-gray-600">
+                                {% if service_pricing.get('night_checkout_time') %}
+                                  <i class="fas fa-sign-out-alt text-blue-600 mr-1"></i> Check-out: <span data-time="{{ service_pricing.get('night_checkout_time') }}">{{ service_pricing.get('night_checkout_time') }}</span>
+                                {% endif %}
+                              </p>
+                            </div>
+                            {% endif %}
                           </div>
                         {% endif %}
                       </div>
-                    {% endfor %}
+                    {% endif %}
+                    
+                    <!-- Pet Boarding Pricing -->
+                    {% if 'Pet Boarding' in service_pricing and service_pricing['Pet Boarding'] is mapping %}
+                      {% set boarding_pricing = service_pricing['Pet Boarding'] %}
+                      <div class="border-l-4 border-indigo-500 pl-4 py-2">
+                        <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                          <i class="fas fa-door-open text-indigo-600"></i> Pet Boarding
+                        </h5>
+                        
+                        <!-- Per Hour -->
+                        {% if 'hour' in boarding_pricing and boarding_pricing['hour'] is mapping %}
+                          <div class="mb-3 p-3 bg-indigo-50/40 rounded-lg">
+                            <p class="text-xs font-semibold text-indigo-700 mb-2">Per Hour</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                              {% for size, price in boarding_pricing['hour'].items() %}
+                                <span class="text-gray-700">
+                                  <span class="font-medium">{{ size|title }}:</span> ₱{{ price|int }}
+                                </span>
+                              {% endfor %}
+                            </div>
+                          </div>
+                        {% endif %}
+                        
+                        <!-- Per Night -->
+                        {% if 'night' in boarding_pricing and boarding_pricing['night'] is mapping %}
+                          <div class="p-3 bg-indigo-50/40 rounded-lg">
+                            <p class="text-xs font-semibold text-indigo-700 mb-2">Per Night</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                              {% for size, price in boarding_pricing['night'].items() %}
+                                <span class="text-gray-700">
+                                  <span class="font-medium">{{ size|title }}:</span> ₱{{ price|int }}
+                                </span>
+                              {% endfor %}
+                            </div>
+                            {% if service_pricing.get('night_checkin_time') or service_pricing.get('night_checkout_time') %}
+                            <div class="mt-2 pt-2 border-t border-indigo-200/50 text-xs">
+                              <p class="text-gray-600">
+                                {% if service_pricing.get('night_checkin_time') %}
+                                  <i class="fas fa-sign-in-alt text-indigo-600 mr-1"></i> Check-in: <span data-time="{{ service_pricing.get('night_checkin_time') }}">{{ service_pricing.get('night_checkin_time') }}</span>
+                                {% endif %}
+                              </p>
+                              <p class="text-gray-600">
+                                {% if service_pricing.get('night_checkout_time') %}
+                                  <i class="fas fa-sign-out-alt text-indigo-600 mr-1"></i> Check-out: <span data-time="{{ service_pricing.get('night_checkout_time') }}">{{ service_pricing.get('night_checkout_time') }}</span>
+                                {% endif %}
+                              </p>
+                            </div>
+                            {% endif %}
+                          </div>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                    
+                    <!-- Pet Daycare Pricing -->
+                    {% if 'Pet Daycare' in service_pricing and service_pricing['Pet Daycare'] is mapping %}
+                      {% set daycare_pricing = service_pricing['Pet Daycare'] %}
+                      <div class="border-l-4 border-amber-500 pl-4 py-2">
+                        <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                          <i class="fas fa-sun text-amber-600"></i> Pet Daycare
+                        </h5>
+                        
+                        <!-- Full Day -->
+                        {% if 'fullday' in daycare_pricing and daycare_pricing['fullday'] is mapping %}
+                          <div class="mb-3 p-3 bg-amber-50/40 rounded-lg">
+                            <p class="text-xs font-semibold text-amber-700 mb-2">Full Day</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                              {% for size, price in daycare_pricing['fullday'].items() %}
+                                <span class="text-gray-700">
+                                  <span class="font-medium">{{ size|title }}:</span> ₱{{ price|int }}
+                                </span>
+                              {% endfor %}
+                            </div>
+                            {% if service_pricing.get('fullday_hours') %}
+                            <div class="mt-2 pt-2 border-t border-amber-200/50 text-xs">
+                              <p class="text-gray-600">
+                                <i class="fas fa-clock text-amber-600 mr-1"></i> Duration: {{ service_pricing.get('fullday_hours') }} hours
+                              </p>
+                            </div>
+                            {% endif %}
+                          </div>
+                        {% endif %}
+                        
+                        <!-- Half Day -->
+                        {% if 'halfday' in daycare_pricing and daycare_pricing['halfday'] is mapping %}
+                          <div class="p-3 bg-amber-50/40 rounded-lg">
+                            <p class="text-xs font-semibold text-amber-700 mb-2">Half Day</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                              {% for size, price in daycare_pricing['halfday'].items() %}
+                                <span class="text-gray-700">
+                                  <span class="font-medium">{{ size|title }}:</span> ₱{{ price|int }}
+                                </span>
+                              {% endfor %}
+                            </div>
+                            {% if service_pricing.get('halfday_hours') %}
+                            <div class="mt-2 pt-2 border-t border-amber-200/50 text-xs">
+                              <p class="text-gray-600">
+                                <i class="fas fa-clock text-amber-600 mr-1"></i> Duration: {{ service_pricing.get('halfday_hours') }} hours
+                              </p>
+                            </div>
+                            {% endif %}
+                          </div>
+                        {% endif %}
+                      </div>
+                    {% endif %}
                   </div>
                 {% else %}
                   <p class="text-gray-500 text-sm italic">
@@ -795,10 +937,273 @@
       height: 32px;
     }
   }
+
+  /* Leaflet Map Styles */
+  #storeMap {
+    border-radius: 1rem;
+    z-index: 10;
+    filter: none !important;
+    opacity: 1 !important;
+  }
+
+  #storeMap .leaflet-container {
+    background: #f5f5f5;
+    filter: none !important;
+  }
+
+  .leaflet-container {
+    font-family: inherit;
+    background: #f5f5f5 !important;
+    filter: none !important;
+  }
+
+  .leaflet-tile {
+    filter: none !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border: 2px solid #a855f7;
+    filter: none !important;
+  }
+
+  .leaflet-popup-tip {
+    background: #ffffff;
+    border-top: 2px solid #a855f7;
+  }
+
+  /* Store Pin Marker - Font Awesome Location Dot */
+  .store-pin-marker {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  /* Leaflet Popup Styling */
+  .leaflet-popup-content-wrapper {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 0 !important;
+    font-family: inherit !important;
+  }
 </style>
 
 <!-- Scripts -->
 <script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
-<script src="{{ url_for('static', filename='merchant/js/store.js') }}"></script>
+
+<!-- Time Conversion Function -->
+<script>
+  // Convert 24-hour time to 12-hour format
+  function convertTo12Hour(time24hr) {
+    if (!time24hr) return '';
+    var parts = time24hr.split(':');
+    var hours = parseInt(parts[0], 10);
+    var minutes = parts[1];
+    var period = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return (hours < 10 ? '0' : '') + hours + ':' + minutes + ' ' + period;
+  }
+
+  // Format all time elements on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    var timeElements = document.querySelectorAll('[data-time]');
+    timeElements.forEach(function(el) {
+      var time24 = el.getAttribute('data-time');
+      el.textContent = convertTo12Hour(time24);
+    });
+  });
+</script>
+
+<!-- Map Initialization Script -->
+<script>
+  // Store map instance globally for access across functions
+  var globalMap = null;
+  var globalMarker = null;
+  var storeLatLng = null; // Store the exact coordinates
+
+  // Calculate responsive marker size based on device
+  function getResponsiveMarkerSize() {
+    var width = window.innerWidth;
+    if (width < 480) {
+      // Mobile phone
+      return { size: 40, fontSize: 20, anchorX: 20, anchorY: 40, popupY: -50 };
+    } else if (width < 768) {
+      // Tablet
+      return { size: 45, fontSize: 22, anchorX: 22.5, anchorY: 45, popupY: -52 };
+    } else {
+      // Desktop
+      return { size: 50, fontSize: 24, anchorX: 25, anchorY: 50, popupY: -55 };
+    }
+  }
+
+  // Update marker with new responsive settings while keeping position
+  function updateMarkerResponsiveness() {
+    if (!globalMap || !globalMarker || !storeLatLng) return;
+
+    var markerConfig = getResponsiveMarkerSize();
+    
+    // Create new icon with responsive sizing
+    var newIcon = L.divIcon({
+      html: '<i class="fas fa-location-dot" style="font-size: ' + markerConfig.fontSize + 'px; color: #06c26a; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"></i>',
+      iconSize: [markerConfig.size, markerConfig.size],
+      iconAnchor: [markerConfig.anchorX, markerConfig.anchorY],
+      popupAnchor: [0, markerConfig.popupY],
+      className: 'store-pin-marker'
+    });
+    
+    // Update marker icon without changing position
+    globalMarker.setIcon(newIcon);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🗺️ Initializing store map...');
+    
+    var mapContainer = document.getElementById('storeMap');
+    if (!mapContainer) {
+      console.log('Map container not found');
+      return;
+    }
+
+    setTimeout(function() {
+      if (typeof L !== 'undefined' && mapContainer) {
+        initializeStoreMap();
+      } else {
+        console.error('Leaflet not available');
+      }
+    }, 500);
+  });
+
+  function initializeStoreMap() {
+    try {
+      console.log('🌍 Creating store map...');
+      
+      var mapElement = document.getElementById('storeMap');
+      
+      // Read data from HTML attributes and store coordinates
+      var defaultLat = parseFloat(mapElement.getAttribute('data-lat')) || 14.5995;
+      var defaultLng = parseFloat(mapElement.getAttribute('data-lng')) || 120.9842;
+      storeLatLng = L.latLng(defaultLat, defaultLng); // Store as immutable LatLng
+      
+      var storeName = mapElement.getAttribute('data-name') || 'Store';
+      var storeAddress = mapElement.getAttribute('data-address') || 'No address';
+
+      console.log('Map data - Lat:', defaultLat, 'Lng:', defaultLng);
+      console.log('Store LatLng stored:', storeLatLng);
+
+      // Create map with proper responsive settings
+      globalMap = L.map('storeMap', {
+        center: storeLatLng,
+        zoom: 15,
+        scrollWheelZoom: true,
+        dragging: true,
+        attributionControl: true,
+        zoomControl: true,
+        touchZoom: true,
+        doubleClickZoom: true
+      });
+
+      console.log('✅ Map created at:', storeLatLng);
+
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+        minZoom: 1
+      }).addTo(globalMap);
+
+      console.log('✅ Tiles loaded');
+
+      // Create a Font Awesome location dot marker icon
+      var pinMarkerIcon = L.divIcon({
+        html: '<i class="fas fa-location-dot" style="font-size: 32px; color: #06c26a; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"></i>',
+        iconSize: [32, 40],
+        iconAnchor: [16, 40],
+        popupAnchor: [0, -40],
+        className: 'store-pin-marker'
+      });
+
+      // Add pin marker at exact coordinates
+      globalMarker = L.marker(storeLatLng, {
+        icon: pinMarkerIcon,
+        zIndexOffset: 1000
+      }).addTo(globalMap);
+
+      console.log('✅ Pin marker placed at:', storeLatLng);
+
+      // Create popup content with address
+      var popupContent = '<div style="text-align: center; min-width: 200px; padding: 8px;">' +
+                         '<h4 style="margin: 0 0 6px 0; color: #111827; font-weight: 700; font-size: 13px;">' + 
+                         storeName + 
+                         '</h4>' +
+                         '<p style="margin: 0; color: #6b7280; font-size: 11px; line-height: 1.4;">' + 
+                         storeAddress + 
+                         '</p></div>';
+
+      globalMarker.bindPopup(popupContent, { 
+        closeButton: true, 
+        autoClose: false,
+        maxWidth: 250
+      });
+
+      console.log('✅ Popup bound to marker');
+
+      // Ensure map size is correct without moving marker
+      setTimeout(function() {
+        if (globalMap) {
+          globalMap.invalidateSize(false); // false = don't animate pan
+        }
+      }, 100);
+
+      // Handle window resize with debouncing
+      var resizeTimer;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+          if (globalMap) {
+            globalMap.invalidateSize(false);
+          }
+          updateMarkerResponsiveness();
+        }, 250);
+      });
+
+      // Handle orientation change (critical for mobile/tablet)
+      window.addEventListener('orientationchange', function() {
+        setTimeout(function() {
+          if (globalMap) {
+            globalMap.invalidateSize(false);
+            updateMarkerResponsiveness();
+          }
+        }, 300);
+      });
+
+      // Handle container resize using ResizeObserver
+      try {
+        var resizeObserver = new ResizeObserver(function() {
+          if (globalMap) {
+            globalMap.invalidateSize(false);
+          }
+        });
+        resizeObserver.observe(mapElement);
+      } catch (e) {
+        console.warn('ResizeObserver not supported, using fallback');
+      }
+
+      // Fix for viewport meta tag and mobile layout
+      var viewportMeta = document.querySelector('meta[name="viewport"]');
+      if (viewportMeta) {
+        viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes');
+      }
+
+      console.log('✅ Store map initialized successfully at', storeLatLng);
+
+    } catch (error) {
+      console.error('❌ Map initialization error:', error);
+    }
+  }
+</script>
 
 {% endblock %}

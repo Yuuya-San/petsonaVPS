@@ -36,3 +36,42 @@ def create_tables(db):
 
     # Connect and create tables if not exist
     db.metadata.create_all(engine)
+    
+    # Add any missing columns to existing tables
+    add_missing_columns(engine)
+
+
+def add_missing_columns(engine):
+    """
+    Adds missing columns to existing tables
+    """
+    from sqlalchemy import text
+    
+    with engine.begin() as connection:
+        # Add is_open column to merchants table if it doesn't exist
+        try:
+            connection.execute(text("""
+                ALTER TABLE merchants 
+                ADD COLUMN is_open BOOLEAN DEFAULT 1 
+                AFTER is_verified
+            """))
+            print("✅ Added is_open column to merchants table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding is_open column: {e}")
+            # else: column already exists, continue
+        
+        # Add is_24h column to merchants table if it doesn't exist
+        try:
+            connection.execute(text("""
+                ALTER TABLE merchants 
+                ADD COLUMN is_24h BOOLEAN DEFAULT 0 
+                AFTER closing_time
+            """))
+            print("✅ Added is_24h column to merchants table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding is_24h column: {e}")
+            # else: column already exists, continue
+            else:
+                print("is_open column already exists in merchants table")

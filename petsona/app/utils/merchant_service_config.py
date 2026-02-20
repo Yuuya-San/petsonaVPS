@@ -5,57 +5,17 @@ Handles service-to-category mapping and pricing structure generation
 
 # ========== BUSINESS CATEGORY TO SERVICES MAPPING ==========
 CATEGORY_TO_SERVICES = {
-    'Health & Wellness': [
-        'Veterinary Clinic',
-        'Vaccination Services',
-        'Pet Rehabilitation',
-    ],
-    'Care & Handling': [
-        'Pet Boarding',
-        'Pet Daycare',
-        'Pet Sitting',
-        'Pet Training',
-        'Pet Transport',
-    ],
-    'Personal Care & Aesthetics': [
-        'Pet Grooming',
-        'Pet Photography',
-    ],
-    'Support & Specialty': [
-        'Pet Events',
-        'Pet Cremation & Memorial',
-    ],
-    'Retail & Lifestyle': [
-        'Pet Supplies Store',
-        'Pet Food & Treats',
-        'Pet Bakery',
-        'Pet Café',
-    ],
+    'Pet Hotel': ['Pet Hotel'],
+    'Pet Boarding': ['Pet Boarding'],
+    'Pet Daycare': ['Pet Daycare'],
 }
 
 # ========== SERVICE PRICING TYPES ==========
 SERVICE_PRICING_TYPES = {
-    # Flat-rate services (no size/duration dependency)
-    'Veterinary Clinic': 'flat',
-    'Vaccination Services': 'flat',
-    'Pet Rehabilitation': 'flat',
-    'Pet Training': 'flat',
-    'Pet Events': 'flat',
-    'Pet Cremation & Memorial': 'flat',
-    'Pet Photography': 'flat',
-    'Pet Supplies Store': 'flat',
-    'Pet Food & Treats': 'flat',
-    'Pet Bakery': 'flat',
-    'Pet Café': 'flat',
-    
-    # Size-dependent services
-    'Pet Grooming': 'size',
-    'Pet Transport': 'size',
-    
-    # Duration-dependent services (with optional size)
+    # Duration+Size services (pricing varies by duration and pet size)
+    'Pet Hotel': 'duration+size',
     'Pet Boarding': 'duration+size',
     'Pet Daycare': 'duration+size',
-    'Pet Sitting': 'duration',
 }
 
 # ========== PET SIZE TIERS ==========

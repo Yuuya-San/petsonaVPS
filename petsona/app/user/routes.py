@@ -7,8 +7,22 @@ from app import db
 from app.extensions import csrf
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from flask import Blueprint, request, jsonify
+from datetime import datetime, timedelta
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 import math
 import sys
+import os
+import logging
+import requests
+
+logger = logging.getLogger(__name__)
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -44,7 +58,7 @@ def dashboard():
     ).order_by(Breed.heart_vote_count.desc()).limit(8).all()
     
     # Get recently added species (last 7 days)
-    week_ago = datetime.utcnow() - timedelta(days=7)
+    week_ago = get_ph_datetime() - timedelta(days=7)
     recent_species = Species.query.filter(
         Species.deleted_at.is_(None),
         Species.created_at >= week_ago
@@ -216,7 +230,7 @@ def get_nearby_merchants():
             is_open = False
             if merchant.opening_time and merchant.closing_time and merchant.operating_days:
                 from datetime import datetime, time
-                now = datetime.now()
+                now = datetime.now()  # Use local time for business hours
                 current_day = now.weekday()  # 0=Monday, 6=Sunday
                 current_time = now.time()
                 
@@ -225,9 +239,27 @@ def get_nearby_merchants():
                 if current_day in operating_days:
                     # Check if current time is within operating hours
                     try:
-                        opening = datetime.strptime(merchant.opening_time, '%H:%M').time() if isinstance(merchant.opening_time, str) else merchant.opening_time
-                        closing = datetime.strptime(merchant.closing_time, '%H:%M').time() if isinstance(merchant.closing_time, str) else merchant.closing_time
-                        is_open = opening <= current_time < closing
+                        # Convert opening time string, handling 24:00 case
+                        opening_str = merchant.opening_time if isinstance(merchant.opening_time, str) else str(merchant.opening_time)
+                        if opening_str == '24:00':
+                            opening = datetime.strptime('00:00', '%H:%M').time()
+                        else:
+                            opening = datetime.strptime(opening_str, '%H:%M').time()
+                        
+                        # Convert closing time string, handling 24:00 case
+                        closing_str = merchant.closing_time if isinstance(merchant.closing_time, str) else str(merchant.closing_time)
+                        if closing_str == '24:00':
+                            closing = datetime.strptime('00:00', '%H:%M').time()
+                        else:
+                            closing = datetime.strptime(closing_str, '%H:%M').time()
+                        
+                        # Handle stores that close at midnight or after
+                        if closing > opening:
+                            # Normal case: opening before closing (e.g., 9 AM - 6 PM)
+                            is_open = opening <= current_time <= closing
+                        else:
+                            # Crosses midnight (e.g., 10 PM - 6 AM or 8 AM - 12 AM)
+                            is_open = current_time >= opening or current_time <= closing
                     except (ValueError, TypeError):
                         is_open = False
             
@@ -241,52 +273,17 @@ def get_nearby_merchants():
             service_pricing = merchant.get_service_pricing()
             
             if service_pricing:
-                for service_name, config in service_pricing.items():
-                    if isinstance(config, dict):
-                        # Handle different pricing types
-                        if config.get('type') == 'flat':
-                            min_p = config.get('min_price', 0)
-                            max_p = config.get('max_price', 0)
-                            if min_p > 0:
-                                min_price = min(min_price, min_p)
-                            if max_p > 0:
-                                max_price = max(max_price, max_p)
-                        
-                        elif config.get('type') == 'size':
-                            by_size = config.get('by_size', {})
-                            for size_data in by_size.values():
-                                if isinstance(size_data, dict):
-                                    min_p = size_data.get('min_price', 0)
-                                    max_p = size_data.get('max_price', 0)
-                                    if min_p > 0:
-                                        min_price = min(min_price, min_p)
-                                    if max_p > 0:
-                                        max_price = max(max_price, max_p)
-                        
-                        elif config.get('type') == 'duration':
-                            by_duration = config.get('by_duration', {})
-                            for duration_data in by_duration.values():
-                                if isinstance(duration_data, dict):
-                                    min_p = duration_data.get('min_price', 0)
-                                    max_p = duration_data.get('max_price', 0)
-                                    if min_p > 0:
-                                        min_price = min(min_price, min_p)
-                                    if max_p > 0:
-                                        max_price = max(max_price, max_p)
-                        
-                        elif config.get('type') == 'duration+size':
-                            by_duration_size = config.get('by_duration_and_size', {})
-                            for duration_data in by_duration_size.values():
-                                if isinstance(duration_data, dict):
-                                    by_size = duration_data.get('by_size', {})
-                                    for size_data in by_size.values():
-                                        if isinstance(size_data, dict):
-                                            min_p = size_data.get('min_price', 0)
-                                            max_p = size_data.get('max_price', 0)
-                                            if min_p > 0:
-                                                min_price = min(min_price, min_p)
-                                            if max_p > 0:
-                                                max_price = max(max_price, max_p)
+                # Handle new nested structure: service -> duration -> size -> price
+                for service_name, service_data in service_pricing.items():
+                    if isinstance(service_data, dict):
+                        # Check for new nested structure (duration -> size -> price)
+                        for duration_key, duration_data in service_data.items():
+                            if isinstance(duration_data, dict):
+                                # Could be size->price or other structure
+                                for size_or_key, value in duration_data.items():
+                                    if isinstance(value, (int, float)) and value > 0:
+                                        min_price = min(min_price, value)
+                                        max_price = max(max_price, value)
             
             # Reset to 0 if no prices found
             if min_price == 999999:
@@ -314,7 +311,8 @@ def get_nearby_merchants():
                 'response_time': '2h',
                 'completion_rate': 90,
                 'latitude': float(merchant.latitude),
-                'longitude': float(merchant.longitude)
+                'longitude': float(merchant.longitude),
+                'service_pricing': service_pricing or {}
             }
             nearby_list.append(merchant_data)
         
@@ -343,3 +341,226 @@ def get_nearby_merchants():
             'error': str(e),
             'merchants': []
         }), 500
+
+
+@bp.route('/api/location/reverse-geocode', methods=['POST'])
+@csrf.exempt
+def reverse_geocode():
+    """Reverse geocode coordinates to get human-readable location"""
+    try:
+        data = request.get_json() or {}
+        
+        lat = data.get('latitude')
+        lon = data.get('longitude')
+        
+        if lat is None or lon is None:
+            return jsonify({
+                'success': False,
+                'error': 'Missing latitude or longitude'
+            }), 400
+        
+        # Call Nominatim API from backend to avoid CORS issues
+        nominatim_url = f'https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json&addressdetails=1&zoom=10&limit=1'
+        
+        response = requests.get(nominatim_url, timeout=5, headers={
+            'User-Agent': 'Petsona-App'
+        })
+        
+        if response.status_code != 200:
+            return jsonify({
+                'success': False,
+                'locationText': 'Your Location'
+            }), 200
+        
+        data = response.json()
+        address = data.get('address', {})
+        
+        # Build human-readable location - prioritize different address parts
+        location_parts = []
+        
+        # For Philippines: barangay, city, province/region
+        barangay = address.get('suburb') or address.get('hamlet') or address.get('neighbourhood') or address.get('village') or ''
+        city = address.get('city') or address.get('town') or address.get('municipal_city') or ''
+        province = address.get('state') or address.get('province') or address.get('region') or ''
+        country = address.get('country') or ''
+        
+        # Build location string prioritizing the most relevant parts
+        if barangay and barangay.strip():
+            location_parts.append(barangay.strip())
+        if city and city != barangay and city.strip():
+            location_parts.append(city.strip())
+        if province and province != city and province != barangay and province.strip():
+            location_parts.append(province.strip())
+        
+        if location_parts:
+            location_text = ', '.join(location_parts)
+        elif city:
+            location_text = city
+        elif province:
+            location_text = province
+        else:
+            location_text = country or 'Your Location'
+        
+        return jsonify({
+            'success': True,
+            'locationText': location_text
+        }), 200
+        
+    except requests.Timeout:
+        return jsonify({
+            'success': False,
+            'locationText': 'Your Location'
+        }), 200
+    except Exception as e:
+        print(f"[ERROR] reverse_geocode: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'locationText': 'Your Location'
+        }), 200
+
+
+# ========== BOOKING ROUTES ==========
+
+@bp.route('/bookings')
+@login_required
+@user_required
+def my_bookings():
+    """Display user's bookings"""
+    from app.models.booking import Booking
+    from app.utils.qr_generator import qr_generator
+    
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', 'all')
+    
+    query = Booking.query.filter_by(user_id=current_user.id, deleted_at=None)
+    
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+    
+    bookings = query.order_by(Booking.created_at.desc()).paginate(
+        page=page, per_page=10, error_out=False
+    )
+    
+    # Generate QR codes for each booking
+    # Generate QR codes for each booking
+    bookings_with_qr = []
+    for booking in bookings.items:
+        qr_url = qr_generator.generate_booking_qr(
+            booking_id=booking.id,
+            booking_number=booking.booking_number,
+            confirmation_code=booking.confirmation_code,
+            merchant_name=booking.merchant.business_name if booking.merchant else 'Unknown',
+            appointment_date=booking.appointment_date.strftime('%b %d, %Y'),
+            appointment_time=booking.appointment_time
+        )
+        booking.qr_code_url = qr_url
+        bookings_with_qr.append(booking)
+    
+    bookings.items = bookings_with_qr
+    
+    return render_template('user/my_bookings.html', 
+                         bookings=bookings,
+                         status_filter=status_filter)
+
+
+@bp.route('/booking/<int:booking_id>')
+@login_required
+@user_required
+def booking_details(booking_id):
+    """Display booking details"""
+    from app.models.booking import Booking
+    
+    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
+    
+    if not booking:
+        flash('Booking not found.', 'danger')
+        return redirect(url_for('user.my_bookings'))
+    
+    return render_template('user/booking_details.html', booking=booking)
+
+
+@bp.route('/booking/<int:booking_id>/receipt')
+@login_required
+@user_required
+def booking_receipt(booking_id):
+    """Display booking receipt as digital receipt (can be printed/saved as PNG or PDF)"""
+    from app.models.booking import Booking
+    from app.utils.qr_generator import qr_generator
+    
+    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
+    
+    if not booking:
+        abort(404)
+    
+    # Generate QR code for receipt
+    qr_url = qr_generator.generate_booking_qr(
+        booking_id=booking.id,
+        booking_number=booking.booking_number,
+        confirmation_code=booking.confirmation_code,
+        merchant_name=booking.merchant.business_name if booking.merchant else 'Unknown',
+        appointment_date=booking.appointment_date.strftime('%b %d, %Y'),
+        appointment_time=booking.appointment_time
+    )
+    booking.qr_code_url = qr_url
+    
+    return render_template('user/receipt.html', booking=booking)
+
+
+@bp.route('/booking/<int:booking_id>/cancel', methods=['POST'])
+@login_required
+@user_required
+def cancel_booking(booking_id):
+    """Cancel a booking"""
+    from app.models.booking import Booking
+    from app.models.audit_log import AuditLog
+    from datetime import datetime
+    
+    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
+    
+    if not booking:
+        flash('Booking not found.', 'danger')
+        return redirect(url_for('user.my_bookings'))
+    
+    if not booking.can_be_cancelled:
+        flash('This booking cannot be cancelled.', 'danger')
+        return redirect(url_for('user.booking_details', booking_id=booking_id))
+    
+    try:
+        cancellation_reason = request.form.get('cancellation_reason', '').strip()
+        
+        booking.status = 'cancelled'
+        booking.cancellation_date = get_ph_datetime()
+        booking.cancellation_reason = cancellation_reason
+        
+        # Calculate refund based on when booking was cancelled
+        booking.calculate_refund(cancellation_policy_percentage=50)
+        booking.refund_status = 'completed'
+        booking.refund_date = get_ph_datetime()
+        
+        db.session.commit()
+        
+        # Log the action
+        audit_log = AuditLog(
+            event='booking_cancelled_by_customer',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
+        )
+        audit_log.set_details({
+            'booking_id': booking.id,
+            'booking_number': booking.booking_number,
+            'refund_amount': booking.refund_amount
+        })
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        flash('Booking cancelled successfully! A refund has been processed.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error cancelling booking: {str(e)}', 'danger')
+    
+    return redirect(url_for('user.booking_details', booking_id=booking_id))

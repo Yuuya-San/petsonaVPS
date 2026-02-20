@@ -1,7 +1,12 @@
 from pytz import timezone, UTC # pyright: ignore[reportMissingModuleSource]
 from datetime import datetime
+import pytz
 
 PH_TZ = timezone("Asia/Manila")  # Philippine timezone
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 def format_activity(log):
     """
@@ -55,7 +60,7 @@ def format_activity(log):
         color = "#6c757d"  # gray for unknown
 
     # Handle timestamp: convert to PH time
-    ts = log.timestamp or datetime.utcnow()
+    ts = log.timestamp or get_ph_datetime()
     if ts.tzinfo is None:
         ts = UTC.localize(ts)
     ts_ph = ts.astimezone(PH_TZ)

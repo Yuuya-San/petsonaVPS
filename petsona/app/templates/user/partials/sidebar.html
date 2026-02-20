@@ -42,6 +42,14 @@
           </a>
         </li>
 
+        <!-- My Bookings -->
+        <li class="nav-item">
+          <a href="{{ url_for('user.my_bookings') }}" class="nav-link {% if request.endpoint == 'user.my_bookings' %}active{% endif %}">
+            <i class="nav-icon fas fa-shopping-cart"></i>
+            <p>My Bookings</p>
+          </a>
+        </li>
+
         <!-- Become a Partner -->
         <li class="nav-item">
           <a href="{{ url_for('merchant.apply') }}" class="nav-link {% if request.endpoint == 'merchant.apply' %}active{% endif %}">

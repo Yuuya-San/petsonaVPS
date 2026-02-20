@@ -9,6 +9,14 @@ from ..models import User, AuditLog
 from ..extensions import db
 from datetime import datetime
 from app.utils.audit import log_event
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 # Allowed file extensions for uploads
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -48,7 +56,7 @@ def log_audit(event: str, actor=None, request_obj=None, metadata: dict = None):
         actor_email=actor.email if actor else None,
         ip_address=ip_address,
         user_agent=user_agent,
-        timestamp=datetime.utcnow()
+        timestamp=get_ph_datetime()
     )
     
     if metadata:

@@ -7,6 +7,10 @@ from app.utils.security import encrypt_message, decrypt_message
 # Philippine timezone
 PH_TZ = pytz.timezone('Asia/Manila')
 
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
+
 
 class Message(db.Model):
     __tablename__ = "messages"
@@ -68,7 +72,7 @@ class Message(db.Model):
         """Mark message as read."""
         if not self.is_read:
             self.is_read = True
-            self.read_at = datetime.utcnow()
+            self.read_at = get_ph_datetime()
             db.session.commit()
     
     def mark_as_delivered(self):

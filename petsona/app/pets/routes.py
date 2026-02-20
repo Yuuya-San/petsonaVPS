@@ -14,6 +14,14 @@ from . import bp
 from app.utils.icons import get_species_icon
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from app.decorators import admin_required, user_required, merchant_required
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 
@@ -143,7 +151,7 @@ def save_species():
 @admin_required
 def delete_species(id):
     species = Species.query.get_or_404(id)
-    species.deleted_at = datetime.utcnow()
+    species.deleted_at = get_ph_datetime()
     db.session.commit()
 
     log_event(

@@ -5,6 +5,9 @@
 %}
 
 {% block content %}
+<!-- CSRF Token Meta Tag -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <!-- Messaging Module CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='messages/css/messaging.css') }}">
 
@@ -229,39 +232,17 @@
             </div>
           </div>
           
-          <!-- File preview -->
-          <div id="file-preview-container" class="file-preview-container hidden">
-            <div class="preview-wrapper">
-              <div class="file-preview-item">
-                <div class="file-icon">
-                  <i id="file-preview-icon" class="fas fa-file"></i>
-                </div>
-                <div class="file-info">
-                  <div class="file-name" id="file-preview-name">File name</div>
-                  <div class="file-size" id="file-preview-size">0 KB</div>
-                </div>
-              </div>
-              <button type="button" id="remove-file-preview" class="remove-preview-btn" title="Remove file">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
+
         </div>
 
         <div class="message-input-wrapper">
-          <!-- File upload inputs (hidden) -->
-          <input type="file" id="file-upload" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar" style="display: none;">
+          <!-- Photo upload input (hidden) -->
           <input type="file" id="photo-upload" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
           
-          <!-- Attachment buttons -->
-          <div class="flex gap-2">
-            <button type="button" id="photo-btn" class="text-purple-600 hover:text-purple-700 text-lg transition p-2" title="Send photo">
-              <i class="fas fa-image"></i>
-            </button>
-            <button type="button" id="file-btn" class="text-purple-600 hover:text-purple-700 text-lg transition p-2" title="Send file">
-              <i class="fas fa-paperclip"></i>
-            </button>
-          </div>
+          <!-- Photo upload button -->
+          <button type="button" id="photo-btn" class="text-purple-600 hover:text-purple-700 text-lg transition p-2" title="Send photo">
+            <i class="fas fa-image"></i>
+          </button>
           
           <textarea class="message-textarea" 
                     placeholder="Type a message..." 

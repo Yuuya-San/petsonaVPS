@@ -4,6 +4,14 @@ from app.models.user import User
 from app.extensions import db
 from flask import current_app
 from datetime import datetime, timedelta
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 def get_or_create_conversation(user1_id, user2_id):
@@ -49,7 +57,7 @@ def create_message(conversation_id, sender_id, receiver_id, content):
         conversation = Conversation.query.get(conversation_id)
         if conversation:
             conversation.last_message_id = message.id
-            conversation.updated_at = datetime.utcnow()
+            conversation.updated_at = get_ph_datetime()
         
         db.session.commit()
         return message
@@ -135,7 +143,7 @@ def mark_conversation_messages_as_read(conversation_id, user_id):
         
         for message in messages:
             message.is_read = True
-            message.read_at = datetime.utcnow()
+            message.read_at = get_ph_datetime()
         
         db.session.commit()
         return len(messages)
@@ -298,7 +306,7 @@ def format_time_ago(dt):
     if not dt:
         return "Unknown"
     
-    now = datetime.utcnow()
+    now = get_ph_datetime()
     diff = now - dt
     
     seconds = diff.total_seconds()

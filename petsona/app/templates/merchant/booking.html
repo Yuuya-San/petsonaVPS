@@ -1,654 +1,425 @@
 {% extends "user/base.html" %}
 
 {% block content %}
-<!-- Icons Library - Font Awesome CDN -->
+<!-- Font Awesome for Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
-<!-- Leaflet Map Library -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-
-<!-- Global Loader -->
-<div id="loader-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden z-50 flex items-center justify-center">
-  <div class="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl max-w-sm mx-4 animate-fade-in border border-white/20">
-    <div class="flex flex-col items-center gap-4">
-      <div class="relative w-16 h-16">
-        <div class="text-4xl animate-bounce">🐾</div>
-        <div class="absolute inset-0 border-4 border-transparent border-t-purple-400 rounded-full animate-spin"></div>
-      </div>
-      <div class="text-center">
-        <p class="text-gray-700 font-semibold mb-3">Processing your booking</p>
-        <div class="w-48 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div id="progressBar" class="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all duration-300" style="width: 0%"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="min-h-screen bg-gradient-to-b from-white via-purple-50/20 to-white py-8 sm:py-12 lg:py-16 px-2 sm:px-3 lg:px-6">
-  <div class="max-w-7xl mx-auto">
+<div class="min-h-screen bg-gradient-to-b from-white via-purple-50/20 to-white py-6 sm:py-8 px-3 sm:px-4 lg:px-6">
+  <div class="w-full max-w-7xl mx-auto">
     
-    <!-- Page Header with Back Button -->
-    <div class="mb-8 sm:mb-10 lg:mb-12 animate-fade-in flex items-center gap-4">
-      <a href="javascript:history.back()" class="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/70 backdrop-blur-lg border border-white/60 hover:shadow-lg transition-all hover:bg-white/90">
-        <i class="fas fa-arrow-left text-gray-700 text-lg"></i>
+    <!-- Back Navigation -->
+    <div class="mb-6">
+      <a href="{{ url_for('merchant.store_public', merchant_id=merchant.id) }}" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold">
+        <i class="fas fa-arrow-left"></i>
+        Back to Store
       </a>
-      <div>
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Book a Service</h1>
-        <p class="text-gray-600 text-sm sm:text-base mt-1">Fast, easy, and convenient</p>
+    </div>
+
+    <!-- Page Header with Business Category -->
+    <div class="mb-12 relative">
+      <!-- Decorative background element -->
+      <div class="absolute -top-4 -right-4 w-32 h-32 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-10 blur-3xl"></div>
+      
+      <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-3 flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl text-white shadow-lg animate-bounce">
+          <i class="fas fa-calendar-check"></i>
+        </span>
+        Complete Your Booking
+      </h1>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-4">
+        <p class="text-gray-700 text-lg">Reserve services at <span class="font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{{ merchant.business_name }}</span></p>
+        <span class="hidden sm:inline text-gray-300">•</span>
+        <span class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 font-bold rounded-full text-sm border-2 border-purple-300 shadow-md">
+          <i class="fas fa-store text-purple-600"></i>
+          {{ merchant.business_category }}
+        </span>
       </div>
     </div>
 
-    {% if merchant %}
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-8">
-        
-        <!-- Main Content (Left Column) -->
-        <div class="lg:col-span-2 space-y-6 sm:space-y-7">
-          
-          <!-- Merchant Info Card -->
-          <div class="group bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 hover:shadow-2xl transition-all duration-300 animate-fade-in" style="animation-delay: 0.1s">
-            <!-- Banner Background -->
-            <div class="h-32 sm:h-40 bg-gradient-to-br from-purple-100 via-purple-50 to-pink-100 relative overflow-hidden">
-              <div class="absolute inset-0 opacity-10">
-                <svg class="w-full h-full" viewBox="0 0 1200 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0,100 Q300,50 600,100 T1200,100 L1200,0 L0,0 Z" fill="currentColor"/>
-                </svg>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+      
+      <!-- Main Content (Left) -->
+      <div class="lg:col-span-2 space-y-4 sm:space-y-5 lg:space-y-6">
+
+        <!-- Step Indicator -->
+        <div class="flex items-center justify-between mb-6 sm:mb-8 px-2 py-6 bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-2xl border border-purple-200/50">
+          <div class="flex items-center w-full gap-4 sm:gap-0">
+            <!-- Step 1 -->
+            <div class="flex flex-col items-center flex-1">
+              <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-full font-bold text-sm shadow-lg border-4 border-white">
+                <span class="relative z-10">1</span>
+                <div class="absolute inset-0 bg-purple-500 rounded-full animate-pulse opacity-20"></div>
               </div>
+              <span class="text-xs font-semibold text-purple-700 mt-2 text-center">Your Info</span>
             </div>
+
+            <!-- Line 1 -->
+            <div class="flex-1 mx-2 h-1 bg-gradient-to-r from-purple-300 to-purple-100 rounded-full relative overflow-hidden">
+              <div class="absolute h-full w-full bg-gradient-to-r from-purple-600 to-transparent animate-pulse"></div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flex flex-col items-center flex-1">
+              <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-200 to-purple-100 text-purple-600 rounded-full font-bold text-sm border-4 border-white shadow-md hover:from-purple-300 hover:to-purple-200 transition-all">
+                <span>2</span>
+              </div>
+              <span class="text-xs font-semibold text-gray-600 mt-2 text-center">Pet Details</span>
+            </div>
+
+            <!-- Line 2 -->
+            <div class="flex-1 mx-2 h-1 bg-gradient-to-r from-purple-100 to-purple-100 rounded-full"></div>
+
+            <!-- Step 3 -->
+            <div class="flex flex-col items-center flex-1">
+              <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-200 to-purple-100 text-purple-600 rounded-full font-bold text-sm border-4 border-white shadow-md hover:from-purple-300 hover:to-purple-200 transition-all">
+                <span>3</span>
+              </div>
+              <span class="text-xs font-semibold text-gray-600 mt-2 text-center">Confirm</span>
+            </div>
+          </div>
+        </div>
+
+        <form id="bookingForm" method="POST" action="{{ url_for('merchant.customer_create_booking', merchant_id=merchant.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="merchant_id" value="{{ merchant.id }}">
+          <input type="hidden" name="total_pets" id="total_pets" value="1">
+          <input type="hidden" name="price_breakdown" id="price_breakdown" value="{}">
+
+          <!-- Section 1: Booker Information (Pre-filled) -->
+          <div class="bg-white rounded-2xl shadow-md p-4 sm:p-5 lg:p-6 border border-gray-200 mb-5 sm:mb-6 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center gap-3 mb-5">
+              <span class="inline-flex items-center justify-center w-9 h-9 bg-purple-600 text-white rounded-lg">
+                <i class="fas fa-user text-sm"></i>
+              </span>
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Your Information</h2>
+            </div>
+            <p class="text-gray-600 text-sm mb-5 leading-relaxed">This information will be used for your booking confirmation</p>
             
-            <!-- Content Section -->
-            <div class="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
-              <!-- Logo & Header -->
-              <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-20 sm:-mt-24 mb-6 sm:mb-8 relative z-10">
-                <!-- Store Logo -->
-                <div class="relative">
-                  {% if merchant.logo_path %}
-                    <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-white shadow-lg border-4 border-white">
-                      <img src="/static/uploads/{{ merchant.logo_path }}" alt="{{ merchant.business_name }}" class="w-full h-full object-cover">
-                    </div>
-                  {% else %}
-                    <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white shadow-lg border-4 border-white">
-                      <i class="fas fa-store text-5xl opacity-50"></i>
-                    </div>
-                  {% endif %}
-                </div>
-
-                <!-- Store Info -->
-                <div class="flex-1">
-                  <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {{ merchant.business_name }}
-                  </h2>
-                  <p class="text-gray-600 text-sm sm:text-base mt-1">
-                    {{ merchant.business_category }}
-                  </p>
-                  
-                  <!-- Quick Info Row -->
-                  <div class="flex flex-wrap items-center gap-3 mt-3">
-                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 text-xs sm:text-sm font-semibold rounded-full">
-                      <i class="fas fa-phone text-xs"></i>
-                      {{ merchant.contact_phone }}
-                    </span>
-                    {% if merchant.is_verified %}
-                      <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-semibold rounded-full">
-                        <i class="fas fa-check-circle text-xs"></i>
-                        Verified
-                      </span>
-                    {% endif %}
-                  </div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm\">Full Name</label>
+                <input type="text" name="customer_name" id="customer_name" 
+                       value="{{ current_user.first_name }} {{ current_user.last_name }}"
+                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm\"
+                       readonly>
+                <small class="text-gray-500 text-xs mt-1 block\">Auto-filled</small>
               </div>
-
-              <!-- Quick Info Grid -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-6">
-                <!-- Operating Hours -->
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/70 hover:shadow-xl transition-all">
-                  <p class="text-gray-600 text-xs font-semibold uppercase mb-2 flex items-center gap-2">
-                    <i class="fas fa-clock text-purple-600"></i> Hours
-                  </p>
-                  <p class="text-gray-900 font-semibold text-sm">
-                    {% if merchant.opening_time and merchant.closing_time %}
-                      {% set open_hour = merchant.opening_time.split(':')[0]|int %}
-                      {% set open_min = merchant.opening_time.split(':')[1] %}
-                      {% set open_ampm = 'AM' if open_hour < 12 else 'PM' %}
-                      {% set open_display = open_hour if open_hour <= 12 else open_hour - 12 %}
-                      {% if open_display == 0 %}{% set open_display = 12 %}{% endif %}
-                      {% set close_hour = merchant.closing_time.split(':')[0]|int %}
-                      {% set close_min = merchant.closing_time.split(':')[1] %}
-                      {% set close_ampm = 'AM' if close_hour < 12 else 'PM' %}
-                      {% set close_display = close_hour if close_hour <= 12 else close_hour - 12 %}
-                      {% if close_display == 0 %}{% set close_display = 12 %}{% endif %}
-                      {{ open_display }}:{{ open_min }} {{ open_ampm }} - {{ close_display }}:{{ close_min }} {{ close_ampm }}
-                    {% else %}
-                      N/A
-                    {% endif %}
-                  </p>
-                </div>
-
-                <!-- Max Capacity -->
-                {% if merchant.max_pets_per_day %}
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/70 hover:shadow-xl transition-all">
-                  <p class="text-gray-600 text-xs font-semibold uppercase mb-2 flex items-center gap-2">
-                    <i class="fas fa-users text-blue-600"></i> Max Pets/Day
-                  </p>
-                  <p class="text-gray-900 font-semibold text-sm">{{ merchant.max_pets_per_day }} pets</p>
-                </div>
-                {% endif %}
-
-                <!-- Price Range -->
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/70 hover:shadow-xl transition-all">
-                  <p class="text-gray-600 text-xs font-semibold uppercase mb-2 flex items-center gap-2">
-                    <i class="fas fa-tag text-green-600"></i> Price Range
-                  </p>
-                  <p class="text-gray-900 font-semibold text-sm">
-                    {% if merchant.min_price and merchant.max_price %}
-                      ₱{{ "%.2f"|format(merchant.min_price) }} - ₱{{ "%.2f"|format(merchant.max_price) }}
-                    {% else %}
-                      Contact store
-                    {% endif %}
-                  </p>
-                </div>
+              <div>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm\">Email Address</label>
+                <input type="email" name="customer_email" id="customer_email" 
+                       value="{{ current_user.email }}"
+                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm\"
+                       readonly>
+                <small class="text-gray-500 text-xs mt-1 block\">Auto-filled</small>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-gray-700 font-semibold mb-2 text-sm\">Phone Number <span class="text-red-500\">*</span></label>
+                <input type="tel" name="customer_phone" id="customer_phone" 
+                       placeholder="Enter your phone number"
+                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm\"
+                       required>
+                <small class="text-gray-500 text-xs mt-1 block\">Required for confirmation</small>
               </div>
             </div>
           </div>
 
-          <!-- Services & Pets Info -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-            <!-- Services Offered -->
-            {% if merchant.get_services_list() %}
-            <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all">
-              <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
-                <i class="fas fa-briefcase text-purple-600"></i> Available Services
-              </h4>
-              <div class="space-y-2">
-                {% for service in merchant.get_services_list() %}
-                <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
-                  <i class="fas fa-check text-purple-600 text-sm"></i>
-                  <span class="text-gray-700 text-sm">{{ service }}</span>
-                </div>
-                {% endfor %}
-              </div>
+          <!-- Section 2: Pet Information & Services -->
+          <div class="bg-white rounded-2xl shadow-md p-4 sm:p-5 lg:p-6 border border-gray-200 mb-5 sm:mb-6 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center gap-3 mb-5">
+              <span class="inline-flex items-center justify-center w-9 h-9 bg-purple-600 text-white rounded-lg">
+                <i class="fas fa-paw text-sm"></i>
+              </span>
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Pet Information</h2>
             </div>
-            {% endif %}
+            <p class="text-gray-600 text-sm mb-5 leading-relaxed">Tell us about your pet(s). Each pet's details help us calculate the correct pricing.</p>
 
-            <!-- Pets Accepted -->
-            {% if merchant.get_pets_list() %}
-            <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all">
-              <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
-                <i class="fas fa-paw text-purple-600"></i> Pets Accepted
-              </h4>
-              <div class="space-y-2">
-                {% for pet in merchant.get_pets_list() %}
-                <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
-                  <i class="fas fa-check text-purple-600 text-sm"></i>
-                  <span class="text-gray-700 text-sm">{{ pet }}</span>
+            <!-- Multiple Pets Container -->
+            <div id="petsContainer" class="space-y-4 sm:space-y-5 lg:space-y-6 mb-6 sm:mb-8">
+              <!-- Pet Form Template (Pet #1) -->
+              <div class="petForm p-4 sm:p-5 bg-white border border-gray-200 rounded-xl relative transition-all duration-200 hover:border-purple-300 hover:shadow-sm w-full" data-pet-index="0">
+                <div class="absolute top-4 right-4">
+                  <span class="pet-number inline-flex items-center gap-2 text-xs font-bold text-purple-600 bg-gradient-to-r from-purple-100 to-purple-50 px-3 py-1 rounded-full border border-purple-200">
+                    <i class="fas fa-paw"></i>Pet #1
+                  </span>
                 </div>
-                {% endfor %}
+                <h3 class="text-lg font-bold text-gray-900 mb-4 sm:mb-6 pr-24"><i class="fas fa-paw text-purple-600 mr-2"></i>Pet Details</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <!-- Pet Name -->
+                  <div class="sm:col-span-2">
+                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                      Pet Name *
+                      <span class="pet-name-check text-gray-300"><i class="fas fa-circle-notch text-xs"></i></span>
+                    </label>
+                    <input type="text" name="pets[0][pet_name]" class="pet_name w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Max, Whiskers" required>
+                  </div>
+                  <!-- Species -->
+                  <div>
+                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                      Species *
+                      <span class="pet-species-check text-gray-300"><i class="fas fa-circle-notch text-xs"></i></span>
+                    </label>
+                    <select name="pets[0][pet_species]" class="pet_species w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none transition-all text-sm" required>
+                      <option value="">Select species</option>
+                    </select>
+                    <small class="text-gray-500 mt-1 block">Only accepted species at this store</small>
+                  </div>
+                  <!-- Breed -->
+                  <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Breed</label>
+                    <input type="text" name="pets[0][pet_breed]" class="pet_breed w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Labrador, Siamese">
+                    <small class="text-gray-500">Optional</small>
+                  </div>
+                  <!-- Age -->
+                  <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Age (years)</label>
+                    <input type="number" name="pets[0][pet_age]" class="pet_age w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" min="0" max="50" step="0.5" placeholder="e.g., 3">
+                    <small class="text-gray-500">Optional</small>
+                  </div>
+                  <!-- Weight -->
+                  <div>
+                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                      Weight (kg) *
+                      <span class="pet-weight-check text-gray-300"><i class="fas fa-circle-notch text-xs"></i></span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                      <input type="number" name="pets[0][pet_weight]" class="pet_weight w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" min="0" max="200" step="0.1" placeholder="e.g., 20" required>
+                      <span class="pet-size-category text-xs font-bold px-3 py-2 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg border border-purple-200 min-w-max">--</span>
+                    </div>
+                    <small class="text-gray-500">Required for price calculation</small>
+                  </div>
+                  <!-- Medical Notes -->
+                  <div class="sm:col-span-2">
+                    <label class="block text-gray-700 font-semibold mb-2">Medical Notes & Special Care</label>
+                    <textarea name="pets[0][pet_medical_conditions]" class="pet_medical_conditions w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none transition-all text-sm" rows="3" placeholder="Allergies, medications, conditions, behavioral notes..."></textarea>
+                    <small class="text-gray-500">Optional - helps the merchant provide better care</small>
+                  </div>
+                </div>
+                <!-- Remove Pet Button (Hidden for first pet) -->
+                <div class="mt-6 pt-4 border-t border-purple-200">
+                  <button type="button" class="removeBtn hidden w-full px-4 py-2 bg-gradient-to-r from-red-50 to-red-50 hover:from-red-100 hover:to-red-100 border border-red-200 text-red-600 font-semibold rounded-lg transition-all">
+                    <i class="fas fa-trash-alt mr-2"></i>Remove This Pet
+                  </button>
+                </div>
               </div>
             </div>
-            {% endif %}
+
+            <!-- Add Another Pet Button -->
+            <div class="mb-5 sm:mb-6">
+              <button type="button" id="addPetBtn" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 text-sm">
+                <i class="fas fa-plus-circle"></i>
+                Add Another Pet
+              </button>
+            </div>
           </div>
 
-          <!-- Booking Form -->
-          <form id="bookingForm" method="POST" action="{{ url_for('merchant.create_booking', merchant_id=merchant.id) }}" class="space-y-6 sm:space-y-7" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-            <!-- Customer Contact Information -->
-            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
-              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white">
-                  <i class="fas fa-user"></i>
-                </div>
-                Contact Information
-              </h3>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <!-- Name (Pre-filled from current user) -->
-                <div>
-                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
-                    <i class="fas fa-id-card text-purple-600"></i> Full Name
-                  </label>
-                  <input 
-                    type="text" 
-                    name="customer_name"
-                    value="{% if current_user.first_name or current_user.last_name %}{{ current_user.first_name }} {{ current_user.last_name }}{% endif %}"
-                    readonly
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-700"
-                  >
-                </div>
-
-                <!-- Email (Pre-filled from current user) -->
-                <div>
-                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
-                    <i class="fas fa-envelope text-purple-600"></i> Email
-                  </label>
-                  <input 
-                    type="email" 
-                    name="customer_email"
-                    value="{{ current_user.email }}"
-                    readonly
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-700"
-                  >
-                </div>
-
-                <!-- Phone -->
-                <div class="sm:col-span-2">
-                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
-                    <i class="fas fa-phone text-purple-600"></i> Phone Number
-                  </label>
-                  <input 
-                    type="tel" 
-                    name="customer_phone"
-                    placeholder="e.g., +63 XXX XXXX XXX"
-                    required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800"
-                  >
-                </div>
-              </div>
+          <!-- Section 3: Appointment Scheduling -->
+          <div class="bg-white rounded-2xl shadow-md p-4 sm:p-5 lg:p-6 border border-gray-200 mb-5 sm:mb-6 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center gap-3 mb-5">
+              <span class="inline-flex items-center justify-center w-9 h-9 bg-purple-600 text-white rounded-lg">
+                <i class="fas fa-calendar text-sm"></i>
+              </span>
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Schedule Your Appointment</h2>
             </div>
 
-            <!-- Services Selection -->
-            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
-              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white">
-                  <i class="fas fa-briefcase"></i>
-                </div>
-                Select Services
-              </h3>
+            <!-- Info Panel -->
+            <div class="p-3 bg-gray-100 border border-gray-300 rounded-lg mb-5">
+              <p class="text-xs text-gray-700 font-semibold">
+                <i class="fas fa-info-circle text-gray-600 mr-1.5\"></i>
+                Select when you want to bring your pet(s)
+              </p>
+            </div>
 
-              <div class="space-y-3">
-                {% for service in merchant.get_services_list() %}
-                <label class="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-lg rounded-2xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50/30 cursor-pointer transition-all group">
-                  <input 
-                    type="checkbox" 
-                    name="services_booked" 
-                    value="{{ service }}"
-                    class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer"
-                  >
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">{{ service }}</p>
-                    <p class="text-xs text-gray-500">Professional {{ service|lower }} service</p>
-                  </div>
-                  <i class="fas fa-check-circle text-purple-600 text-lg opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-5">
+              <div>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm\">
+                  Appointment Date *
                 </label>
-                {% endfor %}
+                <input type="date" name="check_in_date" id="check_in_date" 
+                       class="w-full px-3 py-2 sm:py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                       required>
+                <small class="text-gray-500 text-xs mt-1 block\">Select today or a future date</small>
               </div>
-
-              {% if not merchant.get_services_list() %}
-              <p class="text-gray-500 text-center py-4">No services available</p>
-              {% endif %}
-            </div>
-
-            <!-- Pet Details (Dynamic) -->
-            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
-              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                  <i class="fas fa-paw"></i>
-                </div>
-                Your Pets
-              </h3>
-
-              <!-- Number of Pets Selector -->
-              <div class="mb-8 pb-8 border-b border-orange-200">
-                <label class="block text-gray-900 font-semibold text-sm mb-4 flex items-center gap-2">
-                  <i class="fas fa-hashtag text-orange-600"></i> How many pets? (1-10)
+              <div>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm\">
+                  Appointment Time *
                 </label>
-                <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
-                  {% for num in range(1, 11) %}
-                  <label class="flex items-center justify-center p-2 bg-white border-2 border-gray-300 hover:border-orange-400 rounded-lg cursor-pointer transition-all group" title="Select {{num}}">
-                    <input 
-                      type="radio" 
-                      name="total_pets" 
-                      value="{{ num }}"
-                      class="hidden"
-                      {% if num == 1 %}checked{% endif %}
-                    >
-                    <span class="font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{{ num }}</span>
-                  </label>
-                  {% endfor %}
-                </div>
-
-                <!-- Capacity Warning -->
-                <div id="capacityWarning" class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200 hidden">
-                  <p class="text-amber-700 font-semibold text-sm">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Requesting more than capacity (<span id="capacityText"></span>). Store will confirm availability.
-                  </p>
-                </div>
+                <input type="time" name="check_in_time" id="check_in_time" 
+                       class="w-full px-3 py-2 sm:py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                       required>
+                <small class="text-gray-500 text-xs mt-1 block\">What time works best?</small>
               </div>
-
-              <!-- Dynamic Pet Fields Container -->
-              <div id="multiPetsContainer" class="space-y-6"></div>
             </div>
 
-            <!-- Date & Time Selection -->
-            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
-              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center text-white">
-                  <i class="fas fa-calendar"></i>
-                </div>
-                Reservation Dates & Times
-              </h3>
+            <!-- Hidden checkout fields (auto-calculated) -->
+            <input type="hidden" name="check_out_date" id="check_out_date">
+            <input type="hidden" name="check_out_time" id="check_out_time" value="23:59">
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <!-- Check-in Date -->
-                <div>
-                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
-                    <i class="fas fa-arrow-right text-blue-600"></i> Check-in Date
-                  </label>
-                  <input 
-                    type="date" 
-                    name="check_in_date"
-                    id="checkInDate"
-                    required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
-                  >
-                </div>
 
-                <!-- Check-in Time -->
-                <div>
-                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
-                    <i class="fas fa-clock text-blue-600"></i> Check-in Time
-                  </label>
-                  <input 
-                    type="time" 
-                    name="check_in_time"
-                    id="checkInTime"
-                    required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
-                  >
-                </div>
+          </div>
 
-                <!-- Check-out Date -->
-                <div>
-                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
-                    <i class="fas fa-arrow-left text-blue-600"></i> Check-out Date
-                  </label>
-                  <input 
-                    type="date" 
-                    name="check_out_date"
-                    id="checkOutDate"
-                    required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
-                  >
-                </div>
+          <!-- Section 4: Special Requests & Notes -->
+          <div class="bg-white rounded-2xl shadow-md p-4 sm:p-5 lg:p-6 border border-gray-200 mb-5 sm:mb-6 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center gap-3 mb-5">
+              <span class="inline-flex items-center justify-center w-9 h-9 bg-purple-600 text-white rounded-lg">
+                <i class="fas fa-comment-dots text-sm"></i>
+              </span>
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Additional Information</h2>
+            </div>
 
-                <!-- Check-out Time -->
-                <div>
-                  <label class="block text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
-                    <i class="fas fa-clock text-blue-600"></i> Check-out Time
-                  </label>
-                  <input 
-                    type="time" 
-                    name="check_out_time"
-                    id="checkOutTime"
-                    required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-800"
-                  >
-                </div>
+            <div class="space-y-4 sm:space-y-5 lg:space-y-6">
+              <!-- Medical & Special Care Notes -->
+              <div>
+                <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                  <i class="fas fa-heart text-red-500"></i>
+                  Special Medical & Care Notes
+                </label>
+                <textarea name="pet_special_notes" id="pet_special_notes" 
+                          rows="4"
+                          placeholder="Important medical information, dietary requirements, medications, behavioral notes, or special requests..."
+                          class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all text-sm"></textarea>
+                <small class="text-gray-500 mt-2 block">We'll share this with the merchant to ensure the best care for your pet(s)</small>
               </div>
 
-              <!-- Duration Info -->
-              <div id="durationInfo" class="mt-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-200/50 hidden">
-                <p class="text-blue-700 font-semibold text-sm">
-                  <i class="fas fa-info-circle"></i>
-                  Duration: <span id="durationText"></span>
+              <!-- Additional Requests -->
+              <div>
+                <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                  <i class="fas fa-star text-yellow-500"></i>
+                  Additional Requests or Special Instructions
+                </label>
+                <textarea name="special_requests" id="special_requests" 
+                          rows="3"
+                          placeholder="Any other special requests, preferences, or information the merchant should know?"
+                          class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all text-sm"></textarea>
+                <small class="text-gray-500 mt-2 block">Optional - help us customize the experience for your pet(s)</small>
+              </div>
+
+              <!-- Info Box -->
+              <div class="p-4 bg-gradient-to-r from-purple-50 to-purple-50/50 border border-purple-200 rounded-xl">
+                <p class="text-sm text-purple-900 font-medium">
+                  <i class="fas fa-lightbulb text-purple-600 mr-2"></i>
+                  The merchant may contact you for clarification on any special requests or care needs.
                 </p>
               </div>
             </div>
+          </div>
+        </form>
+      </div>
 
-            <!-- Pickup & Delivery Options (Only if Pet Transport offered) -->
-            {% if "Pet Transport" in merchant.get_services_list() %}
-            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
-              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center text-white">
-                  <i class="fas fa-truck"></i>
+      <!-- Right Sidebar: Booking Summary -->
+      <div class="lg:col-span-1 w-full">
+        <div class="bg-white rounded-2xl shadow-md p-4 sm:p-5 lg:p-6 border border-gray-200 sticky top-20">
+          
+          <!-- Merchant Info in Summary -->
+          <div class="mb-5 pb-5 border-b border-gray-200 relative">
+            <div class="flex items-center gap-3">
+              {% if merchant.logo_path %}
+                <img src="/static/uploads/{{ merchant.logo_path }}" alt="{{ merchant.business_name }}" class="w-12 h-12 rounded-lg object-cover shadow-sm hover:shadow-md transition-all">
+              {% else %}
+                <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm text-lg">
+                  <i class="fas fa-store"></i>
                 </div>
-                Transport Options
-              </h3>
-
-              <div class="space-y-4">
-                <!-- Pickup Option -->
-                <label class="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-lg rounded-2xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50/30 cursor-pointer transition-all group">
-                  <input 
-                    type="checkbox" 
-                    name="requires_pickup"
-                    id="requiresPickup"
-                    class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500 cursor-pointer"
-                  >
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">Pickup Service</p>
-                    <p class="text-xs text-gray-500">+₱300 • We'll pick up your pet</p>
-                  </div>
-                </label>
-
-                <!-- Delivery Option -->
-                <label class="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-lg rounded-2xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50/30 cursor-pointer transition-all group">
-                  <input 
-                    type="checkbox" 
-                    name="requires_delivery"
-                    id="requiresDelivery"
-                    class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500 cursor-pointer"
-                  >
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">Delivery Service</p>
-                    <p class="text-xs text-gray-500">+₱300 • We'll return your pet</p>
-                  </div>
-                </label>
-
-                <!-- Pickup Address -->
-                <div id="pickupAddressField" class="hidden">
-                  <label class="block text-gray-900 font-semibold text-sm mb-2">Pickup Address</label>
-                  <input 
-                    type="text" 
-                    name="pickup_location"
-                    placeholder="Your pickup address"
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none transition-colors bg-white text-gray-800"
-                  >
-                </div>
-
-                <!-- Delivery Address -->
-                <div id="deliveryAddressField" class="hidden">
-                  <label class="block text-gray-900 font-semibold text-sm mb-2">Delivery Address</label>
-                  <input 
-                    type="text" 
-                    name="delivery_location"
-                    placeholder="Your delivery address"
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none transition-colors bg-white text-gray-800"
-                  >
-                </div>
+              {% endif %}
+              <div>
+                <p class="font-bold text-gray-900 text-base">{{ merchant.business_name }}</p>
+                <p class="text-xs text-gray-500 font-medium">{{ merchant.business_category }}</p>
               </div>
             </div>
-            {% endif %}
+          </div>
 
-            <!-- Special Requests -->
-            <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl overflow-hidden border border-white/60 p-6 sm:p-7 lg:p-8 hover:shadow-2xl transition-all duration-300">
-              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center text-white">
-                  <i class="fas fa-note-sticky"></i>
-                </div>
-                Special Requests & Notes
-              </h3>
-
-              <textarea 
-                name="special_requests"
-                placeholder="Add any special requests, dietary notes, behavioral information, or medical needs we should know about..."
-                rows="5"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-amber-500 focus:outline-none transition-colors bg-white text-gray-800 placeholder-gray-400 resize-vertical"
-              ></textarea>
-              <p class="text-xs text-gray-500 mt-2">Examples: Dietary restrictions, anxiety, medications, behavioral notes, etc.</p>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="flex gap-4 sm:gap-5">
-              <a 
-                href="javascript:history.back()" 
-                class="flex-1 inline-flex items-center justify-center gap-2 
-                      px-6 py-3 
-                      bg-white/70 backdrop-blur-lg 
-                      hover:bg-gray-100 
-                      text-gray-900 font-semibold 
-                      rounded-xl shadow 
-                      border border-gray-200 
-                      transition-all duration-200 
-                      active:scale-95"
-              >
-                <i class="fas fa-arrow-left"></i>
-                Cancel
-              </a>
-              <button 
-                type="submit"
-                class="flex-1 inline-flex items-center justify-center gap-2 
-                      px-6 py-3 
-                      bg-gradient-to-br from-purple-500 to-purple-700 
-                      hover:from-purple-600 hover:to-purple-800 
-                      text-white font-semibold 
-                      rounded-xl shadow hover:shadow-lg 
-                      transition-all duration-200 
-                      active:scale-95"
-              >
-                <i class="fas fa-calendar-check"></i>
-                Book Now
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Right Sidebar (Summary & Map) -->
-        <div class="lg:col-span-1 space-y-6 sm:space-y-7 animate-fade-in" style="animation-delay: 0.2s">
-          
-          <!-- Booking Summary Card -->
-          <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/70 p-5 sticky top-24">
-            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <i class="fas fa-receipt text-purple-600"></i> Summary
+          <!-- Booking Summary -->
+          <div class="space-y-3 mb-5">
+            <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-7 h-7 bg-purple-600 text-white rounded-lg text-xs">
+                <i class="fas fa-list-check"></i>
+              </span>
+              Booking Summary
             </h3>
             
-            <div class="space-y-3 mb-6">
-              <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Duration:</span>
-                <span id="summaryDuration" class="font-bold text-gray-900">-</span>
+            <div class="space-y-2 pb-3 border-b border-gray-200">
+              <div class="flex items-start justify-between text-sm p-2 rounded bg-gray-50">
+                <span class="text-gray-600"><i class="fas fa-paw text-purple-600 mr-2"></i>Total Pets:</span>
+                <span class="font-bold text-purple-700 text-lg" id="summaryPets">1</span>
               </div>
-              <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Pets:</span>
-                <span id="summaryPets" class="font-bold text-gray-900">0</span>
+              <div class="flex items-start justify-between text-sm p-2 rounded bg-purple-50/50">
+                <span class="text-gray-600"><i class="fas fa-weight text-purple-600 mr-2"></i>Total Weight:</span>
+                <span class="font-semibold text-gray-900" id="summaryWeight">0 kg</span>
               </div>
-              <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Services:</span>
-                <span id="summaryServices" class="font-bold text-gray-900">0</span>
-              </div>
-
-              <!-- Selected Services Display -->
-              <div id="selectedServicesDisplay" class="mt-4 pt-3 border-t border-gray-200 hidden">
-                <p class="text-xs font-semibold text-gray-700 mb-2">Selected Services:</p>
-                <div id="selectedServicesList" class="space-y-2"></div>
-              </div>
-
-              <div class="border-t border-gray-200 pt-3 flex justify-between text-sm">
-                <span class="text-gray-700 font-medium">Price/Day:</span>
-                <span id="summaryBasePrice" class="font-bold text-green-600">₱{{ "%.2f"|format(merchant.min_price or 0) }}</span>
-              </div>
-              <div class="flex justify-between text-sm">
-                <span class="text-gray-700 font-medium">Subtotal:</span>
-                <span id="summarySubtotal" class="font-bold text-gray-900">₱0.00</span>
-              </div>
-
-              <!-- Additional Fees -->
-              <div id="additionalFeesCard" class="bg-gray-50 rounded-lg p-3 hidden">
-                <div id="pickupFeeRow" class="flex justify-between text-xs hidden mb-2">
-                  <span class="text-gray-600">Pickup:</span>
-                  <span id="pickupFeeAmount" class="font-semibold">₱0.00</span>
-                </div>
-                <div id="deliveryFeeRow" class="flex justify-between text-xs hidden">
-                  <span class="text-gray-600">Delivery:</span>
-                  <span id="deliveryFeeAmount" class="font-semibold">₱0.00</span>
-                </div>
+              <div class="flex items-start justify-between text-sm p-2 rounded bg-purple-50/50">
+                <span class="text-gray-600"><i class="fas fa-calendar text-purple-600 mr-2"></i>Date & Time:</span>
+                <span class="font-semibold text-gray-900 text-right text-xs" id="summaryAppointment">Not set</span>
               </div>
             </div>
 
-            <!-- Total -->
-            <div class="bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl p-4 text-white">
-              <p class="text-white/90 text-xs font-semibold mb-1">Total Amount</p>
-              <p id="summaryTotal" class="text-3xl font-bold">₱0.00</p>
+            <!-- Price Breakdown Card -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 hover:bg-gray-100 transition-all duration-300">
+              <p class="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                <i class="fas fa-receipt text-purple-600"></i>
+                Price Breakdown
+              </p>
+              <div id="priceBreakdown" class="text-xs space-y-2 max-h-48 overflow-y-auto">
+                <p class="text-gray-500 italic text-center py-2">No pets added yet</p>
+              </div>
             </div>
 
-            <p class="text-blue-700 text-xs mt-3 bg-blue-50 p-2 rounded-lg">
-              <i class="fas fa-info-circle mr-1"></i>
-              Prices are estimates. Store will confirm final price.
+            <!-- Price Summary -->
+            <div class="space-y-2">
+              <div class="flex justify-between py-3 px-4 bg-purple-600 rounded-xl shadow-sm hover:shadow-md transition-all hover:bg-purple-700">
+                <span class="font-semibold text-white text-sm">Total:</span>
+                <span class="font-bold text-white text-xl">₱<span id="summaryTotalDisplay">0</span></span>
+              </div>
+              
+              <!-- Price Disclaimer -->
+              <div class="p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                <p class="text-xs text-gray-700 font-medium leading-relaxed">
+                  <i class="fas fa-info-circle text-gray-600 mr-1.5"></i>
+                  <strong>Estimated Price:</strong> Final price confirmed by merchant.
+                </p>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Booking Terms -->
+          <div class="mb-4">
+            <label class="flex items-start gap-3 p-3 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition-all group">
+              <input type="checkbox" id="agreeTerms" class="w-4 h-4 mt-0.5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer" form="bookingForm">
+              <span class="text-xs text-gray-700 font-medium leading-relaxed">
+                I agree to the booking terms and conditions. The merchant will confirm the final price.
+              </span>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" form="bookingForm" id="submitBtn"
+                  class="w-full py-2.5 sm:py-3 px-3 sm:px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  disabled>
+            <i class="fas fa-check-circle" id="submitIcon"></i>
+            <span id="submitText">Complete Booking</span>
+          </button>
+
+          <!-- Cancellation Policy -->
+          <div class="mt-4 p-3 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-all duration-300">
+            <p class="text-xs font-semibold text-gray-900 mb-1.5 flex items-center gap-2 uppercase tracking-wide">
+              <i class="fas fa-info-circle text-purple-600"></i>
+              Cancellation Policy
             </p>
-          </div>
-
-          <!-- Store Location Map -->
-          <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/70 overflow-hidden">
-            <div id="storeMap" class="w-full h-80 rounded-3xl" style="z-index: 1;"></div>
-            
-            <!-- Store Address Below Map -->
-            <div class="p-5">
-              <h4 class="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                <i class="fas fa-location-dot text-red-600"></i> Location
-              </h4>
-              <address class="not-italic text-gray-600 text-xs leading-relaxed mb-3">
-                {{ merchant.full_address }}
-                {% if merchant.city %}<br><strong>{{ merchant.city }}</strong>{% endif %}
-                {% if merchant.province %}, {{ merchant.province }}{% endif %}
-              </address>
-              {% if merchant.google_maps_link %}
-              <a href="{{ merchant.google_maps_link }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-xs">
-                <i class="fas fa-map"></i> Open in Google Maps
-              </a>
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- Quick Contact -->
-          <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/70 p-5">
-            <h4 class="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
-              <i class="fas fa-phone text-blue-600"></i> Contact
-            </h4>
-            <div class="space-y-2 text-xs">
-              <a href="tel:{{ merchant.contact_phone }}" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">
-                <i class="fas fa-phone text-blue-500"></i> {{ merchant.contact_phone }}
-              </a>
-              <a href="mailto:{{ merchant.contact_email }}" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors break-all">
-                <i class="fas fa-envelope text-blue-500"></i> {{ merchant.contact_email }}
-              </a>
-            </div>
+            <p class="text-xs text-gray-700 leading-relaxed">
+              {{ merchant.cancellation_policy or 'Contact the merchant for cancellation terms.' }}
+            </p>
           </div>
         </div>
       </div>
-
-      <!-- Merchant Data for JavaScript -->
-      <script type="application/json" id="merchantDataJson">
-        {
-          "acceptedPets": {{ merchant.get_pets_list() | tojson | safe }},
-          "offeredServices": {{ merchant.get_services_list() | tojson | safe }},
-          "hasPetTransport": {{ ('Pet Transport' in merchant.get_services_list()) | tojson | safe }}
-        }
-      </script>
-
-    {% else %}
-      <!-- Store Not Found -->
-      <div class="max-w-2xl mx-auto bg-white/70 backdrop-blur-2xl rounded-3xl shadow-xl p-12 text-center border border-white/60">
-        <i class="fas fa-shop text-6xl text-gray-300 mb-4 block"></i>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Store Not Found</h2>
-        <p class="text-gray-600 mb-6">Sorry, we couldn't find the store you're looking for.</p>
-        <a 
-          href="{{ url_for('merchant.public_stores') }}" 
-          class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold rounded-lg shadow hover:shadow-lg transition-all"
-        >
-          <i class="fas fa-arrow-left"></i>
-          Back to Stores
-        </a>
-      </div>
-    {% endif %}
+    </div>
   </div>
 </div>
 
-<!-- CSS Animations -->
+<!-- Styles -->
 <style>
-  @keyframes fade-in {
+  /* ========== ANIMATIONS ========== */
+  @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -656,399 +427,897 @@
     }
   }
 
-  .animate-fade-in {
-    animation: fade-in 0.6s ease-out forwards;
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(168, 85, 247, 0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  @keyframes checkmark-pop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* ========== GLOBAL STYLES ========== */
+  * {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  body {
+    scroll-behavior: smooth;
+  }
+
+  /* ========== STICKY SIDEBAR ========== */
+  .sticky {
+    position: sticky;
+    top: 80px;
+  }
+
+  @media (max-width: 1024px) {
+    .sticky {
+      position: relative;
+      top: 0;
+    }
+  }
+
+  /* ========== FORM ELEMENTS ========== */
+  .petForm input, .petForm textarea, .petForm select {
+    display: block !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="time"],
+  input[type="number"],
+  textarea,
+  select {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="tel"]:focus,
+  input[type="date"]:focus,
+  input[type="time"]:focus,
+  input[type="number"]:focus,
+  textarea:focus,
+  select:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(168, 85, 247, 0.15) !important;
+  }
+
+  /* ========== CARD STYLING ========== */
+  .card-modern {
+    animation: fadeInUp 0.6s ease-out forwards;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(243, 232, 255, 0.5) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  .bg-white\/70 {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  /* ========== BUTTONS ========== */
+  button {
+    position: relative;
+    overflow: hidden;
+  }
+
+  button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  button:active::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  #submitBtn {
+    animation: slideInUp 0.6s ease-out 0.3s both;
+  }
+
+  #submitBtn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(168, 85, 247, 0.3) !important;
+  }
+
+  #submitBtn:disabled {
+    cursor: not-allowed;
+  }
+
+  #submitBtn.loading {
+    opacity: 0.9;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+  }
+
+  /* ========== PET FORMS ========== */
+  .petForm {
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .petForm:hover {
+    box-shadow: 0 15px 40px rgba(168, 85, 247, 0.15) !important;
+    transform: translateY(-2px);
+  }
+
+  .pet-number {
+    animation: float 2s ease-in-out infinite;
+  }
+
+  .removeBtn {
+    animation: slideInUp 0.3s ease-out forwards;
+  }
+
+  .removeBtn:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
+    transform: translateY(-2px);
+  }
+
+  /* ========== PRICE BREAKDOWN ========== */
+  #priceBreakdown > div {
+    animation: fadeInUp 0.4s ease-out forwards;
+  }
+
+  /* ========== VALIDATION ICONS ========== */
+  .pet-check {
+    animation: checkmark-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    display: inline-block;
+  }
+
+  .text-green-500 {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  }
+
+  /* ========== STEP INDICATOR ========== */
+  .flex.items-center.justify-center.w-10.h-10.bg-purple-600 {
+    animation: pulse-glow 2s infinite;
+  }
+
+  /* ========== SIDEBAR ENTRY ========== */
+  .lg\:col-span-1 > div {
+    animation: slideInRight 0.7s ease-out;
+  }
+
+  /* ========== GRADIENT ANIMATIONS ========== */
+  .bg-gradient-to-br,
+  .bg-gradient-to-r {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  /* ========== SMOOTH ICON ANIMATIONS ========== */
+  .fas {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  button:hover .fas {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  a:hover .fas {
+    transform: translateX(-3px);
+  }
+
+  /* ========== CHECKBOX STYLING ========== */
+  input[type="checkbox"] {
+    cursor: pointer;
+  }
+
+  input[type="checkbox"]:hover {
+    transform: scale(1.1);
+  }
+
+  input[type="checkbox"]:checked {
+    animation: checkmark-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* ========== SECTION HEADERS ========== */
+  h1, h2, h3 {
+    animation: fadeInUp 0.5s ease-out;
+  }
+
+  h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(180deg, #a855f7 0%, #ec4899 100%);
+    border-radius: 2px;
+    margin-right: 8px;
+    animation: slideInLeft 0.4s ease-out;
+  }
+
+  /* ========== APPOINTMENT HIGHLIGHT ========== */
+  #appointmentDisplay {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  #totalDisplay,
+  #summaryTotalDisplay {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* ========== HOVER LIFT EFFECT ========== */
+  .hover\:shadow-xl {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* ========== ADD PET BUTTON ========== */
+  #addPetBtn {
+    animation: slideInUp 0.6s ease-out 0.2s both;
+  }
+
+  #addPetBtn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(34, 197, 94, 0.3) !important;
+  }
+
+  /* ========== LINK ANIMATIONS ========== */
+  a {
+    transition: all 0.3s ease-out;
+  }
+
+  a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ========== INFO BOXES ========== */
+  .p-4.bg-blue-50,
+  .p-4.bg-gradient-to-r,
+  .p-4.bg-amber-50 {
+    animation: fadeInUp 0.6s ease-out forwards;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ========== ENTRANCE STAGGER ========== */
+  .lg\:col-span-2 .bg-white\/70 {
+    animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .lg\:col-span-2 .bg-white\/70:nth-of-type(1) {
+    animation-delay: 0.1s;
+  }
+
+  .lg\:col-span-2 .bg-white\/70:nth-of-type(2) {
+    animation-delay: 0.2s;
+  }
+
+  .lg\:col-span-2 .bg-white\/70:nth-of-type(3) {
+    animation-delay: 0.3s;
+  }
+
+  .lg\:col-span-2 .bg-white\/70:nth-of-type(4) {
+    animation-delay: 0.4s;
+  }
+
+  /* ========== SMOOTH TRANSITIONS ========== */
+  .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ========== SUMMARY CARD ANIMATIONS ========== */
+  .space-y-4 > div {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .space-y-4 > div:nth-child(n) {
+    animation-delay: calc(var(--index, 0) * 0.08s);
+  }
+
+  /* ========== ENHANCED FOCUS STATE ========== */
+  .focus\:ring-2 {
+    transition: all 0.2s ease-out;
+  }
+
+  /* ========== SUBTLE LOADING EFFECT ========== */
+  @keyframes skeleton-loading {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .loading {
+    animation: skeleton-loading 2s infinite;
+  }
+
+  /* ========== RESPONSIVE ADJUSTMENTS ========== */
+  @media (max-width: 1024px) {
+    .sticky {
+      position: relative;
+      top: 0;
+    }
+
+    h2::before {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .petForm {
+      border-radius: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.875rem;
+    }
+
+    .space-y-6 > * + * {
+      margin-top: 1.5rem;
+    }
+
+    /* Mobile optimizations for form display */
+    .grid {
+      width: 100%;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    textarea,
+    select {
+      font-size: 16px; /* Prevents zoom on iOS */
+      width: 100%;
+    }
+
+    .petForm {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .lg\:col-span-2 {
+      width: 100%;
+    }
+
+    /* Ensure sidebar takes full width on mobile */
+    .lg\:col-span-1 {
+      width: 100%;
+    }
+
+    /* Make buttons wider and easier to tap */
+    button {
+      min-height: 44px; /* iOS recommended touch target */
+    }
+
+    /* Better spacing for mobile forms */
+    .gap-4 {
+      gap: 1rem;
+    }
+
+    .gap-3 {
+      gap: 0.75rem;
+    }
   }
 </style>
 
-<!-- JavaScript for Dynamic Functionality -->
+<!-- Scripts for Multi-Pet & Dynamic Pricing -->
 <script>
-  // Data from server - convert to proper types
-  const merchantData = {
-    minPrice: parseFloat("{{ merchant.min_price or 0 }}"),
-    maxPrice: parseFloat("{{ merchant.max_price or 0 }}"),
-    maxPetsPerDay: parseInt("{{ merchant.max_pets_per_day or 999 }}")
-  };
-  
-  // Load additional data from JSON block
-  try {
-    const dataBlock = document.getElementById('merchantDataJson');
-    if (dataBlock) {
-      const extraData = JSON.parse(dataBlock.textContent);
-      Object.assign(merchantData, extraData);
+  // Global merchant data - will be fetched from API
+  let merchantServicePricing = {};
+  let merchantData = { pricing: {}, pets_accepted: [] };
+  let petCount = 1;
+  let merchantId = parseInt(document.currentScript.getAttribute('data-merchant-id') || '0');
+
+  // Pricing structure: { small: 500, medium: 800, large: 1200, xlarge: 1500 }
+  let sizePricing = {};
+
+  // Format time to 12-hour format with AM/PM
+  function formatTime12Hour(timeString) {
+    // timeString format: "14:30"
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const minute = parseInt(minutes);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${ampm}`;
+  }
+
+  // Fetch merchant pricing data from API
+  function fetchMerchantData() {
+    console.log('=== PRICING FETCH START ===');
+    
+    // Get merchant ID from form hidden input or script data attribute
+    const merchantIdInput = document.querySelector('input[name="merchant_id"]');
+    if (merchantIdInput && merchantIdInput.value) {
+      merchantId = parseInt(merchantIdInput.value);
     }
-  } catch (e) {
-    console.error('Error loading merchant data:', e);
-    merchantData.acceptedPets = [];
-    merchantData.offeredServices = [];
-    merchantData.hasPetTransport = false;
+    
+    if (!merchantId || merchantId === 0) {
+      console.error('Merchant ID not found');
+      return;
+    }
+    
+    console.log('Merchant ID:', merchantId);
+    
+    // Fetch merchant services and accepted pets from API
+    const apiUrl = '/merchant/api/merchant/' + merchantId + '/services';
+    console.log('Fetching from:', apiUrl);
+    
+    fetch(apiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('API response status: ' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        merchantData.pets_accepted = data.pets_accepted || [];
+        merchantServicePricing = data.pricing || {};
+        console.log('✓ Fetched pets_accepted:', merchantData.pets_accepted);
+        console.log('✓ Fetched pricing:', merchantServicePricing);
+        
+        // Extract size-based pricing
+        extractSizePricing(merchantServicePricing);
+        populateAllSpeciesDropdowns();
+        updateSummary();
+      })
+      .catch(error => {
+        console.error('Error fetching merchant data:', error);
+        populateAllSpeciesDropdowns();
+      });
   }
 
-  const form = document.getElementById('bookingForm');
-  const checkInDate = document.getElementById('checkInDate');
-  const checkInTime = document.getElementById('checkInTime');
-  const checkOutDate = document.getElementById('checkOutDate');
-  const checkOutTime = document.getElementById('checkOutTime');
-  
-  // Get service icons based on service name
-  function getServiceIcon(service) {
-    const icons = {
-      'Pet Boarding': 'fa-bed',
-      'Pet Daycare': 'fa-sun',
-      'Pet Grooming': 'fa-shower',
-      'Pet Training': 'fa-graduation-cap',
-      'Pet Transport': 'fa-truck',
-      'Veterinary Clinic': 'fa-stethoscope',
-      'Pet Sitting': 'fa-hand-holding',
-      'Pet Walking': 'fa-person-hiking',
-      'Pet Bathing': 'fa-water'
-    };
-    return icons[service] || 'fa-check-circle';
+  // Extract size-based pricing from service pricing structure
+  function extractSizePricing(serviceData) {
+    console.log('=== EXTRACT PRICING START ===');
+    
+    if (!serviceData || typeof serviceData !== 'object' || Object.keys(serviceData).length === 0) {
+      console.warn('⚠️ serviceData is empty or invalid');
+      return;
+    }
+    
+    // Get the first available service category
+    const categories = ['Pet Hotel', 'Pet Boarding', 'Pet Daycare'];
+    
+    for (const category of categories) {
+      if (serviceData[category]) {
+        const categoryData = serviceData[category];
+        console.log(`✓ Found ${category}:`, categoryData);
+        
+        // Get the first duration's pricing
+        const durations = Object.keys(categoryData);
+        console.log(`  Durations available: ${durations.join(', ')}`);
+        
+        if (durations.length > 0) {
+          const firstDuration = durations[0];
+          const durationPricing = categoryData[firstDuration];
+          
+          console.log(`  Using first duration: "${firstDuration}"`, durationPricing);
+          
+          // Convert to sizePricing structure
+          if (durationPricing && typeof durationPricing === 'object') {
+            for (const [sizeKey, price] of Object.entries(durationPricing)) {
+              const sizeKeyLower = sizeKey.toLowerCase();
+              sizePricing[sizeKeyLower] = price;
+              console.log(`    ${sizeKey}: ₱${price}`);
+            }
+            console.log('✓ Pricing extracted successfully');
+            break;
+          }
+        }
+      }
+    }
+    
+    console.log('Final sizePricing:', sizePricing);
+    console.log('=== EXTRACT PRICING END ===\n');
   }
 
-  // Update summary on form changes
-  function updateSummary() {
-    // Calculate duration
-    if (checkInDate.value && checkOutDate.value) {
-      const checkIn = new Date(checkInDate.value);
-      const checkOut = new Date(checkOutDate.value);
-      const duration = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)) || 0;
+  // Populate species dropdowns from merchant data
+  function populateAllSpeciesDropdowns() {
+    const acceptedSpecies = merchantData.pets_accepted || [];
+    
+    document.querySelectorAll('.pet_species').forEach(select => {
+      const options = ['<option value="">Select species</option>'];
+      acceptedSpecies.forEach(species => {
+        options.push(`<option value="${species}">${species}</option>`);
+      });
+      select.innerHTML = options.join('');
+    });
+  }
+
+  // Get price for a pet based on its weight category
+  function getPriceForPet(weight) {
+    const category = getPetSizeCategory(weight);
+    const price = sizePricing[category];
+    
+    console.log(`getPriceForPet(${weight}kg) -> category: ${category}, price: ${price}`);
+    
+    if (!price) return 0;
+    if (typeof price === 'number') return price;
+    
+    return 0;
+  }
+
+  // Get pet size category
+  function getPetSizeCategory(weight) {
+    if (weight < 5) return 'small';
+    if (weight < 15) return 'medium';
+    if (weight < 30) return 'large';
+    return 'xlarge';
+  }
+
+  // Calculate total booking price (sum of all pets' prices by size)
+  function calculateTotalPrice() {
+    let totalCost = 0;
+    document.querySelectorAll('.petForm').forEach(form => {
+      const weight = parseFloat(form.querySelector('.pet_weight').value) || 0;
+      if (weight > 0) {
+        totalCost += getPriceForPet(weight);
+      }
+    });
+    return Math.round(totalCost);
+  }
+
+  // Validate pet form fields with inline indicators
+  function validatePetForm(petForm) {
+    const petName = petForm.querySelector('.pet_name').value.trim();
+    const petSpecies = petForm.querySelector('.pet_species').value;
+    const petWeight = parseFloat(petForm.querySelector('.pet_weight').value) || 0;
+
+    // Update inline validation indicators
+    updateValidationIcon(petForm.querySelector('.pet-name-check'), petName !== '');
+    updateValidationIcon(petForm.querySelector('.pet-species-check'), petSpecies !== '');
+    updateValidationIcon(petForm.querySelector('.pet-weight-check'), petWeight > 0);
+
+    // Update weight category
+    const sizeCategory = petForm.querySelector('.pet-size-category');
+    if (petWeight > 0) {
+      const size = getPetSizeCategory(petWeight);
+      const sizeLabels = { 'small': 'Small (<5kg)', 'medium': 'Medium (5-15kg)', 'large': 'Large (15-30kg)', 'xlarge': 'X-Large (>30kg)' };
+      sizeCategory.textContent = sizeLabels[size] || '--';
+    } else {
+      sizeCategory.textContent = '--';
+    }
+  }
+
+  // Update validation icon
+  function updateValidationIcon(element, isValid) {
+    if (!element) return;
+    if (isValid) {
+      element.className = 'pet-check text-green-500';
+      element.innerHTML = '<i class="fas fa-check-circle"></i>';
+    } else {
+      element.className = 'pet-check text-orange-400';
+      element.innerHTML = '<i class="fas fa-circle-notch text-xs"></i>';
+    }
+  }
+
+  // Validate services selection
+  function validateForm() {
+    // Check all pets have required fields
+    let allPetsValid = true;
+    document.querySelectorAll('.petForm').forEach(petForm => {
+      const petName = petForm.querySelector('.pet_name').value.trim() !== '';
+      const petSpecies = petForm.querySelector('.pet_species').value !== '';
+      const petWeight = parseFloat(petForm.querySelector('.pet_weight').value) > 0;
+      if (!petName || !petSpecies || !petWeight) {
+        allPetsValid = false;
+      }
+    });
+
+    const hasPhone = document.getElementById('customer_phone').value.trim() !== '';
+    const hasPets = document.querySelectorAll('.petForm').length > 0;
+    const hasAppointmentDate = document.getElementById('check_in_date').value !== '';
+    const hasAppointmentTime = document.getElementById('check_in_time').value !== '';
+    const hasTerms = document.getElementById('agreeTerms').checked;
+
+    const isValid = allPetsValid && hasPhone && hasPets && hasAppointmentDate && hasAppointmentTime && hasTerms;
+    document.getElementById('submitBtn').disabled = !isValid;
+
+    return isValid;
+  }
+
+  // Add pet form
+  document.getElementById('addPetBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    petCount++;
+    const template = document.querySelector('.petForm[data-pet-index="0"]');
+    const clone = template.cloneNode(true);
+    const newIndex = petCount - 1;
+    clone.setAttribute('data-pet-index', newIndex);
+    clone.querySelector('.pet-number').textContent = `Pet #${petCount}`;
+    clone.querySelector('.removeBtn').classList.remove('hidden');
+    
+    // Update name attributes for the new pet index
+    clone.querySelectorAll('[name^="pets["]').forEach(input => {
+      const oldName = input.getAttribute('name');
+      const newName = oldName.replace(/pets\[\d+\]/, `pets[${newIndex}]`);
+      input.setAttribute('name', newName);
+    });
+    
+    // Clear values
+    clone.querySelectorAll('input, textarea').forEach(el => el.value = '');
+    clone.querySelectorAll('select').forEach(el => el.value = '');
+    
+    // Reset validation indicators
+    clone.querySelectorAll('[class*="check"]').forEach(el => {
+      el.className = el.className.split(' ')[0] + ' text-gray-300';
+      el.innerHTML = '<i class="fas fa-circle-notch text-xs"></i>';
+    });
+    
+    document.getElementById('petsContainer').appendChild(clone);
+    document.getElementById('total_pets').value = petCount;
+    
+    // Populate species for new pet
+    populateAllSpeciesDropdowns();
+    
+    // Attach event listeners to new form
+    attachPetFormListeners(clone);
+    updateSummary();
+  });
+
+  // Remove pet form
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.removeBtn')) {
+      e.preventDefault();
+      e.target.closest('.petForm').remove();
+      petCount = document.querySelectorAll('.petForm').length;
+      document.getElementById('total_pets').value = petCount;
       
-      document.getElementById('summaryDuration').textContent = duration > 0 ? `${duration} day${duration !== 1 ? 's' : ''}` : '-';
-      document.getElementById('durationText').textContent = `${duration} day${duration !== 1 ? 's' : ''}`;
-      document.getElementById('durationInfo').classList.toggle('hidden', duration <= 0);
+      // Renumber pets and update name attributes
+      document.querySelectorAll('.petForm').forEach((form, idx) => {
+        form.setAttribute('data-pet-index', idx);
+        form.querySelector('.pet-number').textContent = `Pet #${idx + 1}`;
+        if (idx === 0) {
+          form.querySelector('.removeBtn').classList.add('hidden');
+        }
+        // Update name attributes for all inputs
+        form.querySelectorAll('[name^="pets["]').forEach(input => {
+          const oldName = input.getAttribute('name');
+          const newName = oldName.replace(/pets\[\d+\]/, `pets[${idx}]`);
+          input.setAttribute('name', newName);
+        });
+      });
+      
+      updateSummary();
     }
+  });
 
-    // Count selected pets (from radio button)
-    const selectedPets = parseInt(document.querySelector('input[name="total_pets"]:checked')?.value) || 0;
-    document.getElementById('summaryPets').textContent = selectedPets;
-
-    // Get selected services with details
-    const selectedServiceElements = document.querySelectorAll('input[name="services_booked"]:checked');
-    const selectedServices = Array.from(selectedServiceElements).map(el => el.value);
-    document.getElementById('summaryServices').textContent = selectedServices.length;
-    
-    // Update service details display
-    updateServiceDetails(selectedServices);
-
-    // Calculate pricing
-    const checkIn = new Date(checkInDate.value);
-    const checkOut = new Date(checkOutDate.value);
-    const duration = Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)));
-    const basePrice = merchantData.minPrice || 0;
-    
-    const subtotal = duration * selectedPets * basePrice;
-    document.getElementById('summarySubtotal').textContent = `₱${subtotal.toFixed(2)}`;
-    document.getElementById('summaryBasePrice').textContent = `₱${basePrice.toFixed(2)}`;
-
-    // Calculate additional fees
-    const requiresPickup = document.getElementById('requiresPickup').checked;
-    const requiresDelivery = document.getElementById('requiresDelivery').checked;
-    const pickupFee = requiresPickup ? 300 : 0;
-    const deliveryFee = requiresDelivery ? 300 : 0;
-    const totalFees = pickupFee + deliveryFee;
-
-    document.getElementById('pickupFeeRow').classList.toggle('hidden', pickupFee === 0);
-    document.getElementById('deliveryFeeRow').classList.toggle('hidden', deliveryFee === 0);
-    document.getElementById('pickupFeeAmount').textContent = `₱${pickupFee.toFixed(2)}`;
-    document.getElementById('deliveryFeeAmount').textContent = `₱${deliveryFee.toFixed(2)}`;
-    document.getElementById('additionalFeesCard').classList.toggle('hidden', totalFees === 0);
-
-    const total = subtotal + totalFees;
-    document.getElementById('summaryTotal').textContent = `₱${total.toFixed(2)}`;
+  // Attach listeners to pet form inputs
+  function attachPetFormListeners(formElement) {
+    formElement.querySelectorAll('input, textarea, select').forEach(el => {
+      el.addEventListener('change', () => {
+        validatePetForm(formElement);
+        updateSummary();
+      });
+      el.addEventListener('input', () => {
+        validatePetForm(formElement);
+        updateSummary();
+      });
+    });
   }
 
-  // Update service-specific details
-  function updateServiceDetails(services) {
-    const summaryBasePrice = document.getElementById('summaryBasePrice');
-    const selectedServicesDisplay = document.getElementById('selectedServicesDisplay');
-    const selectedServicesList = document.getElementById('selectedServicesList');
+  // Update summary section
+  function updateSummary() {
+    validateForm();
+
+    const totalPets = document.querySelectorAll('.petForm').length;
+    const appointDate = document.getElementById('check_in_date').value;
+    const appointTime = document.getElementById('check_in_time').value;
+
+    // Calculate weight and price breakdown by size
+    let totalWeight = 0;
+    let sizeBreakdown = { small: 0, medium: 0, large: 0, xlarge: 0 };
+    let sizeCount = { small: 0, medium: 0, large: 0, xlarge: 0 };
+
+    console.log('\n=== UPDATE SUMMARY START ===');
+    console.log('Total pets:', totalPets);
+    console.log('Current sizePricing:', sizePricing);
+
+    document.querySelectorAll('.petForm').forEach((form, idx) => {
+      const weight = parseFloat(form.querySelector('.pet_weight').value) || 0;
+      if (weight > 0) {
+        totalWeight += weight;
+        const size = getPetSizeCategory(weight);
+        sizeCount[size]++;
+        const priceForPet = getPriceForPet(weight);
+        sizeBreakdown[size] += priceForPet;
+        console.log(`Pet ${idx + 1}: ${weight}kg -> ${size} -> ₱${priceForPet}`);
+      }
+    });
+
+    console.log('Size breakdown:', sizeBreakdown);
+    console.log('Size count:', sizeCount);
+
+    // Update summary info
+    document.getElementById('summaryPets').textContent = totalPets;
+    document.getElementById('summaryWeight').textContent = totalWeight > 0 ? `${totalWeight} kg` : '0 kg';
     
-    // Build services list with icons
-    if (services.length > 0) {
-      selectedServicesDisplay.classList.remove('hidden');
-      selectedServicesList.innerHTML = services.map(service => `
-        <div class="flex items-center gap-2 p-2 bg-purple-50 rounded text-xs">
-          <i class="fas ${getServiceIcon(service)} text-purple-600"></i>
-          <span class="text-gray-700 font-medium">${service}</span>
-        </div>
-      `).join('');
+    if (appointDate && appointTime) {
+      const dateObj = new Date(appointDate + 'T00:00:00');
+      const formattedDate = dateObj.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+      const formattedTime = formatTime12Hour(appointTime);
+      document.getElementById('summaryAppointment').textContent = `${formattedDate} @ ${formattedTime}`;
     } else {
-      selectedServicesDisplay.classList.add('hidden');
-      selectedServicesList.innerHTML = '';
+      document.getElementById('summaryAppointment').textContent = 'Not set';
     }
 
-    let serviceNote = '';
-    if (services.length === 0) {
-      serviceNote = 'Select services';
-    } else if (services.includes('Pet Boarding') || services.includes('Pet Daycare')) {
-      serviceNote = '🏠 Accommodation & care';
-    } else if (services.includes('Pet Grooming')) {
-      serviceNote = '✨ Grooming service';
-    } else if (services.includes('Pet Training')) {
-      serviceNote = '🎓 Training sessions';
-    } else if (services.includes('Pet Sitting')) {
-      serviceNote = '🤝 Pet sitting';
-    } else if (services.includes('Pet Walking')) {
-      serviceNote = '🚶 Daily walks';
+    const totalPrice = calculateTotalPrice();
+    console.log('Calculated total price:', totalPrice);
+    
+    document.getElementById('summaryTotalDisplay').textContent = totalPrice.toLocaleString('en-PH');
+
+    // Update price breakdown
+    const breakdownList = document.getElementById('priceBreakdown');
+    const sizeLabels = { 'small': 'Small (<5kg)', 'medium': 'Medium (5-15kg)', 'large': 'Large (15-30kg)', 'xlarge': 'X-Large (>30kg)' };
+    
+    if (totalPets === 0) {
+      breakdownList.innerHTML = '<p class="text-gray-500 italic">No pets added yet</p>';
     } else {
-      serviceNote = `${services[0]} service`;
+      let breakdownHTML = '';
+      for (const [size, count] of Object.entries(sizeCount)) {
+        if (count > 0) {
+          const price = sizeBreakdown[size];
+          console.log(`Breakdown: ${size} × ${count} = ₱${price}`);
+          breakdownHTML += `<div class="flex justify-between text-xs px-3 py-2 bg-white/60 rounded border border-purple-150 hover:bg-white/80 transition-all">
+            <span class="text-gray-700 font-medium">${sizeLabels[size]} × ${count}</span>
+            <span class="font-bold text-purple-600">₱${price.toLocaleString('en-PH')}</span>
+          </div>`;
+        }
+      }
+      breakdownList.innerHTML = breakdownHTML;
     }
+
+    // Update price breakdown in form
+    const breakdownData = {};
+    for (const [size, count] of Object.entries(sizeCount)) {
+      if (count > 0) {
+        breakdownData[size] = { count, price: sizeBreakdown[size] };
+      }
+    }
+    document.getElementById('price_breakdown').value = JSON.stringify(breakdownData);
+    console.log('=== UPDATE SUMMARY END ===\n');
   }
 
   // Event listeners
-  checkInDate.addEventListener('change', updateSummary);
-  checkInTime.addEventListener('change', updateSummary);
-  checkOutDate.addEventListener('change', updateSummary);
-  checkOutTime.addEventListener('change', updateSummary);
-  
-  document.querySelectorAll('input[name="total_pets"]').forEach(radio => {
-    radio.addEventListener('change', function() {
+  // Handle form submission with loading spinner
+  document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    const submitIcon = document.getElementById('submitIcon');
+    const submitText = document.getElementById('submitText');
+    
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+    submitIcon.className = 'fas fa-spinner spinner';
+    submitText.textContent = 'Processing...';
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchMerchantData();
+    
+    const initialPetForm = document.querySelector('.petForm');
+    if (initialPetForm) {
+      attachPetFormListeners(initialPetForm);
+      validatePetForm(initialPetForm);
+    }
+
+    document.getElementById('check_in_date').addEventListener('change', () => {
+      const checkInDate = document.getElementById('check_in_date').value;
+      document.getElementById('check_out_date').value = checkInDate;
       updateSummary();
-      updatePetFieldsCount(parseInt(this.value));
-      
-      // Check capacity
-      if (merchantData.maxPetsPerDay && parseInt(this.value) > merchantData.maxPetsPerDay) {
-        document.getElementById('capacityWarning').classList.remove('hidden');
-        document.getElementById('capacityText').textContent = merchantData.maxPetsPerDay + ' pets/day';
-      } else {
-        document.getElementById('capacityWarning').classList.add('hidden');
-      }
     });
-  });
-
-  document.querySelectorAll('input[name="services_booked"]').forEach(checkbox => {
-    checkbox.addEventListener('change', updateSummary);
-  });
-
-  document.getElementById('requiresPickup').addEventListener('change', function() {
-    document.getElementById('pickupAddressField').classList.toggle('hidden', !this.checked);
-    updateSummary();
-  });
-
-  document.getElementById('requiresDelivery').addEventListener('change', function() {
-    document.getElementById('deliveryAddressField').classList.toggle('hidden', !this.checked);
-    updateSummary();
-  });
-
-  // Update pet form fields based on count
-  function updatePetFieldsCount(count) {
-    const container = document.getElementById('multiPetsContainer');
-    container.innerHTML = '';
     
-    for (let i = 1; i <= count; i++) {
-      const petDiv = document.createElement('div');
-      petDiv.className = 'bg-white/50 backdrop-blur-lg rounded-2xl p-6 border-2 border-orange-200';
-      petDiv.innerHTML = `
-        <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <i class="fas fa-paw text-orange-600"></i> Pet ${i} Details
-        </h4>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Pet Species -->
-          <div class="sm:col-span-2">
-            <label class="block text-gray-900 font-semibold text-sm mb-2">
-              <i class="fas fa-dna text-orange-600"></i> Pet Type *
-            </label>
-            <select 
-              name="pet_${i}_species"
-              required
-              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
-            >
-              <option value="">Select species...</option>
-              ${merchantData.acceptedPets.map(pet => `<option value="${pet}">${pet}</option>`).join('')}
-            </select>
-          </div>
-          
-          <!-- Pet Name -->
-          <div>
-            <label class="block text-gray-900 font-semibold text-sm mb-2">
-              <i class="fas fa-name text-orange-600"></i> Name
-            </label>
-            <input 
-              type="text" 
-              name="pet_${i}_name"
-              placeholder="Buddy"
-              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
-            >
-          </div>
-
-          <!-- Pet Breed -->
-          <div>
-            <label class="block text-gray-900 font-semibold text-sm mb-2">
-              <i class="fas fa-list text-orange-600"></i> Breed
-            </label>
-            <input 
-              type="text" 
-              name="pet_${i}_breed"
-              placeholder="Golden Retriever"
-              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
-            >
-          </div>
-
-          <!-- Pet Age -->
-          <div>
-            <label class="block text-gray-900 font-semibold text-sm mb-2">
-              <i class="fas fa-calendar-days text-orange-600"></i> Age (years)
-            </label>
-            <input 
-              type="number" 
-              name="pet_${i}_age"
-              min="0"
-              step="0.5"
-              placeholder="3"
-              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
-            >
-          </div>
-
-          <!-- Medical Notes -->
-          <div class="sm:col-span-2">
-            <label class="block text-gray-900 font-semibold text-sm mb-2">
-              <i class="fas fa-heartbeat text-orange-600"></i> Medical Notes
-            </label>
-            <input 
-              type="text" 
-              name="pet_${i}_medical"
-              placeholder="Allergies, medications, conditions..."
-              class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors bg-white text-gray-800 text-sm"
-            >
-          </div>
-        </div>
-      `;
-      container.appendChild(petDiv);
-    }
-  }
-
-  // Set minimum check-in date to today
-  const today = new Date().toISOString().split('T')[0];
-  checkInDate.setAttribute('min', today);
-
-  // Set minimum check-out date to be after check-in date
-  checkInDate.addEventListener('change', function() {
-    checkOutDate.setAttribute('min', this.value);
-  });
-
-  // Form submission
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    // Validate selections
-    const totalPets = parseInt(document.querySelector('input[name="total_pets"]:checked')?.value) || 0;
-    const selectedServices = document.querySelectorAll('input[name="services_booked"]:checked').length;
-
-    if (totalPets === 0) {
-      alert('Please select the number of pets you want to book');
-      return;
-    }
-
-    if (selectedServices === 0) {
-      alert('Please select at least one service');
-      return;
-    }
-
-    // Validate all pets have species
-    for (let i = 1; i <= totalPets; i++) {
-      const species = document.querySelector(`input[name="pet_${i}_species"], select[name="pet_${i}_species"]`)?.value;
-      if (!species) {
-        alert(`Please select a species for Pet ${i}`);
-        return;
-      }
-    }
-
-    if (checkInDate.value === '') {
-      alert('Please select a check-in date');
-      return;
-    }
-
-    if (checkOutDate.value === '') {
-      alert('Please select a check-out date');
-      return;
-    }
-
-    const checkIn = new Date(checkInDate.value);
-    const checkOut = new Date(checkOutDate.value);
+    document.getElementById('check_in_time').addEventListener('change', () => {
+      updateSummary();
+    });
     
-    if (checkOut <= checkIn) {
-      alert('Check-out date must be after check-in date');
-      return;
-    }
-
-    // Validate capacity
-    if (merchantData.maxPetsPerDay && totalPets > merchantData.maxPetsPerDay) {
-      if (!confirm(`You're requesting ${totalPets} pets but the store's daily capacity is ${merchantData.maxPetsPerDay}. Continue?`)) {
-        return;
-      }
-    }
-
-    // Show loader and submit
-    document.getElementById('loader-overlay').classList.remove('hidden');
+    document.getElementById('customer_phone').addEventListener('input', () => {
+      validateForm();
+    });
     
-    // Simulate progress
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += Math.random() * 30;
-      progress = Math.min(progress, 90);
-      document.getElementById('progressBar').style.width = progress + '%';
-    }, 300);
-
-    // Submit form after delay
-    setTimeout(() => {
-      clearInterval(progressInterval);
-      document.getElementById('progressBar').style.width = '100%';
-      form.submit();
-    }, 1500);
-  });
-
-  // Initialize Map
-  function initializeStoreMap() {
-    const latitude = parseFloat("{{ merchant.latitude or 14.5995 }}");
-    const longitude = parseFloat("{{ merchant.longitude or 120.9842 }}");
-    const businessName = "{{ merchant.business_name or 'Pet Store' }}";
-    
-    // Create map centered on store location
-    const map = L.map('storeMap', {
-      center: [latitude, longitude],
-      zoom: 16,
-      dragging: false,
-      doubleClickZoom: false,
-      scrollWheelZoom: false,
-      boxZoom: false,
-      keyboard: false,
-      zoomControl: true
+    document.getElementById('agreeTerms').addEventListener('change', () => {
+      validateForm();
     });
 
-    // Add OpenStreetMap tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19
-    }).addTo(map);
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('check_in_date').min = today;
 
-    // Add red marker at store location
-    const marker = L.marker([latitude, longitude], {
-      icon: L.icon({
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      })
-    }).addTo(map);
-
-    // Add popup with store name
-    marker.bindPopup(`<div class="text-center"><strong>${businessName}</strong></div>`).openPopup();
-  }
-
-  // Initialize
-  updateSummary();
-  updatePetFieldsCount(1);
-  
-  // Initialize map when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeStoreMap);
-  } else {
-    initializeStoreMap();
-  }
+    updateSummary();
+  });
 </script>
 
 {% endblock %}

@@ -364,10 +364,10 @@
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.status-badge.cancelled {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+.status-badge.rejected {
+  background: rgba(245, 158, 11, 0.15);
+  color: #EB4C4C;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .status-badge.noshow {

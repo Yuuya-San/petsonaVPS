@@ -4,8 +4,15 @@ Integration Examples for Merchant Pricing System
 This file demonstrates how to integrate the merchant pricing system
 with the booking system and other PetSona components.
 """
+from datetime import datetime
+import pytz
 
-# ========== EXAMPLE 1: BOOKING CALCULATION ==========
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 def calculate_booking_price(merchant_id, pet_size, service_name, duration_unit=None):
     """
@@ -172,7 +179,7 @@ class BookingWithPricing:
             pet_size=pet_size,
             duration_unit=duration_unit,
             status='pending',
-            created_at=datetime.utcnow()
+            created_at=get_ph_datetime()
         )
         
         db.session.add(booking)
@@ -350,7 +357,7 @@ def update_merchant_pricing_bulk(merchant_id, price_updates):
             # Similar logic for other types...
         
         merchant.service_pricing = pricing
-        merchant.updated_at = datetime.utcnow()
+        merchant.updated_at = get_ph_datetime()
         db.session.commit()
         
         return True, "Pricing updated successfully"

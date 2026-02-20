@@ -43,6 +43,10 @@ class Config:
     # OAuth Settings
     AUTHLIB_INSECURE_TRANSPORT = True  # Allow HTTP for development
 
+    # File Upload Configuration
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'messages')
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB max file size
+
     @staticmethod
     def init_app(app):
         """Initialize extensions with the app"""

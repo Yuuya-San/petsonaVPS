@@ -2,6 +2,14 @@ from datetime import datetime
 from app.extensions import db
 from app.models.breed import Breed
 from app.utils.icons import get_species_icon
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 class Species(db.Model):
@@ -26,13 +34,13 @@ class Species(db.Model):
     heart_vote_count = db.Column(db.Integer, default=0, comment="Total heart votes from all users")
 
     deleted_at = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_ph_datetime)
+    updated_at = db.Column(db.DateTime, onupdate=get_ph_datetime)
 
     breeds = db.relationship("Breed", backref="species", lazy="dynamic")
 
     def soft_delete(self):
-        self.deleted_at = datetime.utcnow()
+        self.deleted_at = get_ph_datetime()
 
     def update_breed_count(self):
         self.active_breeds_count = self.breeds.filter(

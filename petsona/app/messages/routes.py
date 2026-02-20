@@ -573,7 +573,9 @@ def upload_file(conversation_id):
                 return jsonify({'error': 'File type not allowed'}), 400
         
         # Create upload directory
-        upload_dir = current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads/messages')
+        upload_dir = current_app.config.get('UPLOAD_FOLDER')
+        if not upload_dir:
+            upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads', 'messages')
         os.makedirs(upload_dir, exist_ok=True)
         
         # Ensure upload_dir is safe (prevent path traversal)

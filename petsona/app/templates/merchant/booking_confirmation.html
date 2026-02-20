@@ -68,13 +68,21 @@
               </div>
             </div>
 
-            <!-- Services -->
+            <!-- Appointment Details -->
             <div class="flex justify-between items-start pb-4 border-b border-slate-200">
-              <span class="text-slate-600 font-medium">Services</span>
+              <span class="text-slate-600 font-medium">Appointment</span>
               <div class="text-right space-y-1">
-                {% for service in booking.services_booked %}
-                <p class="text-slate-900 font-medium text-sm"><i class="fas fa-check text-emerald-600 mr-2"></i>{{ service }}</p>
-                {% endfor %}
+                <p class="text-slate-900 font-medium text-sm"><i class="fas fa-calendar text-emerald-600 mr-2"></i>{{ booking.appointment_date.strftime('%B %d, %Y') }}</p>
+                <p class="text-slate-900 font-medium text-sm"><i class="fas fa-clock text-emerald-600 mr-2"></i>{{ booking.appointment_time }}</p>
+              </div>
+            </div>
+
+            <!-- Service Type -->
+            <div class="flex justify-between items-start pb-4 border-b border-slate-200">
+              <span class="text-slate-600 font-medium">Service Type</span>
+              <div class="text-right">
+                <p class="text-slate-900 font-medium">{{ booking.service_type }}</p>
+                <p class="text-slate-600 text-sm">{{ booking.business_category }}</p>
               </div>
             </div>
 
@@ -86,21 +94,12 @@
               </div>
             </div>
 
-            <!-- Dates -->
+            <!-- Appointment Date & Time -->
             <div class="flex justify-between items-start pb-4 border-b border-slate-200">
-              <span class="text-slate-600 font-medium">Reservation Period</span>
+              <span class="text-slate-600 font-medium">Appointment Date</span>
               <div class="text-right">
-                <p class="font-bold text-slate-900">{{ booking.check_in_date.strftime('%b %d, %Y') }}</p>
-                <p class="text-sm text-slate-600">to {{ booking.check_out_date.strftime('%b %d, %Y') }}</p>
-                <p class="text-xs text-slate-500 mt-1">{{ booking.duration_days }} day(s)</p>
-              </div>
-            </div>
-
-            <!-- Times -->
-            <div class="flex justify-between items-start pb-4 border-b border-slate-200">
-              <span class="text-slate-600 font-medium">Times</span>
-              <div class="text-right">
-                <p class="font-bold text-slate-900">{{ booking.check_in_time }} - {{ booking.check_out_time }}</p>
+                <p class="font-bold text-slate-900">{{ booking.appointment_date.strftime('%b %d, %Y') }}</p>
+                <p class="text-sm text-slate-600">at {{ booking.appointment_time }}</p>
               </div>
             </div>
 
@@ -125,41 +124,31 @@
 
           <div class="space-y-3">
             <div class="flex justify-between">
-              <span class="text-slate-700">Base Rate (per day)</span>
-              <span class="font-semibold text-slate-900">₱{{ "%.2f"|format(booking.base_price_per_day) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-700">Duration</span>
-              <span class="font-semibold text-slate-900">{{ booking.duration_days }} day(s)</span>
+              <span class="text-slate-700">Service Type</span>
+              <span class="font-semibold text-slate-900">{{ booking.service_type }}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-slate-700">Number of Pets</span>
               <span class="font-semibold text-slate-900">{{ booking.total_pets }}</span>
             </div>
-            
-            {% if booking.pickup_fee > 0 %}
-            <div class="flex justify-between pt-2 border-t border-purple-300">
-              <span class="text-slate-700">Pickup Fee</span>
-              <span class="font-semibold text-slate-900">₱{{ "%.2f"|format(booking.pickup_fee) }}</span>
-            </div>
-            {% endif %}
 
-            {% if booking.delivery_fee > 0 %}
-            <div class="flex justify-between">
-              <span class="text-slate-700">Delivery Fee</span>
-              <span class="font-semibold text-slate-900">₱{{ "%.2f"|format(booking.delivery_fee) }}</span>
-            </div>
-            {% endif %}
-
-            {% if booking.discount_amount > 0 %}
-            <div class="flex justify-between text-emerald-600">
-              <span>Discount</span>
-              <span class="font-semibold">-₱{{ "%.2f"|format(booking.discount_amount) }}</span>
+            <!-- Price Breakdown by Pet Size -->
+            {% if booking.price_breakdown %}
+            <div class="pt-2 border-t border-purple-300">
+              <p class="text-sm font-semibold text-slate-900 mb-2">Price by Pet Size:</p>
+              {% for size, details in booking.price_breakdown.items() %}
+                {% if details.count and details.count > 0 %}
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-700">{{ size|capitalize }} (x{{ details.count }})</span>
+                  <span class="font-semibold text-slate-900">₱{{ "%.2f"|format(details.price) }}</span>
+                </div>
+                {% endif %}
+              {% endfor %}
             </div>
             {% endif %}
 
             <div class="flex justify-between pt-4 border-t-2 border-purple-300">
-              <span class="text-lg font-bold text-slate-900">Estimated Total</span>
+              <span class="text-lg font-bold text-slate-900">Total Amount</span>
               <span class="text-2xl font-bold text-purple-600">₱{{ "%.2f"|format(booking.total_amount) }}</span>
             </div>
 

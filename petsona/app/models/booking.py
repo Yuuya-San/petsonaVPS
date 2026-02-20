@@ -2,217 +2,173 @@
 from datetime import datetime
 from app.extensions import db
 from sqlalchemy.dialects.mysql import JSON, LONGTEXT
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 class Booking(db.Model):
     """
-    Booking model for managing online reservations at merchant services.
-    Inspired by e-commerce platforms like Grab, Shopee, Lazada, and Panda.
+    Booking model for appointment-based pet service reservations.
+    Aligned with booking.html form - appointment-based pricing by pet SIZE category.
     Handles reservations WITHOUT real money transactions.
     """
     __tablename__ = "bookings"
 
     # ========== SECTION 1: PRIMARY & FOREIGN KEYS ==========
     id = db.Column(db.Integer, primary_key=True)
-    
-    # Customer (User who made the booking)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('bookings', cascade='all, delete-orphan', lazy='dynamic'))
-    
-    # Merchant (Service provider)
     merchant_id = db.Column(db.Integer, db.ForeignKey('merchants.id', ondelete='CASCADE'), nullable=False, index=True)
     merchant = db.relationship('Merchant', foreign_keys=[merchant_id], backref=db.backref('bookings', cascade='all, delete-orphan', lazy='dynamic'))
 
     # ========== SECTION 2: BOOKING IDENTIFICATION ==========
-    booking_number = db.Column(db.String(50), unique=True, nullable=False, index=True)  # e.g., BK-2026-001234
-    status = db.Column(db.String(50), nullable=False, default='pending', index=True)  # pending, confirmed, completed, cancelled, no-show
-    
-    # ========== SECTION 3: CUSTOMER CONTACT INFO ==========
+    booking_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    confirmation_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    status = db.Column(db.String(50), nullable=False, default='pending', index=True)
+
+    # ========== SECTION 3: CUSTOMER INFO (From booking.html form) ==========
     customer_name = db.Column(db.String(128), nullable=False)
     customer_email = db.Column(db.String(255), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
-    special_requests = db.Column(LONGTEXT, nullable=True)  # Additional customer notes/requests
 
-    # ========== SECTION 4: SERVICE DETAILS ==========
-    # Services selected from merchant.services_offered
-    services_booked = db.Column(JSON, nullable=False, default=[])  # Array of service names
-    service_description = db.Column(LONGTEXT, nullable=True)  # Detailed description of services
-
-    # ========== SECTION 5: PET INFORMATION ==========
-    # Can book multiple pets
-    pets_booked = db.Column(JSON, nullable=False, default=[])  # Array of {pet_id, pet_name, species, breed, age, special_needs}
+    # ========== SECTION 4: PETS (From booking.html multi-pet form) ==========
+    # Each pet: { pet_name, species, breed, age, weight, medical_conditions }
+    pets_booked = db.Column(JSON, nullable=False, default=[])
     total_pets = db.Column(db.Integer, default=1, nullable=False)
-    pet_special_notes = db.Column(LONGTEXT, nullable=True)  # Dietary, behavioral, medical notes
+    pet_special_notes = db.Column(LONGTEXT, nullable=True)
 
-    # ========== SECTION 6: RESERVATION DATES & TIMES ==========
-    check_in_date = db.Column(db.DateTime, nullable=False, index=True)
-    check_out_date = db.Column(db.DateTime, nullable=False, index=True)
-    check_in_time = db.Column(db.String(5), nullable=False)  # HH:MM format
-    check_out_time = db.Column(db.String(5), nullable=False)  # HH:MM format
-    duration_days = db.Column(db.Integer, nullable=False)  # Calculated days
-    
-    # ========== SECTION 7: PICKUP & DELIVERY (OPTIONAL) ==========
-    requires_pickup = db.Column(db.Boolean, default=False)
-    requires_delivery = db.Column(db.Boolean, default=False)
-    pickup_location = db.Column(db.String(500), nullable=True)  # Customer pickup address
-    pickup_time = db.Column(db.String(5), nullable=True)  # HH:MM
-    delivery_location = db.Column(db.String(500), nullable=True)  # Return delivery address
-    delivery_time = db.Column(db.String(5), nullable=True)  # HH:MM
+    # ========== SECTION 5: APPOINTMENT DATE & TIME (Single appointment, not multi-day) ==========
+    appointment_date = db.Column(db.DateTime, nullable=False, index=True)  # Date of appointment
+    appointment_time = db.Column(db.String(5), nullable=False)  # HH:MM format
 
-    # ========== SECTION 8: PRICING & REVENUE SIMULATION ==========
-    # No real payment processing, but tracks revenue for analytics
-    base_price_per_day = db.Column(db.Float, nullable=False)  # Price per day from merchant
-    total_service_cost = db.Column(db.Float, nullable=False)  # Base cost (days * price_per_day * pets)
+    # ========== SECTION 6: PRICING (Based on pet SIZE categories) ==========
+    # Price breakdown by size category:
+    # { "small": {"count": 1, "price": 500}, "medium": {"count": 2, "price": 1000}, ... }
+    price_breakdown = db.Column(JSON, nullable=True, default={})
     
-    # Additional charges (optional)
-    pickup_fee = db.Column(db.Float, default=0)
-    delivery_fee = db.Column(db.Float, default=0)
-    additional_services_fee = db.Column(db.Float, default=0)  # Extra services like grooming, training, etc.
-    
-    # Discounts (promo codes, loyalty, etc.)
-    discount_amount = db.Column(db.Float, default=0)
-    discount_code = db.Column(db.String(50), nullable=True)  # Promo code used
-    
-    # Final totals
-    subtotal = db.Column(db.Float, nullable=False)  # service_cost + additional fees
-    total_amount = db.Column(db.Float, nullable=False)  # subtotal - discount_amount (FINAL PRICE)
-    
-    # Revenue tracking (for merchant stats/analytics)
-    merchant_commission_rate = db.Column(db.Float, default=0.85)  # e.g., 85% to merchant, 15% to platform
-    merchant_receives = db.Column(db.Float, nullable=False)  # Amount merchant receives (for stats only)
-    platform_fee = db.Column(db.Float, nullable=False)  # Amount platform keeps (for stats only)
+    # Total cost based on all pets' sizes and service type
+    total_amount = db.Column(db.Float, nullable=False, default=0.0)
 
-    # ========== SECTION 9: PAYMENT SIMULATION (NO REAL TRANSACTIONS) ==========
-    payment_method = db.Column(db.String(50), default='simulated', nullable=False)  # 'simulated', 'wallet', 'credit_card', etc.
-    payment_status = db.Column(db.String(50), default='pending', nullable=False)  # pending, completed, failed, refunded
-    payment_date = db.Column(db.DateTime, nullable=True)  # When payment was "completed"
-    
-    # Cancellation & Refund Simulation
-    cancellation_reason = db.Column(LONGTEXT, nullable=True)  # Why booking was cancelled
-    cancellation_date = db.Column(db.DateTime, nullable=True)
-    refund_amount = db.Column(db.Float, default=0)  # Simulated refund (based on cancellation policy)
-    refund_date = db.Column(db.DateTime, nullable=True)
-    refund_status = db.Column(db.String(50), nullable=True)  # pending, completed, denied
+    # ========== SECTION 7: SERVICE TYPE & DURATION ==========
+    # Depends on business category:
+    # - Pet Hotel/Boarding: "Per Night"
+    # - Pet Daycare: "Full Day" or "Half Day"
+    service_type = db.Column(db.String(100), nullable=True)  # e.g., "Per Night", "Full Day"
+    business_category = db.Column(db.String(100), nullable=True)  # e.g., "Pet Hotel", "Pet Daycare"
 
-    # ========== SECTION 10: BOOKING CONFIRMATION & COMMUNICATION ==========
-    confirmation_code = db.Column(db.String(50), unique=True, nullable=False, index=True)  # Like Grab/Shopee
-    merchant_confirmation_required = db.Column(db.Boolean, default=True)
+    # ========== SECTION 8: MERCHANT CONFIRMATION (Workflow) ==========
+    merchant_confirmed = db.Column(db.Boolean, default=False)
     merchant_confirmed_at = db.Column(db.DateTime, nullable=True)
-    merchant_confirmation_notes = db.Column(LONGTEXT, nullable=True)
 
-    # ========== SECTION 11: COMPLETION & RATINGS ==========
-    completed_at = db.Column(db.DateTime, nullable=True)
-    customer_rating = db.Column(db.Float, nullable=True)  # 1-5 stars
-    customer_review = db.Column(LONGTEXT, nullable=True)
-    merchant_rating_to_customer = db.Column(db.Float, nullable=True)  # Merchant rate customer
-    merchant_notes_on_customer = db.Column(LONGTEXT, nullable=True)
+    # ========== SECTION 9: ADDITIONAL NOTES (From booking.html form) ==========
+    special_requests = db.Column(LONGTEXT, nullable=True)
 
-    # ========== SECTION 12: NO-SHOW & PENALTY TRACKING ==========
-    no_show = db.Column(db.Boolean, default=False)
-    no_show_reason = db.Column(LONGTEXT, nullable=True)
-    customer_no_show_penalty = db.Column(db.Float, default=0)  # Penalty for no-show (for analytics)
-
-    # ========== SECTION 13: DOCUMENTS & ATTACHMENTS ==========
-    # File paths for receipts, invoices, etc.
-    receipt_path = db.Column(db.String(255), nullable=True)
-    invoice_path = db.Column(db.String(255), nullable=True)
-    additional_documents = db.Column(JSON, nullable=True, default=[])  # Array of file paths
-
-    # ========== SECTION 14: METADATA & TIMESTAMPS ==========
+    # ========== SECTION 10: TIMESTAMPS & TRACKING ==========
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = db.Column(db.DateTime, nullable=True)  # Soft delete
-
-    # ========== SECTION 15: ANALYTICS & TRACKING ==========
-    source = db.Column(db.String(100), nullable=True)  # 'web', 'mobile', 'app'
-    notes = db.Column(LONGTEXT, nullable=True)  # Internal notes
+    deleted_at = db.Column(db.DateTime, nullable=True)
     
-    # Unique constraint to prevent duplicate bookings for same customer at same merchant for overlapping dates
     __table_args__ = (
         db.UniqueConstraint('booking_number', name='unique_booking_number'),
         db.UniqueConstraint('confirmation_code', name='unique_confirmation_code'),
-        db.Index('idx_user_merchant_dates', 'user_id', 'merchant_id', 'check_in_date', 'check_out_date'),
+        db.Index('idx_user_merchant_appointment', 'user_id', 'merchant_id', 'appointment_date'),
+        db.Index('idx_booking_status', 'status', 'created_at'),
     )
 
     def __repr__(self):
         return f'<Booking {self.booking_number} - {self.customer_name}>'
 
-    # ========== PROPERTIES & HELPER METHODS ==========
-    
+    # ========== PROPERTIES ==========
     @property
     def is_pending(self):
-        """Check if booking is pending confirmation"""
-        return self.status == 'pending'
+        """Check if booking is awaiting merchant confirmation"""
+        return self.status == 'pending' and not self.merchant_confirmed
 
     @property
     def is_confirmed(self):
-        """Check if booking is confirmed"""
-        return self.status == 'confirmed'
+        """Check if booking is confirmed by merchant"""
+        return self.status == 'confirmed' or self.merchant_confirmed
 
     @property
     def is_completed(self):
-        """Check if booking is completed"""
+        """Check if booking service was completed"""
         return self.status == 'completed'
 
     @property
     def is_cancelled(self):
-        """Check if booking is cancelled"""
+        """Check if booking was cancelled"""
         return self.status == 'cancelled'
 
     @property
-    def is_no_show(self):
-        """Check if customer didn't show up"""
-        return self.no_show
-
-    @property
     def is_active(self):
-        """Check if booking is currently active (confirmed and within date range)"""
-        now = datetime.utcnow()
-        return self.is_confirmed and self.check_in_date <= now <= self.check_out_date
+        """Check if appointment is today or in the future and confirmed"""
+        now = get_ph_datetime()
+        return self.is_confirmed and self.appointment_date.date() >= now.date()
 
     @property
     def is_upcoming(self):
-        """Check if booking is in the future"""
-        return self.is_confirmed and datetime.utcnow() < self.check_in_date
+        """Check if appointment is scheduled for the future"""
+        return self.is_confirmed and self.appointment_date > get_ph_datetime()
+
+    @property
+    def is_past(self):
+        """Check if appointment date has passed"""
+        return get_ph_datetime() > self.appointment_date
 
     @property
     def can_be_cancelled(self):
-        """Check if booking can still be cancelled (before check-in)"""
-        return self.is_pending or (self.is_confirmed and datetime.utcnow() < self.check_in_date)
+        """Check if booking can still be cancelled"""
+        return not self.is_cancelled and not self.is_completed and get_ph_datetime() < self.appointment_date
 
     @property
-    def payment_complete(self):
-        """Check if payment is simulated as complete"""
-        return self.payment_status == 'completed'
+    def total_pets_count(self):
+        """Get total count of pets in booking"""
+        return self.total_pets or (len(self.pets_booked) if isinstance(self.pets_booked, list) else 0)
 
-    def calculate_merchant_split(self):
-        """Calculate and update merchant commission and platform fee"""
-        self.merchant_receives = round(self.total_amount * self.merchant_commission_rate, 2)
-        self.platform_fee = round(self.total_amount - self.merchant_receives, 2)
+    # ========== METHODS ==========
+    def get_status_display(self):
+        """Get human-readable status for UI display"""
+        status_map = {
+            'pending': 'Awaiting Merchant Confirmation',
+            'confirmed': 'Confirmed',
+            'completed': 'Completed',
+            'cancelled': 'Cancelled',
+        }
+        return status_map.get(self.status, self.status)
 
-    def calculate_refund(self, cancellation_policy_percentage=50):
-        """
-        Simulate refund based on cancellation policy and when booking was cancelled.
-        Different platforms have different policies.
-        
-        Args:
-            cancellation_policy_percentage: % of amount to refund (e.g., 50%, 75%, 100%)
-        """
-        if self.payment_status == 'completed':
-            self.refund_amount = round(self.total_amount * (cancellation_policy_percentage / 100), 2)
-            self.refund_status = 'pending'
+    def get_status_badge_color(self):
+        """Get Tailwind color class for status badge"""
+        color_map = {
+            'pending': 'yellow',
+            'confirmed': 'green',
+            'completed': 'blue',
+            'cancelled': 'red',
+        }
+        return color_map.get(self.status, 'gray')
 
     def get_pets_summary(self):
-        """Returns formatted pet information"""
-        if isinstance(self.pets_booked, list):
-            return self.pets_booked
+        """Returns formatted pet information from JSON"""
+        if self.pets_booked:
+            if isinstance(self.pets_booked, list):
+                return self.pets_booked
+            elif isinstance(self.pets_booked, dict):
+                return [self.pets_booked]
         return []
 
-    def get_services_summary(self):
-        """Returns formatted services information"""
-        if isinstance(self.services_booked, list):
-            return self.services_booked
-        return []
+    def get_booking_duration_text(self):
+        """Get human-readable appointment info"""
+        if self.appointment_date:
+            date_str = self.appointment_date.strftime('%b %d, %Y')
+            time_str = self.appointment_time
+            service_str = self.service_type or 'Appointment'
+            return f"{service_str} on {date_str} at {time_str}"
+        return "Appointment scheduled"
 
     def to_dict(self):
         """Convert booking to dictionary for JSON responses"""
@@ -221,18 +177,20 @@ class Booking(db.Model):
             'booking_number': self.booking_number,
             'confirmation_code': self.confirmation_code,
             'status': self.status,
+            'status_display': self.get_status_display(),
             'customer_name': self.customer_name,
             'customer_email': self.customer_email,
             'customer_phone': self.customer_phone,
             'merchant_name': self.merchant.business_name if self.merchant else None,
-            'services_booked': self.get_services_summary(),
             'pets_booked': self.get_pets_summary(),
-            'check_in_date': self.check_in_date.isoformat() if self.check_in_date else None,
-            'check_out_date': self.check_out_date.isoformat() if self.check_out_date else None,
-            'duration_days': self.duration_days,
+            'total_pets': self.total_pets_count,
+            'appointment_date': self.appointment_date.isoformat() if self.appointment_date else None,
+            'appointment_time': self.appointment_time,
+            'service_type': self.service_type,
+            'business_category': self.business_category,
+            'price_breakdown': self.price_breakdown or {},
             'total_amount': self.total_amount,
-            'payment_status': self.payment_status,
-            'customer_rating': self.customer_rating,
+            'special_requests': self.special_requests,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'is_active': self.is_active,
             'is_upcoming': self.is_upcoming,
@@ -240,73 +198,60 @@ class Booking(db.Model):
         }
 
     def to_dict_detailed(self):
-        """Convert booking to detailed dictionary with all fields for JSON responses"""
+        """Convert booking to detailed dictionary with all fields"""
         return {
             'id': self.id,
             'booking_number': self.booking_number,
             'confirmation_code': self.confirmation_code,
             'status': self.status,
+            'status_display': self.get_status_display(),
+            'status_color': self.get_status_badge_color(),
+            
             'customer': {
                 'name': self.customer_name,
                 'email': self.customer_email,
                 'phone': self.customer_phone,
             },
+            
             'merchant': {
                 'id': self.merchant_id,
                 'name': self.merchant.business_name if self.merchant else None,
-                'type': self.merchant.business_type if self.merchant else None,
+                'category': self.merchant.business_category if self.merchant else None,
             },
-            'services': self.get_services_summary(),
-            'pets': self.get_pets_summary(),
-            'reservation': {
-                'check_in_date': self.check_in_date.isoformat() if self.check_in_date else None,
-                'check_in_time': self.check_in_time,
-                'check_out_date': self.check_out_date.isoformat() if self.check_out_date else None,
-                'check_out_time': self.check_out_time,
-                'duration_days': self.duration_days,
+            
+            'pets': {
+                'list': self.get_pets_summary(),
+                'total_count': self.total_pets_count,
+                'special_notes': self.pet_special_notes,
             },
+            
+            'appointment': {
+                'appointment_date': self.appointment_date.isoformat() if self.appointment_date else None,
+                'appointment_time': self.appointment_time,
+                'service_type': self.service_type,
+                'business_category': self.business_category,
+                'duration_text': self.get_booking_duration_text(),
+            },
+            
             'pricing': {
-                'base_price_per_day': self.base_price_per_day,
-                'subtotal': self.subtotal,
-                'pickup_fee': self.pickup_fee,
-                'delivery_fee': self.delivery_fee,
-                'additional_services_fee': self.additional_services_fee,
-                'discount_amount': self.discount_amount,
-                'discount_code': self.discount_code,
+                'price_breakdown': self.price_breakdown or {},
                 'total_amount': self.total_amount,
             },
-            'payment': {
-                'method': self.payment_method,
-                'status': self.payment_status,
-                'payment_date': self.payment_date.isoformat() if self.payment_date else None,
+            
+            'confirmation': {
+                'merchant_confirmed': self.merchant_confirmed,
+                'confirmed_at': self.merchant_confirmed_at.isoformat() if self.merchant_confirmed_at else None,
             },
-            'merchant_split': {
-                'merchant_receives': self.merchant_receives,
-                'platform_fee': self.platform_fee,
-                'commission_rate': self.merchant_commission_rate,
+            
+            'notes': {
+                'special_requests': self.special_requests,
             },
-            'ratings': {
-                'customer_rating': self.customer_rating,
-                'customer_review': self.customer_review,
-                'merchant_rating': self.merchant_rating_to_customer,
-            },
-            'cancellation': {
-                'cancelled': self.is_cancelled,
-                'cancellation_date': self.cancellation_date.isoformat() if self.cancellation_date else None,
-                'cancellation_reason': self.cancellation_reason,
-                'refund_amount': self.refund_amount,
-                'refund_status': self.refund_status,
-            },
-            'no_show': {
-                'is_no_show': self.no_show,
-                'reason': self.no_show_reason,
-                'penalty': self.customer_no_show_penalty,
-            },
+            
             'timestamps': {
                 'created_at': self.created_at.isoformat() if self.created_at else None,
                 'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-                'completed_at': self.completed_at.isoformat() if self.completed_at else None,
             },
+            
             'status_flags': {
                 'is_pending': self.is_pending,
                 'is_confirmed': self.is_confirmed,
@@ -314,6 +259,7 @@ class Booking(db.Model):
                 'is_cancelled': self.is_cancelled,
                 'is_active': self.is_active,
                 'is_upcoming': self.is_upcoming,
+                'is_past': self.is_past,
                 'can_be_cancelled': self.can_be_cancelled,
             }
         }

@@ -13,6 +13,7 @@ pymysql
 email-validator
 pyotp
 qrcode
+Pillow
 pytz
 requests
 Flask-SocketIO

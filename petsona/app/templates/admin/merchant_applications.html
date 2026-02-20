@@ -304,10 +304,6 @@
                                     <p class="text-gray-600 font-semibold uppercase text-xs">Owner/Manager Name</p>
                                     <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.owner_name || 'N/A'"></p>
                                 </div>
-                                <div>
-                                    <p class="text-gray-600 font-semibold uppercase text-xs">Years in Operation</p>
-                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.years_in_operation + ' years' || 'N/A'"></p>
-                                </div>
                                 <div class="sm:col-span-2">
                                     <p class="text-gray-600 font-semibold uppercase text-xs">Business Description</p>
                                     <p class="text-gray-900 font-medium mt-1 break-words" x-text="selectedApp.business_description || 'Not provided'"></p>
@@ -395,68 +391,54 @@
                             </div>
                         </div>
 
-                        <!-- Services & Pets Section -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                            <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
-                                <h4 class="font-bold text-gray-900 text-base mb-3 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
-                                    </svg>
-                                    Services Offered
-                                </h4>
-                                <div class="flex flex-wrap gap-2">
-                                    <template x-for="service in (selectedApp.services || [])" :key="service">
-                                        <span class="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-xs font-semibold" x-text="service"></span>
-                                    </template>
-                                    <template x-if="(!selectedApp.services || selectedApp.services.length === 0)">
-                                        <span class="text-gray-500 text-sm">Not specified</span>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
-                                <h4 class="font-bold text-gray-900 text-base mb-3 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                    </svg>
-                                    Pets Accepted
-                                </h4>
-                                <div class="flex flex-wrap gap-2">
-                                    <template x-for="pet in (selectedApp.pets_accepted || [])" :key="pet">
-                                        <span class="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-xs font-semibold" x-text="pet"></span>
-                                    </template>
-                                    <template x-if="(!selectedApp.pets_accepted || selectedApp.pets_accepted.length === 0)">
-                                        <span class="text-gray-500 text-sm">Not specified</span>
-                                    </template>
-                                </div>
+                        <!-- Pets Accepted Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                </svg>
+                                Pets Accepted
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="pet in (selectedApp.pets_accepted || [])" :key="pet">
+                                    <span class="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-xs font-semibold" x-text="pet"></span>
+                                </template>
+                                <template x-if="(!selectedApp.pets_accepted || selectedApp.pets_accepted.length === 0)">
+                                    <span class="text-gray-500 text-sm">Not specified</span>
+                                </template>
                             </div>
                         </div>
 
-                        <!-- Operating Hours & Days Section -->
+                        <!-- Operating Hours & Days Section (Show for ALL categories) -->
                         <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
                             <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
-                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
                                 </svg>
-                                Operating Schedule
+                                <span>Operating Hours & Schedule</span>
                             </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                                <div>
-                                    <p class="text-gray-600 font-semibold uppercase text-xs">Opening Time</p>
-                                    <p class="text-gray-900 font-medium mt-1" x-text="formatTime12Hr(selectedApp.opening_time)"></p>
+                            <div class="space-y-4 text-sm">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold mb-1">Opening Time</p>
+                                        <p class="font-semibold text-gray-900" x-text="selectedApp.is_24h ? '24/7 Available' : formatTime12Hr(selectedApp.opening_time)"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold mb-1">Closing Time</p>
+                                        <p class="font-semibold text-gray-900" x-text="selectedApp.is_24h ? '24/7 Available' : formatTime12Hr(selectedApp.closing_time)"></p>
+                                    </div>
                                 </div>
+                                
                                 <div>
-                                    <p class="text-gray-600 font-semibold uppercase text-xs">Closing Time</p>
-                                    <p class="text-gray-900 font-medium mt-1" x-text="formatTime12Hr(selectedApp.closing_time)"></p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-600 font-semibold uppercase text-xs">Operating Days</p>
-                                    <div class="flex flex-wrap gap-1.5 mt-1">
-                                        <template x-for="day in (selectedApp.operating_days || [])" :key="day">
-                                            <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-semibold" x-text="day"></span>
+                                    <p class="text-gray-600 text-xs font-semibold mb-2">Operating Days</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-if="selectedApp.is_24h">
+                                            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">24/7 Every Day</span>
                                         </template>
-                                        <template x-if="(!selectedApp.operating_days || selectedApp.operating_days.length === 0)">
-                                            <span class="text-gray-500 text-xs">Not specified</span>
+                                        <template x-if="!selectedApp.is_24h">
+                                            <template x-for="day in selectedApp.operating_days" :key="day">
+                                                <span class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold" x-text="day"></span>
+                                            </template>
                                         </template>
                                     </div>
                                 </div>
@@ -472,11 +454,121 @@
                                     </svg>
                                     Service Pricing
                                 </h4>
-                                <div class="space-y-3">
-                                    <template x-for="(priceData, service) in selectedApp.service_pricing">
-                                        <div class="flex items-center justify-between p-3 bg-purple-50/50 rounded-lg">
-                                            <p class="text-gray-700 font-semibold capitalize break-words" x-text="service.replace(/_/g, ' ')"></p>
-                                            <p class="text-purple-600 font-bold text-sm" x-text="formatPriceDisplay(priceData)"></p>
+                                <div class="space-y-6">
+                                    <!-- Pet Hotel -->
+                                    <template x-if="selectedApp.service_pricing['Pet Hotel']">
+                                        <div class="border-l-4 border-blue-500 pl-4">
+                                            <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                                <span class="text-blue-600">🏨</span> Pet Hotel
+                                            </h5>
+                                            <div class="space-y-3">
+                                                <!-- Per Hour -->
+                                                <template x-if="selectedApp.service_pricing['Pet Hotel']['hour']">
+                                                    <div class="p-3 bg-blue-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-blue-700 mb-2">Per Hour</p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Hotel']['hour']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <!-- Per Night -->
+                                                <template x-if="selectedApp.service_pricing['Pet Hotel']['night']">
+                                                    <div class="p-3 bg-blue-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-blue-700 mb-2">Per Night</p>
+                                                        <template x-if="selectedApp.service_pricing.night_checkin_time && selectedApp.service_pricing.night_checkout_time">
+                                                            <p class="text-xs text-blue-600 mb-2">Check-in: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkin_time)"></span> | Check-out: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkout_time)"></span></p>
+                                                        </template>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Hotel']['night']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Pet Boarding -->
+                                    <template x-if="selectedApp.service_pricing['Pet Boarding']">
+                                        <div class="border-l-4 border-indigo-500 pl-4">
+                                            <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                                <span class="text-indigo-600">🚪</span> Pet Boarding
+                                            </h5>
+                                            <div class="space-y-3">
+                                                <!-- Per Hour -->
+                                                <template x-if="selectedApp.service_pricing['Pet Boarding']['hour']">
+                                                    <div class="p-3 bg-indigo-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-indigo-700 mb-2">Per Hour</p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Boarding']['hour']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <!-- Per Night -->
+                                                <template x-if="selectedApp.service_pricing['Pet Boarding']['night']">
+                                                    <div class="p-3 bg-indigo-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-indigo-700 mb-2">Per Night</p>
+                                                        <template x-if="selectedApp.service_pricing.night_checkin_time && selectedApp.service_pricing.night_checkout_time">
+                                                            <p class="text-xs text-indigo-600 mb-2">Check-in: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkin_time)"></span> | Check-out: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkout_time)"></span></p>
+                                                        </template>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Boarding']['night']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Pet Daycare -->
+                                    <template x-if="selectedApp.service_pricing['Pet Daycare']">
+                                        <div class="border-l-4 border-amber-500 pl-4">
+                                            <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                                <span class="text-amber-600">☀️</span> Pet Daycare
+                                            </h5>
+                                            <div class="space-y-3">
+                                                <!-- Full Day -->
+                                                <template x-if="selectedApp.service_pricing['Pet Daycare']['fullday']">
+                                                    <div class="p-3 bg-amber-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-amber-700 mb-2">Full Day <template x-if="selectedApp.service_pricing.fullday_hours"><span class="text-amber-600">(<span x-text="selectedApp.service_pricing.fullday_hours"></span> hrs)</span></template></p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Daycare']['fullday']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <!-- Half Day -->
+                                                <template x-if="selectedApp.service_pricing['Pet Daycare']['halfday']">
+                                                    <div class="p-3 bg-amber-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-amber-700 mb-2">Half Day <template x-if="selectedApp.service_pricing.halfday_hours"><span class="text-amber-600">(<span x-text="selectedApp.service_pricing.halfday_hours"></span> hrs)</span></template></p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Daycare']['halfday']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>
@@ -1060,6 +1152,11 @@ function merchantApplications() {
             } catch (e) {
                 return time24hr;
             }
+        },
+
+        capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         },
 
         formatPriceDisplay(priceData) {

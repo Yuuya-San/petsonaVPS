@@ -37,6 +37,10 @@ def create_app(config_class: type = Config):
     socketio.init_app(app)
     oauth.init_app(app)
     
+    # Initialize QR Code generator
+    from app.utils.qr_generator import qr_generator
+    qr_generator.init_app(app)
+    
     # Initialize config (including OAuth registration)
     config_class.init_app(app)
 

@@ -1,0 +1,371 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<!-- Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+<div class="min-h-screen bg-gradient-to-b from-white via-purple-50/20 to-white py-8 px-2 sm:px-3 lg:px-6">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Back Navigation -->
+    <div class="mb-6">
+      <a href="{{ url_for('user.my_bookings') }}" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold">
+        <i class="fas fa-arrow-left"></i>
+        Back to My Bookings
+      </a>
+    </div>
+
+    <!-- Header with Status -->
+    <div class="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-xl p-6 sm:p-8 border border-white/60 mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+            {{ booking.merchant.business_name }}
+          </h1>
+          <p class="text-gray-600">
+            <i class="fas fa-identifier"></i> Booking: <span class="font-mono font-semibold">{{ booking.booking_number }}</span>
+          </p>
+        </div>
+
+        <!-- Status Badge -->
+        {% if booking.status == 'pending' %}
+          <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-lg font-bold whitespace-nowrap">
+            <i class="fas fa-hourglass-half"></i> Pending Merchant Confirmation
+          </span>
+        {% elif booking.status == 'confirmed' %}
+          <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full text-lg font-bold whitespace-nowrap">
+            <i class="fas fa-check-circle"></i> Confirmed
+          </span>
+        {% elif booking.status == 'completed' %}
+          <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-lg font-bold whitespace-nowrap">
+            <i class="fas fa-checkmark-alt"></i> Completed
+          </span>
+        {% elif booking.status == 'cancelled' %}
+          <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-full text-lg font-bold whitespace-nowrap">
+            <i class="fas fa-times-circle"></i> Cancelled
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Confirmation Info -->
+      {% if booking.merchant_confirmed_at %}
+      <div class="p-3 bg-green-50 border border-green-200 rounded-lg mt-4">
+        <p class="text-sm text-green-800">
+          <i class="fas fa-check-circle text-green-600 mr-2"></i>
+          <strong>Confirmed by merchant on:</strong> {{ booking.merchant_confirmed_at.strftime('%B %d, %Y at %I:%M %p') }}
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- Confirmation Code -->
+      <div class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+        <p class="text-xs text-purple-600 font-semibold uppercase mb-1">Confirmation Code</p>
+        <div class="flex items-center gap-2">
+          <p class="text-2xl font-mono font-bold text-purple-700">{{ booking.confirmation_code }}</p>
+          <button onclick="copyToClipboard('{{ booking.confirmation_code }}')" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-all">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Reservation Dates & Times -->
+        <div class="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/60">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-calendar-alt text-purple-600"></i>
+            Appointment Details
+          </h2>
+
+          <div class="p-4 bg-purple-50/50 rounded-lg">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Date</p>
+                <p class="text-lg font-bold text-gray-900">{{ booking.appointment_date.strftime('%B %d, %Y') }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Time</p>
+                <p class="text-lg font-bold text-gray-900">{{ booking.appointment_time }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pets Information -->
+        <div class="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/60">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-paw text-purple-600"></i>
+            Pets ({{ booking.total_pets }})
+          </h2>
+
+          <div class="space-y-3">
+            {% for pet in booking.pets_booked %}
+            <div class="p-4 border border-purple-200/50 rounded-lg bg-purple-50/30">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-lg font-bold text-gray-900">{{ pet.pet_name }}</p>
+                  <p class="text-sm text-gray-600">{{ pet.pet_species }}{% if pet.pet_breed %} - {{ pet.pet_breed }}{% endif %}</p>
+                  {% if pet.pet_age %}
+                  <p class="text-xs text-gray-600 mt-1">Age: {{ pet.pet_age }}</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              {% if pet.pet_medical_conditions %}
+              <div class="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
+                <strong>Medical Conditions:</strong> {{ pet.pet_medical_conditions }}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Service Information -->
+        <div class="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/60">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-briefcase text-purple-600"></i>              <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Service Type</p>
+              <p class="text-lg font-semibold text-gray-900">{{ booking.service_type }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Notes -->
+        {% if booking.pet_special_notes or booking.special_requests %}
+        <div class="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/60">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-pen text-purple-600"></i>
+            Special Notes & Requests
+          </h2>
+
+          {% if booking.pet_special_notes %}
+          <div class="mb-4">
+            <p class="text-sm font-semibold text-gray-900 mb-2">Pet Special Notes:</p>
+            <p class="text-gray-700 p-3 bg-gray-50 rounded-lg">{{ booking.pet_special_notes }}</p>
+          </div>
+          {% endif %}
+
+          {% if booking.special_requests %}
+          <div>
+            <p class="text-sm font-semibold text-gray-900 mb-2">Special Requests:</p>
+            <p class="text-gray-700 p-3 bg-gray-50 rounded-lg">{{ booking.special_requests }}</p>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Contact Information -->
+        <div class="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/60">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-info-circle text-purple-600"></i>
+            Contact Information
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Your Name</p>
+              <p class="text-gray-900 font-semibold">{{ booking.customer_name }}</p>
+            </div>
+
+            <div>
+              <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Your Email</p>
+              <p class="text-gray-900 font-semibold">{{ booking.customer_email }}</p>
+            </div>
+
+            <div>
+              <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Your Phone</p>
+              <p class="text-gray-900 font-semibold">{{ booking.customer_phone }}</p>
+            </div>
+
+            <div>
+              <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Booking Date</p>
+              <p class="text-gray-900 font-semibold">{{ booking.created_at.strftime('%B %d, %Y') }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Merchant Contact -->
+        <div class="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/60">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-store text-purple-600"></i>
+            Merchant Details
+          </h2>
+
+          <div class="flex items-start gap-4 mb-4">
+            {% if booking.merchant.logo_path %}
+            <img src="/static/uploads/{{ booking.merchant.logo_path }}" alt="{{ booking.merchant.business_name }}" class="w-16 h-16 rounded-lg object-cover">
+            {% else %}
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white text-2xl">
+              <i class="fas fa-store"></i>
+            </div>
+            {% endif %}
+
+            <div>
+              <p class="text-lg font-bold text-gray-900">{{ booking.merchant.business_name }}</p>
+              <p class="text-sm text-gray-600">{{ booking.merchant.business_category }}</p>
+              <p class="text-sm text-gray-600">{{ booking.merchant.city }}, {{ booking.merchant.province }}</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-4 border-t border-gray-200">
+            <a href="tel:{{ booking.merchant.contact_phone }}" class="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold">
+              <i class="fas fa-phone"></i> {{ booking.merchant.contact_phone }}
+            </a>
+            <a href="mailto:{{ booking.merchant.contact_email }}" class="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold">
+              <i class="fas fa-envelope"></i> {{ booking.merchant.contact_email }}
+            </a>
+            {% if booking.merchant.google_maps_link %}
+            <a href="{{ booking.merchant.google_maps_link }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold">
+              <i class="fas fa-map"></i> View Location
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Sidebar: Pricing & Actions -->
+      <div class="lg:col-span-1">
+        <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/60 sticky top-20">
+          
+          <!-- Price Breakdown -->
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Price Breakdown</h3>
+
+          <div class="space-y-2 pb-4 border-b border-gray-200">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Number of Pets:</span>
+              <span class="font-semibold">{{ booking.total_pets }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Service Type:</span>
+              <span class="font-semibold">{{ booking.service_type }}</span>
+            </div>
+          </div>
+
+          <!-- Price Breakdown by Pet Size -->
+          {% if booking.price_breakdown %}
+          <div class="space-y-2 mb-6 p-3 bg-purple-50 rounded-lg border border-purple-200">
+            <p class="text-sm font-semibold text-gray-900 mb-2">Price Breakdown</p>
+            {% for size, details in booking.price_breakdown.items() %}
+              {% if details.count and details.count > 0 %}
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-700">{{ size|capitalize }} (x{{ details.count }}):</span>
+                <span class="font-semibold">₱{{ "%.2f"|format(details.price) }}</span>
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="space-y-2 mb-6">
+            <div class="flex justify-between py-2 bg-purple-50 px-3 rounded-lg border border-purple-200">
+              <span class="font-bold text-gray-900">Total:</span>
+              <span class="font-bold text-purple-600 text-lg">₱{{ "%.2f"|format(booking.total_amount) }}</span>
+            </div>
+          </div>
+
+          <!-- Payment Status -->
+          <div class="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p class="text-xs text-green-600 font-semibold uppercase mb-1">Payment Status</p>
+            <p class="text-sm font-bold text-green-800">
+              <i class="fas fa-check-circle mr-1"></i>
+              {{ booking.payment_status|title }}
+            </p>
+            {% if booking.payment_date %}
+            <p class="text-xs text-green-700 mt-1">{{ booking.payment_date.strftime('%B %d, %Y') }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Actions -->
+          <div class="space-y-2">
+            <a href="{{ url_for('messages.start_chat', user_id=booking.merchant.user_id) }}" 
+               class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all">
+              <i class="fas fa-message"></i>
+              Message Merchant
+            </a>
+
+            {% if booking.can_be_cancelled %}
+            <button onclick="showCancelModal()" 
+                    class="w-full px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-lg transition-all">
+              <i class="fas fa-trash mr-1"></i>
+              Cancel Booking
+            </button>
+            {% endif %}
+          </div>
+
+          <!-- Cancellation Policy -->
+          {% if booking.merchant.cancellation_policy %}
+          <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p class="text-xs font-semibold text-amber-900 mb-2">
+              <i class="fas fa-exclamation-triangle mr-1"></i>
+              Cancellation Policy
+            </p>
+            <p class="text-xs text-amber-800">{{ booking.merchant.cancellation_policy }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+    <h3 class="text-xl font-bold text-gray-900 mb-4">Cancel Booking</h3>
+    <p class="text-gray-600 mb-6">Are you sure you want to cancel this booking? A refund will be processed according to the cancellation policy.</p>
+
+    <form id="cancelForm" method="POST" action="{{ url_for('user.cancel_booking', booking_id=booking.id) }}">
+      <textarea name="cancellation_reason" placeholder="Reason for cancellation (optional)" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 resize-none" rows="3"></textarea>
+
+      <div class="flex gap-3">
+        <button type="button" onclick="closeCancelModal()" 
+                class="flex-1 px-4 py-2 bg-gray-100 text-gray-900 font-semibold rounded-lg hover:bg-gray-200 transition-all">
+          Keep Booking
+        </button>
+        <button type="submit" 
+                class="flex-1 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all">
+          Confirm Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showCancelModal() {
+    document.getElementById('cancelModal').classList.remove('hidden');
+  }
+
+  function closeCancelModal() {
+    document.getElementById('cancelModal').classList.add('hidden');
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Confirmation code copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy. Please try again.');
+    });
+  }
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeCancelModal();
+    }
+  });
+
+  // Close modal on background click
+  document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeCancelModal();
+    }
+  });
+</script>
+
+{% endblock %}

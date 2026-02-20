@@ -8,6 +8,14 @@ from app.models.match_history import MatchHistory
 from app.utils.compatibility_engine import CompatibilityEngine
 from app.utils.audit import log_event
 from . import bp
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 # --------------------------
@@ -381,7 +389,7 @@ def api_quiz_submit():
             "success": True,
             "matches": enhanced_matches,
             "message": f"Found {len(enhanced_matches)} great matches for you!",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": get_ph_datetime().isoformat()
         }), 200
 
     except Exception as e:

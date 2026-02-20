@@ -1,5 +1,13 @@
 from datetime import datetime
 from app.extensions import db
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 class Breed(db.Model):
@@ -52,11 +60,11 @@ class Breed(db.Model):
     # --------------------------
     is_active = db.Column(db.Boolean, default=True)
     deleted_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_ph_datetime)
+    updated_at = db.Column(db.DateTime, onupdate=get_ph_datetime)
 
     def soft_delete(self):
-        self.deleted_at = datetime.utcnow()
+        self.deleted_at = get_ph_datetime()
         self.is_active = False
 
     def ui_badges(self):

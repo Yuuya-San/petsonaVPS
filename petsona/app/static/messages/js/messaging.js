@@ -85,18 +85,43 @@ class MessagingApp {
   // ==================== SOCKET.IO SETUP ====================
 
   connectSocket() {
-    if (window.sharedSocket && window.sharedSocket.connected) {
-      this.socket = window.sharedSocket;
-      this.isSocketConnected = true;
-    } else {
-      this.socket = io({
-        upgrade: false,
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 5,
-      });
-    }
+    // Wait for shared socket to be available
+    const waitForSocket = setInterval(() => {
+      if (window.sharedSocket) {
+        clearInterval(waitForSocket);
+        this.socket = window.sharedSocket;
+        this.isSocketConnected = true;
+        console.log('✅ Using shared socket connection');
+        this.setupSocketEvents();
+        
+        // Join conversation room immediately
+        const convId = this.getCurrentConversationId();
+        if (convId && this.socket && this.socket.connected) {
+          this.socket.emit('join_conversation', { conversation_id: convId });
+          console.log(`📋 Joined conversation room: ${convId}`);
+        }
+      }
+    }, 50);
+
+    // Fallback: create new socket after 2 seconds if shared socket doesn't exist
+    setTimeout(() => {
+      if (!window.sharedSocket && !this.socket) {
+        clearInterval(waitForSocket);
+        console.log('⚠️ Creating new socket instance (shared socket not available)');
+        this.socket = io({
+          upgrade: false,
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: 5,
+        });
+        this.setupSocketEvents();
+      }
+    }, 2000);
+  }
+
+  setupSocketEvents() {
+    if (!this.socket) return;
 
     this.socket.on('connect', () => {
       this.isSocketConnected = true;
@@ -110,6 +135,7 @@ class MessagingApp {
     });
 
     this.socket.on('new_message', (data) => {
+      console.log('📨 Received new_message event:', data);
       this.handleNewMessage(data);
     });
 
@@ -219,7 +245,7 @@ class MessagingApp {
       <div class="message-avatar-container">
         <div class="message-avatar">
           ${otherUserPhoto 
-            ? `<img src="${otherUserPhoto}" alt="${this.escapeHtml(otherUserName)}" loading="lazy" class="avatar-img" onerror="console.log('Avatar image load failed')">` 
+            ? `<img src="${this.escapeHtml(otherUserPhoto)}" alt="${this.escapeHtml(otherUserName)}" loading="lazy" class="avatar-img" onerror="console.log('Avatar image load failed')">` 
             : `<span class="text-xs font-bold">${otherUserName.charAt(0).toUpperCase()}</span>`}
         </div>
       </div>` : '';
@@ -232,12 +258,21 @@ class MessagingApp {
       <div class="message-content-wrapper">
         ${senderNameHTML}
         <div class="message-content">
-          <div class="message-text message-parser">${messageData.content}</div>
+          <div class="message-text message-parser"></div>
           <div class="message-time">${messageData.created_at_formatted_full || messageData.created_at_formatted}</div>
           ${statusHTML}
         </div>
       </div>
     `;
+
+    // Set message content - store original content for parsing, not escaped
+    const messageParser = messageEl.querySelector('.message-parser');
+    if (messageParser) {
+      console.log('📝 Setting message content:', messageData.content.substring(0, 100));
+      // Store the original content for media parsing
+      messageParser.dataset.originalContent = messageData.content;
+      messageParser.textContent = messageData.content; // Display as text initially
+    }
 
     if (isOwn) {
       const menuBtn = document.createElement('button');
@@ -278,7 +313,8 @@ class MessagingApp {
     if (!messageParser || messageParser.dataset.parsed === 'true') return;
 
     try {
-      let html = messageParser.innerHTML;
+      // Use original content if available, otherwise use innerHTML
+      let html = messageParser.dataset.originalContent || messageParser.innerHTML;
       const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
       const linkRegex = /\[([^\]]+)\]\(([^\)]+)\)/g;
       
@@ -286,51 +322,68 @@ class MessagingApp {
       let newHtml = '';
       let lastIndex = 0;
       let hasChanges = false;
+      let mediaCount = 0;
 
       while ((match = linkRegex.exec(html)) !== null) {
         const beforeText = html.substring(lastIndex, match.index);
-        newHtml += beforeText;
+        // Escape the plain text part
+        newHtml += this.escapeHtmlForDOM(beforeText);
 
         const filename = match[1];
         const url = match[2];
         const ext = url.split('.').pop().toLowerCase();
 
+        console.log(`🔍 Found media link: [${filename}](${url}), ext: ${ext}`);
+
         if (imageExts.includes(ext)) {
-          newHtml += `<div class="media-attachment image-attachment">
-                      <img src="${this.escapeHtml(url)}" alt="${this.escapeHtml(filename)}" class="media-image" onclick="openDownloadDialog('${this.escapeHtml(url)}', '${this.escapeHtml(filename)}', 'image')" onerror="console.log('Image load failed: ${url}')">
+          console.log(`✅ Recognized as image: ${filename}`);
+          newHtml += `<div class="media-attachment image-attachment" style="margin: 8px 0;">
+                      <img src="${this.escapeHtml(url)}" alt="${this.escapeHtml(filename)}" class="media-image" style="max-width: 100%; height: auto; border-radius: 8px; cursor: pointer;" onclick="openDownloadDialog('${this.escapeHtml(url)}', '${this.escapeHtml(filename)}', 'image')" onerror="console.error('Image failed to load: ${url}');">
                     </div>`;
           hasChanges = true;
+          mediaCount++;
         } else {
+          console.log(`✅ Recognized as file: ${filename}`);
           const fileIcon = this.getFileIcon(ext);
-          newHtml += `<div class="media-attachment file-attachment" onclick="openDownloadDialog('${this.escapeHtml(url)}', '${this.escapeHtml(filename)}', 'file')">
-                      <div class="file-icon-wrapper">
-                        <i class="fas ${fileIcon}"></i>
+          newHtml += `<div class="media-attachment file-attachment" style="margin: 8px 0; padding: 12px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="openDownloadDialog('${this.escapeHtml(url)}', '${this.escapeHtml(filename)}', 'file')">
+                      <div class="file-icon-wrapper" style="flex-shrink: 0;">
+                        <i class="fas ${fileIcon}" style="font-size: 20px; color: #666;"></i>
                       </div>
-                      <div class="file-info">
-                        <div class="file-name">${this.escapeHtml(filename)}</div>
-                        <div class="file-size">Unknown</div>
+                      <div class="file-info" style="flex: 1;">
+                        <div class="file-name" style="font-weight: 500; color: #333;">${this.escapeHtml(filename)}</div>
+                        <div class="file-size" style="font-size: 12px; color: #999;">Click to download</div>
                       </div>
-                      <div class="download-icon">
-                        <i class="fas fa-download"></i>
+                      <div class="download-icon" style="flex-shrink: 0;">
+                        <i class="fas fa-download" style="color: #666;"></i>
                       </div>
                     </div>`;
           hasChanges = true;
+          mediaCount++;
         }
 
         lastIndex = linkRegex.lastIndex;
       }
 
       if (hasChanges) {
-        newHtml += html.substring(lastIndex);
+        // Escape remaining text
+        newHtml += this.escapeHtmlForDOM(html.substring(lastIndex));
         messageParser.innerHTML = newHtml;
         const messageId = element.getAttribute('data-message-id') || 'unknown';
-        console.log('✅ Media parsed in message:', messageId);
+        console.log(`✅ Parsed ${mediaCount} media items in message ${messageId}`);
+      } else {
+        // No media found, just escape the text
+        const finalText = this.escapeHtmlForDOM(html);
+        if (messageParser.innerHTML !== finalText) {
+          messageParser.innerHTML = finalText;
+        }
+        console.log('✓ No media links found in message');
       }
 
       messageParser.dataset.parsed = 'true';
       // Ensure message remains visible after parsing
       element.style.opacity = '1';
       element.style.display = 'flex';
+      element.style.visibility = 'visible';
     } catch (error) {
       console.error('❌ Error parsing media:', error);
       messageParser.dataset.parsed = 'true';
@@ -365,13 +418,13 @@ class MessagingApp {
     const content = textarea.value.trim();
     const sendBtn = document.querySelector('.send-button');
 
-    if (!content && !window.pendingPhotoFile && !window.pendingFileObject) return;
+    if (!content && !window.pendingPhotoFile) return;
     if (!this.getCurrentConversationId()) return;
 
     this.isSending = true;
     sendBtn.disabled = true;
 
-    if (window.pendingPhotoFile || window.pendingFileObject) {
+    if (window.pendingPhotoFile) {
       this.uploadAndSendMessage(content, sendBtn, textarea);
       return;
     }
@@ -396,18 +449,13 @@ class MessagingApp {
   clearPreview() {
     const attachmentPreview = document.getElementById('attachment-preview');
     const photoPreview = document.getElementById('photo-preview-container');
-    const filePreview = document.getElementById('file-preview-container');
     const photoUpload = document.getElementById('photo-upload');
-    const fileUpload = document.getElementById('file-upload');
     
     if (attachmentPreview) attachmentPreview.classList.add('hidden');
     if (photoPreview) photoPreview.classList.add('hidden');
-    if (filePreview) filePreview.classList.add('hidden');
     if (photoUpload) photoUpload.value = '';
-    if (fileUpload) fileUpload.value = '';
     
     window.pendingPhotoFile = null;
-    window.pendingFileObject = null;
   }
 
   sendTextMessageWithButton(content, sendBtn) {
@@ -631,34 +679,26 @@ class MessagingApp {
       uploads.push(this.uploadFileInternal(formData, 'photo'));
     }
 
-    if (pendingFile) {
-      console.log('📄 Uploading file:', pendingFile.name);
-      const formData = new FormData();
-      formData.append('file', pendingFile.file);
-      formData.append('type', 'file');
-      uploads.push(this.uploadFileInternal(formData, 'file'));
-    }
-
     if (uploads.length === 0) {
       console.log('✅ No files to upload, sending text only');
       this.isSending = false;
       sendBtn.disabled = false;
       if (!textContent.trim()) {
-        this.showNotification('⚠️ Please enter a message or attach a file', 'warning');
+        this.showNotification('⚠️ Please enter a message or attach an image', 'warning');
         return;
       }
       this.sendTextMessageWithButton(textContent, sendBtn);
       return;
     }
 
-    console.log(`⏳ Uploading ${uploads.length} file(s)...`);
+    console.log(`⏳ Uploading ${uploads.length} image(s)...`);
     
     Promise.all(uploads)
       .then((results) => {
-        console.log('✅ All files uploaded:', results);
+        console.log('✅ All images uploaded:', results);
         let finalContent = textContent || ''; // Start with text content
         
-        // Add file references
+        // Add image references
         results.forEach((file) => {
           if (file && file.filename && file.url) {
             if (finalContent) finalContent += '\n'; // Add newline if there's existing content
@@ -668,16 +708,16 @@ class MessagingApp {
         
         // Ensure we have content to send
         if (!finalContent || !finalContent.trim()) {
-          console.error('❌ No content to send after file upload');
-          this.showNotification('❌ Error: No content or files to send', 'error');
+          console.error('❌ No content to send after image upload');
+          this.showNotification('❌ Error: No content or images to send', 'error');
           this.isSending = false;
           sendBtn.disabled = false;
           return;
         }
         
-        console.log('📨 Sending message with attachments to database, content length:', finalContent.length);
+        console.log('📨 Sending message with images to database, content length:', finalContent.length);
         
-        // Send the actual message with file references
+        // Send the actual message with image references
         this.isSending = true;
         sendBtn.disabled = true;
         this.sendTextMessageWithButton(finalContent, sendBtn);
@@ -713,7 +753,10 @@ class MessagingApp {
 
   uploadFileInternal(formData, fileType = 'file') {
     const convId = document.querySelector('[data-conversation-id]')?.dataset.conversationId;
-    if (!convId) return Promise.reject(new Error('No conversation ID'));
+    if (!convId) {
+      console.error('❌ No conversation ID found');
+      return Promise.reject(new Error('No conversation ID'));
+    }
 
     // Create abort controller with 120 second timeout for larger files
     const abortController = new AbortController();
@@ -722,14 +765,19 @@ class MessagingApp {
       abortController.abort();
     }, 120000);
 
+    const csrfToken = this.getCSRFToken();
     console.log(`📤 Uploading ${fileType} to conversation ${convId}`);
+    console.log(`   CSRF Token: ${csrfToken ? '✅ Present' : '❌ Missing'}`);
+
+    const headers = {};
+    if (csrfToken) {
+      headers['X-CSRFToken'] = csrfToken;
+    }
 
     return fetch(`/messages/upload-file/${convId}`, {
       method: 'POST',
       body: formData,
-      headers: {
-        'X-CSRFToken': this.getCSRFToken(),
-      },
+      headers: headers,
       signal: abortController.signal,
     })
       .then((res) => {
@@ -922,6 +970,12 @@ class MessagingApp {
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }
 
+  escapeHtmlForDOM(text) {
+    // Same as escapeHtml but with a clearer name for DOM operations
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
+  }
+
   getFileIcon(ext) {
     const iconMap = {
       pdf: 'fa-file-pdf',
@@ -968,40 +1022,6 @@ class MessagingApp {
     reader.readAsDataURL(file);
   }
 
-  handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const validMimeTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // .docx
-      'text/plain',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // .xlsx
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',  // .pptx
-      'application/zip',
-      'application/x-rar-compressed',
-    ];
-    
-    // Check both MIME type and file extension as fallback
-    const ext = file.name.split('.').pop().toLowerCase();
-    const validExtensions = ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar'];
-    
-    if (!validMimeTypes.includes(file.type) && !validExtensions.includes(ext)) {
-      this.showNotification(`Invalid file format. Allowed: ${validExtensions.join(', ')}`, 'error');
-      return;
-    }
-
-    if (file.size > 25 * 1024 * 1024) {
-      this.showNotification('File too large (max 25MB)', 'error');
-      return;
-    }
-
-    this.showFilePreview(file.name, file.size, ext, file);
-  }
-
   showPhotoPreview(dataUrl, filename, fileObject) {
     const previewContainer = document.getElementById('photo-preview-container');
     const previewImg = document.getElementById('photo-preview-img');
@@ -1015,55 +1035,16 @@ class MessagingApp {
     window.pendingPhotoFile = fileObject;
   }
 
-  showFilePreview(filename, fileSize, ext, fileObject) {
-    const previewContainer = document.getElementById('file-preview-container');
-    const filenameEl = document.getElementById('file-preview-name');
-    const filesizeEl = document.getElementById('file-preview-size');
-    const fileIcon = document.getElementById('file-preview-icon');
-    const attachmentPreview = document.getElementById('attachment-preview');
-
-    if (!previewContainer) return;
-
-    const icon = this.getFileIcon(ext);
-    fileIcon.className = `fas ${icon}`;
-    filenameEl.textContent = filename;
-    filesizeEl.textContent = this.formatFileSize(fileSize);
-
-    previewContainer.classList.remove('hidden');
-    attachmentPreview.classList.remove('hidden');
-    window.pendingFileObject = fileObject;
-  }
-
   removePhotoPreview() {
     const previewContainer = document.getElementById('photo-preview-container');
     const attachmentPreview = document.getElementById('attachment-preview');
     const photoUpload = document.getElementById('photo-upload');
 
     if (previewContainer) previewContainer.classList.add('hidden');
-    if (!document.getElementById('file-preview-container').classList.contains('hidden')) {
-      attachmentPreview.classList.remove('hidden');
-    } else {
-      attachmentPreview.classList.add('hidden');
-    }
+    attachmentPreview.classList.add('hidden');
 
     photoUpload.value = '';
     window.pendingPhotoFile = null;
-  }
-
-  removeFilePreview() {
-    const previewContainer = document.getElementById('file-preview-container');
-    const attachmentPreview = document.getElementById('attachment-preview');
-    const fileUpload = document.getElementById('file-upload');
-
-    if (previewContainer) previewContainer.classList.add('hidden');
-    if (!document.getElementById('photo-preview-container').classList.contains('hidden')) {
-      attachmentPreview.classList.remove('hidden');
-    } else {
-      attachmentPreview.classList.add('hidden');
-    }
-
-    fileUpload.value = '';
-    window.pendingFileObject = null;
   }
 
   formatFileSize(bytes) {
@@ -1075,7 +1056,19 @@ class MessagingApp {
   }
 
   getCSRFToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.content || '';
+    // Try multiple methods to get CSRF token
+    let token = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (token) return token;
+    
+    // Fallback: check document.csrf_token (Flask-Talisman)
+    if (window.csrf_token) return window.csrf_token;
+    
+    // Fallback: check form hidden input
+    token = document.querySelector('input[name="csrf_token"]')?.value;
+    if (token) return token;
+    
+    console.warn('⚠️ CSRF token not found!');
+    return '';
   }
 
   getCurrentUserId() {
@@ -1098,13 +1091,13 @@ class MessagingApp {
     const textarea = document.querySelector('.message-textarea');
     const sendBtn = document.querySelector('.send-button');
     const photoBtn = document.getElementById('photo-btn');
-    const fileBtn = document.getElementById('file-btn');
     const photoUpload = document.getElementById('photo-upload');
-    const fileUpload = document.getElementById('file-upload');
     const removePhotoPreviewBtn = document.getElementById('remove-photo-preview');
-    const removeFilePreviewBtn = document.getElementById('remove-file-preview');
     const photoPreviewContainer = document.getElementById('photo-preview-container');
-    const filePreviewContainer = document.getElementById('file-preview-container');
+
+    console.log('🔗 Attaching event listeners...');
+    console.log(`  photoBtn: ${photoBtn ? '✅' : '❌'}`);
+    console.log(`  photoUpload: ${photoUpload ? '✅' : '❌'}`);
 
     if (textarea) {
       textarea.addEventListener('input', () => this.startTyping());
@@ -1121,28 +1114,22 @@ class MessagingApp {
     }
 
     if (photoBtn) {
-      photoBtn.addEventListener('click', () => photoUpload.click());
-    }
-
-    if (fileBtn) {
-      fileBtn.addEventListener('click', () => fileUpload.click());
+      photoBtn.addEventListener('click', () => {
+        console.log('📷 Photo button clicked, triggering file input');
+        photoUpload?.click();
+      });
     }
 
     if (photoUpload) {
-      photoUpload.addEventListener('change', (e) => this.handlePhotoUpload(e));
-    }
-
-    if (fileUpload) {
-      fileUpload.addEventListener('change', (e) => this.handleFileUpload(e));
+      photoUpload.addEventListener('change', (e) => {
+        console.log('📸 Photo selected:', e.target.files[0]?.name);
+        this.handlePhotoUpload(e);
+      });
     }
 
     // Preview remove button handlers
     if (removePhotoPreviewBtn) {
       removePhotoPreviewBtn.addEventListener('click', () => this.removePhotoPreview());
-    }
-
-    if (removeFilePreviewBtn) {
-      removeFilePreviewBtn.addEventListener('click', () => this.removeFilePreview());
     }
 
     // Preview click to view handlers
@@ -1153,15 +1140,6 @@ class MessagingApp {
           if (img && img.src) {
             openDownloadDialog(img.src, 'photo-preview.jpg', 'image');
           }
-        }
-      });
-    }
-
-    if (filePreviewContainer) {
-      filePreviewContainer.addEventListener('click', (e) => {
-        if (e.target.id !== 'remove-file-preview' && !e.target.closest('#remove-file-preview')) {
-          const fileName = document.getElementById('file-preview-name')?.textContent || 'document.pdf';
-          this.showNotification('ℹ️ Send the file to preview it in the chat', 'info');
         }
       });
     }
@@ -1234,9 +1212,13 @@ function openDownloadDialog(url, filename, type) {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 Initializing MessagingApp on DOMContentLoaded...');
   window.messagingApp = new MessagingApp();
+  
+  console.log('✅ MessagingApp created. Socket status:', window.messagingApp.isSocketConnected);
+  console.log('✅ Socket object:', window.messagingApp.socket ? 'Present' : 'Missing');
 
-  // Parse ALL initial messages (both with and without data-needs-parse attribute)
+  // Parse ALL initial messages after a small delay to ensure DOM is ready
   setTimeout(() => {
     const allMessages = document.querySelectorAll('.message-parser');
     console.log(`🔍 Found ${allMessages.length} message-parser elements to parse`);
@@ -1262,5 +1244,5 @@ document.addEventListener('DOMContentLoaded', () => {
       const display = window.getComputedStyle(bubble).display;
       console.log(`  [${idx + 1}] Message ${msgId} (${isOwn}) - opacity: ${opacity}, display: ${display}`);
     });
-  }, 100);
+  }, 300);
 });

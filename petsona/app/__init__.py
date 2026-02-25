@@ -64,15 +64,29 @@ def create_app(config_class: type = Config):
     
     app.jinja_env.filters['operating_days'] = convert_operating_days
 
-    # Flask-Login user loader
+    # Flask-Login user loader with error handling for database connection
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        try:
+            return User.query.get(int(user_id))
+        except Exception as e:
+            # Log the error but don't crash the app
+            import logging
+            logging.error(f"❌ Error loading user {user_id}: {str(e)}")
+            # Return None to treat as unauthenticated
+            return None
 
-    # Auto-create database and tables
+    # Auto-create database and tables with error handling
     with app.app_context():
-        ensure_database_exists()
-        create_tables(db)
+        try:
+            ensure_database_exists()
+            create_tables(db)
+            print("✅ Database tables verified/created successfully")
+        except Exception as e:
+            import logging
+            logging.error(f"❌ Database initialization error: {str(e)}")
+            print(f"⚠️ WARNING: Database connection failed. Make sure MySQL is running.")
+            print(f"   Error: {str(e)}")
 
     # AUTH BLUEPRINT
     from .auth import bp as auth_bp
@@ -109,6 +123,10 @@ def create_app(config_class: type = Config):
     # VOTES API BLUEPRINT
     from .votes import votes_bp
     app.register_blueprint(votes_bp)
+
+    # NOTIFICATIONS API BLUEPRINT
+    from .notifications_api import notifications_bp
+    app.register_blueprint(notifications_bp)
 
     # SOCKET.IO EVENTS
     from . import socket_events

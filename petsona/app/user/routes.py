@@ -5,6 +5,7 @@ from app.decorators import user_required
 from app.models import Species, Breed, Merchant
 from app import db
 from app.extensions import csrf
+from app.utils.notification_manager import NotificationManager
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
@@ -45,18 +46,43 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 @user_required
 def dashboard():
     from app.models.breed import Breed
+    from app.models.user import User
+    from app.models.booking import Booking
     from datetime import datetime, timedelta
     
+    # ======================== STATS SECTION ========================
+    # Count total species (non-deleted)
+    species_count = Species.query.filter(
+        Species.deleted_at.is_(None)
+    ).count()
+    
+    # Count total breeds (non-deleted/active)
+    breed_count = Breed.query.filter(
+        Breed.deleted_at.is_(None),
+        Breed.is_active == True
+    ).count()
+    
+    # Count total users
+    user_count = User.query.count()
+    
+    # Count total completed/successful bookings (matches made)
+    match_count = Booking.query.filter(
+        Booking.status.in_(['completed', 'confirmed'])
+    ).count()
+    
+    # ======================== TOP SPECIES SECTION ========================
     # Get top 3 species by vote count
     top_species = Species.query.filter(
         Species.deleted_at.is_(None)
     ).order_by(Species.heart_vote_count.desc()).limit(3).all()
     
-    # Get top 8 breeds by vote count
+    # ======================== TOP BREEDS SECTION ========================
+    # Get top 3 breeds by vote count
     top_breeds = Breed.query.filter(
         Breed.deleted_at.is_(None)
-    ).order_by(Breed.heart_vote_count.desc()).limit(8).all()
+    ).order_by(Breed.heart_vote_count.desc()).limit(3).all()
     
+    # ======================== RECENTLY ADDED/UPDATED ========================
     # Get recently added species (last 7 days)
     week_ago = get_ph_datetime() - timedelta(days=7)
     recent_species = Species.query.filter(
@@ -73,8 +99,15 @@ def dashboard():
     return render_template(
         'user/dashboard.html',
         page_title="User Dashboard",
+        # Stats
+        species_count=species_count,
+        breed_count=breed_count,
+        user_count=user_count,
+        match_count=match_count,
+        # Top sections
         top_species=top_species,
         top_breeds=top_breeds,
+        # Recent sections
         recent_species=recent_species,
         updated_species=updated_species
     )
@@ -528,20 +561,21 @@ def cancel_booking(booking_id):
         return redirect(url_for('user.booking_details', booking_id=booking_id))
     
     try:
+        logger.info(f"\n{'='*60}")
+        logger.info(f"CANCELLING BOOKING {booking_id}")
+        logger.info(f"{'='*60}")
+        
         cancellation_reason = request.form.get('cancellation_reason', '').strip()
         
+        # Step 1: Update booking status
         booking.status = 'cancelled'
         booking.cancellation_date = get_ph_datetime()
         booking.cancellation_reason = cancellation_reason
         
-        # Calculate refund based on when booking was cancelled
-        booking.calculate_refund(cancellation_policy_percentage=50)
-        booking.refund_status = 'completed'
-        booking.refund_date = get_ph_datetime()
-        
         db.session.commit()
+        logger.info(f"[STEP 1] ✓ Booking status updated to 'cancelled'")
         
-        # Log the action
+        # Step 2: Log the action
         audit_log = AuditLog(
             event='booking_cancelled_by_customer',
             actor_id=current_user.id,
@@ -553,14 +587,100 @@ def cancel_booking(booking_id):
         audit_log.set_details({
             'booking_id': booking.id,
             'booking_number': booking.booking_number,
-            'refund_amount': booking.refund_amount
+            'cancelled_at': get_ph_datetime().isoformat()
+        })
+        db.session.add(audit_log)
+        db.session.commit()
+        logger.info(f"[STEP 2] ✓ Audit log created and committed")
+        
+        # Step 3: Send notification to merchant about booking cancellation
+        logger.info(f"[STEP 3] Starting notification creation...")
+        
+        from app.models.merchant import Merchant
+        merchant = Merchant.query.filter_by(id=booking.merchant_id).first()
+        
+        logger.info(f"[STEP 3a] Merchant lookup: booking.merchant_id={booking.merchant_id}")
+        logger.info(f"[STEP 3b] Merchant found: {merchant}")
+        
+        if merchant:
+            logger.info(f"[STEP 3c] Merchant ID: {merchant.id}, Merchant user_id: {merchant.user_id}")
+            
+            if merchant.user_id:
+                logger.info(f"[STEP 3d] Creating notification for merchant user {merchant.user_id}...")
+                
+                result = NotificationManager.notify_booking_cancelled_by_customer(
+                    user_id=merchant.user_id,
+                    booking_number=booking.booking_number,
+                    customer_name=booking.customer_name or current_user.email,
+                    related_booking_id=booking.id,
+                    from_user_id=current_user.id
+                )
+                
+                if result:
+                    logger.info(f"[STEP 3e] ✓ Notification created and committed - ID: {result.id}")
+                else:
+                    logger.error(f"[STEP 3e] ✗ NotificationManager returned None")
+            else:
+                logger.warning(f"[STEP 3d] ⚠️  Merchant user_id is NULL - Cannot notify merchant")
+        else:
+            logger.warning(f"[STEP 3c] ⚠️  Merchant not found for merchant_id {booking.merchant_id}")
+        
+        logger.info(f"[FINAL] ✓ Booking cancellation complete")
+        logger.info(f"{'='*60}\n")
+        
+        flash('Booking cancelled successfully.', 'success')
+    except Exception as e:
+        logger.error(f"[ERROR] Exception during booking cancellation: {str(e)}", exc_info=True)
+        db.session.rollback()
+        flash(f'Error cancelling booking: {str(e)}', 'danger')
+    
+    return redirect(url_for('user.my_bookings'))
+
+
+@bp.route('/booking/<int:booking_id>/delete', methods=['POST'])
+@login_required
+@user_required
+def delete_booking(booking_id):
+    """Soft delete a booking (for rejected or cancelled bookings)"""
+    from app.models.booking import Booking
+    from app.models.audit_log import AuditLog
+    
+    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
+    
+    if not booking:
+        flash('Booking not found.', 'danger')
+        return redirect(url_for('user.my_bookings'))
+    
+    # Only allow deletion of rejected or cancelled bookings
+    if booking.status not in ['rejected', 'cancelled']:
+        flash('This booking cannot be deleted.', 'danger')
+        return redirect(url_for('user.my_bookings'))
+    
+    try:
+        booking.deleted_at = get_ph_datetime()
+        
+        db.session.commit()
+        
+        # Log the action
+        audit_log = AuditLog(
+            event='booking_deleted_by_customer',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
+        )
+        audit_log.set_details({
+            'booking_id': booking.id,
+            'booking_number': booking.booking_number,
+            'deleted_at': get_ph_datetime().isoformat()
         })
         db.session.add(audit_log)
         db.session.commit()
         
-        flash('Booking cancelled successfully! A refund has been processed.', 'success')
+        flash('Booking deleted successfully.', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error cancelling booking: {str(e)}', 'danger')
+        flash(f'Error deleting booking: {str(e)}', 'danger')
     
-    return redirect(url_for('user.booking_details', booking_id=booking_id))
+    return redirect(url_for('user.my_bookings'))

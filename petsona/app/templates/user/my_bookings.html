@@ -155,7 +155,7 @@
 
   .bookings-table th {
     padding: 1rem;
-    text-align: left;
+    text-align: center;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -189,6 +189,7 @@
     vertical-align: middle;
     color: var(--text-dark);
     border: none;
+    text-align: center;
   }
 
   .td-booking {
@@ -341,6 +342,48 @@
     border-color: #ef4444;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  .action-btn.cancel {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.15);
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  .action-btn.cancel:hover {
+    background: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  .action-btn.download {
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.08);
+  }
+
+  .action-btn.download:hover {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .action-btn.review {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.15);
+    background: rgba(251, 191, 36, 0.08);
+  }
+
+  .action-btn.review:hover {
+    background: #fbbf24;
+    color: white;
+    border-color: #fbbf24;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
   }
 
   /* ===== PAGINATION ===== */
@@ -1144,11 +1187,13 @@
     .bookings-table td {
       padding: 0.875rem;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
+      justify-content: center;
+      gap: 0.5rem;
       border-bottom: 1px solid var(--border-light);
       word-break: break-word;
+      text-align: center;
     }
     
     .bookings-table td:last-child {
@@ -1172,7 +1217,7 @@
     .td-status,
     .td-actions {
       width: 100%;
-      text-align: right;
+      text-align: center;
     }
 
     .booking-number {
@@ -1684,11 +1729,33 @@
                           onclick="showDetailsModal(this)">
                     <i class="fas fa-eye"></i>
                   </button>
-                  {% if booking.can_be_cancelled %}
-                  <button class="action-btn delete" title="Cancel Booking"
+                  {% if booking.status == 'pending' %}
+                  <button class="action-btn cancel" title="Cancel Booking"
                           data-booking-id="{{ booking.id }}"
                           onclick="showCancelModal(this)">
+                    <i class="fas fa-times-circle"></i>
+                  </button>
+                  {% elif booking.status in ['rejected', 'cancelled'] %}
+                  <button class="action-btn delete" title="Delete Booking"
+                          data-booking-id="{{ booking.id }}"
+                          onclick="showDeleteModal(this)">
                     <i class="fas fa-trash-alt"></i>
+                  </button>
+                  {% endif %}
+                  {% if booking.status == 'confirmed' and booking.qr_code_url %}
+                  <button class="action-btn download" title="Download QR Code"
+                          data-booking-id="{{ booking.id }}"
+                          data-booking-number="{{ booking.booking_number }}"
+                          data-confirmation-code="{{ booking.confirmation_code }}"
+                          data-qr-url="{{ booking.qr_code_url }}"
+                          onclick="downloadQRCodeDirect(this)">
+                    <i class="fas fa-qrcode"></i>
+                  </button>
+                  {% endif %}
+                  {% if booking.status == 'completed' %}
+                  <button class="action-btn review" title="Write a Review"
+                          data-booking-id="{{ booking.id }}">
+                    <i class="fas fa-star"></i>
                   </button>
                   {% endif %}
                 </div>
@@ -1881,10 +1948,6 @@
 
       <!-- Action Buttons -->
       <div class="receipt-actions">
-        <button type="button" class="btn btn-secondary" onclick="downloadQRCode()">
-          <i class="fas fa-download"></i>
-          Download QR Code
-        </button>
         <button type="button" class="btn btn-cancel" onclick="closeDetailsModal()">
           <i class="fas fa-times"></i>
           Close
@@ -1912,6 +1975,7 @@
         Are you sure you want to cancel this booking? A refund will be processed according to the cancellation policy.
       </p>
       <form id="cancelForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="form-group">
           <label for="cancellationReason">Reason for Cancellation (Optional)</label>
           <textarea id="cancellationReason" name="cancellation_reason" placeholder="Tell us why you're cancelling..."></textarea>
@@ -1926,6 +1990,37 @@
       <button type="submit" class="btn btn-delete" onclick="submitCancellation()">
         <i class="fas fa-trash-alt"></i>
         Confirm Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Booking Modal (Soft Delete) -->
+<div id="deleteModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-trash-alt"></i>
+        Delete Booking
+      </h3>
+      <button type="button" class="modal-close" onclick="closeDeleteModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p style="margin: 0; color: var(--text-gray);">
+        Are you sure you want to delete this booking? This action cannot be undone.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeDeleteModal()">
+        Keep Booking
+      </button>
+      <button type="button" class="btn btn-delete" onclick="submitDelete()">
+        <i class="fas fa-trash-alt"></i>
+        Confirm Delete
       </button>
     </div>
   </div>
@@ -2049,6 +2144,14 @@
       form.method = 'POST';
       form.action = '/user/booking/' + currentBookingId + '/cancel';
       
+      // Add CSRF token
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = document.querySelector('input[name="csrf_token"]').value;
+      form.appendChild(csrfInput);
+      
+      // Add cancellation reason
       const reasonInput = document.getElementById('cancellationReason');
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -2061,15 +2164,43 @@
     }
   }
 
-  function downloadQRCode() {
-    // Get booking number and confirmation code for filename
-    const bookingNumber = document.getElementById('receiptBookingNumber').textContent;
-    const confirmationCode = document.getElementById('receiptConfirmationCode').textContent;
+  function showDeleteModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+  }
+
+  function submitDelete() {
+    if (currentBookingId) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/user/booking/' + currentBookingId + '/delete';
+      
+      // Add CSRF token
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = document.querySelector('input[name="csrf_token"]').value;
+      form.appendChild(csrfInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function downloadQRCodeDirect(button) {
+    // Get data from button attributes
+    const bookingNumber = button.dataset.bookingNumber;
+    const confirmationCode = button.dataset.confirmationCode;
+    const qrUrl = button.dataset.qrUrl;
     
-    // Get QR code image element
-    const qrImg = document.querySelector('#receiptQR img');
-    
-    if (!qrImg || !qrImg.src) {
+    if (!qrUrl) {
       alert('QR code not available');
       return;
     }
@@ -2078,14 +2209,13 @@
     const fileName = `PetSona_QR_${bookingNumber}_${confirmationCode}_${new Date().getTime()}.png`;
     
     // Show loading state
-    const downloadBtn = event.target.closest('.btn-secondary');
-    const originalText = downloadBtn.innerHTML;
-    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-    downloadBtn.disabled = true;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
     
     // Download the QR code image
     const link = document.createElement('a');
-    link.href = qrImg.src;
+    link.href = qrUrl;
     link.download = fileName;
     document.body.appendChild(link);
     link.click();
@@ -2093,8 +2223,8 @@
     
     // Restore button state after a longer delay to show spinner
     setTimeout(() => {
-      downloadBtn.innerHTML = originalText;
-      downloadBtn.disabled = false;
+      button.innerHTML = originalText;
+      button.disabled = false;
     }, 1500);
   }
 
@@ -2227,6 +2357,7 @@
     if (e.key === 'Escape') {
       closeDetailsModal();
       closeCancelModal();
+      closeDeleteModal();
     }
   });
 
@@ -2237,6 +2368,17 @@
 
   document.getElementById('cancelModal').addEventListener('click', function(e) {
     if (e.target === this) closeCancelModal();
+  });
+
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  // Format all appointment times to 12-hour format on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.appointment-time').forEach(elem => {
+      elem.textContent = formatTo12Hour(elem.textContent.trim());
+    });
   });
 </script>
 

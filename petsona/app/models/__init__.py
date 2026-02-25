@@ -6,3 +6,4 @@ from .match_history import MatchHistory
 from .vote import Vote
 from .merchant import Merchant
 from .booking import Booking
+from .notification import Notification

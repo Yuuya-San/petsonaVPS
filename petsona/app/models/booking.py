@@ -114,17 +114,26 @@ class Booking(db.Model):
     @property
     def is_upcoming(self):
         """Check if appointment is scheduled for the future"""
-        return self.is_confirmed and self.appointment_date > get_ph_datetime()
+        appt_dt = self.appointment_date
+        if appt_dt.tzinfo is None:
+            appt_dt = appt_dt.replace(tzinfo=PH_TZ)
+        return self.is_confirmed and appt_dt > get_ph_datetime()
 
     @property
     def is_past(self):
         """Check if appointment date has passed"""
-        return get_ph_datetime() > self.appointment_date
+        appt_dt = self.appointment_date
+        if appt_dt.tzinfo is None:
+            appt_dt = appt_dt.replace(tzinfo=PH_TZ)
+        return get_ph_datetime() > appt_dt
 
     @property
     def can_be_cancelled(self):
         """Check if booking can still be cancelled"""
-        return not self.is_cancelled and not self.is_completed and get_ph_datetime() < self.appointment_date
+        appt_dt = self.appointment_date
+        if appt_dt.tzinfo is None:
+            appt_dt = appt_dt.replace(tzinfo=PH_TZ)
+        return not self.is_cancelled and not self.is_completed and get_ph_datetime() < appt_dt
 
     @property
     def total_pets_count(self):

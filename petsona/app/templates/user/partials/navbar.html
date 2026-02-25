@@ -24,28 +24,26 @@
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#" role="button">
         <i class="far fa-bell"></i>
-        {% if notifications|length > 0 %}
-          <span class="badge badge-warning navbar-badge">{{ notifications|length }}</span>
-        {% endif %}
+        <span class="badge badge-warning navbar-badge d-none" id="notification-badge"></span>
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notifications-dropdown">
-        <span class="dropdown-header">{{ notifications|length }} Notifications</span>
-        <div class="dropdown-divider"></div>
-        {% if notifications|length > 0 %}
-          <div class="notifications-scroll-container">
-            {% for notif in notifications %}
-              <a href="{{ notif.link if notif.link else '#' }}" class="dropdown-item notification-item">
-                <i class="fas fa-envelope mr-2"></i> {{ notif.message }}
-                <span class="float-right text-muted text-sm">{{ notif.time }}</span>
-              </a>
-            {% endfor %}
+        <span class="dropdown-header">Notifications
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <a href="javascript:markAllNotificationsAsRead();" class="float-right" style="font-size: 0.8rem; text-decoration: none; color: #667eea;">
+              Mark all as read
+            </a>
+            <a href="javascript:void(0);" id="deleteAllNotificationsBtn" style="font-size: 0.8rem; text-decoration: none; color: #ef4444;">
+              Delete all
+            </a>
           </div>
-        {% else %}
+        </span>
+        <div class="dropdown-divider"></div>
+        <div class="notifications-scroll-container" style="max-height: 400px; overflow-y: auto;">
           <div class="text-center text-muted py-4" style="font-size: 0.9rem;">
             <i class="fas fa-bell mb-2" style="display: block; font-size: 1.5rem; opacity: 0.5;"></i>
-            No notifications yet
+            Loading notifications...
           </div>
-        {% endif %}
+        </div>
         <div class="dropdown-divider"></div>
       </div>
     </li>
@@ -249,4 +247,8 @@
   }
 </style>
 
+<!-- Notification Modal -->
+{% include 'partials/notification-modal.html' %}
+
 <script src="{{ url_for('static', filename='js/navbar-socket.js') }}"></script>
+<script src="{{ url_for('static', filename='js/navbar-notifications.js') }}"></script>

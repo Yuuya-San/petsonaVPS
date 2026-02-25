@@ -23,6 +23,8 @@
     <!-- Custom -->
     <link rel="stylesheet" href="{{ url_for('static', filename='user/custom.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">>
+
 
         <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -115,6 +117,9 @@
     </div>
 </div>
 
+<!-- ================= MODALS ================= -->
+{% include 'partials/notification-modal.html' %}
+
 <!-- ================= JS ================= -->
 <!-- Socket.IO for Real-time Updates -->
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
@@ -127,6 +132,8 @@
 <!-- Socket.IO for Real-Time Updates -->
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/socket-manager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/navbar-notifications.js') }}"></script>
+
 
 
 <!-- ================= SKELETON HANDLER ================= -->

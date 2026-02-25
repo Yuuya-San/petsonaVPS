@@ -1,0 +1,449 @@
+/* ==================== NOTIFICATION STYLES ==================== */
+
+/* FORCE NEW NOTIFICATION DESIGN - Override all old styles */
+.notifications-scroll-container .notification-item,
+.notifications-dropdown .notification-item {
+    display: flex !important;
+    align-items: flex-start !important;
+    padding: 12px 15px !important;
+    border: none !important;
+    border-bottom: none !important;
+    background-color: transparent !important;
+    color: inherit !important;
+    text-decoration: none !important;
+    margin-bottom: 0 !important;
+    transition: all 0.2s ease !important;
+    min-height: auto !important;
+    height: auto !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    border-left: 3px solid transparent !important;
+}
+
+.notifications-scroll-container .notification-item:hover,
+.notifications-dropdown .notification-item:hover {
+    background-color: #f8f9fa !important;
+    transform: translateX(2px) !important;
+}
+
+/* UNREAD NOTIFICATIONS - Visual Distinction */
+.notifications-scroll-container .notification-item.unread,
+.notifications-dropdown .notification-item.unread {
+    background-color: #f0f3ff !important;
+    border-left: 3px solid #667eea !important;
+    padding-left: 12px !important;
+    font-weight: 500 !important;
+    position: relative !important;
+}
+
+.notifications-scroll-container .notification-item.unread::before,
+.notifications-dropdown .notification-item.unread::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 50% !important;
+    right: 15px !important;
+    transform: translateY(-50%) !important;
+    width: 8px !important;
+    height: 8px !important;
+    background-color: #667eea !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 2px #f0f3ff !important;
+}
+
+.notifications-scroll-container .notification-item.unread:hover,
+.notifications-dropdown .notification-item.unread:hover {
+    background-color: #e8ecff !important;
+    border-left-color: #667eea !important;
+    box-shadow: inset 0 0 10px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Notifications Dropdown Container - LARGER FOR FULL VISIBILITY */
+.notifications-dropdown {
+    max-width: 450px !important;
+    width: 450px !important;
+    max-height: 650px !important;
+    min-width: 400px !important;
+    overflow: visible !important;
+}
+
+.notifications-scroll-container {
+    max-height: 550px !important;
+    min-height: 100px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    display: block !important;
+}
+
+.notifications-scroll-container > div {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    white-space: normal !important;
+}
+
+/* Notification Item - Similar to Message Preview */
+.notification-item {
+    display: flex !important;
+    align-items: flex-start !important;
+    padding: 12px 15px !important;
+    border-bottom: none !important;
+    transition: all 0.2s ease !important;
+    background-color: #fff !important;
+    color: inherit !important;
+    text-decoration: none !important;
+    height: auto !important;
+    min-height: 80px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa !important;
+    transform: translateX(2px);
+}
+
+.notification-item.unread {
+    background-color: #f0f3ff !important;
+    border-left: 3px solid #007bff !important;
+    padding-left: 12px !important;
+    font-weight: 500;
+}
+
+.notification-item.unread:hover {
+    background-color: #e8ecff !important;
+}
+
+/* Notification Icon - HIDE OLD STYLE */
+.notification-item .notification-icon {
+    display: none !important;
+}
+
+.notification-item .notification-icon {
+    display: none !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e7f3ff;
+    color: #0066cc;
+    flex-shrink: 0;
+}
+
+/* SENDER AVATAR STYLES - From notification sender photo_url */
+.notification-item .sender-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: bold !important;
+    color: white !important;
+    background: #667eea !important;
+    overflow: hidden !important;
+    border: 2px solid transparent !important;
+    margin-right: 12px !important;
+}
+
+.notification-item .sender-avatar img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block !important;
+}
+
+.notification-item .sender-avatar span {
+    font-size: 0.9rem !important;
+}
+
+.notification-item.unread .sender-avatar {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+.notification-item.unread .notification-icon {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Different notification types - icon colors */
+.notification-item[data-type="success"] .notification-icon {
+    background-color: #d4edda;
+    color: #28a745;
+}
+
+.notification-item[data-type="danger"] .notification-icon {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+
+.notification-item[data-type="warning"] .notification-icon {
+    background-color: #fff3cd;
+    color: #ffc107;
+}
+
+/* Notification Title */
+.notification-item .notification-title,
+.notification-item p.notification-title {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    margin-bottom: 4px !important;
+    margin: 0 0 4px 0 !important;
+    word-wrap: break-word !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+}
+
+.notification-item.unread .notification-title {
+    color: #0066cc !important;
+}
+
+/* Notification Message */
+.notification-item .notification-message,
+.notification-item p.notification-message {
+    font-size: 0.85rem !important;
+    color: #666 !important;
+    margin-bottom: 0 !important;
+    margin: 4px 0 0 0 !important;
+    line-height: 1.4 !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    max-height: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    -webkit-line-clamp: unset !important;
+}
+
+.notification-item.unread .notification-message {
+    color: #555;
+}
+
+/* Notification Time */
+.notification-item .notification-time,
+.notification-item span.notification-time {
+    font-size: 0.75rem !important;
+    color: #999 !important;
+    font-weight: normal;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: auto;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* OVERRIDE BOOTSTRAP DROPDOWN-ITEM DEFAULTS */
+.notifications-dropdown .dropdown-item.notification-item {
+    padding: 12px 15px !important;
+    display: flex !important;
+    color: inherit !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.notifications-dropdown .dropdown-item.notification-item:focus,
+.notifications-dropdown .dropdown-item.notification-item:hover {
+    background-color: #f8f9fa !important;
+    color: inherit !important;
+}
+
+.notifications-dropdown .dropdown-item.notification-item.active,
+.notifications-dropdown .dropdown-item.notification-item:active {
+    background-color: #f8f9fa !important;
+    color: inherit !important;
+}
+
+/* Notification Chevron */
+.notification-item i:last-child {
+    color: #ccc !important;
+    margin-left: 8px !important;
+    flex-shrink: 0;
+}
+
+/* Arrow on hover */
+.notification-item:hover i:last-child {
+    color: #007bff !important;
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+
+/* Dropdown Header */
+.notifications-dropdown .dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    font-weight: 600;
+    color: #333;
+    background-color: #f8f9fa;
+    font-size: 0.95rem;
+}
+
+.notifications-dropdown .dropdown-header a {
+    color: #007bff;
+    font-weight: 500;
+}
+
+.notifications-dropdown .dropdown-header a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Notification Badge */
+#notification-badge {
+    background-color: #dc3545 !important;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: 50%;
+    min-width: 20px;
+    text-align: center;
+}
+
+#notification-badge.d-none {
+    display: none !important;
+}
+
+/* Empty State */
+.notifications-dropdown .text-center.text-muted {
+    padding: 20px 15px !important;
+}
+
+/* Loading State */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.notification-item.loading {
+    animation: pulse 1.5s infinite;
+    background-color: #f0f0f0;
+}
+
+/* Scrollbar Styling */
+.notifications-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.notifications-scroll-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.notifications-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ==================== TOAST NOTIFICATIONS ==================== */
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast-notification {
+    background: white;
+    border-left: 4px solid #007bff;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 15px;
+    margin-bottom: 10px;
+    min-width: 300px;
+    animation: slideInRight 0.3s ease;
+}
+
+.toast-notification.success {
+    border-left-color: #28a745;
+}
+
+.toast-notification.danger {
+    border-left-color: #dc3545;
+}
+
+.toast-notification.warning {
+    border-left-color: #ffc107;
+}
+
+.toast-notification.info {
+    border-left-color: #17a2b8;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 576px) {
+    .notifications-dropdown {
+        min-width: 280px;
+        max-width: calc(100vw - 30px);
+    }
+    
+    .notification-item {
+        flex-direction: column;
+    }
+    
+    .notification-time {
+        margin-top: 8px;
+        margin-left: 0;
+    }
+}
+
+/* ==================== NOTIFICATION COLORS BY TYPE ==================== */
+
+/* Booking Notifications */
+.notification-item[data-type="booking"] .notification-icon {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Message Notifications */
+.notification-item[data-type="message"] .notification-icon {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Merchant Notifications */
+.notification-item[data-type="merchant"] .notification-icon {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Info Notifications */
+.notification-item[data-type="info"] .notification-icon {
+    background-color: #e7f3ff;
+    color: #0066cc;
+}

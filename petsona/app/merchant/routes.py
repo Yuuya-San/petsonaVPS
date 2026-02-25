@@ -16,6 +16,7 @@ from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
 from app.models.audit_log import AuditLog
 from sqlalchemy import func, and_
+from app.utils.notification_manager import NotificationManager
 import logging
 
 logger = logging.getLogger(__name__)
@@ -1652,6 +1653,17 @@ def create_booking(merchant_id):
         db.session.add(audit_log)
         db.session.commit()
         
+        # Send notification to merchant about new booking
+        if merchant.user_id:
+            NotificationManager.notify_merchant_new_booking(
+                user_id=merchant.user_id,
+                booking_number=booking.booking_number,
+                customer_name=booking.customer_name,
+                appointment_date=booking.appointment_date.strftime('%B %d, %Y') if booking.appointment_date else 'N/A',
+                related_booking_id=booking.id,
+                from_user_id=current_user.id
+            )
+        
         flash('Booking created successfully! The merchant will review your request.', 'success')
         return redirect(url_for('merchant.booking_confirmation', booking_id=booking.id))
         
@@ -1796,6 +1808,16 @@ def confirm_booking(booking_id):
         db.session.add(audit_log)
         db.session.commit()
         
+        # Send notification to customer
+        appointment_date_str = booking.appointment_date.strftime('%B %d, %Y') if booking.appointment_date else 'Scheduled'
+        NotificationManager.notify_booking_confirmed(
+            user_id=booking.user_id,
+            booking_number=booking.booking_number,
+            merchant_name=merchant.business_name,
+            related_booking_id=booking.id,
+            from_user_id=current_user.id  # Merchant confirming the booking
+        )
+        
         # Return JSON response if AJAX call
         if request.is_json or request.args.get('api'):
             return jsonify({'success': True, 'message': 'Booking confirmed successfully'}), 200
@@ -1857,66 +1879,14 @@ def cancel_booking(booking_id):
         db.session.add(audit_log)
         db.session.commit()
         
-        # Return JSON response if AJAX call
-        if request.is_json or request.args.get('api'):
-            return jsonify({'success': True, 'message': 'Booking rejected successfully'}), 200
-        
-        flash('Booking rejected successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error rejecting booking: {str(e)}")
-        if request.is_json or request.args.get('api'):
-            return jsonify({'success': False, 'error': str(e)}), 500
-        flash('Error rejecting booking.', 'danger')
-    
-    return redirect(url_for('merchant.bookings_list'))
-
-
-@bp.route('/bookings/<int:booking_id>/reject', methods=['POST'])
-@login_required
-@merchant_required
-def reject_booking(booking_id):
-    """Reject a booking"""
-    if current_user.role != 'merchant':
-        if request.is_json or request.args.get('api'):
-            return jsonify({'success': False, 'error': 'Access denied'}), 403
-        flash('Access denied.', 'danger')
-        return redirect(url_for('auth.login'))
-    
-    booking = Booking.query.get(booking_id)
-    
-    if not booking:
-        if request.is_json or request.args.get('api'):
-            return jsonify({'success': False, 'error': 'Booking not found'}), 404
-        flash('Booking not found.', 'danger')
-        return redirect(url_for('merchant.bookings_list'))
-    
-    # Check if merchant owns this booking
-    merchant = Merchant.query.filter_by(user_id=current_user.id).first()
-    if booking.merchant_id != merchant.id:
-        if request.is_json or request.args.get('api'):
-            return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('merchant.bookings_list'))
-    
-    try:
-        booking.status = 'rejected'
-        if hasattr(booking, 'cancellation_date'):
-            booking.cancellation_date = get_ph_datetime()
-        db.session.commit()
-        
-        # Log the action
-        audit_log = AuditLog(
-            event='booking_rejected',
-            actor_id=current_user.id,
-            actor_email=current_user.email,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            timestamp=get_ph_datetime()
+        # Send notification to customer
+        NotificationManager.notify_booking_rejected(
+            user_id=booking.user_id,
+            booking_number=booking.booking_number,
+            merchant_name=merchant.business_name,
+            related_booking_id=booking.id,
+            from_user_id=current_user.id
         )
-        audit_log.set_details({'booking_id': booking.id, 'booking_number': booking.booking_number})
-        db.session.add(audit_log)
-        db.session.commit()
         
         # Return JSON response if AJAX call
         if request.is_json or request.args.get('api'):
@@ -2140,6 +2110,17 @@ def customer_create_booking(merchant_id):
         db.session.add(audit_log)
         db.session.commit()
         
+        # Send notification to merchant about new booking
+        if merchant.user_id:
+            NotificationManager.notify_merchant_new_booking(
+                user_id=merchant.user_id,
+                booking_number=booking_number,
+                customer_name=customer_name,
+                appointment_date=appointment_date.strftime('%B %d, %Y') if appointment_date else 'N/A',
+                related_booking_id=booking.id,
+                from_user_id=current_user.id
+            )
+        
         flash('Booking created successfully! Please wait for merchant confirmation.', 'success')
         return redirect(url_for('user.my_bookings'))
         
@@ -2187,6 +2168,15 @@ def mark_booking_complete(booking_id):
         db.session.add(audit_log)
         db.session.commit()
         
+        # Send notification to customer that booking is completed
+        NotificationManager.notify_booking_completed(
+            user_id=booking.user_id,
+            booking_number=booking.booking_number,
+            merchant_name=merchant.business_name if merchant else 'Merchant',
+            related_booking_id=booking.id,
+            from_user_id=current_user.id
+        )
+        
         flash('Booking marked as completed', 'success')
         return redirect(url_for('merchant.bookings_list'))
     except Exception as e:
@@ -2231,6 +2221,15 @@ def mark_booking_no_show(booking_id):
         audit_log.set_details({'booking_id': booking.id, 'booking_number': booking.booking_number})
         db.session.add(audit_log)
         db.session.commit()
+        
+        # Send notification to customer about no-show
+        NotificationManager.notify_booking_no_show(
+            user_id=booking.user_id,
+            booking_number=booking.booking_number,
+            merchant_name=merchant.business_name if merchant else 'Merchant',
+            related_booking_id=booking.id,
+            from_user_id=current_user.id
+        )
         
         flash('Booking marked as no-show', 'success')
         return redirect(url_for('merchant.bookings_list'))

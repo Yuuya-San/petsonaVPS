@@ -44,10 +44,10 @@
 
             </div>
 
-            <!-- Modal Footer - Buttons Side by Side -->
+            <!-- Modal Footer - Close and Mark as Read -->
             <div style="padding: 15px 20px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; gap: 12px; justify-content: flex-end;">
-                <button type="button" id="notifDeleteBtn" class="btn" style="flex: 1; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;">
-                    <i class="fas fa-trash"></i> Delete
+                <button type="button" id="notifCloseBtn" class="btn" style="flex: 1; background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.15); padding: 10px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;">
+                    <i class="fas fa-times"></i> Close
                 </button>
                 <button type="button" id="notificationMarkReadBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;">
                     <i class="fas fa-check"></i> Mark as Read
@@ -58,33 +58,6 @@
     </div>
 </div>
 
-<!-- Confirmation Modal for Delete -->
-<div class="modal fade" id="deleteNotificationConfirmModal" tabindex="-1" aria-labelledby="deleteNotificationLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
-        <div style="border: none; border-radius: 12px; box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2); background: white; overflow: hidden;">
-            <div style="padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: space-between;">
-                <h5 style="margin: 0; font-size: 1rem; font-weight: 700; color: #333; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-trash" style="color: #ef4444;"></i>
-                    Delete Notification
-                </h5>
-                <button type="button" class="modal-close close-delete-modal" aria-label="Close" style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.15); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #667eea; cursor: pointer; padding: 0; transition: all 0.2s ease;">
-                    <i class="fas fa-times" style="font-size: 0.9rem;"></i>
-                </button>
-            </div>
-            <div style="padding: 20px;">
-                <p style="color: #666; margin: 0; font-size: 0.95rem; line-height: 1.5;">Are you sure you want to delete this notification? This action cannot be undone.</p>
-            </div>
-            <div style="padding: 15px 20px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; gap: 10px; justify-content: flex-end;">
-                <button type="button" class="btn close-delete-modal" style="flex: 1; background: rgba(0,0,0,0.05); color: #333; border: 1px solid rgba(0,0,0,0.1); padding: 10px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
-                    Cancel
-                </button>
-                <button type="button" id="confirmDeleteNotifBtn" style="flex: 1; background: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Confirmation Modal for Delete All -->
 <div class="modal fade" id="deleteAllNotificationsModal" tabindex="-1" aria-labelledby="deleteAllNotificationsLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
@@ -150,9 +123,9 @@
 }
 
 /* Button Hover States */
-#notifDeleteBtn:hover {
-    background: rgba(239, 68, 68, 0.2) !important;
-    color: #d32f2f !important;
+#notifCloseBtn:hover {
+    background: rgba(102, 126, 234, 0.2) !important;
+    color: #4c51bf !important;
 }
 
 #notificationMarkReadBtn:hover {
@@ -199,90 +172,21 @@ document.getElementById('notificationModal')?.addEventListener('show.bs.modal', 
 
 document.addEventListener('DOMContentLoaded', function() {
     // ===== MAIN NOTIFICATION MODAL CLOSE =====
-    const closeNotifButtons = document.querySelectorAll('.close-notif-modal');
+    const closeNotifButtons = document.querySelectorAll('#notificationModal .close-notif-modal, #notificationModal #notifCloseBtn');
     const notificationModal = document.getElementById('notificationModal');
-    
+
     if (notificationModal) {
         closeNotifButtons.forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                $('#notificationModal').modal('hide');
+                $(notificationModal).modal('hide');
             });
         });
-        
         // Close on ESC key
         notificationModal.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                $('#notificationModal').modal('hide');
+                $(notificationModal).modal('hide');
             }
-        });
-    }
-    
-    // ===== DELETE CONFIRMATION MODAL CLOSE =====
-    const closeDeleteButtons = document.querySelectorAll('.close-delete-modal');
-    const deleteConfirmModal = document.getElementById('deleteNotificationConfirmModal');
-    
-    if (deleteConfirmModal) {
-        closeDeleteButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                $('#deleteNotificationConfirmModal').modal('hide');
-                // Show main modal again
-                $('#notificationModal').modal('show');
-            });
-        });
-        
-        // Close on ESC key
-        deleteConfirmModal.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                $('#deleteNotificationConfirmModal').modal('hide');
-                // Show main modal again
-                $('#notificationModal').modal('show');
-            }
-        });
-        
-        // When delete modal shows, hide the main modal
-        deleteConfirmModal.addEventListener('show.bs.modal', function() {
-            $('#notificationModal').modal('hide');
-        });
-        
-        // When delete modal hides, show the main modal again
-        deleteConfirmModal.addEventListener('hide.bs.modal', function() {
-            // Keep main modal hidden unless it was explicitly cancelled
-        });
-    }
-    
-    // ===== DELETE ALL CONFIRMATION MODAL CLOSE =====
-    const closeDeleteAllButtons = document.querySelectorAll('.close-delete-all-modal');
-    const deleteAllModal = document.getElementById('deleteAllNotificationsModal');
-    
-    if (deleteAllModal) {
-        closeDeleteAllButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                $('#deleteAllNotificationsModal').modal('hide');
-                // Show main modal again
-                $('#notificationModal').modal('show');
-            });
-        });
-        
-        // Close on ESC key
-        deleteAllModal.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                $('#deleteAllNotificationsModal').modal('hide');
-                // Show main modal again
-                $('#notificationModal').modal('show');
-            }
-        });
-        
-        // When delete all modal shows, hide the main modal
-        deleteAllModal.addEventListener('show.bs.modal', function() {
-            $('#notificationModal').modal('hide');
-        });
-        
-        // When delete all modal hides, show the main modal again
-        deleteAllModal.addEventListener('hide.bs.modal', function() {
-            // Keep main modal hidden unless it was explicitly cancelled
         });
     }
 });

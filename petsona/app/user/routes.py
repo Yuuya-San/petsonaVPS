@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request, abort
+from flask import render_template, flash, redirect, url_for, request, abort, jsonify
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.user import bp
 from app.decorators import user_required
@@ -7,12 +7,14 @@ from app import db
 from app.extensions import csrf
 from app.utils.notification_manager import NotificationManager
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
-from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 import pytz
+import logging
 
 # Philippine timezone helper
 PH_TZ = pytz.timezone('Asia/Manila')
+
+logger = logging.getLogger(__name__)
 
 def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
@@ -636,6 +638,66 @@ def cancel_booking(booking_id):
     
     return redirect(url_for('user.my_bookings'))
 
+@bp.route('/booking/<int:booking_id>/appeal', methods=['POST'])
+@login_required
+@user_required
+def appeal_no_show(booking_id):
+    """Submit an appeal for a no-show booking status"""
+    from app.models.booking import Booking
+    from app.models.audit_log import AuditLog
+    
+    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
+    
+    if not booking:
+        return jsonify({'success': False, 'message': 'Booking not found'}), 404
+    
+    # Only allow appeal for no-show bookings
+    if booking.status != 'no show':
+        return jsonify({'success': False, 'message': 'This booking cannot be appealed'}), 403
+    
+    # Check if appeal was already submitted
+    if booking.appeal_submitted_at:
+        return jsonify({'success': False, 'message': 'Appeal has already been submitted for this booking'}), 400
+    
+    try:
+        data = request.get_json()
+        appeal_reason = data.get('appeal_reason', '').strip()
+        
+        if not appeal_reason:
+            return jsonify({'success': False, 'message': 'Appeal reason is required'}), 400
+        
+        # Save appeal
+        booking.appeal_reason = appeal_reason
+        booking.appeal_submitted_at = get_ph_datetime()
+        
+        db.session.commit()
+        
+        # Log the action
+        audit_log = AuditLog(
+            event='booking_no_show_appeal_submitted',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
+        )
+        audit_log.set_details({
+            'booking_id': booking.id,
+            'booking_number': booking.booking_number,
+            'merchant_id': booking.merchant_id,
+            'appeal_submitted_at': get_ph_datetime().isoformat()
+        })
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        # TODO: Send notification to merchant about the appeal
+        
+        return jsonify({'success': True, 'message': 'Appeal submitted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Error submitting appeal for booking {booking_id}: {str(e)}')
+        return jsonify({'success': False, 'message': 'Error submitting appeal. Please try again.'}), 500
+
 
 @bp.route('/booking/<int:booking_id>/delete', methods=['POST'])
 @login_required
@@ -684,3 +746,98 @@ def delete_booking(booking_id):
         flash(f'Error deleting booking: {str(e)}', 'danger')
     
     return redirect(url_for('user.my_bookings'))
+
+@bp.route('/booking/<int:booking_id>/download-receipt', methods=['GET'])
+@login_required
+@user_required
+def download_receipt(booking_id):
+    """Download digital receipt for confirmed or completed booking"""
+    from app.models.booking import Booking
+    from io import BytesIO
+    from flask import make_response
+    
+    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
+    
+    if not booking:
+        flash('Booking not found', 'danger')
+        return redirect(url_for('user.my_bookings'))
+    
+    # Allow for confirmed or completed bookings
+    if booking.status not in ['confirmed', 'completed']:
+        flash('Only confirmed or completed bookings can download receipts', 'danger')
+        return redirect(url_for('user.my_bookings'))
+    
+    try:
+        # Generate receipt text
+        merchant_name = booking.merchant.business_name if booking.merchant else 'N/A'
+        receipt_text = f"""
+═══════════════════════════════════════════════════════
+                    PETSONA RECEIPT
+═══════════════════════════════════════════════════════
+
+BOOKING NUMBER: {booking.booking_number}
+CONFIRMATION CODE: {booking.confirmation_code}
+
+═══════════════════════════════════════════════════════
+MERCHANT DETAILS
+═══════════════════════════════════════════════════════
+Business: {merchant_name}
+
+═══════════════════════════════════════════════════════
+CUSTOMER DETAILS
+═══════════════════════════════════════════════════════
+Name: {booking.customer_name}
+Email: {booking.customer_email}
+Phone: {booking.customer_phone}
+
+═══════════════════════════════════════════════════════
+APPOINTMENT DETAILS
+═══════════════════════════════════════════════════════
+Date: {booking.appointment_date.strftime('%B %d, %Y')}
+Time: {booking.appointment_time}
+Total Pets: {booking.total_pets}
+
+═══════════════════════════════════════════════════════
+PRICING
+═══════════════════════════════════════════════════════
+Total Amount: ₱{booking.total_amount:,.2f}
+
+Status: {booking.status.upper()}
+
+═══════════════════════════════════════════════════════
+Booking Date: {booking.created_at.strftime('%B %d, %Y at %I:%M %p')}
+═══════════════════════════════════════════════════════
+
+Thank you for choosing Petsona!
+"""
+        
+        # Create response with text file
+        response = make_response(receipt_text)
+        response.headers['Content-Disposition'] = f'attachment; filename=receipt_{booking.booking_number}.txt'
+        response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+        
+        # Log the download
+        from app.models.audit_log import AuditLog
+        audit_log = AuditLog(
+            event='booking_receipt_downloaded',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
+        )
+        audit_log.set_details({
+            'booking_id': booking.id,
+            'booking_number': booking.booking_number,
+            'booking_status': booking.status
+        })
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f'Error downloading receipt for booking {booking_id}: {str(e)}')
+        flash('Error downloading receipt. Please try again.', 'danger')
+        return redirect(url_for('user.my_bookings'))
+

@@ -282,6 +282,18 @@
     border: 1px solid rgba(239, 68, 68, 0.2);
   }
 
+  .status-badge.rejected {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+    border: 1px solid rgba(236, 72, 153, 0.2);
+  }
+
+  .status-badge.no-show {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+  }
+
   .td-actions {
     text-align: center;
   }
@@ -384,6 +396,81 @@
     border-color: #fbbf24;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  }
+
+  .action-btn.book-again {
+    color: #8b5cf6;
+    border-color: rgba(139, 92, 246, 0.15);
+    background: rgba(139, 92, 246, 0.08);
+  }
+
+  .action-btn.book-again:hover {
+    background: #8b5cf6;
+    color: white;
+    border-color: #8b5cf6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+
+  .action-btn.receipt {
+    color: #ec4899;
+    border-color: rgba(236, 72, 153, 0.15);
+    background: rgba(236, 72, 153, 0.08);
+  }
+
+  .action-btn.receipt:hover {
+    background: #ec4899;
+    color: white;
+    border-color: #ec4899;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  }
+
+  .action-btn.receipt.saved {
+    background: #ec4899;
+    color: white;
+    border-color: #ec4899;
+  }
+
+  .action-btn.receipt:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  .action-btn.receipt:disabled:hover {
+    background: #ec4899;
+    color: white;
+    border-color: #ec4899;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .action-btn.message {
+    color: #06b6d4;
+    border-color: rgba(6, 182, 212, 0.15);
+    background: rgba(6, 182, 212, 0.08);
+  }
+
+  .action-btn.message:hover {
+    background: #06b6d4;
+    color: white;
+    border-color: #06b6d4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  }
+
+  .action-btn.appeal {
+    color: #f97316;
+    border-color: rgba(249, 115, 22, 0.15);
+    background: rgba(249, 115, 22, 0.08);
+  }
+
+  .action-btn.appeal:hover {
+    background: #f97316;
+    color: white;
+    border-color: #f97316;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
   }
 
   /* ===== PAGINATION ===== */
@@ -718,111 +805,115 @@
   .receipt-modal {
     max-width: 520px;
     width: 100%;
-    max-height: 82vh;
-    margin-top: 3rem;
-    background: white;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    border: none;
+    max-height: 85vh;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f9f7ff 100%);
+    box-shadow: 0 25px 60px rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: var(--radius-lg);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   .receipt-container {
     display: flex;
     flex-direction: column;
     height: 100%;
-    max-height: 82vh;
+    max-height: 85vh;
+    background: white;
   }
 
   .receipt-header {
     flex: 0 0 auto;
     text-align: center;
-    padding: 0.875rem 1rem;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(147, 51, 234, 0.12));
-    border-bottom: 2px solid rgba(168, 85, 247, 0.2);
+    padding: 1.25rem 1.25rem;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    border-bottom: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
   }
 
   .receipt-logo {
-    width: 42px;
-    height: 42px;
-    margin: 0 auto 0.4rem;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.15rem;
+    background: rgba(255, 255, 255, 0.25);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.2rem;
-    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
+    font-size: 1.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
   }
 
   .receipt-title {
-    margin: 0 0 0.1rem;
-    font-size: 1rem;
+    margin: 0 0 0.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: white;
     line-height: 1.1;
     word-wrap: break-word;
   }
 
   .receipt-subtitle {
     margin: 0;
-    font-size: 0.65rem;
-    color: var(--text-gray);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
     font-weight: 500;
   }
 
   .receipt-content {
-    padding: 1.25rem 1.125rem;
+    padding: 1.5rem 1.25rem;
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    background: white;
+    line-height: 1.5;
   }
 
   .qr-section {
     text-align: center;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px dashed rgba(168, 85, 247, 0.2);
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid rgba(168, 85, 247, 0.15);
   }
 
   .qr-code {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.75rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.8));
-    border: 2px solid rgba(168, 85, 247, 0.2);
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(147, 51, 234, 0.05));
+    border: 2px solid rgba(168, 85, 247, 0.3);
     border-radius: var(--radius);
-    margin-bottom: 0.75rem;
-    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.08);
-    min-height: 130px;
-    min-width: 130px;
+    margin-bottom: 0.875rem;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+    min-height: 150px;
+    min-width: 150px;
   }
 
   .qr-text {
     margin: 0;
-    font-size: 0.75rem;
-    color: var(--text-gray);
-    font-weight: 600;
+    font-size: 0.7rem;
+    color: var(--primary);
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.025em;
     word-wrap: break-word;
   }
 
   .receipt-divider {
-    height: 1px;
-    background: linear-gradient(to right, transparent, rgba(168, 85, 247, 0.2), transparent);
-    margin: 0.875rem 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(168, 85, 247, 0.25), transparent);
+    margin: 1rem 0;
   }
 
   .receipt-row {
@@ -838,29 +929,35 @@
 
   .receipt-row:last-child {
     border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
   }
 
   .receipt-row-item {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-width: 150px;
+    min-width: 140px;
     word-break: break-word;
+    justify-content: flex-start;
+    align-items: flex-start;
   }
 
   .receipt-row-item.receipt-align-right {
     align-items: flex-end;
     text-align: right;
+    justify-content: flex-start;
   }
 
   .receipt-label {
     display: block;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-gray);
-    margin-bottom: 0.35rem;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+    line-height: 1;
   }
 
   .receipt-value {
@@ -868,7 +965,7 @@
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--text-dark);
-    line-height: 1.4;
+    line-height: 1.5;
     word-break: break-word;
     overflow-wrap: break-word;
   }
@@ -886,17 +983,22 @@
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: rgba(168, 85, 247, 0.15);
     color: var(--primary);
     border: 1px solid rgba(168, 85, 247, 0.25);
     box-shadow: 0 2px 6px rgba(168, 85, 247, 0.1);
+    margin: 0.2rem 0 0 0;
+    white-space: nowrap;
+    height: 1.5rem;
   }
 
   .receipt-status.status-pending {
     background: rgba(245, 158, 11, 0.15);
     color: #f59e0b;
-    border-color: rgba(245, 158, 11, 0.25);
+    border-color: rgba(100, 86, 62, 0.25);
   }
 
   .receipt-status.status-confirmed {
@@ -917,13 +1019,29 @@
     border-color: rgba(239, 68, 68, 0.25);
   }
 
+  .receipt-status.status-rejected {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+    border-color: rgba(236, 72, 153, 0.25);
+  }
+
+  .receipt-status.status-no-show {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border-color: rgba(107, 114, 128, 0.25);
+  }
+
   .receipt-section {
-    margin-bottom: 0.875rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.04), rgba(147, 51, 234, 0.04));
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: var(--radius-sm);
   }
 
   .receipt-section-title {
-    margin: 0 0 0.875rem;
-    font-size: 0.85rem;
+    margin: 0 0 0.875rem 0;
+    font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -932,72 +1050,88 @@
     align-items: center;
     gap: 0.5rem;
     word-break: break-word;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
   }
 
   .receipt-section-title i {
     font-size: 0.9rem;
     flex-shrink: 0;
+    width: 18px;
+    text-align: center;
   }
 
   .receipt-merchant-name {
     margin: 0 0 0.35rem;
+    padding: 0;
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--text-dark);
     word-break: break-word;
     overflow-wrap: break-word;
+    line-height: 1.3;
   }
 
   .receipt-merchant-category {
-    margin: 0 0 0.875rem;
+    margin: 0 0 0.75rem;
+    padding: 0;
     font-size: 0.85rem;
     color: var(--text-gray);
     font-weight: 500;
     word-break: break-word;
+    line-height: 1.3;
   }
 
   .receipt-merchant-contact {
     margin: 0.5rem 0;
+    padding: 0.5rem 0.625rem;
     font-size: 0.85rem;
     color: var(--text-gray);
     word-break: break-all;
     display: flex;
     align-items: flex-start;
     gap: 0.625rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    line-height: 1.4;
   }
 
   .receipt-merchant-contact i {
     color: var(--primary);
-    width: 14px;
+    width: 16px;
     text-align: center;
     flex-shrink: 0;
-    margin-top: 0.1rem;
+    margin-top: 0.15rem;
+    font-size: 0.85rem;
   }
 
   .receipt-amount-row {
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(147, 51, 234, 0.12));
-    padding: 1.25rem;
+    padding: 1.5rem;
     border-radius: var(--radius);
-    border: 1px solid rgba(168, 85, 247, 0.2);
+    border: 1.5px solid rgba(168, 85, 247, 0.35);
     margin-bottom: 0;
-    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.15);
     word-break: break-word;
+    text-align: center;
   }
 
   .receipt-amount {
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--primary);
     letter-spacing: -0.02em;
     word-break: break-word;
+    display: block;
+    margin-top: 0.25rem;
   }
 
   .receipt-footer {
     flex: 0 0 auto;
     text-align: center;
-    padding: 0.75rem;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.06), rgba(147, 51, 234, 0.06));
-    border-top: 2px solid rgba(168, 85, 247, 0.15);
+    padding: 1.125rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(147, 51, 234, 0.1));
+    border-top: 2px solid rgba(168, 85, 247, 0.25);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1006,24 +1140,24 @@
   }
 
   .receipt-footer-text {
-    margin: 0.3rem 0;
-    font-size: 0.75rem;
+    margin: 0.45rem 0;
+    font-size: 0.8rem;
     color: var(--text-gray);
-    line-height: 1.3;
-    font-weight: 500;
+    line-height: 1.4;
+    font-weight: 600;
     word-wrap: break-word;
   }
 
   .receipt-footer-text i {
-    margin-right: 0.4rem;
+    margin-right: 0.5rem;
     color: var(--primary);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 
   .receipt-footer-small {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     color: var(--text-light);
-    margin-top: 0.3rem;
+    margin-top: 0.5rem;
     word-wrap: break-word;
   }
 
@@ -1032,9 +1166,10 @@
     display: flex;
     gap: 0.625rem;
     padding: 1rem;
-    border-top: 1px solid rgba(168, 85, 247, 0.15);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0), rgba(168, 85, 247, 0.02));
+    border-top: 2px solid rgba(168, 85, 247, 0.2);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(168, 85, 247, 0.03));
     flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   .btn-secondary {
@@ -1060,6 +1195,358 @@
   .btn-secondary:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+
+  .btn-download-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    font-weight: 600;
+    flex: 1;
+    min-width: 120px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-download-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .btn-download-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .download-options {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* ===== DIGITAL RECEIPT FOR DOWNLOAD ===== */
+  .digital-receipt-wrapper {
+    width: 520px;
+    background: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  .digital-receipt-header {
+    text-align: center;
+    padding: 1.25rem 1.25rem;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .digital-receipt-logo {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.15rem;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .digital-receipt-title {
+    margin: 0 0 0.2rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.1;
+  }
+
+  .digital-receipt-subtitle {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+  }
+
+  .digital-receipt-content {
+    padding: 1.5rem 1.25rem;
+    background: white;
+  }
+
+  .digital-qr-section {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .digital-qr-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(147, 51, 234, 0.05));
+    border: 2px solid rgba(168, 85, 247, 0.3);
+    border-radius: 12px;
+    margin-bottom: 0.875rem;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+    min-height: 150px;
+    min-width: 150px;
+  }
+
+  .digital-qr-code img {
+    width: 140px;
+    height: 140px;
+    border-radius: 8px;
+  }
+
+  .digital-qr-text {
+    margin: 0;
+    font-size: 0.7rem;
+    color: #a855f7;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .digital-divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(168, 85, 247, 0.25), transparent);
+    margin: 1rem 0;
+  }
+
+  .digital-section {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.04), rgba(147, 51, 234, 0.04));
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+  }
+
+  .digital-section-title {
+    margin: 0 0 0.875rem 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #a855f7;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .digital-section-title i {
+    font-size: 0.9rem;
+    width: 18px;
+    text-align: center;
+  }
+
+  .digital-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .digital-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .digital-row-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .digital-row-right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .digital-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #a855f7;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+  }
+
+  .digital-value {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.5;
+  }
+
+  .digital-booking-number {
+    color: #a855f7;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .digital-status {
+    padding: 0.425rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    box-shadow: 0 2px 6px rgba(168, 85, 247, 0.1);
+    margin: 0.2rem 0 0 0;
+    white-space: nowrap;
+    height: 1.5rem;
+  }
+
+  .digital-status.status-confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .digital-status.status-completed {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+
+  .digital-status.status-pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .digital-merchant-name {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.3;
+  }
+
+  .digital-merchant-category {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .digital-merchant-contact {
+    margin: 0.5rem 0;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    line-height: 1.4;
+  }
+
+  .digital-merchant-contact i {
+    color: #a855f7;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    font-size: 0.85rem;
+  }
+
+  .digital-amount-highlight {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(147, 51, 234, 0.12));
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1.5px solid rgba(168, 85, 247, 0.35);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.15);
+    text-align: center;
+  }
+
+  .digital-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #a855f7;
+    letter-spacing: -0.02em;
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .digital-notes-section {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(147, 51, 234, 0.08));
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-left: 4px solid #a855f7;
+    padding: 0.875rem 1rem;
+  }
+
+  .digital-notes-title {
+    margin: 0 0 0.625rem;
+    font-size: 0.8rem;
+    color: #a855f7;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: none;
+    padding-bottom: 0;
+  }
+
+  .digital-note-item {
+    margin: 0.5rem 0;
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .digital-receipt-footer {
+    text-align: center;
+    padding: 1.125rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(147, 51, 234, 0.1));
+    border-top: 2px solid rgba(168, 85, 247, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .digital-footer-text {
+    margin: 0.45rem 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  .digital-footer-text i {
+    margin-right: 0.5rem;
+    color: #a855f7;
+    font-size: 0.9rem;
+  }
+
+  .digital-footer-small {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 0.5rem;
   }
 
   /* ===== RESPONSIVE DESIGN ===== */
@@ -1102,22 +1589,22 @@
     }
 
     .receipt-header {
-      padding: 0.75rem 0.875rem;
+      padding: 1rem 1rem;
     }
 
     .receipt-logo {
-      width: 40px;
-      height: 40px;
-      font-size: 1rem;
-      margin-bottom: 0.3rem;
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
     }
 
     .receipt-title {
-      font-size: 0.95rem;
+      font-size: 1.1rem;
     }
 
     .receipt-subtitle {
-      font-size: 0.6rem;
+      font-size: 0.7rem;
     }
 
     .receipt-content {
@@ -1125,17 +1612,17 @@
     }
 
     .receipt-footer {
-      padding: 0.875rem;
+      padding: 1rem;
     }
 
     .receipt-footer-text {
-      font-size: 0.75rem;
-      margin: 0.3rem 0;
+      font-size: 0.8rem;
+      margin: 0.35rem 0;
     }
 
     .receipt-footer-small {
-      font-size: 0.65rem;
-      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      margin-top: 0.5rem;
     }
 
     .receipt-actions {
@@ -1150,6 +1637,10 @@
 
     .btn i {
       font-size: 0.75rem;
+    }
+
+    .btn-secondary {
+      flex: 1;
     }
 
     /* Mobile Table */
@@ -1706,6 +2197,14 @@
                   <span class="status-badge cancelled">
                     <i class="fas fa-circle-xmark"></i> Cancelled
                   </span>
+                {% elif booking.status == 'rejected' %}
+                  <span class="status-badge rejected">
+                    <i class="fas fa-ban"></i> Rejected
+                  </span>
+                {% elif booking.status == 'no show' %}
+                  <span class="status-badge no-show">
+                    <i class="fas fa-minus-circle"></i> No Show
+                  </span>
                 {% endif %}
               </td>
 
@@ -1729,27 +2228,52 @@
                           onclick="showDetailsModal(this)">
                     <i class="fas fa-eye"></i>
                   </button>
+                  {% if booking.status == 'confirmed' %}
+                  <button class="action-btn download" 
+                          title="Download Receipt as Image"
+                          data-booking-id="{{ booking.id }}"
+                          data-booking-number="{{ booking.booking_number }}"
+                          data-merchant-name="{{ booking.merchant.business_name }}"
+                          data-merchant-email="{{ booking.merchant.contact_email }}"
+                          data-merchant-phone="{{ booking.merchant.contact_phone }}"
+                          data-business-category="{{ booking.business_category }}"
+                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          data-appointment-time="{{ booking.appointment_time }}"
+                          data-total-pets="{{ booking.total_pets }}"
+                          data-service-type="{{ booking.service_type }}"
+                          data-total-amount="{{ "%.2f"|format(booking.total_amount) }}"
+                          data-status="{{ booking.status }}"
+                          data-confirmation-code="{{ booking.confirmation_code }}"
+                          data-qr-code-url="{{ booking.qr_code_url or '' }}"
+                          onclick="downloadReceiptDirectly(this)">
+                    <i class="fas fa-download"></i>
+                  </button>
+                  {% endif %}
                   {% if booking.status == 'pending' %}
                   <button class="action-btn cancel" title="Cancel Booking"
                           data-booking-id="{{ booking.id }}"
                           onclick="showCancelModal(this)">
                     <i class="fas fa-times-circle"></i>
                   </button>
-                  {% elif booking.status in ['rejected', 'cancelled'] %}
-                  <button class="action-btn delete" title="Delete Booking"
+                  {% elif booking.status == 'rejected' %}
+                  <a href="{{ url_for('messages.start_chat', user_id=booking.merchant.user_id) }}" 
+                     class="action-btn message" title="Message Merchant"
+                     style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-envelope"></i>
+                  </a>
+                  {% elif booking.status == 'cancelled' %}
+                  <a href="{{ url_for('merchant.customer_create_booking', merchant_id=booking.merchant.id) }}" 
+                     class="action-btn book-again" title="Book Again"
+                     style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-calendar-plus"></i>
+                  </a>
+                  {% elif booking.status == 'no show' %}
+                  <button class="action-btn appeal" title="Appeal"
                           data-booking-id="{{ booking.id }}"
-                          onclick="showDeleteModal(this)">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
-                  {% endif %}
-                  {% if booking.status == 'confirmed' and booking.qr_code_url %}
-                  <button class="action-btn download" title="Download QR Code"
-                          data-booking-id="{{ booking.id }}"
-                          data-booking-number="{{ booking.booking_number }}"
-                          data-confirmation-code="{{ booking.confirmation_code }}"
-                          data-qr-url="{{ booking.qr_code_url }}"
-                          onclick="downloadQRCodeDirect(this)">
-                    <i class="fas fa-qrcode"></i>
+                          data-merchant-name="{{ booking.merchant.business_name }}"
+                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          onclick="showAppealModal(this)">
+                    <i class="fas fa-exclamation-circle"></i>
                   </button>
                   {% endif %}
                   {% if booking.status == 'completed' %}
@@ -1921,15 +2445,15 @@
         <div class="receipt-divider"></div>
 
         <!-- Important Notes -->
-        <div class="receipt-section" style="background: rgba(168, 85, 247, 0.05); padding: 0.75rem; border-radius: 8px; border-left: 3px solid var(--primary);">
-          <h4 style="margin: 0 0 0.5rem; font-size: 0.8rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Important Information</h4>
-          <p style="margin: 0.375rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.4;">
+        <div class="receipt-section" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(147, 51, 234, 0.08)); border: 1px solid rgba(168, 85, 247, 0.2); border-left: 4px solid var(--primary); padding: 0.875rem 1rem;">
+          <h4 style="margin: 0 0 0.625rem; font-size: 0.8rem; color: var(--primary); font-weight: 700; text-transform: uppercase; border: none; padding-bottom: 0;">Important Information</h4>
+          <p style="margin: 0.5rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.5;">
             • Present this booking confirmation at the service provider
           </p>
-          <p style="margin: 0.375rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.4;">
+          <p style="margin: 0.5rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.5;">
             • Arrive 10 minutes before your scheduled appointment
           </p>
-          <p style="margin: 0.375rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.4;">
+          <p style="margin: 0.5rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.5;">
             • Keep this receipt for your records and service history
           </p>
         </div>
@@ -1948,10 +2472,125 @@
 
       <!-- Action Buttons -->
       <div class="receipt-actions">
-        <button type="button" class="btn btn-cancel" onclick="closeDetailsModal()">
+        <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()">
           <i class="fas fa-times"></i>
           Close
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Digital Receipt for Download -->
+<div id="digitalReceiptTemplate" style="display: none; position: fixed; left: -9999px; top: 0;">
+  <div class="digital-receipt-wrapper">
+    <!-- Header -->
+    <div class="digital-receipt-header">
+      <div class="digital-receipt-logo">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2 class="digital-receipt-title">Booking Confirmation</h2>
+      <p class="digital-receipt-subtitle">Your Digital Receipt</p>
+    </div>
+
+    <!-- Content -->
+    <div class="digital-receipt-content">
+      <!-- QR Code -->
+      <div class="digital-qr-section">
+        <div class="digital-qr-code" id="digitalQR"></div>
+        <p class="digital-qr-text">Scan for booking verification</p>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Booking Reference & Status -->
+      <div class="digital-section">
+        <div class="digital-row">
+          <div class="digital-row-item">
+            <span class="digital-label">Booking Reference</span>
+            <span class="digital-value digital-booking-number" id="digitalBookingNumber"></span>
+          </div>
+          <div class="digital-row-item digital-row-right">
+            <span class="digital-label">Status</span>
+            <span class="digital-status" id="digitalStatus"></span>
+          </div>
+        </div>
+        <div class="digital-row">
+          <span class="digital-label">Confirmation Code</span>
+          <span class="digital-value" id="digitalConfirmationCode"></span>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Service Provider -->
+      <div class="digital-section">
+        <h3 class="digital-section-title"><i class="fas fa-store"></i> Service Provider</h3>
+        <p class="digital-merchant-name" id="digitalMerchantName"></p>
+        <p class="digital-merchant-category" id="digitalMerchantCategory"></p>
+        <div style="margin-top: 0.625rem;">
+          <p class="digital-merchant-contact">
+            <i class="fas fa-phone"></i> <span id="digitalMerchantPhone"></span>
+          </p>
+          <p class="digital-merchant-contact">
+            <i class="fas fa-envelope"></i> <span id="digitalMerchantEmail"></span>
+          </p>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Appointment Details -->
+      <div class="digital-section">
+        <h3 class="digital-section-title"><i class="fas fa-calendar-alt"></i> Appointment Details</h3>
+        <div class="digital-row">
+          <div class="digital-row-item">
+            <span class="digital-label">Schedule</span>
+            <span class="digital-value">
+              <span id="digitalAppointmentDate"></span><br>
+              <span style="color: var(--primary); font-weight: 600;" id="digitalAppointmentTime"></span>
+            </span>
+          </div>
+        </div>
+        <div class="digital-row">
+          <span class="digital-label">Service Type</span>
+          <span class="digital-value" id="digitalServiceType"></span>
+        </div>
+        <div class="digital-row">
+          <span class="digital-label">Pets Included</span>
+          <span class="digital-value" id="digitalTotalPets"></span>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Total Amount -->
+      <div class="digital-section">
+        <div class="digital-amount-highlight">
+          <span class="digital-label">Total Amount Booked</span>
+          <span class="digital-amount" id="digitalTotalAmount"></span>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Important Information -->
+      <div class="digital-section digital-notes-section">
+        <h4 class="digital-notes-title">Important Information</h4>
+        <p class="digital-note-item">• Present this booking confirmation at the service provider</p>
+        <p class="digital-note-item">• Arrive 10 minutes before your scheduled appointment</p>
+        <p class="digital-note-item">• Keep this receipt for your records and service history</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="digital-receipt-footer">
+        <p class="digital-footer-text" id="digitalFooterStatus">
+          <i class="fas fa-hourglass-half"></i>
+          Booking Status: Pending
+        </p>
+        <p class="digital-footer-small">
+          Generated on <span id="digitalGeneratedDate"></span>
+        </p>
       </div>
     </div>
   </div>
@@ -1981,6 +2620,7 @@
           <textarea id="cancellationReason" name="cancellation_reason" placeholder="Tell us why you're cancelling..."></textarea>
         </div>
       </form>
+
     </div>
 
     <div class="modal-footer">
@@ -2021,6 +2661,44 @@
       <button type="button" class="btn btn-delete" onclick="submitDelete()">
         <i class="fas fa-trash-alt"></i>
         Confirm Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Appeal No-Show Booking Modal -->
+<div id="appealModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-exclamation-circle"></i>
+        Appeal No-Show Status
+      </h3>
+      <button type="button" class="modal-close" onclick="closeAppealModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div id="appealBookingInfo" style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(168, 85, 247, 0.05); border-radius: var(--radius-sm); border-left: 4px solid #a855f7;">
+        <!-- Populated by showAppealModal() -->
+      </div>
+      <form id="appealForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="form-group">
+          <label for="appealReason">Why didn't you show up for the appointment?</label>
+          <textarea id="appealReason" name="appeal_reason" placeholder="Please provide a detailed explanation of why you couldn't make it to the appointment..." style="min-height: 150px;"></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeAppealModal()">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" onclick="submitAppeal()">
+        <i class="fas fa-paper-plane"></i>
+        Submit Appeal
       </button>
     </div>
   </div>
@@ -2194,6 +2872,231 @@
     }
   }
 
+  function showAppealModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    const merchantName = button.dataset.merchantName;
+    const appointmentDate = button.dataset.appointmentDate;
+    
+    // Populate booking info
+    const bookingInfo = document.getElementById('appealBookingInfo');
+    bookingInfo.innerHTML = `
+      <div style="font-size: 0.95rem;">
+        <div style="margin-bottom: 0.5rem;"><strong>Merchant:</strong> ${merchantName}</div>
+        <div><strong>Appointment Date:</strong> ${appointmentDate}</div>
+      </div>
+    `;
+    
+    // Reset form
+    document.getElementById('appealForm').reset();
+    document.getElementById('appealModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAppealModal() {
+    document.getElementById('appealModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+  }
+
+  function submitAppeal() {
+    const appealReason = document.getElementById('appealReason').value.trim();
+    
+    if (!appealReason) {
+      alert('Please provide an explanation for your appeal.');
+      return;
+    }
+
+    const submitBtn = document.querySelector('#appealModal .btn-primary');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    // Send appeal to server
+    fetch('/user/booking/' + currentBookingId + '/appeal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+      },
+      body: JSON.stringify({
+        appeal_reason: appealReason
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Your appeal has been submitted successfully. The merchant will review it shortly.');
+        closeAppealModal();
+        location.reload();
+      } else {
+        alert('Error submitting appeal: ' + (data.message || 'Unknown error'));
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error submitting appeal. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    });
+  }
+
+  function downloadReceipt(button) {
+    const bookingId = button.dataset.bookingId;
+    
+    // First, show the details modal with receipt
+    button.closest('tr')?.querySelector('.action-btn.view')?.click();
+    
+    // Show download prompt after modal renders
+    setTimeout(() => {
+      alert('Click the Download buttons in the receipt modal to save as PDF or Image.');
+    }, 300);
+  }
+
+  function downloadReceiptDirectly(button) {
+    const bookingId = button.dataset.bookingId;
+    const bookingNumber = button.dataset.bookingNumber;
+    const merchantName = button.dataset.merchantName;
+    const merchantEmail = button.dataset.merchantEmail;
+    const merchantPhone = button.dataset.merchantPhone;
+    const businessCategory = button.dataset.businessCategory;
+    const appointmentDate = button.dataset.appointmentDate;
+    const appointmentTime = button.dataset.appointmentTime;
+    const totalPets = button.dataset.totalPets;
+    const serviceType = button.dataset.serviceType;
+    const totalAmount = button.dataset.totalAmount;
+    const status = button.dataset.status;
+    const confirmationCode = button.dataset.confirmationCode;
+    const qrCodeUrl = button.dataset.qrCodeUrl;
+
+    // Show loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+
+    // Populate digital receipt template
+    document.getElementById('digitalBookingNumber').textContent = bookingNumber;
+    document.getElementById('digitalMerchantName').textContent = merchantName;
+    document.getElementById('digitalMerchantCategory').textContent = businessCategory;
+    document.getElementById('digitalMerchantEmail').textContent = merchantEmail;
+    document.getElementById('digitalMerchantPhone').textContent = merchantPhone;
+    document.getElementById('digitalAppointmentDate').textContent = appointmentDate;
+    document.getElementById('digitalAppointmentTime').textContent = formatTo12Hour(appointmentTime);
+    document.getElementById('digitalTotalPets').textContent = totalPets + ' pet' + (totalPets != 1 ? 's' : '');
+    document.getElementById('digitalServiceType').textContent = serviceType;
+    document.getElementById('digitalTotalAmount').textContent = '₱' + totalAmount;
+    document.getElementById('digitalConfirmationCode').textContent = confirmationCode;
+    
+    // Format status with badge for digital receipt
+    const digitalStatusElement = document.getElementById('digitalStatus');
+    digitalStatusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    digitalStatusElement.className = 'digital-status status-' + status;
+
+    // Update footer status message for digital receipt
+    const digitalFooterStatusElement = document.getElementById('digitalFooterStatus');
+    if (status === 'confirmed' || status === 'completed') {
+      digitalFooterStatusElement.innerHTML = '<i class="fas fa-check-circle"></i> Booking Confirmed & Secure';
+      digitalFooterStatusElement.style.color = '#10b981';
+    } else {
+      digitalFooterStatusElement.innerHTML = '<i class="fas fa-hourglass-half"></i> Booking Status: ' + status.charAt(0).toUpperCase() + status.slice(1);
+      digitalFooterStatusElement.style.color = '#6b7280';
+    }
+
+    // Set generated date for digital receipt
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('digitalGeneratedDate').textContent = `${dateStr} at ${timeStr}`;
+
+    // Display QR Code in digital receipt
+    const digitalQRContainer = document.getElementById('digitalQR');
+    digitalQRContainer.innerHTML = '';
+    
+    if (qrCodeUrl) {
+      const qrImage = document.createElement('img');
+      qrImage.src = qrCodeUrl;
+      qrImage.alt = 'Booking QR Code';
+      qrImage.style.width = '140px';
+      qrImage.style.height = '140px';
+      qrImage.style.borderRadius = '8px';
+      digitalQRContainer.appendChild(qrImage);
+    } else {
+      digitalQRContainer.innerHTML = '<div style="width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; border-radius: 8px; font-size: 12px; color: #999;">QR Code unavailable</div>';
+    }
+
+    // Wait for QR to load and then download
+    setTimeout(() => {
+      try {
+        const element = document.getElementById('digitalReceiptTemplate');
+        const wrapper = element.querySelector('.digital-receipt-wrapper');
+        const fileName = `PetSona_Receipt_${bookingNumber}_${new Date().getTime()}.png`;
+        
+        // Clone the digital receipt wrapper
+        const clone = wrapper.cloneNode(true);
+        clone.style.position = 'fixed';
+        clone.style.left = '-9999px';
+        clone.style.top = '0';
+        clone.style.width = '520px';
+        clone.style.display = 'block';
+        
+        document.body.appendChild(clone);
+        
+        // Wait for images to load
+        setTimeout(() => {
+          html2canvas(clone, {
+            backgroundColor: '#ffffff',
+            scale: 3,
+            logging: false,
+            allowTaint: true,
+            useCORS: true,
+            width: 520,
+            windowHeight: 0,
+            windowWidth: 520,
+            scrollY: 0,
+            scrollX: 0,
+            imageTimeout: 10000,
+            removeContainer: false,
+            letterRendering: true
+          }).then(canvas => {
+            document.body.removeChild(clone);
+            
+            // Convert canvas to blob and download
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+              }
+              
+              // Restore button state
+              button.innerHTML = originalHTML;
+              button.disabled = false;
+            }, 'image/png', 1.0);
+          }).catch(err => {
+            if (document.body.contains(clone)) {
+              document.body.removeChild(clone);
+            }
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            console.error('Error generating receipt:', err);
+            alert('Error downloading receipt. Please try again.');
+          });
+        }, 500);
+      } catch (err) {
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+        console.error('Error:', err);
+        alert('Error downloading receipt. Please try again.');
+      }
+    }, 300);
+  }
+
   function downloadQRCodeDirect(button) {
     // Get data from button attributes
     const bookingNumber = button.dataset.bookingNumber;
@@ -2228,128 +3131,217 @@
     }, 1500);
   }
 
+  function saveReceiptAsImage() {
+    const element = document.querySelector('.receipt-container');
+    const bookingNumber = document.getElementById('receiptBookingNumber').textContent;
+    const fileName = `PetSona_Receipt_${bookingNumber}_${new Date().getTime()}.png`;
+    
+    // Find the button and show loading state
+    const downloadBtn = event.target.closest('button');
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    downloadBtn.disabled = true;
+    
+    try {
+      // Create a clone to avoid affecting the original element
+      const clone = element.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '520px';
+      clone.style.maxHeight = 'none';
+      clone.style.height = 'auto';
+      clone.style.maxWidth = '520px';
+      clone.querySelector('.receipt-actions').style.display = 'none';
+      
+      document.body.appendChild(clone);
+      
+      // Wait for images to load
+      setTimeout(() => {
+        html2canvas(clone, {
+          backgroundColor: '#ffffff',
+          scale: 3,
+          logging: false,
+          allowTaint: true,
+          useCORS: true,
+          width: 520,
+          windowHeight: 0,
+          windowWidth: 520,
+          scrollY: 0,
+          scrollX: 0,
+          imageTimeout: 10000,
+          removeContainer: true,
+          letterRendering: true,
+          onclone: (clonedDocument) => {
+            const clonedElement = clonedDocument.querySelector('.receipt-container');
+            if (clonedElement) {
+              clonedElement.style.maxHeight = 'none';
+              clonedElement.style.height = 'auto';
+            }
+          }
+        }).then(canvas => {
+          document.body.removeChild(clone);
+          
+          // Convert canvas to blob and download
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = fileName;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            }
+            
+            // Restore button state
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+          }, 'image/png', 1.0);
+        }).catch(err => {
+          if (document.body.contains(clone)) {
+            document.body.removeChild(clone);
+          }
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.disabled = false;
+          console.error('Error generating image:', err);
+          alert('Error saving receipt as image. Please try again.');
+        });
+      }, 500);
+    } catch (err) {
+      downloadBtn.innerHTML = originalText;
+      downloadBtn.disabled = false;
+      console.error('Error:', err);
+      alert('Error saving receipt. Please try again.');
+    }
+  }
+
   function saveReceiptAsPDF() {
     const element = document.querySelector('.receipt-container');
     const bookingNumber = document.getElementById('receiptBookingNumber').textContent;
     const fileName = `PetSona_Receipt_${bookingNumber}_${new Date().getTime()}.pdf`;
     
-    // Show loading state
-    const saveBtn = event.target.closest('.btn-secondary');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    saveBtn.disabled = true;
+    // Find the button and show loading state
+    const downloadBtn = event.target.closest('button');
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    downloadBtn.disabled = true;
     
-    // Hide action buttons before capturing
-    const actionsDiv = element.querySelector('.receipt-actions');
-    const actionsDisplay = actionsDiv.style.display;
-    actionsDiv.style.display = 'none';
-    
-    // Disable scrolling on content to capture full view
-    const receiptContent = element.querySelector('.receipt-content');
-    const originalOverflow = receiptContent.style.overflow;
-    const originalHeight = receiptContent.style.height;
-    receiptContent.style.overflow = 'visible';
-    receiptContent.style.height = 'auto';
-    
-    // Ensure white background
-    const originalBgColor = receiptContent.style.backgroundColor;
-    receiptContent.style.backgroundColor = '#ffffff';
-    
-    // Give QR code time to fully render with logo
-    setTimeout(function() {
-      html2canvas(element, {
-        backgroundColor: '#ffffff',
-        scale: 3,
-        logging: false,
-        allowTaint: true,
-        useCORS: true,
-        width: 520,
-        windowHeight: 2200,
-        windowWidth: 520,
-        scrollY: 0,
-        scrollX: 0,
-        imageTimeout: 0,
-        removeContainer: false,
-        letterRendering: true
-      }).then(canvas => {
-        // Restore original styles
-        receiptContent.style.overflow = originalOverflow;
-        receiptContent.style.height = originalHeight;
-        receiptContent.style.backgroundColor = originalBgColor;
-        actionsDiv.style.display = actionsDisplay;
-        
-        // Create PDF with proper color preservation
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4',
-          compress: false
+    try {
+      // Create a clone to avoid affecting the original element
+      const clone = element.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '520px';
+      clone.style.maxHeight = 'none';
+      clone.style.height = 'auto';
+      clone.style.maxWidth = '520px';
+      clone.querySelector('.receipt-actions').style.display = 'none';
+      
+      document.body.appendChild(clone);
+      
+      // Wait for images to load
+      setTimeout(() => {
+        html2canvas(clone, {
+          backgroundColor: '#ffffff',
+          scale: 3,
+          logging: false,
+          allowTaint: true,
+          useCORS: true,
+          width: 520,
+          windowHeight: 0,
+          windowWidth: 520,
+          scrollY: 0,
+          scrollX: 0,
+          imageTimeout: 10000,
+          removeContainer: true,
+          letterRendering: true,
+          onclone: (clonedDocument) => {
+            const clonedElement = clonedDocument.querySelector('.receipt-container');
+            if (clonedElement) {
+              clonedElement.style.maxHeight = 'none';
+              clonedElement.style.height = 'auto';
+            }
+          }
+        }).then(canvas => {
+          document.body.removeChild(clone);
+          
+          // Create PDF with proper color preservation
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+            compress: false
+          });
+          
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          
+          // Calculate image size to fit A4 with margins
+          const margin = 5;
+          const maxWidth = pageWidth - (margin * 2);
+          
+          const imgData = canvas.toDataURL('image/png');
+          const imgAspect = canvas.width / canvas.height;
+          let imgWidth = maxWidth;
+          let imgHeight = imgWidth / imgAspect;
+          
+          // If image is taller than one page, scale it down
+          const maxHeight = pageHeight - (margin * 2);
+          if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+            imgWidth = imgHeight * imgAspect;
+          }
+          
+          // Center image horizontally
+          const xPos = (pageWidth - imgWidth) / 2;
+          const yPos = margin;
+          
+          // Add image to PDF with full color preservation
+          pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
+          
+          // Add footer information
+          const footerY = yPos + imgHeight + 4;
+          pdf.setFontSize(8);
+          pdf.setTextColor(107, 114, 128);
+          
+          const timestamp = new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+          
+          pdf.text(`Receipt Generated: ${timestamp}`, pageWidth / 2, footerY, { align: 'center' });
+          pdf.text('Keep this receipt for your records', pageWidth / 2, footerY + 4, { align: 'center' });
+          
+          // Save PDF
+          pdf.save(fileName);
+          
+          // Restore button state
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.disabled = false;
+        }).catch(err => {
+          if (document.body.contains(clone)) {
+            document.body.removeChild(clone);
+          }
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.disabled = false;
+          console.error('Error generating PDF:', err);
+          alert('Error saving receipt as PDF. Please try again.');
         });
-        
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        
-        // Calculate image size to fit A4 with margins
-        const margin = 5;
-        const maxWidth = pageWidth - (margin * 2);
-        
-        const imgData = canvas.toDataURL('image/png');
-        const imgAspect = canvas.width / canvas.height;
-        let imgWidth = maxWidth;
-        let imgHeight = imgWidth / imgAspect;
-        
-        // If image is taller than one page, we'll need multiple pages or scale it down
-        const maxHeight = pageHeight - (margin * 2);
-        if (imgHeight > maxHeight) {
-          // Try to fit on single page by scaling
-          imgHeight = maxHeight;
-          imgWidth = imgHeight * imgAspect;
-        }
-        
-        // Center image horizontally
-        const xPos = (pageWidth - imgWidth) / 2;
-        const yPos = margin;
-        
-        // Add image to PDF with full color preservation
-        pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
-        
-        // Add footer information
-        const footerY = yPos + imgHeight + 4;
-        pdf.setFontSize(8);
-        pdf.setTextColor(107, 114, 128);
-        
-        const timestamp = new Date().toLocaleString('en-US', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        });
-        
-        pdf.text(`Receipt Generated: ${timestamp}`, pageWidth / 2, footerY, { align: 'center' });
-        pdf.text('Keep this receipt for your records', pageWidth / 2, footerY + 4, { align: 'center' });
-        
-        // Save PDF
-        pdf.save(fileName);
-        
-        // Restore button state
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-      }).catch(err => {
-        // Restore original styles on error
-        receiptContent.style.overflow = originalOverflow;
-        receiptContent.style.height = originalHeight;
-        receiptContent.style.backgroundColor = originalBgColor;
-        // Restore button state on error
-        actionsDiv.style.display = actionsDisplay;
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-        console.error('Error generating receipt:', err);
-        alert('Error saving receipt. Please try again.');
-      });
-    }, 1000); // Wait for logo image to fully load and render
+      }, 500);
+    } catch (err) {
+      downloadBtn.innerHTML = originalText;
+      downloadBtn.disabled = false;
+      console.error('Error:', err);
+      alert('Error saving receipt. Please try again.');
+    }
   }
 
   // Close modals on Escape key

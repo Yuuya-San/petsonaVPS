@@ -59,8 +59,7 @@
     {% block styles %}{% endblock %}
 </head>
 
-<body class="sidebar-mini sidebar-collapse bg-gradient-to-br from-white via-purple-50 to-white">
-
+<body class="hold-transition sidebar-mini sidebar-collapse layout-fixed bg-gradient-to-br from-white via-purple-50 to-white">
 <div class="wrapper">
 
     {% include 'admin/partials/navbar.html' %}
@@ -150,6 +149,34 @@ document.querySelectorAll('.flash').forEach(flash => {
         flash.remove();
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const body = document.body;
+
+    function enforceCollapsedSmooth() {
+        if (window.innerWidth >= 992) {
+
+            // Add a temporary transition class
+            body.classList.add("hold-transition");
+
+            body.classList.remove("sidebar-open");
+            body.classList.add("sidebar-collapse");
+
+            // Remove transition helper after animation finishes
+            setTimeout(() => {
+                body.classList.remove("hold-transition");
+            }, 400);
+        }
+    }
+
+    // Run after AdminLTE resize logic
+    window.addEventListener("resize", function () {
+        setTimeout(enforceCollapsedSmooth, 150);
+    });
+
+});
+
 </script>
 
 <!-- Settings Modal Functionality -->

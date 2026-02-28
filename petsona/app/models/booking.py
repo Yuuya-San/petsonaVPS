@@ -74,6 +74,10 @@ class Booking(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = db.Column(db.DateTime, nullable=True)
     
+    # ========== SECTION 11: NO-SHOW APPEAL ==========
+    appeal_reason = db.Column(LONGTEXT, nullable=True)  # Reason for appealing no-show status
+    appeal_submitted_at = db.Column(db.DateTime, nullable=True)  # When appeal was submitted
+    
     __table_args__ = (
         db.UniqueConstraint('booking_number', name='unique_booking_number'),
         db.UniqueConstraint('confirmation_code', name='unique_confirmation_code'),

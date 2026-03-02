@@ -27,100 +27,74 @@
         </div>
 
         <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 stats-grid">
-            <div class="bg-white backdrop-blur-xl rounded-2xl shadow-lg border border-purple-100 p-7 hover:shadow-xl transition-all">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-semibold uppercase tracking-wide">Total</p>
-                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.total">0</p>
-                    </div>
-                    <div class="p-4 bg-purple-100 rounded-xl">
-                        <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Total Applications</p>
+                    <p class="stat-number" x-text="totalStats.total">0</p>
                 </div>
             </div>
 
-            <div class="bg-white backdrop-blur-xl rounded-2xl shadow-lg border border-purple-100 p-7 hover:shadow-xl transition-all">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-semibold uppercase tracking-wide">Pending</p>
-                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.pending">0</p>
-                    </div>
-                    <div class="p-4 bg-amber-100 rounded-xl">
-                        <svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                        </svg>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Pending</p>
+                    <p class="stat-number" x-text="totalStats.pending">0</p>
                 </div>
             </div>
 
-            <div class="bg-white backdrop-blur-xl rounded-2xl shadow-lg border border-purple-100 p-7 hover:shadow-xl transition-all">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-semibold uppercase tracking-wide">Approved</p>
-                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.approved">0</p>
-                    </div>
-                    <div class="p-4 bg-green-100 rounded-xl">
-                        <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                        </svg>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon approved">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Approved</p>
+                    <p class="stat-number" x-text="totalStats.approved">0</p>
                 </div>
             </div>
 
-            <div class="bg-white backdrop-blur-xl rounded-2xl shadow-lg border border-purple-100 p-7 hover:shadow-xl transition-all">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-semibold uppercase tracking-wide">Rejected</p>
-                        <p class="text-4xl font-bold text-gray-900 mt-3" x-text="totalStats.rejected">0</p>
-                    </div>
-                    <div class="p-4 bg-red-100 rounded-xl">
-                        <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
-                        </svg>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon rejected">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Rejected</p>
+                    <p class="stat-number" x-text="totalStats.rejected">0</p>
                 </div>
             </div>
         </div>
 
         <!-- Search and Filter Section -->
         <div class="search-filter-card">
-            <div class="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-6">
+            <div class="search-filter-content">
                 <!-- Search Box with Icon -->
-                <div class="flex-1 min-w-0">
-                    <label class="block text-sm font-bold text-gray-800 mb-2.5 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+                <div class="search-box-wrapper">
+                    <label class="search-label">
+                        <i class="fa-solid fa-magnifying-glass"></i>
                         <span>Search Applications</span>
                     </label>
-                    <div class="relative group">
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-purple-600/20 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-lg pointer-events-none"></div>
-                        <input 
-                            type="text" 
-                            x-model="searchTerm"
-                            placeholder="Search by business name, owner, ID, location..."
-                            class="search-input relative"
-                        >
-                        <svg class="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </div>
+                    <input 
+                        type="text" 
+                        x-model="searchTerm"
+                        placeholder="Search by business name, owner, ID, location..."
+                        class="search-input"
+                    >
                 </div>
                 
                 <!-- Filter Dropdown -->
-                <div class="w-full lg:w-56">
-                    <label class="block text-sm font-bold text-gray-800 mb-2.5 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4a1 1 0 100 2h16a1 1 0 100-2H3zM3 10a1 1 0 100 2h16a1 1 0 100-2H3zM3 16a1 1 0 100 2h16a1 1 0 100-2H3z"/>
-                        </svg>
+                <div class="filter-box-wrapper">
+                    <label class="filter-label">
+                        <i class="fa-solid fa-filter"></i>
                         <span>Status</span>
                     </label>
                     <select 
                         x-model="statusFilter"
-                        class="role-select w-full"
+                        class="filter-select"
                     >
                         <option value="all">All Applications</option>
                         <option value="pending">Pending Review</option>
@@ -145,7 +119,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <template x-for="(app, index) in getFilteredApplications()" :key="app.id">
+                        <template x-for="(app, index) in getPaginatedApplications()" :key="app.id">
                             <tr>
                                 <td class="td-business" data-label="Business Name">
                                     <div class="merchant-info">
@@ -201,6 +175,31 @@
                 </table>
             </div>
 
+            <!-- Pagination Footer -->
+            <div class="pagination-footer" x-show="getFilteredApplications().length > 0 && !isLoading">
+                <div class="pagination-info">
+                    <span>Page <strong x-text="currentPage"></strong> of <strong x-text="getTotalPages()"></strong></span>
+                </div>
+                
+                <div class="pagination-controls">
+                    <button 
+                        @click="prevPage()"
+                        :disabled="currentPage === 1"
+                        class="pagination-btn"
+                        title="Previous page">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <button 
+                        @click="nextPage()" 
+                        :disabled="currentPage === getTotalPages()"
+                        class="pagination-btn"
+                        title="Next page">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
             <!-- Empty State -->
             <div x-show="getFilteredApplications().length === 0 && !isLoading" class="empty-state">
                 <div class="empty-content">
@@ -225,44 +224,24 @@
         </template>
     </div>
 
-    <!-- Premium Detail Modal with Glassmorphism -->
+    <!-- Premium Detail Modal with Modern Design -->
     <template x-if="selectedApp">
-        <div class="fixed inset-0 bg-black/30 z-40 flex items-center justify-center p-2 sm:p-3 lg:p-4 backdrop-blur-md mt-20" @click.self="selectedApp = null">
-            <div class="bg-white/80 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl h-[85vh]  overflow-hidden flex flex-col border border-white/50 border-t border-t-white/80" @click.stop>
+        <div class="modal-overlay" @click.self="selectedApp = null">
+            <div class="modal-content-wrapper" style="max-width: 42rem;" @click.stop>
                 
-                <!-- Modal Header with Gradient -->
-                <div class="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-600 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 flex-shrink-0">
-                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <!-- Merchant Logo - Enhanced -->
-                        <div class="flex-shrink-0 p-1 bg-white/20 backdrop-blur-xl rounded border border-white/30 overflow-hidden shadow-lg">
-                            <img 
-                                :src="'/static/uploads/' + selectedApp.logo_path" 
-                                alt="Merchant Logo" 
-                                class="w-8 h-8 sm:w-10 sm:h-10 object-cover rounded" 
-                                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
-                            >
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded flex items-center justify-center hidden">
-                                <span class="text-white font-bold text-xs sm:text-sm" x-text="selectedApp.business_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase()"></span>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h2 class="text-base sm:text-lg font-bold text-white break-words" x-text="selectedApp.business_name"></h2>
-                            <p class="text-white/80 text-xs break-words" x-text="'ID: MC-' + selectedApp.year + '-' + selectedApp.id"></p>
-                        </div>
-                    </div>
-                    <button 
-                        @click="selectedApp = null"
-                        class="text-white hover:bg-white/20 p-1.5 transition flex-shrink-0 backdrop-blur-xl"
-                    >
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h3 class="modal-header-title">
+                        <i class="fa-solid fa-building"></i>
+                        <span x-text="selectedApp.business_name"></span>
+                    </h3>
+                    <button type="button" class="modal-close-btn" @click="selectedApp = null" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-
                 <!-- Modal Body - Scrollable Content -->
-                <div class="overflow-y-auto flex-1 min-h-0">
-                    <div class="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                <div class="modal-body">
+                    <div class="space-y-3 sm:space-y-4">
                         
                         <!-- Quick Status Bar -->
                         <div class="bg-gradient-to-r from-purple-50 to-purple-100/50 backdrop-blur-lg border border-purple-200 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
@@ -660,36 +639,22 @@
                 </div>
 
                 <!-- Modal Footer with Actions -->
-                <div class="border-t border-purple-200/40 bg-gradient-to-r from-purple-50/40 to-purple-100/30 backdrop-blur-lg 
-                            px-3 sm:px-4 py-2 sm:py-2.5 flex gap-2 flex-shrink-0 
-                            rounded-b-2xl">
+                <div class="modal-footer">
                     
                     <template x-if="selectedApp.status === 'pending'">
                         <div class="flex gap-2 w-full">
                             <button 
                                 @click="confirmReject(selectedApp.id)"
-                                class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 
-                                    bg-red-500/80 hover:bg-red-600/90 
-                                    text-white font-semibold text-xs sm:text-sm 
-                                    transition-all duration-200 
-                                    border border-red-400/40 
-                                    backdrop-blur-md 
-                                    rounded-xl 
-                                    shadow-sm hover:shadow-md hover:-translate-y-[1px] active:translate-y-0"
+                                class="flex-1 modal-btn modal-btn-delete"
                             >
+                                <i class="fa-solid fa-ban"></i>
                                 Reject
                             </button>
                             <button 
                                 @click="confirmApprove(selectedApp.id)"
-                                class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 
-                                    bg-green-500/80 hover:bg-green-600/90 
-                                    text-white font-semibold text-xs sm:text-sm 
-                                    transition-all duration-200 
-                                    border border-green-400/40 
-                                    backdrop-blur-md 
-                                    rounded-xl 
-                                    shadow-sm hover:shadow-md hover:-translate-y-[1px] active:translate-y-0"
+                                class="flex-1 modal-btn modal-btn-primary"
                             >
+                                <i class="fa-solid fa-check"></i>
                                 Approve
                             </button>
                         </div>
@@ -698,15 +663,14 @@
                     <template x-if="selectedApp.status !== 'pending'">
                         <div class="w-full flex items-center justify-center">
                             <span 
-                            class="text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full 
-                                    backdrop-blur-md border shadow-sm"
+                            class="text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full"
                             :class="{
-                                'text-green-700 bg-green-100/60 border-green-300/50': selectedApp.status === 'approved',
-                                'text-red-700 bg-red-100/60 border-red-300/50': selectedApp.status === 'rejected'
+                                'text-green-700 bg-green-100/60': selectedApp.status === 'approved',
+                                'text-red-700 bg-red-100/60': selectedApp.status === 'rejected'
                             }"
                             >
-                                <span x-show="selectedApp.status === 'approved'">✓ Approved</span>
-                                <span x-show="selectedApp.status === 'rejected'">✗ Rejected</span>
+                                <span x-show="selectedApp.status === 'approved'"><i class="fa-solid fa-check"></i> Approved</span>
+                                <span x-show="selectedApp.status === 'rejected'"><i class="fa-solid fa-xmark"></i> Rejected</span>
                             </span>
                         </div>
                     </template>
@@ -716,33 +680,31 @@
         </div>
     </template>
 
-    <!-- Confirmation Modal (Glassmorphism + Soft UI) -->
+    <!-- Confirmation Modal - Modern Clean Design -->
     <template x-if="showConfirmModal">
-        <div class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md" @click.self="cancelConfirm()">
-            <div class="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full border border-purple-200/40 overflow-hidden" @click.stop>
+        <div class="modal-overlay" @click.self="cancelConfirm()">
+            <div class="modal-content-wrapper" style="max-width: 28rem;" @click.stop>
                 
                 <!-- Modal Header -->
-                <div class="bg-gradient-to-r from-purple-600/90 to-purple-700/90 px-4 sm:px-6 py-4 sm:py-6 
-                            flex items-center justify-between gap-4 rounded-t-2xl sm:rounded-t-3xl">
-                    <h3 class="text-base sm:text-xl font-bold text-white" x-text="confirmTitle"></h3>
-                    <button @click="cancelConfirm()" 
-                            class="text-white/90 hover:text-white hover:bg-white/20 
-                                p-1.5 sm:p-2 rounded-full transition-all duration-200 
-                                ring-1 ring-white/20">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
+                <div class="modal-header" :style="confirmAction === 'reject' ? 'border-bottom-color: rgba(239, 68, 68, 0.2);' : 'border-bottom-color: rgba(34, 197, 94, 0.2);'">
+                    <h3 class="modal-header-title">
+                        <i class="fa-solid fa-question-circle" :style="confirmAction === 'reject' ? 'color: #ef4444;' : 'color: #22c55e;'"></i>
+                        <span x-text="confirmTitle"></span>
+                    </h3>
+                    <button type="button" class="modal-close-btn" @click="cancelConfirm()" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
                 <!-- Modal Body -->
-                <div class="px-4 sm:px-6 py-4 sm:py-6">
-                    <p class="text-gray-700 text-sm sm:text-base text-center mb-4 sm:mb-5" x-text="confirmMessage"></p>
+                <div class="modal-body">
+                    <p class="text-sm text-gray-700 mb-4 font-medium" x-text="confirmMessage"></p>
                     
                     <!-- Rejection Reason Input -->
                     <template x-if="confirmAction === 'reject'">
-                        <div class="bg-white/60 backdrop-blur-md border border-purple-200/40 rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
+                        <div class="bg-gradient-to-r from-red-50 to-red-50 rounded-2xl p-4 border border-red-100">
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-pen"></i>
                                 Reason for Rejection
                             </label>
                             <textarea 
@@ -750,9 +712,9 @@
                                 placeholder="Provide a detailed reason for rejection..."
                                 class="w-full px-3 sm:px-4 py-2 sm:py-3 
                                     bg-white/70 backdrop-blur 
-                                    border border-purple-200/60 
+                                    border border-red-200/60 
                                     rounded-lg sm:rounded-xl 
-                                    focus:ring-2 focus:ring-purple-500 focus:border-purple-500 
+                                    focus:ring-2 focus:ring-red-500 focus:border-red-500 
                                     transition-all resize-none text-xs sm:text-sm"
                                 rows="4"
                             ></textarea>
@@ -761,19 +723,13 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="border-t border-purple-200/40 bg-gradient-to-r from-purple-50/40 to-purple-100/30 
-                            backdrop-blur-lg px-4 sm:px-6 py-3 sm:py-4 flex gap-2 sm:gap-3 rounded-b-2xl sm:rounded-b-3xl">
+                <div class="modal-footer">
                     
                     <button 
                         @click="cancelConfirm()"
-                        class="flex-1 px-3 sm:px-4 py-2 
-                            bg-gray-200/70 hover:bg-gray-300/80 
-                            text-gray-900 font-semibold text-xs sm:text-sm 
-                            rounded-xl 
-                            transition-all duration-200 
-                            border border-gray-300/40 
-                            shadow-sm hover:shadow-md"
+                        class="modal-btn modal-btn-secondary"
                     >
+                        <i class="fa-solid fa-ban"></i>
                         Cancel
                     </button>
 
@@ -781,18 +737,20 @@
                         @click="executeConfirmedAction()"
                         :disabled="confirmAction === 'reject' && !rejectionReason.trim()"
                         :class="{
-                            'bg-green-500/90 hover:bg-green-600/90 border-green-400/50': confirmAction === 'approve',
-                            'bg-red-500/90 hover:bg-red-600/90 border-red-400/50': confirmAction === 'reject',
+                            'modal-btn-primary': confirmAction === 'approve',
+                            'modal-btn-delete': confirmAction === 'reject',
                             'opacity-50 cursor-not-allowed': confirmAction === 'reject' && !rejectionReason.trim()
                         }"
-                        class="flex-1 px-3 sm:px-4 py-2 
-                            text-white font-semibold text-xs sm:text-sm 
-                            rounded-xl 
-                            transition-all duration-200 
-                            border shadow-sm hover:shadow-md"
+                        class="modal-btn"
                     >
-                        <span x-show="confirmAction === 'approve'">Approve</span>
-                        <span x-show="confirmAction === 'reject'">Reject</span>
+                        <template x-if="confirmAction === 'approve'">
+                            <i class="fa-solid fa-check"></i>
+                            <span>Approve</span>
+                        </template>
+                        <template x-if="confirmAction === 'reject'">
+                            <i class="fa-solid fa-xmark"></i>
+                            <span>Reject</span>
+                        </template>
                     </button>
                 </div>
             </div>
@@ -800,26 +758,24 @@
     </template>
 
 
-    <!-- Photos Gallery Modal (Soft Rounded + Glassmorphism) -->
+    <!-- Photos Gallery Modal - Modern Clean Design -->
     <template x-if="showPhotosModal && currentPhotoIndex !== null">
-        <div class="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md" @click.self="showPhotosModal = false">
-            <div class="bg-white/90 backdrop-blur-xl shadow-2xl max-w-2xl w-full border border-purple-100 rounded-2xl sm:rounded-3xl overflow-hidden" @click.stop>
+        <div class="modal-overlay" @click.self="showPhotosModal = false">
+            <div class="modal-content-wrapper" @click.stop>
 
-                <!-- Gallery Header -->
-                <div class="bg-gradient-to-r from-purple-600/90 to-purple-700/90 px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between gap-4 rounded-t-2xl sm:rounded-t-3xl">
-                    <h3 class="text-base sm:text-xl font-bold text-white"
-                        x-text="'Photo ' + (currentPhotoIndex + 1) + ' of ' + selectedApp.facility_photos_paths.length"></h3>
-
-                    <button @click="showPhotosModal = false"
-                        class="text-white hover:bg-white/20 p-2 rounded-full transition flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h3 class="modal-header-title">
+                        <i class="fa-solid fa-images"></i>
+                        <span x-text="'Photo ' + (currentPhotoIndex + 1) + ' of ' + selectedApp.facility_photos_paths.length"></span>
+                    </h3>
+                    <button type="button" class="modal-close-btn" @click="showPhotosModal = false" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <!-- Gallery Content -->
-                <div class="p-4 sm:p-6">
+                <!-- Modal Body -->
+                <div class="modal-body">
                     <div class="bg-gray-100/80 backdrop-blur aspect-video flex items-center justify-center overflow-hidden mb-4 rounded-2xl">
                         <img 
                             :src="'/static/uploads/' + selectedApp.facility_photos_paths[currentPhotoIndex]"
@@ -829,14 +785,15 @@
                     </div>
                 </div>
 
-                <!-- Gallery Footer with Navigation -->
-                <div class="border-t border-purple-100 px-4 sm:px-6 py-3 sm:py-4 flex gap-2 sm:gap-3 items-center justify-between bg-white/80 backdrop-blur rounded-b-2xl sm:rounded-b-3xl">
+                <!-- Modal Footer with Navigation -->
+                <div class="modal-footer items-center justify-between">
 
                     <button 
                         @click="currentPhotoIndex = currentPhotoIndex === 0 ? selectedApp.facility_photos_paths.length - 1 : currentPhotoIndex - 1"
-                        class="px-4 py-2 bg-gray-200/80 hover:bg-gray-300/90 text-gray-900 font-semibold text-xs sm:text-sm transition-all rounded-full shadow-sm hover:shadow-md"
+                        class="modal-btn modal-btn-secondary"
                     >
-                        ← Previous
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Previous
                     </button>
 
                     <div class="flex gap-2">
@@ -854,9 +811,10 @@
 
                     <button 
                         @click="currentPhotoIndex = currentPhotoIndex === selectedApp.facility_photos_paths.length - 1 ? 0 : currentPhotoIndex + 1"
-                        class="px-4 py-2 bg-gray-200/80 hover:bg-gray-300/90 text-gray-900 font-semibold text-xs sm:text-sm transition-all rounded-full shadow-sm hover:shadow-md"
+                        class="modal-btn modal-btn-secondary"
                     >
-                        Next →
+                        Next
+                        <i class="fa-solid fa-chevron-right"></i>
                     </button>
 
                 </div>
@@ -906,6 +864,8 @@ function merchantApplications() {
         rejectionReason: '',
         showPhotosModal: false,
         currentPhotoIndex: null,
+        currentPage: 1,
+        itemsPerPage: 10,
         totalStats: {
             total: 0,
             pending: 0,
@@ -1125,6 +1085,7 @@ function merchantApplications() {
                 return matchesStatus && matchesSearch;
             });
             
+            this.currentPage = 1;
             console.log('Filtered results:', this.filteredApplications.length, 'items');
             console.log('Filtered applications:', this.filteredApplications);
         },
@@ -1133,6 +1094,36 @@ function merchantApplications() {
             this.filterApplications();
             console.log('Returning filtered applications:', this.filteredApplications.length);
             return this.filteredApplications;
+        },
+
+        getPaginatedApplications() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.filteredApplications.slice(start, end);
+        },
+
+        getTotalPages() {
+            return Math.ceil(this.filteredApplications.length / this.itemsPerPage);
+        },
+
+        goToPage(page) {
+            const totalPages = this.getTotalPages();
+            if (page >= 1 && page <= totalPages) {
+                this.currentPage = page;
+            }
+        },
+
+        nextPage() {
+            const totalPages = this.getTotalPages();
+            if (this.currentPage < totalPages) {
+                this.currentPage++;
+            }
+        },
+
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+            }
         },
 
         viewApplication(app) {
@@ -1322,11 +1313,230 @@ function merchantApplications() {
   --radius-lg: 16px;
 }
 
+/* Modern Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-content-wrapper {
+  background: white;
+  border-radius: 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
+  max-width: 42rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  background: linear-gradient(135deg, #fafbfc 0%, #f3f4f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.modal-header-title i {
+  color: #a855f7;
+  font-size: 1.5rem;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  color: #6b7280;
+  transition: all 0.3s ease;
+  font-size: 1.25rem;
+}
+
+.modal-close-btn:hover {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(168, 85, 247, 0.15);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 0.8) 100%);
+}
+
+.modal-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.875rem;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.modal-btn-primary {
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+}
+
+.modal-btn-primary:hover {
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35);
+}
+
+.modal-btn-primary:active {
+  transform: translateY(0);
+}
+
+.modal-btn-secondary {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.modal-btn-secondary:hover {
+  background: linear-gradient(135deg, #d1d5db 0%, #bfdbfe 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.modal-btn-secondary:active {
+  transform: translateY(0);
+}
+
+.modal-btn-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.modal-btn-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+}
+
+.modal-btn-delete:active {
+  transform: translateY(0);
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.4s ease-out;
+}
+
+/* Responsive Modal Adjustments */
+@media (max-width: 640px) {
+  .modal-content-wrapper {
+    max-width: 100%;
+    border-radius: 1.5rem;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-header-title {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 1rem;
+    flex-direction: column;
+  }
+
+  .modal-btn {
+    width: 100%;
+  }
+}
+
 [x-cloak] { 
   display: none !important; 
 }
 
 /* Page Header */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
 .page-title {
   margin: 0;
   font-size: 1.875rem;
@@ -1345,62 +1555,100 @@ function merchantApplications() {
   font-weight: 500;
 }
 
-/* Search Filter Card */
-.search-filter-card {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1.5px solid rgba(168, 85, 247, 0.22);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 
-    0 16px 56px rgba(168, 85, 247, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    0 0 2px rgba(168, 85, 247, 0.08);
-  border-radius: var(--radius-lg);
-  padding: 2.25rem;
-  margin-bottom: 2.5rem;
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.search-input {
-  width: 100%;
-  padding: 0.75rem 2.75rem 0.75rem 1.1rem;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(168, 85, 247, 0.25);
-  border-radius: var(--radius-lg);
-  font-size: 0.9375rem;
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.stat-icon i {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stat-icon.pending { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.stat-icon.approved { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.stat-icon.rejected { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
   font-weight: 500;
-  color: var(--text-dark);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
-    0 8px 24px rgba(168, 85, 247, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 0 0 0 rgba(168, 85, 247, 0);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
 }
 
-.search-input::placeholder {
-  color: #9ca3af;
-  font-weight: 400;
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 5px 0 0;
 }
 
-.search-input:hover {
-  background: rgba(255, 255, 255, 0.88);
-  border-color: rgba(168, 85, 247, 0.35);
-  box-shadow: 
-    0 12px 32px rgba(168, 85, 247, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 0 1px rgba(168, 85, 247, 0.1);
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.search-input:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(168, 85, 247, 0.5);
-  box-shadow: 
-    0 16px 40px rgba(168, 85, 247, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 0 20px rgba(168, 85, 247, 0.15);
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1.25rem;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .stat-number {
+    font-size: 22px;
+  }
 }
 
 .role-select {
@@ -1443,6 +1691,173 @@ function merchantApplications() {
     0 0 20px rgba(168, 85, 247, 0.15);
 }
 
+/* Search Filter Card - White Theme with Glassmorphism */
+.search-filter-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 12px 48px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 1px rgba(168, 85, 247, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-filter-card:hover {
+  box-shadow: 
+    0 16px 56px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 1px rgba(168, 85, 247, 0.15);
+}
+
+.search-filter-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: flex-end;
+}
+
+/* Search Box Wrapper */
+.search-box-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #a855f7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-label i {
+  font-size: 1rem;
+  color: #a855f7;
+  filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 2.75rem 0.875rem 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.2);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(168, 85, 247, 0.08);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.search-input:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 6px 16px rgba(168, 85, 247, 0.12);
+}
+
+.search-input:focus {
+  outline: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(168, 85, 247, 0.15);
+}
+
+/* Filter Box Wrapper */
+.filter-box-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 240px;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #a855f7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-label i {
+  font-size: 1rem;
+  color: #a855f7;
+  filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.875rem 2.5rem 0.875rem 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.2);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  background-size: 1rem 1rem;
+  padding-right: 2.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(168, 85, 247, 0.08);
+}
+
+.filter-select option {
+  color: var(--text-dark);
+  background: white;
+  padding: 0.5rem;
+}
+
+.filter-select:hover {
+  background-color: rgba(255, 255, 255, 1);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 6px 16px rgba(168, 85, 247, 0.12);
+}
+
+.filter-select:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 1);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(168, 85, 247, 0.15);
+}
+
+
+
 /* Applications Card - Glassmorphism */
 .applications-card {
   background: rgba(255, 255, 255, 0.7);
@@ -1464,6 +1879,7 @@ function merchantApplications() {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Applications Table */
 .applications-table {
   width: 100%;
   border-collapse: collapse;
@@ -1489,23 +1905,29 @@ function merchantApplications() {
 }
 
 .th-business {
-  width: 35%;
+  width: 30%;
+  min-width: 200px;
 }
 
 .th-status {
   width: 15%;
+  min-width: 120px;
+  text-align: center;
 }
 
 .th-location {
   width: 25%;
+  min-width: 200px;
 }
 
 .th-submitted {
   width: 15%;
+  min-width: 130px;
 }
 
 .th-actions {
-  width: 10%;
+  width: 15%;
+  min-width: 100px;
   text-align: center;
 }
 
@@ -1528,9 +1950,6 @@ function merchantApplications() {
   vertical-align: middle;
   color: var(--text-dark);
   border: none;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
 }
 
 /* Business Info Cell */
@@ -1687,6 +2106,70 @@ function merchantApplications() {
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
+/* Pagination Footer */
+.pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(168, 85, 247, 0.15);
+  background: rgba(168, 85, 247, 0.02);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+.pagination-info strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: rgba(168, 85, 247, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--primary);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-btn i {
+  font-size: 0.75rem;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;
@@ -1710,6 +2193,18 @@ function merchantApplications() {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .search-filter-card {
+    padding: 1.75rem;
+  }
+
+  .search-filter-content {
+    gap: 1.5rem;
+  }
+
   .applications-table th {
     padding: 0.875rem;
     font-size: 0.7rem;
@@ -1719,22 +2214,70 @@ function merchantApplications() {
     padding: 0.875rem;
     font-size: 0.85rem;
   }
+
+  .filter-box-wrapper {
+    min-width: 200px;
+  }
 }
 
 @media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .stat-number {
+    font-size: 22px;
+  }
+
   .search-filter-card {
     padding: 1.5rem;
     margin-bottom: 1.5rem;
   }
 
-  .search-input {
-    padding: 0.65rem 2.5rem 0.65rem 1rem;
-    font-size: 0.875rem;
+  .search-filter-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
   }
 
-  .role-select {
-    padding: 0.65rem 2.5rem 0.65rem 1rem;
-    font-size: 0.875rem;
+  .search-box-wrapper {
+    gap: 0.65rem;
+  }
+
+  .filter-box-wrapper {
+    min-width: auto;
+    gap: 0.65rem;
+  }
+
+  .search-label,
+  .filter-label {
+    font-size: 0.8125rem;
+    color: #a855f7;
+  }
+
+  .search-input {
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .filter-select {
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .search-input::placeholder {
+    font-size: 0.85rem;
   }
 
   .applications-card {
@@ -1835,10 +2378,6 @@ function merchantApplications() {
     flex-direction: column;
     align-items: stretch;
   }
-
-  .role-select {
-    width: 100%;
-  }
 }
 
 @media (max-width: 480px) {
@@ -1851,12 +2390,40 @@ function merchantApplications() {
   }
 
   .search-filter-card {
-    padding: 1rem;
+    padding: 1.25rem;
     margin-bottom: 1rem;
   }
 
+  .search-filter-content {
+    gap: 1rem;
+  }
+
+  .search-box-wrapper {
+    gap: 0.5rem;
+  }
+
+  .filter-box-wrapper {
+    gap: 0.5rem;
+  }
+
+  .search-label,
+  .filter-label {
+    font-size: 0.75rem;
+    color: #a855f7;
+  }
+
+  .search-label i,
+  .filter-label i {
+    font-size: 0.875rem;
+  }
+
   .search-input {
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    padding: 0.65rem 2rem 0.65rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .filter-select {
+    padding: 0.65rem 2rem 0.65rem 0.875rem;
     font-size: 0.8125rem;
   }
 

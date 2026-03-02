@@ -13,8 +13,6 @@
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
 
     <!-- AdminLTE -->
     <link rel="stylesheet" href="{{ url_for('static', filename='admin/plugins/fontawesome-free/css/all.min.css') }}">
@@ -28,30 +26,21 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='pet/css/species.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/compatibility-scores.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">>
-    
-    <!-- Tailwind (Development) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 
     <!-- Alpine -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <script>
-        tailwind.config = {
-        theme: {
-            extend: {
-            colors: {
-                lavender: '#E6E6FA'
-            }
-            }
-        }
-        }
-    </script>
+    <style>
+    [x-cloak] { display: none !important; }
+    </style>
 
     <!-- Font Awesome Free CDN -->
     <link 
         rel="stylesheet" 
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-..."
         crossorigin="anonymous" 
         referrerpolicy="no-referrer" 
     />
@@ -123,7 +112,6 @@
 <script src="{{ url_for('static', filename='admin/dist/js/adminlte.min.js') }}"></script>
 <script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
 <script src="{{ url_for('static', filename='admin/js/user_form.js') }}"></script>
-<script src="{{ url_for('static', filename='admin/js/audit_logs.js') }}"></script>
 <script src="{{ url_for('static', filename='js/navbar-notifications.js') }}"></script>
 
 <!-- ================= SKELETON HANDLER ================= -->

@@ -652,7 +652,7 @@ def appeal_no_show(booking_id):
         return jsonify({'success': False, 'message': 'Booking not found'}), 404
     
     # Only allow appeal for no-show bookings
-    if booking.status != 'no show':
+    if booking.status != 'no-show':
         return jsonify({'success': False, 'message': 'This booking cannot be appealed'}), 403
     
     # Check if appeal was already submitted

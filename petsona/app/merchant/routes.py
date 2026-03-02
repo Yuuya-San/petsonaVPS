@@ -1727,6 +1727,7 @@ def bookings_list():
     total_pending = all_bookings.filter(Booking.status == 'pending').count()
     total_confirmed = all_bookings.filter(Booking.status == 'confirmed').count()
     total_completed = all_bookings.filter(Booking.status == 'completed').count()
+    total_cancelled = all_bookings.filter(Booking.status == 'cancelled').count()
     total_rejected = all_bookings.filter(Booking.status == 'rejected').count()
     total_no_show = all_bookings.filter(Booking.status == 'no-show').count()
     
@@ -1757,6 +1758,7 @@ def bookings_list():
         total_pending=total_pending,
         total_confirmed=total_confirmed,
         total_completed=total_completed,
+        total_cancelled=total_cancelled,
         total_rejected=total_rejected,
         total_no_show=total_no_show
     )

@@ -95,6 +95,386 @@
       transition: none;
     }
   }
+
+  /* Modern Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-content-wrapper {
+    background: white;
+    border-radius: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
+    max-width: 36rem;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    background: linear-gradient(135deg, #fafbfc 0%, #f3f4f6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .modal-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .modal-header-title i {
+    color: #a855f7;
+    font-size: 1.5rem;
+  }
+
+  .modal-close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    color: #6b7280;
+    transition: all 0.3s ease;
+    font-size: 1.25rem;
+  }
+
+  .modal-close-btn:hover {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.98);
+  }
+
+  .modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 0.8) 100%);
+  }
+
+  .preview-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .preview-item {
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .preview-item:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+  }
+
+  .preview-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #a855f7;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+  }
+
+  .preview-value {
+    display: block;
+    font-size: 0.95rem;
+    color: #1f2937;
+    font-weight: 500;
+  }
+
+  .section-divider {
+    height: 2px;
+    background: repeating-linear-gradient(90deg, rgba(168, 85, 247, 0.25) 0px, rgba(168, 85, 247, 0.25) 8px, transparent 8px, transparent 12px);
+    margin: 1.5rem 0;
+    opacity: 0.8;
+  }
+
+  .info-alert {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 0.875rem;
+    color: #1e40af;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .info-alert:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+    border-color: rgba(59, 130, 246, 0.35);
+  }
+
+  .warning-alert {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(217, 119, 6, 0.08) 100%);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+    border-radius: 0.875rem;
+    color: #854d0e;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .warning-alert:hover {
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(217, 119, 6, 0.12) 100%);
+    border-color: rgba(234, 179, 8, 0.35);
+  }
+
+  .info-alert i,
+  .warning-alert i {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #a855f7;
+  }
+
+  /* Spinner Animation */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(168, 85, 247, 0.2);
+    border-top-color: #a855f7;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.875rem;
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .modal-btn-primary {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+  }
+
+  .modal-btn-primary:hover {
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35);
+  }
+
+  .modal-btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .modal-btn-secondary {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+    color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .modal-btn-secondary:hover {
+    background: linear-gradient(135deg, #d1d5db 0%, #bfdbfe 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .modal-btn-secondary:active {
+    transform: translateY(0);
+  }
+
+  .modal-btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+
+  .modal-btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+  }
+
+  .modal-btn-delete:active {
+    transform: translateY(0);
+  }
+
+  /* Details section for view modal */
+  .details-section {
+    background: #1f2937;
+    border-radius: 0.875rem;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #e5e7eb;
+    line-height: 1.6;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .care-requirement-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(249, 250, 251, 0.8) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .care-requirement-item:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateX(2px);
+  }
+
+  .care-requirement-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .status-yes {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-no {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  @media (max-width: 640px) {
+    .modal-content-wrapper {
+      max-width: 100%;
+      border-radius: 1.5rem;
+    }
+
+    .modal-header {
+      padding: 1rem;
+    }
+
+    .modal-header-title {
+      font-size: 1.1rem;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
+
+    .modal-footer {
+      padding: 1rem;
+      flex-direction: column;
+    }
+
+    .modal-btn {
+      width: 100%;
+    }
+
+    .preview-section {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
 <div x-data="{
@@ -103,8 +483,90 @@
   imagePreview: null, 
   viewModal: false, 
   viewSpecies: null,
+  deletingSpecies: null,
+  confirm: false,
   selectedBreed: null,
-  searchQuery: ''
+  searchQuery: '',
+  formSubmitting: false,
+  speciesName: '',
+  speciesIcon: 'fa-solid fa-paw',
+  getSpeciesIcon(name) {
+    if (!name) return 'fa-solid fa-paw';
+    const iconMap = {
+      'dog': 'fa-solid fa-dog',
+      'cat': 'fa-solid fa-cat',
+      'lovebird': 'fa-solid fa-dove',
+      'cockatiel': 'fa-solid fa-dove',
+      'budgerigar': 'fa-solid fa-dove',
+      'budgie': 'fa-solid fa-dove',
+      'african grey': 'fa-solid fa-dove',
+      'macaw': 'fa-solid fa-dove',
+      'cockatoo': 'fa-solid fa-dove',
+      'conure': 'fa-solid fa-dove',
+      'eclectus': 'fa-solid fa-dove',
+      'canary': 'fa-solid fa-dove',
+      'finch': 'fa-solid fa-dove',
+      'pigeon': 'fa-solid fa-dove',
+      'dove': 'fa-solid fa-dove',
+      'myna': 'fa-solid fa-dove',
+      'quaker parrot': 'fa-solid fa-dove',
+      'lorikeet': 'fa-solid fa-dove',
+      'betta': 'fa-solid fa-fish',
+      'goldfish': 'fa-solid fa-fish',
+      'koi': 'fa-solid fa-fish',
+      'guppy': 'fa-solid fa-fish',
+      'molly': 'fa-solid fa-fish',
+      'platy': 'fa-solid fa-fish',
+      'swordtail': 'fa-solid fa-fish',
+      'tetra': 'fa-solid fa-fish',
+      'angelfish': 'fa-solid fa-fish',
+      'discus': 'fa-solid fa-fish',
+      'arowana': 'fa-solid fa-fish',
+      'flowerhorn': 'fa-solid fa-fish',
+      'oscar': 'fa-solid fa-fish',
+      'pleco': 'fa-solid fa-fish',
+      'plecostomus': 'fa-solid fa-fish',
+      'danio': 'fa-solid fa-fish',
+      'zebra danio': 'fa-solid fa-fish',
+      'tiger barb': 'fa-solid fa-fish',
+      'hamster': 'fa-solid fa-otter',
+      'guinea pig': 'fa-solid fa-otter',
+      'rabbit': 'fa-solid fa-otter',
+      'mouse': 'fa-solid fa-otter',
+      'rat': 'fa-solid fa-otter',
+      'chinchilla': 'fa-solid fa-otter',
+      'ferret': 'fa-solid fa-otter',
+      'hedgehog': 'fa-solid fa-otter',
+      'sugar glider': 'fa-solid fa-otter',
+      'ball python': 'fa-solid fa-dragon',
+      'corn snake': 'fa-solid fa-dragon',
+      'king snake': 'fa-solid fa-dragon',
+      'leopard gecko': 'fa-solid fa-dragon',
+      'crested gecko': 'fa-solid fa-dragon',
+      'bearded dragon': 'fa-solid fa-dragon',
+      'iguana': 'fa-solid fa-dragon',
+      'red-eared slider': 'fa-solid fa-dragon',
+      'russian tortoise': 'fa-solid fa-dragon',
+      'sulcata': 'fa-solid fa-dragon',
+      'pacman frog': 'fa-solid fa-frog',
+      'tree frog': 'fa-solid fa-frog',
+      'african clawed frog': 'fa-solid fa-frog',
+      'axolotl': 'fa-solid fa-frog',
+      'fire-bellied toad': 'fa-solid fa-frog',
+      'tarantula': 'fa-solid fa-spider',
+      'scorpion': 'fa-solid fa-spider',
+      'mantis': 'fa-solid fa-spider',
+      'stick insect': 'fa-solid fa-spider',
+      'beetle': 'fa-solid fa-spider',
+      'giant african land snail': 'fa-solid fa-spider'
+    };
+    const key = name.toLowerCase().trim();
+    if (key in iconMap) return iconMap[key];
+    for (const [species, icon] of Object.entries(iconMap)) {
+      if (key.includes(species)) return icon;
+    }
+    return 'fa-solid fa-paw';
+  }
 }" class="w-full bg-gray-50/50 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-8 lg:py-8 space-y-6 sm:space-y-8">
 
@@ -125,7 +587,7 @@
 
         <!-- ADD SPECIES BUTTON -->
         <button
-          @click="speciesModal = true; editingSpecies = null; imagePreview=null; formStep='basic'"
+          @click="speciesModal = true; editingSpecies = null; imagePreview=null; formSubmitting=false; speciesName=''; speciesIcon='fa-solid fa-paw'"
           class="bg-indigo-800 hover:bg-indigo-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-semibold shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
         >
           <i class="fa-solid fa-circle-plus"></i>
@@ -169,7 +631,7 @@
     {% for species in species_list %}
     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full glass-card species-item animate-fadeIn"
          :class="searchQuery && !('{{ species.name }}'.toLowerCase().includes(searchQuery.toLowerCase())) ? 'hidden' : ''"
-         x-data="{ menu:false, confirm:false }">
+         x-data="{ menu:false }">
 
       <!-- MENU BUTTON -->
       <button @click="menu = !menu"
@@ -182,20 +644,47 @@
            class="absolute right-3 top-12 bg-white rounded-2xl shadow-lg border border-gray-100 z-20 w-44 flex flex-col p-2 space-y-2">
 
         <!-- EDIT triggers modal -->
-        <button type="button" @click="editingSpecies = JSON.parse($el.getAttribute('data-species')); imagePreview='{{ url_for('static', filename=species.image_url) }}'; speciesModal = true; menu=false"
-                data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
-                class="flex items-center gap-2 px-4 py-2 text-sm
-                       bg-indigo-800 text-white hover:bg-indigo-900 rounded-xl transition w-full text-left">
-          <i class="fa-regular fa-pen-to-square"></i>
-          Edit
+        <button 
+            type="button"
+            @click="editingSpecies = JSON.parse($el.getAttribute('data-species'));
+                    imagePreview='{{ url_for('static', filename=species.image_url) }}';
+                    speciesName = editingSpecies.name;
+                    speciesIcon = getSpeciesIcon(editingSpecies.name);
+                    speciesModal = true;
+                    formSubmitting=false;
+                    menu=false"
+            data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
+            class="flex items-center gap-3 px-4 py-2 text-sm font-medium
+                  bg-white text-purple-700
+                  border border-purple-200
+                  rounded-xl w-full text-left
+                  transition-all duration-200 ease-in-out
+                  hover:bg-purple-50
+                  hover:border-purple-500
+                  hover:shadow-md
+                  hover:-translate-y-0.5">
+
+            <i class="fa-regular fa-pen-to-square text-purple-600 transition-colors duration-200 group-hover:text-purple-800"></i>
+            Edit
         </button>
 
+
         <!-- DELETE -->
-        <button @click="confirm=true; menu=false"
-                class="flex items-center gap-2 px-4 py-2 text-sm
-                       bg-red-600 text-white hover:bg-red-700 rounded-xl transition w-full text-left">
-          <i class="fa-regular fa-trash-can"></i>
-          Delete
+        <button 
+            @click="deletingSpecies = { id: '{{ species.id }}', name: '{{ species.name }}', active_breed_count: {{ species.active_breed_count }} };
+                    confirm=true; menu=false"
+            class="flex items-center gap-3 px-4 py-2 text-sm font-medium
+                  bg-white text-purple-700
+                  border border-purple-200
+                  rounded-xl w-full text-left
+                  transition-all duration-200 ease-in-out
+                  hover:bg-purple-100
+                  hover:border-purple-600
+                  hover:shadow-md
+                  hover:-translate-y-0.5">
+
+            <i class="fa-regular fa-trash-can text-purple-500 transition-colors duration-200"></i>
+            Delete
         </button>
 
       </div>
@@ -244,70 +733,101 @@
 
       </div>
 
-      <!-- DELETE MODAL -->
-      <div x-show="confirm"
-           class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
-           x-transition>
-        <div class="bg-white rounded-3xl shadow-xl w-full max-w-md mx-4">
-          <div class="px-6 py-4 border-b flex items-center gap-2">
-            <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
-            <h3 class="font-semibold text-lg">Confirm Delete</h3>
-          </div>
-          <div class="px-6 py-4 text-sm text-gray-600">
-            <p class="mb-3">You are about to delete this species:</p>
-            <div class="bg-gray-50 rounded-2xl p-4 mb-4 space-y-1">
-              <div><strong>Name:</strong> {{ species.name }}</div>
-              <div><strong>Breeds:</strong> {{ species.active_breed_count }}</div>
-            </div>
-            <div class="bg-yellow-50 text-yellow-800 rounded-xl p-3 text-xs">
-              <i class="fa-solid fa-circle-info mr-1"></i>
-              This is a <strong>soft delete</strong>. You can restore it later.
-            </div>
-          </div>
-          <div class="px-6 py-4 flex justify-end gap-3 border-t">
-            <button @click="confirm=false"
-                    class="px-4 py-2 rounded-xl border text-sm">
-              Cancel
-            </button>
-            <form method="POST"
-                  action="{{ url_for('pets.delete_species', id=species.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-              <button class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm hover:bg-red-700 transition">
-                <i class="fa-regular fa-trash-can mr-1"></i>
-                Delete
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
     </div>
     {% endfor %}
 
   </div>
 </div>
 
-  <!-- 🔷 ADD / EDIT SPECIES MODAL -->
-  <div x-show="speciesModal" x-transition.opacity
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
-  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl border border-gray-200 flex flex-col max-h-[80vh] overflow-hidden transition-all duration-300">
+  <!-- 🔷 DELETE MODAL - MODERN CLEAN DESIGN -->
+  <div x-show="confirm" x-transition.opacity
+       class="modal-overlay"
+       @click.self="confirm=false">
+    <div class="modal-content-wrapper" style="max-width: 28rem;">
 
-      <!-- HEADER -->
-      <div class="px-4 sm:px-6 py-4 border-b border-indigo-200 flex justify-between items-center sticky top-0 bg-white/95 z-10">
-        <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+      <!-- MODAL HEADER -->
+      <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
+        <h3 class="modal-header-title">
+          <i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i>
+          Confirm Delete
+        </h3>
+        <button type="button" class="modal-close-btn" @click="confirm=false" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+        <p class="text-sm text-gray-700 mb-4 font-medium">
+          You are about to delete this species:
+        </p>
+
+        <!-- PREVIEW ITEMS -->
+        <div class="preview-section mb-4" style="grid-template-columns: 1fr;">
+          <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
+            <span class="preview-label">Species Name</span>
+            <span class="preview-value" x-text="deletingSpecies?.name || '-'"></span>
+          </div>
+          <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
+            <span class="preview-label">Active Breeds</span>
+            <span class="preview-value" x-text="deletingSpecies?.active_breed_count || '0'"></span>
+          </div>
+        </div>
+
+        <!-- WARNING ALERT -->
+        <div class="warning-alert">
+          <i class="fa-solid fa-circle-info"></i>
+          <div>
+            <strong>Soft Delete Notice:</strong> This record can be restored later from archived items.
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+        <button type="button" @click="confirm=false" class="modal-btn modal-btn-secondary">
+          <i class="fa-solid fa-ban"></i>
+          Cancel
+        </button>
+        <form method="POST"
+              :action="'/pets/delete-species/' + (deletingSpecies?.id || '')"
+              class="flex">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit" class="modal-btn modal-btn-delete">
+            <i class="fa-regular fa-trash-can"></i>
+            Delete Species
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 🔷 ADD / EDIT SPECIES MODAL - MODERN CLEAN DESIGN -->
+  <div x-show="speciesModal" x-transition.opacity
+       class="modal-overlay"
+       @click.self="speciesModal=false; imagePreview=null">
+    <div class="modal-content-wrapper" style="max-width: 42rem;">
+
+      <!-- MODAL HEADER -->
+      <div class="modal-header">
+        <h3 class="modal-header-title">
           <template x-if="!editingSpecies">
-            <i class="fa-solid fa-circle-plus text-indigo-800"></i>
+            <i class="fa-solid fa-circle-plus"></i>
           </template>
           <template x-if="editingSpecies">
-            <i class="fa-regular fa-pen-to-square text-indigo-800"></i>
+            <i class="fa-regular fa-pen-to-square"></i>
           </template>
           <span x-text="editingSpecies ? 'Edit Species' : 'Add Species'"></span>
         </h3>
+        <button type="button" class="modal-close-btn" @click="speciesModal=false; imagePreview=null" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
-      <!-- FORM -->
-      <div class="px-4 sm:px-6 py-6 overflow-y-auto flex-1 space-y-6 w-full">
-        <form id="species-form" method="POST" action="{{ url_for('pets.save_species') }}" enctype="multipart/form-data" class="space-y-6 w-full">
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+        <form id="species-form" method="POST" action="{{ url_for('pets.save_species') }}" enctype="multipart/form-data" class="space-y-6 w-full" @submit="formSubmitting = true">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="species_id" :value="editingSpecies?.id || ''">
 
@@ -320,21 +840,28 @@
 
               <!-- Name -->
               <div class="flex flex-col w-full">
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-paw text-indigo-800"></i> Species Name <span class="text-red-600">*</span>
+                <label class="font-semibold text-gray-700 mb-2 flex items-center justify-between">
+                  <span class="flex items-center gap-2">
+                    <i :class="speciesIcon" class="text-indigo-800"></i> Species Name <span class="text-red-600">*</span>
+                  </span>
+                  <span class="text-xs text-gray-500" x-text="(editingSpecies?.name || '').length + '/100'"></span>
                 </label>
-                <input type="text" name="name" x-bind:value="editingSpecies?.name || ''" placeholder="e.g., Dog, Cat, Rabbit"
+                <input type="text" name="name" x-bind:value="editingSpecies?.name || ''" @input="speciesName = $event.target.value; speciesIcon = getSpeciesIcon(speciesName)" placeholder="e.g., Dog, Cat, Rabbit" maxlength="100"
                       class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-800 focus:border-indigo-800 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required>
               </div>
 
               <!-- Description -->
               <div class="flex flex-col w-full">
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-align-left text-indigo-800"></i> Description <span class="text-red-600">*</span>
+                <label class="font-semibold text-gray-700 mb-2 flex items-center justify-between">
+                  <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-align-left text-indigo-800"></i> Description <span class="text-red-600">*</span>
+                  </span>
+                  <span class="text-xs text-gray-500" x-text="(editingSpecies?.description || '').length + '/500'"></span>
                 </label>
-                <textarea name="description" rows="3" x-bind:value="editingSpecies?.description || ''"
+                <textarea name="description" rows="3" x-bind:value="editingSpecies?.description || ''" maxlength="500"
                           placeholder="Write a detailed description of this species..."
                           class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-800 focus:border-indigo-800 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required></textarea>
+                <p class="text-xs text-gray-500 mt-1">Approx. 80-100 words recommended, max 500 characters</p>
               </div>
 
               <!-- Image Upload -->
@@ -455,235 +982,240 @@
               <i class="fa-solid fa-circle-4 text-blue-600"></i> Additional Information
             </h4>
             <div class="flex flex-col w-full">
-              <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-note-sticky text-blue-600"></i> Ethical Notes & Welfare Concerns
+              <label class="font-semibold text-gray-700 mb-2 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                  <i class="fa-solid fa-note-sticky text-blue-600"></i> Ethical Notes & Welfare Concerns
+                </span>
+                <span class="text-xs text-gray-500" x-text="(editingSpecies?.ethical_notes || '').length + '/500'"></span>
               </label>
-              <textarea name="ethical_notes" rows="3" x-bind:value="editingSpecies?.ethical_notes || ''" 
+              <textarea name="ethical_notes" rows="3" x-bind:value="editingSpecies?.ethical_notes || ''" maxlength="500"
                         placeholder="e.g., Conservation status, ethical breeding practices, known welfare issues..."
                         class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full"></textarea>
-              <p class="text-xs text-gray-500 mt-1">Important information about responsible and ethical ownership</p>
+              <p class="text-xs text-gray-500 mt-1">Important information for responsible and ethical ownership, max 500 characters</p>
             </div>
-          </div>
-
-          <!-- FOOTER BUTTONS -->
-          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-indigo-200 bg-white/95 px-2 sm:px-0">
-            <button type="submit"
-                    class="px-6 py-3 rounded-xl bg-indigo-800 hover:bg-indigo-900 text-white font-semibold text-sm w-full sm:w-auto">
-                    <span x-text="editingSpecies ? 'Save Changes' : 'Add Species'"></span>
-            </button>
-            <button type="button" @click="speciesModal=false; imagePreview=null"
-                    class="px-6 py-3 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-gray-800 font-semibold text-sm w-full sm:w-auto">Cancel
-            </button>
           </div>
 
         </form>
       </div>
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+        <button type="button" @click="speciesModal=false; imagePreview=null" :disabled="formSubmitting" class="modal-btn modal-btn-secondary" :style="formSubmitting ? 'opacity: 0.5; cursor: not-allowed;' : ''">
+          <i class="fa-solid fa-ban"></i>
+          <span>Cancel</span>
+        </button>
+        <button type="submit" form="species-form" :disabled="formSubmitting" class="modal-btn modal-btn-primary" :style="formSubmitting ? 'opacity: 0.8;' : ''">
+          <template x-if="!formSubmitting">
+              <span class="flex items-center gap-2">
+                  <i class="fa-solid fa-check"></i>
+                  <span x-text="editingSpecies ? 'Save Changes' : 'Add Species'"></span>
+              </span>
+          </template>
+          <template x-if="formSubmitting">
+            <span class="spinner" style="border-top-color: white;"></span>
+            <span>Loading...</span>
+          </template>
+        </button>
+      </div>
+
     </div>
   </div>
 
 
-<!-- 🔷 VIEW SPECIES MODAL - INSTAGRAM + RECEIPT PROFILE STYLE -->
+<!-- 🔷 VIEW SPECIES MODAL - MODERN CLEAN DESIGN -->
 <div x-show="viewModal" x-transition.opacity
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
-  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl border border-gray-200 flex flex-col max-h-[80vh] overflow-hidden transition-all duration-300">
+     class="modal-overlay">
+  <div class="modal-content-wrapper">
 
-    <!-- HEADER with Close Button -->
-    <div class="sticky top-0 bg-gradient-to-r from-indigo-500 to-indigo-900 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-3xl">
-      <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-        <i class="fa-solid fa-microscope"></i> Species Profile
+    <!-- MODAL HEADER -->
+    <div class="modal-header">
+      <h3 class="modal-header-title">
+        <i class="fa-solid fa-microscope"></i>
+        Species Profile
       </h3>
+      <button type="button" class="modal-close-btn" @click="viewModal=false; viewSpecies=null" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
-    <!-- SCROLLABLE CONTENT -->
-    <div class="overflow-y-auto flex-1 px-4 sm:px-6 py-6 space-y-5">
+    <!-- MODAL BODY -->
+    <div class="modal-body">
 
-      <!-- HERO IMAGE SECTION -->
-      <div class="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden shadow-md">
+      <!-- HERO IMAGE -->
+      <div class="mb-6 rounded-xl overflow-hidden shadow-md h-48 sm:h-56">
         <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
              alt="Species Image"
              class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
       </div>
 
-      <!-- SPECIES NAME & BASIC INFO - RECEIPT STYLE HEADER -->
-      <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-2xl p-4 sm:p-5 border border-indigo-200">
-        <div class="flex items-start justify-between gap-4 mb-3">
-          <div class="flex items-center gap-3">
-            <span class="bg-white rounded-full p-2.5 shadow-sm">
-              <i :class="viewSpecies?.icon" class="text-indigo-800 text-lg"></i>
-            </span>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
-          </div>
+      <!-- TITLE SECTION -->
+      <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="inline-flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
+            <i :class="getSpeciesIcon(viewSpecies?.name)" class="text-purple-800 text-lg"></i>
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
         </div>
-        <div class="border-t border-indigo-200 pt-3 mt-3">
-          <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.description || 'No description available.'"></p>
-        </div>
+        <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.description || 'No description available.'"></p>
       </div>
 
-      <!-- DIVIDER LINE (Receipt Style) -->
-      <div class="border-t-2 border-dashed border-gray-300"></div>
+      <div class="section-divider"></div>
 
-      <!-- QUICK STATS SECTION - 3 COLUMNS ON DESKTOP, 2 ON MOBILE -->
-      <div>
-        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-circle-1 text-indigo-800"></i> Quick Stats
+      <!-- QUICK STATS GRID - 6 ITEMS -->
+      <div class="mb-6">
+        <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-purple-600"></i> Key Information
         </h3>
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <!-- Difficulty -->
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Difficulty</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.beginner_friendly ? '✓ Beginner' : '⭐ Advanced'"></div>
+            </div>
+            <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-green-500' : 'fa-solid fa-star text-orange-500'" class="text-xl"></i>
+          </div>
           
-          <!-- Beginner Friendly -->
-          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-blue-700 uppercase">Difficulty</span>
-              <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-blue-600' : 'fa-solid fa-star text-blue-600'" class="text-sm"></i>
+          <!-- Type -->
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Type</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.predatory_species ? 'Predatory' : 'Non-predatory'"></div>
             </div>
-            <p class="text-xs text-blue-600 font-medium" x-text="viewSpecies?.beginner_friendly ? '✓ Beginner' : '⭐ Advanced'"></p>
+            <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-red-500' : 'fa-solid fa-leaf text-green-500'" class="text-xl"></i>
           </div>
-
-          <!-- Predatory -->
-          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200 hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-orange-700 uppercase">Type</span>
-              <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-orange-600' : 'fa-solid fa-leaf text-orange-600'" class="text-sm"></i>
+          
+          <!-- Fragility -->
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Durability</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.fragile_species ? 'Fragile' : 'Hardy'"></div>
             </div>
-            <p class="text-xs text-orange-600 font-medium" x-text="viewSpecies?.predatory_species ? 'Predatory' : 'Non-predatory'"></p>
+            <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-heart-crack text-red-500' : 'fa-solid fa-shield text-green-500'" class="text-xl"></i>
           </div>
-
-          <!-- Fragile -->
-          <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200 hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-pink-700 uppercase">Durability</span>
-              <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-heart-crack text-pink-600' : 'fa-solid fa-shield text-pink-600'" class="text-sm"></i>
-            </div>
-            <p class="text-xs text-pink-600 font-medium" x-text="viewSpecies?.fragile_species ? 'Fragile' : 'Hardy'"></p>
-          </div>
-
+          
           <!-- Permit -->
-          <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 border border-yellow-200 hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-yellow-700 uppercase">Legal</span>
-              <i :class="viewSpecies?.requires_permit ? 'fa-solid fa-file-contract text-yellow-600' : 'fa-solid fa-check text-yellow-600'" class="text-sm"></i>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Legal</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.requires_permit ? 'Permit Needed' : 'No Permit'"></div>
             </div>
-            <p class="text-xs text-yellow-600 font-medium" x-text="viewSpecies?.requires_permit ? 'Permit Needed' : 'No Permit Needed'"></p>
+            <i :class="viewSpecies?.requires_permit ? 'fa-solid fa-file-contract text-orange-500' : 'fa-solid fa-check text-green-500'" class="text-xl"></i>
           </div>
-
+          
           <!-- Vet Care -->
-          <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 border border-red-200 hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-red-700 uppercase">Vet</span>
-              <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-red-600' : 'fa-solid fa-check text-red-600'" class="text-sm"></i>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Vet Care</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.special_vet_required ? 'Specialist' : 'Standard'"></div>
             </div>
-            <p class="text-xs text-red-600 font-medium" x-text="viewSpecies?.special_vet_required ? 'Specialist' : 'Standard'"></p>
+            <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-red-500' : 'fa-solid fa-check text-green-500'" class="text-xl"></i>
           </div>
-
+          
           <!-- Breed Count -->
-          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-green-700 uppercase">Breeds</span>
-              <i class="fa-solid fa-paw text-green-600 text-sm"></i>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Breeds</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="(viewSpecies?.active_breed_count || 0) + ' Available'"></div>
             </div>
-              <p class="text-xs text-green-600 font-medium" 
-                x-text="viewSpecies ? (viewSpecies.active_breed_count || 0) + ' Available' : '0 Available'">
-              </p>
+            <i class="fa-solid fa-paw text-purple-500 text-xl"></i>
           </div>
-
         </div>
       </div>
 
-      <!-- DIVIDER LINE -->
-      <div class="border-t-2 border-dashed border-gray-300"></div>
+      <div class="section-divider"></div>
 
-      <!-- CARE REQUIREMENTS - RECEIPT STYLE -->
-      <div>
-        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+      <!-- DETAIL ATTRIBUTES -->
+      <div class="mb-6">
+        <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
           <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
         </h3>
-        <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
-          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-            <div class="flex items-center gap-2">
-              <i :class="viewSpecies?.['requires_exercise'] ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-              <span class="text-sm font-medium text-gray-700">Requires Exercise</span>
+        <div class="space-y-2">
+          <div class="care-requirement-item">
+            <div class="care-requirement-label">
+              <i class="fa-solid fa-person-hiking text-green-600"></i>
+              <span>Requires Exercise</span>
             </div>
-            <span :class="viewSpecies?.['requires_exercise'] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.['requires_exercise'] ? 'YES' : 'NO'"></span>
+            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge"
+                  x-text="viewSpecies?.requires_exercise ? 'Yes' : 'No'"></span>
           </div>
-          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-            <div class="flex items-center gap-2">
-              <i :class="viewSpecies?.requires_training ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-              <span class="text-sm font-medium text-gray-700">Requires Training</span>
+          <div class="care-requirement-item">
+            <div class="care-requirement-label">
+              <i class="fa-solid fa-graduation-cap text-green-600"></i>
+              <span>Requires Training</span>
             </div>
-            <span :class="viewSpecies?.requires_training ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_training ? 'YES' : 'NO'"></span>
+            <span :class="viewSpecies?.requires_training ? 'status-yes' : 'status-no'" class="status-badge"
+                  x-text="viewSpecies?.requires_training ? 'Yes' : 'No'"></span>
           </div>
-          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-            <div class="flex items-center gap-2">
-              <i :class="viewSpecies?.requires_grooming ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-              <span class="text-sm font-medium text-gray-700">Requires Grooming</span>
+          <div class="care-requirement-item">
+            <div class="care-requirement-label">
+              <i class="fa-solid fa-scissors text-green-600"></i>
+              <span>Requires Grooming</span>
             </div>
-            <span :class="viewSpecies?.requires_grooming ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_grooming ? 'YES' : 'NO'"></span>
+            <span :class="viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge"
+                  x-text="viewSpecies?.requires_grooming ? 'Yes' : 'No'"></span>
           </div>
-          <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-            <div class="flex items-center gap-2">
-              <i :class="viewSpecies?.requires_enclosure ? 'fa-solid fa-check-circle text-green-600' : 'fa-solid fa-circle text-gray-300'" class="text-lg"></i>
-              <span class="text-sm font-medium text-gray-700">Requires Enclosure</span>
+          <div class="care-requirement-item">
+            <div class="care-requirement-label">
+              <i class="fa-solid fa-house text-green-600"></i>
+              <span>Requires Enclosure</span>
             </div>
-            <span :class="viewSpecies?.requires_enclosure ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="viewSpecies?.requires_enclosure ? 'YES' : 'NO'"></span>
+            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge"
+                  x-text="viewSpecies?.requires_enclosure ? 'Yes' : 'No'"></span>
           </div>
         </div>
       </div>
 
-      <!-- DIVIDER LINE -->
-      <div class="border-t-2 border-dashed border-gray-300"></div>
+      <div class="section-divider"></div>
 
-      <!-- RISK ASSESSMENT SECTION -->
-      <div>
-        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-circle-3 text-orange-600"></i> Risk Assessment
+      <!-- ABANDONMENT RISK -->
+      <div class="mb-6">
+        <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Risk Assessment
         </h3>
-
-        <!-- Abandonment Risk -->
-        <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200 mb-3">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation text-orange-600"></i> Abandonment Risk Level
-            </span>
-            <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'bg-green-500' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'"
-                  class="inline-block w-3 h-3 rounded-full"></span>
+        <div class="preview-item">
+          <span class="preview-label">Abandonment Risk Level</span>
+          <div class="flex items-center gap-2">
+            <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'bg-green-100 text-green-700' : 
+                          viewSpecies?.abandonment_risk_level === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 
+                          'bg-red-100 text-red-700'" 
+                  class="px-2 py-1 rounded-md text-sm font-bold"
+                  x-text="viewSpecies?.abandonment_risk_level || 'Unknown'"></span>
           </div>
-          <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'text-green-700 bg-green-100' : viewSpecies?.abandonment_risk_level === 'Medium' ? 'text-yellow-700 bg-yellow-100' : 'text-red-700 bg-red-100'"
-                class="inline-block px-3 py-1 rounded-full font-bold text-sm"
-                x-text="viewSpecies?.abandonment_risk_level || 'Unknown'"></span>
         </div>
       </div>
 
-      <!-- DIVIDER LINE -->
-      <div class="border-t-2 border-dashed border-gray-300"></div>
-
-      <!-- ETHICAL NOTES SECTION -->
-      <template x-if="viewSpecies?.ethical_notes && viewSpecies?.ethical_notes.trim()">
-        <div>
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-4 text-indigo-800"></i> Ethical Considerations
+      <!-- ETHICAL NOTES -->
+      <template x-if="viewSpecies?.ethical_notes && viewSpecies.ethical_notes.trim()">
+        <div class="mb-6">
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-circle-4 text-indigo-600"></i> Ethical Considerations
           </h3>
-          <div class="bg-gradient-to-r from-indigo-50 to-pink-50 rounded-xl p-4 border border-indigo-200 border-l-4 border-l-indigo-800">
-            <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
+          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+            <p class="text-sm text-indigo-900 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
           </div>
         </div>
       </template>
 
-      <!-- RECEIPT FOOTER LINE -->
-      <div class="border-t-2 border-dashed border-gray-300 pt-2">
-        <p class="text-center text-xs text-gray-500">
-          <i class="fa-solid fa-paw"></i> End of Species Profile <i class="fa-solid fa-paw"></i>
-        </p>
+      <!-- INFO ALERT -->
+      <div class="info-alert">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Review all information above for complete species details.</span>
       </div>
 
     </div>
 
-    <!-- FOOTER BUTTONS - STICKY -->
-    <div class="sticky bottom-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end rounded-b-3xl">
-      <button @click="editingSpecies = JSON.parse(JSON.stringify(viewSpecies)); imagePreview='{{ url_for('static', filename='') }}' + viewSpecies.image_url; speciesModal = true; viewModal = false"
-              class="w-full sm:w-auto px-4 py-2 rounded-xl bg-indigo-800 hover:bg-indigo-900 text-white font-semibold text-sm transition">Edit Species
-      </button>
+    <!-- MODAL FOOTER -->
+    <div class="modal-footer">
       <button @click="viewModal=false; viewSpecies=null"
-              class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm transition">Close
+              class="modal-btn modal-btn-secondary">
+        <i class="fa-solid fa-xmark"></i>
+        Close
+      </button>
+      <button @click="editingSpecies = JSON.parse(JSON.stringify(viewSpecies)); imagePreview='/static/' + viewSpecies.image_url; speciesModal = true; viewModal = false"
+              class="modal-btn modal-btn-primary">
+        <i class="fa-regular fa-pen-to-square"></i>
+        Edit Species
       </button>
     </div>
 

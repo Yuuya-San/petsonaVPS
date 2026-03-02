@@ -46,7 +46,9 @@
 
         <!-- Pets -->
         <li class="nav-item">
-          <a href="{{ url_for('pets.species_index') }}" class="nav-link {% if request.endpoint == 'pets.species_index' %}active{% endif %}">
+          <a href="{{ url_for('pets.species_index') }}"
+            class="nav-link {% if request.path.startswith('/pets/species') %}active{% endif %}">
+            
             <i class="nav-icon fas fa-paw"></i>
             <p>Pet Database</p>
           </a>

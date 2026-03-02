@@ -193,6 +193,46 @@ function updateNotificationBadge(count) {
     }
 }
 
+// === EVENT DELEGATION HANDLER FOR NOTIFICATION ITEMS ===
+function handleNotificationItemClick(e) {
+    // Find the notification item that was clicked (might be a child element)
+    const notifElement = e.target.closest('[data-notification-id]');
+    
+    if (!notifElement) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const notificationId = notifElement.getAttribute('data-notification-id');
+    
+    // Find the notification object in allNotifications array
+    const notif = allNotifications.find(n => n.id == notificationId);
+    
+    if (notif) {
+        // Find index of this notification
+        currentNotificationIndex = allNotifications.findIndex(n => n.id == notificationId);
+        displayNotificationModal(notif);
+    }
+}
+
+// === HANDLE NOTIFICATION ITEM HOVER ===
+document.addEventListener('mouseenter', function(e) {
+    if (!e.target.closest) return;
+    const notifElement = e.target.closest('[data-notification-id]');
+    if (notifElement && notifElement.classList.contains('notification-item')) {
+        notifElement.style.background = '#f8f9fa !important';
+    }
+}, true);
+
+document.addEventListener('mouseleave', function(e) {
+    if (!e.target.closest) return;
+    const notifElement = e.target.closest('[data-notification-id]');
+    if (notifElement && notifElement.classList.contains('notification-item')) {
+        const notif = allNotifications.find(n => n.id == notifElement.getAttribute('data-notification-id'));
+        notifElement.style.background = (notif && !notif.is_read) ? '#f0f3ff !important' : 'transparent !important';
+    }
+}, true);
+
 // === HANDLE NEW NOTIFICATION ===
 function handleNewNotification(notification) {
     // Update badge
@@ -264,27 +304,12 @@ function displayNotifications(notifications, unreadCount) {
             <div class="dropdown-divider"></div>
         `;
         container.innerHTML += notificationHTML;
-        
-        // Add click handler to each notification
-        const notifElement = container.querySelector(`[data-notification-id="${notif.id}"]`);
-        if (notifElement) {
-            notifElement.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                // Find index of this notification in allNotifications
-                currentNotificationIndex = allNotifications.findIndex(n => n.id === notif.id);
-                displayNotificationModal(notif);
-            });
-            
-            // Hover effect
-            notifElement.addEventListener('mouseenter', function() {
-                this.style.background = '#f8f9fa';
-            });
-            notifElement.addEventListener('mouseleave', function() {
-                this.style.background = 'transparent';
-            });
-        }
     });
+    
+    // Use event delegation - attach single listener to container for ALL notification items
+    // This ensures even dynamically updated items get proper event handling
+    container.removeEventListener('click', handleNotificationItemClick);
+    container.addEventListener('click', handleNotificationItemClick);
     
     // Update badge
     updateNotificationBadge(unreadCount);

@@ -1678,13 +1678,11 @@
     .bookings-table td {
       padding: 0.875rem;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+      justify-content: space-between;
+      gap: 1rem;
       border-bottom: 1px solid var(--border-light);
       word-break: break-word;
-      text-align: center;
     }
     
     .bookings-table td:last-child {
@@ -1708,7 +1706,7 @@
     .td-status,
     .td-actions {
       width: 100%;
-      text-align: center;
+      text-align: right;
     }
 
     .booking-number {
@@ -2201,9 +2199,9 @@
                   <span class="status-badge rejected">
                     <i class="fas fa-ban"></i> Rejected
                   </span>
-                {% elif booking.status == 'no show' %}
+                {% elif booking.status == 'no-show' %}
                   <span class="status-badge no-show">
-                    <i class="fas fa-minus-circle"></i> No Show
+                    <i class="fas fa-minus-circle"></i> No-Show
                   </span>
                 {% endif %}
               </td>
@@ -2267,7 +2265,7 @@
                      style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
                     <i class="fas fa-calendar-plus"></i>
                   </a>
-                  {% elif booking.status == 'no show' %}
+                  {% elif booking.status == 'no-show' %}
                   <button class="action-btn appeal" title="Appeal"
                           data-booking-id="{{ booking.id }}"
                           data-merchant-name="{{ booking.merchant.business_name }}"

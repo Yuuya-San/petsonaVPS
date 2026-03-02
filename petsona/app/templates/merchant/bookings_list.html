@@ -20,15 +20,6 @@
     overflow: hidden !important;
   }
 
-  /* Statistics Container */
-  .stats-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
-    margin-top: 20px;
-  }
-
   .stat-card {
     background: white;
     border-radius: 12px;
@@ -58,10 +49,11 @@
 
   .stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
   .stat-icon.pending { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+  .stat-icon.cancelled { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
   .stat-icon.confirmed { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
   .stat-icon.completed { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
   .stat-icon.rejected { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-  .stat-icon.noshow { background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); }
+  .stat-icon.noshow { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); }
 
   .stat-content {
     flex: 1;
@@ -223,6 +215,7 @@
             <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
             <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
             <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
             <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
             <option value="no-show" {% if selected_status == 'no-show' %}selected{% endif %}>No Show</option>
           </select>
@@ -233,12 +226,32 @@
     <!-- Statistics Cards -->
     <div class="stats-container">
       <div class="stat-card">
-        <div class="stat-icon total">
-          <i class="fas fa-calendar-check"></i>
+        <div class="stat-icon pending">
+          <i class="fas fa-hourglass-half"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-label">Total Bookings</div>
-          <div class="stat-number">{{ total_bookings }}</div>
+          <div class="stat-label">Pending</div>
+          <div class="stat-number">{{ total_pending }}</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon cancelled">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Cancelled</div>
+          <div class="stat-number">{{ total_cancelled }}</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon rejected">
+          <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Rejected</div>
+          <div class="stat-number">{{ total_rejected }}</div>
         </div>
       </div>
       
@@ -263,26 +276,6 @@
       </div>
       
       <div class="stat-card">
-        <div class="stat-icon pending">
-          <i class="fas fa-hourglass-half"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Pending</div>
-          <div class="stat-number">{{ total_pending }}</div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon rejected">
-          <i class="fas fa-ban"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Rejected</div>
-          <div class="stat-number">{{ total_rejected }}</div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
         <div class="stat-icon noshow">
           <i class="fas fa-exclamation-circle"></i>
         </div>
@@ -302,7 +295,7 @@
             <tr>
               <th class="th-booking">Booking ID</th>
               <th class="th-customer">Customer</th>
-              <th class="th-dates">Check-in / Check-out</th>
+              <th class="th-dates">Appointment</th>
               <th class="th-status">Status</th>
               <th class="th-amount">Amount</th>
               <th class="th-actions">Actions</th>
@@ -352,10 +345,11 @@
                     'confirmed': 'confirmed',
                     'completed': 'completed',
                     'rejected': 'rejected',
+                    'cancelled': 'cancelled',
                     'no-show': 'noshow'
                   } %}
                   <span class="status-badge {{ status_color.get(booking.status, 'pending') }}">
-                    <i class="fas fa-{% if booking.status == 'pending' %}hourglass-half{% elif booking.status == 'confirmed' %}check-circle{% elif booking.status == 'completed' %}check-double{% elif booking.status == 'rejected' %}ban{% else %}exclamation-circle{% endif %}"></i>
+                    <i class="fas fa-{% if booking.status == 'pending' %}hourglass-half{% elif booking.status == 'confirmed' %}check-circle{% elif booking.status == 'completed' %}check-double{% elif booking.status == 'rejected' %}ban{% elif booking.status == 'cancelled' %}times-circle{% else %}exclamation-circle{% endif %}"></i>
                     <span>{{ booking.status | capitalize }}</span>
                   </span>
                 </td>

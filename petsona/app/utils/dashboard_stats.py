@@ -17,6 +17,6 @@ def get_dashboard_stats():
 
         "species": db.session.query(func.count(Species.id)).filter(Species.deleted_at.is_(None)).scalar(),
         "breeds": db.session.query(func.count(Breed.id)).filter(Breed.is_active == True ).scalar(),
-        "bookings": count(User),
-        "matches": count(User),
+        "bookings": count(Booking),
+        "matches": count(MatchHistory),
     }

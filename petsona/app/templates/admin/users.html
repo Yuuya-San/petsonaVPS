@@ -328,16 +328,31 @@
   }
 
   .modal-close {
-    background: transparent;
-    border: none;
-    color: #6b7280;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 50%;
+    color: #a855f7;
     cursor: pointer;
     font-size: 1.25rem;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    padding: 0;
+    transform-origin: center center;
   }
 
   .modal-close:hover {
-    color: #a855f7;
+    background: rgba(168, 85, 247, 0.25);
+    border-color: rgba(168, 85, 247, 0.35);
+    transform: rotate(90deg);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+  }
+
+  .modal-close i {
+    transition: all 0.3s ease;
   }
 
   .modal-body {
@@ -835,11 +850,11 @@
             Cancel
           </button>
           <button type="submit" class="btn btn-delete" id="deleteSubmitBtn">
-            <span id="deleteButtonContent">
+            <span id="deleteButtonContent" style="display: inline-flex; align-items: center; gap: 0.5rem;">
               <i class="fas fa-trash-alt"></i>
               Delete User
             </span>
-            <span id="deleteSpinner" class="spinner" style="display: none;"></span>
+            <span id="deleteSpinner" class="spinner" style="display: none; width: 16px; height: 16px;"></span>
           </button>
         </form>
       </div>

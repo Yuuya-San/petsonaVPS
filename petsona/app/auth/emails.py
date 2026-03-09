@@ -36,3 +36,21 @@ def send_temp_credentials(email, password):
         html
     )
 
+
+def send_backup_codes_email(user, backup_codes):
+    """Send backup codes to user email after enabling 2FA"""
+    codes_list = '<br>'.join([f"<code style='font-family: monospace; background: #f0f0f0; padding: 5px 10px;'>{code}</code>" for code in backup_codes])
+    
+    html = render_template(
+        'auth/backup_codes_email.html',
+        user=user,
+        codes_list=codes_list,
+        backup_codes=backup_codes
+    )
+    
+    send_email(
+        '2FA Backup Codes - Save These Codes',
+        [user.email],
+        html
+    )
+

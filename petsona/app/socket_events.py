@@ -53,10 +53,15 @@ def handle_disconnect():
     if sid in active_watchers:
         del active_watchers[sid]
     
-    # Clean up active users
-    if current_user.is_authenticated and current_user.id in active_users:
-        if sid in active_users[current_user.id]:
-            active_users[current_user.id].remove(sid)
+    # Clean up active users and update last_seen
+    if current_user.is_authenticated:
+        if current_user.id in active_users:
+            if sid in active_users[current_user.id]:
+                active_users[current_user.id].remove(sid)
+        
+        # Update last_seen when user disconnects
+        current_user.update_last_seen()
+        logger.info(f"👤 User {current_user.id} last_seen updated on disconnect")
 
 
 @socketio.on('watch_species')
@@ -189,7 +194,117 @@ def handle_stop_typing(data):
         logger.error(f"Error handling stop typing: {str(e)}")
 
 
-def broadcast_vote_update(species_id, new_vote_count):
+@socketio.on('user_online')
+def handle_user_online(data):
+    """Handle user coming online."""
+    try:
+        conversation_id = data.get('conversation_id')
+        other_user_id = data.get('other_user_id')
+        
+        if not conversation_id or not current_user.is_authenticated:
+            return
+        
+        # Update user's last_seen
+        current_user.update_last_seen()
+        
+        # Add user to active users tracking
+        if current_user.id not in active_users:
+            active_users[current_user.id] = set()
+        active_users[current_user.id].add(request.sid)
+        
+        # Broadcast to conversation that user is online WITH timestamp
+        room = f'conversation_{conversation_id}'
+        emit('user_status_changed', {
+            'user_id': current_user.id,
+            'status': 'online',
+            'display_text': 'Active now',
+            'is_online': True,
+            'timestamp': current_user.last_seen.isoformat() if current_user.last_seen else None
+        }, room=room)
+        
+        logger.info(f"🟢 User {current_user.id} is online in conversation {conversation_id}")
+        
+    except Exception as e:
+        logger.error(f"Error handling user online: {str(e)}")
+
+
+@socketio.on('user_inactive')
+def handle_user_inactive(data):
+    """Handle user becoming inactive."""
+    try:
+        conversation_id = data.get('conversation_id')
+        
+        if not conversation_id or not current_user.is_authenticated:
+            return
+        
+        # Update user's last_seen
+        current_user.update_last_seen()
+        
+        # Format the offline status
+        status_info = current_user.get_online_status(is_online=False)
+        
+        # Broadcast to conversation that user is offline (to ALL users including sender)
+        room = f'conversation_{conversation_id}'
+        emit('user_status_changed', {
+            'user_id': current_user.id,
+            'status': 'offline',
+            'display_text': status_info['display_text'],
+            'is_online': False,
+            'timestamp': status_info['timestamp']
+        }, room=room)
+        
+        logger.info(f"🔴 User {current_user.id} is inactive in conversation {conversation_id}")
+        
+    except Exception as e:
+        logger.error(f"Error handling user inactive: {str(e)}")
+
+
+@socketio.on('get_user_status')
+def handle_get_user_status(data):
+    """Get current user's online status."""
+    try:
+        from app.models import User
+        
+        other_user_id = data.get('user_id')
+        
+        if not other_user_id:
+            emit('error', {'message': 'Invalid user_id'})
+            return
+        
+        other_user = User.query.get(other_user_id)
+        if not other_user:
+            emit('error', {'message': 'User not found'})
+            return
+        
+        # Check if user is currently connected (has active socket connections)
+        is_connected = other_user_id in active_users and len(active_users[other_user_id]) > 0
+        
+        # Strict check: User is ONLY "online" if has active connection
+        is_online = is_connected
+        
+        # Log detailed info
+        if other_user.last_seen:
+            now_ph = get_ph_datetime()
+            last_seen_ph = other_user.last_seen.replace(tzinfo=pytz.UTC).astimezone(PH_TZ)
+            time_since_last_seen_minutes = (now_ph - last_seen_ph).total_seconds() / 60
+            logger.info(f"👤 User {other_user_id}: last_seen={time_since_last_seen_minutes:.1f}m ago, is_connected={is_connected}, is_online={is_online}")
+        
+        # Get status info
+        status_info = other_user.get_online_status(is_online=is_online)
+        
+        emit('user_status', {
+            'user_id': other_user_id,
+            **status_info
+        })
+        
+        logger.info(f"📤 Status for user {other_user_id}: is_online={is_online}")
+        
+    except Exception as e:
+        logger.error(f"Error getting user status: {str(e)}")
+        emit('error', {'message': str(e)})
+
+
+def broadcast_species_vote_update(species_id, new_vote_count):
     """Broadcast vote count update to all clients watching this species"""
     try:
         room = f'species_{species_id}'

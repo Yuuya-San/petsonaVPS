@@ -7,3 +7,4 @@ from .vote import Vote
 from .merchant import Merchant
 from .booking import Booking
 from .notification import Notification
+from .backup_code import BackupCode

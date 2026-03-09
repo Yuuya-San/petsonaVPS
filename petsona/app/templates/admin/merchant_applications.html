@@ -741,16 +741,19 @@
                             'modal-btn-delete': confirmAction === 'reject',
                             'opacity-50 cursor-not-allowed': confirmAction === 'reject' && !rejectionReason.trim()
                         }"
-                        class="modal-btn"
+                        class="modal-btn flex items-center justify-center gap-2"
                     >
-                        <template x-if="confirmAction === 'approve'">
-                            <i class="fa-solid fa-check"></i>
-                            <span>Approve</span>
-                        </template>
-                        <template x-if="confirmAction === 'reject'">
-                            <i class="fa-solid fa-xmark"></i>
-                            <span>Reject</span>
-                        </template>
+                        <i 
+                            :class="confirmAction === 'approve' 
+                                ? 'fa-solid fa-check' 
+                                : 'fa-solid fa-xmark'">
+                        </i>
+
+                        <span 
+                            x-text="confirmAction === 'approve' 
+                                ? 'Approve' 
+                                : 'Reject'">
+                        </span>
                     </button>
                 </div>
             </div>

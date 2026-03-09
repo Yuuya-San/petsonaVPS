@@ -16,7 +16,7 @@
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#" role="button">
         <i class="far fa-bell"></i>
-        <span class="badge badge-warning navbar-badge d-none" id="notification-badge"></span>
+        <span class="badge badge-warning text-white navbar-badge d-none" id="notification-badge"></span>
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notifications-dropdown">
         <span class="dropdown-header">Notifications
@@ -27,7 +27,7 @@
           </div>
         </span>
         <div class="dropdown-divider"></div>
-        <div class="notifications-scroll-container" style="max-height: 400px; overflow-y: auto;">
+        <div class="notifications-scroll-container" style="overflow-y: auto;">
           <div class="text-center text-muted py-4" style="font-size: 0.9rem;">
             <i class="fas fa-bell mb-2" style="display: block; font-size: 1.5rem; opacity: 0.5;"></i>
             Loading notifications...
@@ -133,7 +133,8 @@
 
         <div class="dropdown-divider glass-divider"></div>
 
-        <!-- Settings Section -->
+        <!-- Settings Section (Only for System Registration) -->
+        {% if current_user.registration_method == 'system' %}
         <div class="glass-dropdown-section">
           <p class="glass-section-title">
             <i class="fas fa-cog mr-2"></i>Settings
@@ -151,7 +152,7 @@
               </div>
               <i class="fas fa-chevron-right glass-item-arrow"></i>
             </a>
-            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" data-toggle="modal" data-target="#settingsTwoFactorModal">
+            <a href="#" class="glass-dropdown-item glass-dropdown-item-sm" onclick="openTwoFactorModal(); return false;">
               <div class="glass-item-icon glass-item-icon-sm">
                 <i class="fas fa-shield-alt"></i>
               </div>
@@ -162,6 +163,7 @@
             </a>
           </div>
         </div>
+        {% endif %}
 
         <div class="dropdown-divider glass-divider"></div>
 
@@ -252,12 +254,19 @@
       position: fixed !important;
       top: 56px !important;
       box-shadow: none !important;
+      min-height: 100vh !important;
+      height: 100% !important;
     }
   }
+
 </style>
 
 <!-- Notification Modal -->
 {% include 'partials/notification-modal.html' %}
+
+<!-- Settings Modals -->
+{% include 'partials/settings-account-modal.html' %}
+{% include 'partials/settings-2fa-modal.html' %}
 
 <script src="{{ url_for('static', filename='js/navbar-socket.js') }}"></script>
 <script src="{{ url_for('static', filename='js/navbar-notifications.js') }}"></script>

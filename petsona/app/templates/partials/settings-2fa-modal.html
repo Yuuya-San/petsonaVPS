@@ -1,0 +1,1185 @@
+<!-- Two-Factor Authentication Settings Modal -->
+<div class="modal fade" id="settingsTwoFactorModal" tabindex="-1" role="dialog" aria-labelledby="settingsTwoFactorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg glass-modal-container" role="document">
+    <div class="modal-content glass-modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header glass-modal-header border-0">
+        <div class="d-flex align-items-center">
+          <div class="glass-modal-icon-container glass-modal-icon-shield">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="ml-3">
+            <h5 class="modal-title glass-modal-title" id="settingsTwoFactorModalLabel">Two-Factor Authentication</h5>
+            <p class="glass-modal-subtitle">Add an extra layer of security to your account</p>
+          </div>
+        </div>
+        <button type="button" class="close glass-modal-close" aria-label="Close" onclick="closeModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body glass-modal-body">
+        <!-- Initial State (2FA Disabled) -->
+        <div id="twoFactorDisabledState">
+          <!-- Status Card -->
+          <div class="glass-2fa-status-card glass-2fa-disabled">
+            <div class="glass-2fa-status-icon">
+              <i class="fas fa-toggle-off"></i>
+            </div>
+            <div class="glass-2fa-status-content">
+              <h6 class="glass-2fa-status-title">Two-Factor Authentication is Disabled</h6>
+              <p class="glass-2fa-status-desc">Enhance your account security by enabling 2FA</p>
+            </div>
+          </div>
+
+          <!-- Security Benefits -->
+          <div class="glass-2fa-benefits mt-4 mb-4">
+            <h6 class="glass-2fa-benefits-title">Why Enable 2FA?</h6>
+            <div class="glass-benefit-item">
+              <div class="benefit-icon">
+                <i class="fas fa-lock-open"></i>
+              </div>
+              <div class="benefit-content">
+                <h7>Enhanced Security</h7>
+                <p>Even if someone has your password, they can't access your account without the 2FA code</p>
+              </div>
+            </div>
+            <div class="glass-benefit-item">
+              <div class="benefit-icon">
+                <i class="fas fa-mobile-alt"></i>
+              </div>
+              <div class="benefit-content">
+                <h7>Easy to Use</h7>
+                <p>Use any authenticator app like Google Authenticator or Authy</p>
+              </div>
+            </div>
+            <div class="glass-benefit-item">
+              <div class="benefit-icon">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div class="benefit-content">
+                <h7>Backup Codes</h7>
+                <p>Get backup codes in case you lose access to your authenticator app</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enable Button -->
+          <form id="enable2FAForm">
+            <button type="button" class="btn glass-btn-primary btn-block" id="enableButton">
+              <i class="fas fa-lock mr-2"></i>Enable Two-Factor Authentication
+            </button>
+          </form>
+        </div>
+
+        <!-- Setup State (During 2FA Setup) -->
+        <div id="twoFactorSetupState" style="display: none;">
+          <div class="glass-setup-step">
+            <h6 class="glass-setup-title">Step 1: Download an Authenticator App</h6>
+            <p class="glass-setup-desc">Choose one of these free authenticator apps:</p>
+            <div class="glass-app-links">
+              <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" class="glass-app-link">
+                <i class="fab fa-google mr-2"></i>Google Authenticator
+              </a>
+              <a href="https://authy.com/" target="_blank" class="glass-app-link">
+                <i class="fas fa-key mr-2"></i>Authy
+              </a>
+              <a href="https://www.microsoft.com/en-us/account/authenticator" target="_blank" class="glass-app-link">
+                <i class="fab fa-windows mr-2"></i>Microsoft Authenticator
+              </a>
+            </div>
+          </div>
+
+          <hr class="glass-form-divider">
+
+          <div class="glass-setup-step">
+            <h6 class="glass-setup-title">Step 2: Scan QR Code</h6>
+            <p class="glass-setup-desc">Use your authenticator app to scan this QR code</p>
+            <div class="glass-qr-container">
+              <div id="qrCodeCanvas">
+                <p style="text-align: center; color: #999; padding: 30px;">
+                  <i class="fas fa-spinner fa-spin mr-2"></i>Generating QR Code...
+                </p>
+              </div>
+            </div>
+            <p class="glass-setup-manual-link">
+              <a href="#" onclick="toggleManualEntry(event)">Can't scan? Enter code manually</a>
+            </p>
+            <div id="manualEntrySection" style="display: none;">
+              <div class="glass-manual-key">
+                <div class="glass-key-label">Manual Entry Code</div>
+                <div class="glass-key-value" id="manualKeyValue">XXXX XXXX XXXX XXXX</div>
+                <button type="button" class="glass-key-copy" onclick="copyToClipboard()">
+                  <i class="fas fa-copy mr-1"></i>Copy
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <hr class="glass-form-divider">
+
+          <div class="glass-setup-step">
+            <h6 class="glass-setup-title">Step 3: Verify Code</h6>
+            <p class="glass-setup-desc">Enter the 6-digit code from your authenticator app</p>
+            <div class="glass-verification-input-group">
+              <input type="text" class="glass-verification-input" id="verificationCode" 
+                     placeholder="000000" maxlength="6" inputmode="numeric">
+              <span class="glass-verification-helper">Enter 6 digits</span>
+            </div>
+          </div>
+
+          <div class="glass-backup-codes-info">
+            <div class="glass-info-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="glass-info-text">
+              <strong>Save Your Backup Codes</strong>
+              <p>You'll receive backup codes that you can use if you lose access to your authenticator app. Keep them in a safe place.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enabled State (2FA Already Enabled) -->
+        <div id="twoFactorEnabledState" style="display: none;">
+          <!-- Status Card -->
+          <div class="glass-2fa-status-card glass-2fa-enabled">
+            <div class="glass-2fa-status-icon">
+              <i class="fas fa-toggle-on"></i>
+            </div>
+            <div class="glass-2fa-status-content">
+              <h6 class="glass-2fa-status-title">Two-Factor Authentication is Enabled</h6>
+              <p class="glass-2fa-status-desc">Your account is protected with 2FA</p>
+            </div>
+          </div>
+
+          <!-- Enabled Options -->
+          <div class="glass-enabled-options mt-4">
+            <button type="button" class="btn glass-btn-secondary btn-block mb-2" id="viewBackupCodesBtn">
+              <i class="fas fa-key mr-2"></i>View Backup Codes
+            </button>
+            <button type="button" class="btn glass-btn-danger btn-block" id="disableButton">
+              <i class="fas fa-times mr-2"></i>Disable Two-Factor Authentication
+            </button>
+          </div>
+
+          <!-- Warning -->
+          <div class="glass-warning-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Disabling 2FA will reduce your account's security. You can re-enable it anytime.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer glass-modal-footer border-0" id="setupFooter" style="display: none;">
+        <button type="button" class="btn btn-secondary glass-btn-secondary" onclick="cancelSetup()">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary glass-btn-primary" id="confirmSetupBtn">
+          <i class="fas fa-check mr-2"></i>Verify & Enable
+        </button>
+      </div>
+
+      <div class="modal-footer glass-modal-footer border-0" id="defaultFooter">
+        <button type="button" class="btn btn-secondary glass-btn-secondary" onclick="closeModal()">
+          <i class="fas fa-times mr-2"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Disable 2FA Confirmation Modal -->
+<div class="modal fade" id="disable2FAConfirmModal" tabindex="-1" role="dialog" aria-labelledby="disable2FAConfirmLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered glass-modal-container" role="document">
+    <div class="modal-content glass-modal-content glass-confirm-modal">
+      <!-- Modal Header -->
+      <div class="modal-header glass-modal-header border-0">
+        <div class="d-flex align-items-center">
+          <div class="glass-modal-icon-container glass-modal-icon-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="ml-3">
+            <h5 class="modal-title glass-modal-title" id="disable2FAConfirmLabel">Disable Two-Factor Authentication?</h5>
+            <p class="glass-modal-subtitle">This action will reduce your account security</p>
+          </div>
+        </div>
+        <button type="button" class="close glass-modal-close" aria-label="Close" onclick="closeDisable2FAConfirm()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body glass-modal-body">
+        <div class="glass-confirm-content">
+          <div class="glass-confirm-icon-large">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          
+          <p class="glass-confirm-message">
+            Are you sure you want to <strong>disable Two-Factor Authentication</strong>?
+          </p>
+          
+          <div class="glass-confirm-warning">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>
+              <strong>Warning:</strong> Disabling 2FA will make your account less secure. Anyone who obtains your password will be able to access your account without additional verification.
+            </div>
+          </div>
+          
+          <p class="glass-confirm-subtext">
+            You can re-enable 2FA anytime from your account settings.
+          </p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer glass-modal-footer border-0">
+        <button type="button" class="btn glass-btn-secondary" onclick="closeDisable2FAConfirm()">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
+        <button type="button" class="btn glass-btn-danger" id="confirmDisable2FABtn">
+          <i class="fas fa-trash-alt mr-2"></i>Yes, Disable 2FA
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Glass Modal Container */
+  #settingsTwoFactorModal .glass-modal-container .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Confirmation Modal Styles */
+  #disable2FAConfirmModal .glass-modal-container .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(255, 71, 87, 0.2);
+    display: flex;
+    flex-direction: column;
+  }
+
+  #disable2FAConfirmModal .glass-modal-icon-danger {
+    background: linear-gradient(135deg, #ff4757 0%, #ff6348 100%);
+  }
+
+  .glass-confirm-content {
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  .glass-confirm-icon-large {
+    font-size: 48px;
+    color: #667eea;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  }
+
+  .glass-confirm-message {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .glass-confirm-warning {
+    display: flex;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.05) 0%, rgba(255, 165, 0, 0.05) 100%);
+    border: 1px solid rgba(255, 71, 87, 0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .glass-confirm-warning i {
+    color: #ff4757;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .glass-confirm-warning div {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+  }
+
+  .glass-confirm-warning strong {
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .glass-confirm-subtext {
+    font-size: 12px;
+    color: #999;
+    margin-top: 12px;
+    margin-bottom: 0;
+  }
+
+  #settingsTwoFactorModal .glass-modal-header {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(167, 107, 207, 0.05) 100%);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    padding: 24px;
+    flex-shrink: 0;
+  }
+
+  #settingsTwoFactorModal .glass-modal-icon-container {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  #settingsTwoFactorModal .glass-modal-icon-shield {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  #settingsTwoFactorModal .glass-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+
+  #settingsTwoFactorModal .glass-modal-subtitle {
+    font-size: 13px;
+    color: #999;
+    margin: 0;
+  }
+
+  #settingsTwoFactorModal .glass-modal-close {
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    font-size: 24px;
+  }
+
+  #settingsTwoFactorModal .glass-modal-close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+  }
+
+  #settingsTwoFactorModal .glass-modal-body {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  #settingsTwoFactorModal .glass-modal-footer {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 16px 24px;
+    border-top: 1px solid rgba(102, 126, 234, 0.1);
+    flex-shrink: 0;
+  }
+
+  /* 2FA Status Card */
+  .glass-2fa-status-card {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+  }
+
+  .glass-2fa-disabled {
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.05) 0%, rgba(255, 165, 0, 0.05) 100%);
+    border: 1px solid rgba(255, 71, 87, 0.2);
+  }
+
+  .glass-2fa-enabled {
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.05) 0%, rgba(102, 126, 234, 0.05) 100%);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .glass-2fa-status-icon {
+    font-size: 32px;
+    margin-right: 16px;
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .glass-2fa-disabled .glass-2fa-status-icon {
+    color: #ff4757;
+  }
+
+  .glass-2fa-enabled .glass-2fa-status-icon {
+    color: #2ed573;
+  }
+
+  .glass-2fa-status-content {
+    flex: 1;
+  }
+
+  .glass-2fa-status-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+
+  .glass-2fa-status-desc {
+    font-size: 13px;
+    color: #999;
+    margin: 0;
+  }
+
+  /* 2FA Benefits */
+  .glass-2fa-benefits-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+  }
+
+  .glass-benefit-item {
+    display: flex;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(102, 126, 234, 0.03);
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+  }
+
+  .benefit-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 12px;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  .benefit-content h7 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+
+  .benefit-content p {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+  }
+
+  /* Setup Steps */
+  .glass-setup-step {
+    margin-bottom: 24px;
+  }
+
+  .glass-setup-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .glass-setup-desc {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 16px;
+  }
+
+  .glass-app-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .glass-app-link {
+    padding: 12px 16px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    color: #667eea;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .glass-app-link:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+
+  /* QR Code Container */
+  .glass-qr-container {
+    background: #f9f9f9;
+    border: 2px dashed #e0e0e0;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .glass-setup-manual-link {
+    text-align: center;
+    margin: 12px 0;
+  }
+
+  .glass-setup-manual-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .glass-setup-manual-link a:hover {
+    text-decoration: underline;
+  }
+
+  /* Manual Key Display */
+  .glass-manual-key {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(167, 107, 207, 0.05) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .glass-key-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .glass-key-value {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+    word-break: break-all;
+  }
+
+  .glass-key-copy {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .glass-key-copy:hover {
+    background: #764ba2;
+    transform: translateY(-2px);
+  }
+
+  /* Verification Input */
+  .glass-verification-input-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .glass-verification-input {
+    padding: 16px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 28px;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .glass-verification-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+  }
+
+  .glass-verification-helper {
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* Backup Codes Info */
+  .glass-backup-codes-info {
+    display: flex;
+    align-items: flex-start;
+    background: linear-gradient(135deg, rgba(255, 165, 0, 0.05) 0%, rgba(255, 71, 87, 0.05) 100%);
+    border: 1px solid rgba(255, 165, 0, 0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 24px;
+  }
+
+  .glass-info-icon {
+    color: #ffa502;
+    font-size: 16px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  .glass-info-text {
+    flex: 1;
+  }
+
+  .glass-info-text strong {
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+
+  .glass-info-text p {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+  }
+
+  /* Warning Box */
+  .glass-warning-box {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(255, 165, 0, 0.05) 0%, rgba(255, 71, 87, 0.05) 100%);
+    border: 1px solid rgba(255, 165, 0, 0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #999;
+  }
+
+  .glass-warning-box i {
+    color: #ffa502;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+
+  /* Buttons */
+  .glass-btn-secondary,
+  .glass-btn-primary,
+  .glass-btn-danger {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .glass-btn-secondary {
+    background: #f5f5f5;
+    color: #666;
+  }
+
+  .glass-btn-secondary:hover {
+    background: #e8e8e8;
+    color: #333;
+  }
+
+  .glass-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.35);
+  }
+
+  .glass-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+  }
+
+  .glass-btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .glass-btn-danger {
+    background: #ff4757;
+    color: white;
+    box-shadow: 0 8px 16px rgba(255, 71, 87, 0.3);
+  }
+
+  .glass-btn-danger:hover {
+    background: #ff3838;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(255, 71, 87, 0.4);
+  }
+
+  .glass-form-divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+    margin: 24px 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 576px) {
+    #settingsTwoFactorModal .glass-modal-body {
+      padding: 20px;
+    }
+
+    #settingsTwoFactorModal .modal-header.glass-modal-header {
+      padding: 16px;
+    }
+
+    #settingsTwoFactorModal .glass-modal-icon-container {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+
+    #settingsTwoFactorModal .glass-modal-title {
+      font-size: 16px;
+    }
+
+    .glass-setup-step {
+      margin-bottom: 16px;
+    }
+  }
+
+  /* Alert animation */
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  // Ensure jQuery is loaded before using Bootstrap modal
+  function waitForJQuery(callback) {
+    if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
+      callback();
+    } else {
+      setTimeout(() => waitForJQuery(callback), 100);
+    }
+  }
+
+  let currentTwoFactorSecret = null;
+
+  // Toggle manual entry section
+  function toggleManualEntry(e) {
+    e.preventDefault();
+    const section = document.getElementById('manualEntrySection');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Copy to clipboard
+  function copyToClipboard() {
+    const key = document.getElementById('manualKeyValue').textContent.replace(/\s/g, '');
+    navigator.clipboard.writeText(key).then(() => {
+      showFlashMessage('Code copied to clipboard!', 'success');
+    }).catch(() => {
+      showFlashMessage('Failed to copy code', 'error');
+    });
+  }
+
+  // Function to display flash messages using Bootstrap alerts
+  function showFlashMessage(message, category = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${category === 'error' ? 'danger' : category} alert-dismissible fade show`;
+    alertDiv.setAttribute('role', 'alert');
+    alertDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 300px;
+      max-width: 500px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease-in-out;
+    `;
+    
+    alertDiv.innerHTML = `
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <strong>${category.charAt(0).toUpperCase() + category.slice(1)}:</strong> ${message}
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Use jQuery if available, otherwise just show it
+    if (typeof $ !== 'undefined') {
+      $(alertDiv).alert();
+      setTimeout(() => {
+        $(alertDiv).alert('close');
+      }, 5000);
+    } else {
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 5000);
+    }
+  }
+
+  // Generate QR Code with improved implementation
+  function generateQRCode(totpUri, secret) {
+    const container = document.getElementById('qrCodeCanvas');
+    
+    // Clear previous QR code
+    container.innerHTML = '';
+    
+    try {
+      // Create a new div for the QR code
+      const qrDiv = document.createElement('div');
+      qrDiv.id = 'qrcode-' + Date.now();
+      qrDiv.style.cssText = 'display: inline-block; padding: 10px; background: white; border-radius: 8px;';
+      container.appendChild(qrDiv);
+      
+      // Wait a tick to ensure DOM is ready, then generate QR code
+      setTimeout(() => {
+        try {
+          new QRCode(qrDiv, {
+            text: totpUri,
+            width: 250,
+            height: 250,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+          
+          // Format and display the secret key
+          const formattedSecret = secret.replace(/(.{4})/g, '$1 ').trim();
+          document.getElementById('manualKeyValue').textContent = formattedSecret;
+          currentTwoFactorSecret = secret;
+        } catch (innerError) {
+          console.error('QR Code generation error:', innerError);
+          container.innerHTML = '<p style="color: #ff4757; text-align: center; padding: 30px;">⚠️ Failed to generate QR code. Please use manual entry below.</p>';
+          document.getElementById('manualEntrySection').style.display = 'block';
+          showFlashMessage('QR code generation failed. Please manually enter the code instead.', 'warning');
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('QR Code setup error:', error);
+      container.innerHTML = '<p style="color: #ff4757; text-align: center; padding: 30px;">⚠️ QR code unavailable. Use manual entry.</p>';
+      document.getElementById('manualEntrySection').style.display = 'block';
+      showFlashMessage('Error generating QR code. Please use manual entry.', 'error');
+    }
+  }
+
+  // Enable 2FA
+  document.getElementById('enableButton').addEventListener('click', async function() {
+    try {
+      this.disabled = true;
+      const enableBtn = this; // Store reference
+      enableBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+
+      // Get CSRF token from meta tag
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+      // Fetch 2FA setup data from backend
+      const response = await fetch('/api/account/generate-2fa-setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('2FA Setup Generated:', data); // Debug log
+      
+      // Generate QR code
+      generateQRCode(data.totp_uri, data.secret);
+      
+      // Show setup state
+      document.getElementById('twoFactorDisabledState').style.display = 'none';
+      document.getElementById('twoFactorSetupState').style.display = 'block';
+      document.getElementById('setupFooter').style.display = 'flex';
+      document.getElementById('defaultFooter').style.display = 'none';
+      
+    } catch (error) {
+      console.error('Enable 2FA error:', error);
+      showFlashMessage('Error: ' + error.message, 'error');
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-lock mr-2"></i>Enable Two-Factor Authentication';
+    }
+  });
+
+  // Cancel setup
+  function cancelSetup() {
+    document.getElementById('twoFactorSetupState').style.display = 'none';
+    document.getElementById('twoFactorDisabledState').style.display = 'block';
+    document.getElementById('setupFooter').style.display = 'none';
+    document.getElementById('defaultFooter').style.display = 'flex';
+    currentTwoFactorSecret = null;
+  }
+
+  // Confirm setup
+  document.getElementById('confirmSetupBtn').addEventListener('click', async function() {
+    const code = document.getElementById('verificationCode').value.trim();
+    
+    if (!code || code.length !== 6 || isNaN(code)) {
+      showFlashMessage('Please enter a valid 6-digit code', 'warning');
+      return;
+    }
+
+    if (!currentTwoFactorSecret) {
+      showFlashMessage('Secret not found. Please try again.', 'error');
+      return;
+    }
+
+    try {
+      this.disabled = true;
+      const confirmBtn = this; // Store reference
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+      const response = await fetch('/api/account/enable-2fa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+          code: code,
+          secret: currentTwoFactorSecret
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showFlashMessage('✓ 2FA enabled successfully! Save your backup codes in a secure location.', 'success');
+        console.log('2FA enabled successfully. Backup codes:', data.backup_codes);
+        
+        // Show enabled state with backup codes
+        document.getElementById('twoFactorSetupState').style.display = 'none';
+        document.getElementById('twoFactorEnabledState').style.display = 'block';
+        document.getElementById('setupFooter').style.display = 'none';
+        document.getElementById('defaultFooter').style.display = 'flex';
+        
+        currentTwoFactorSecret = null;
+        document.getElementById('verificationCode').value = '';
+        
+        // Reset button
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Verify & Enable';
+      } else {
+        showFlashMessage(data.message || 'Verification failed. Please check the code and try again.', 'error');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Verify & Enable';
+      }
+    } catch (error) {
+      console.error('Confirm setup error:', error);
+      showFlashMessage('Error: ' + error.message, 'error');
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-check mr-2"></i>Verify & Enable';
+    }
+  });
+
+  // Disable 2FA with confirmation modal
+  document.getElementById('disableButton').addEventListener('click', function() {
+    // Show custom confirmation modal instead of browser confirm
+    if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
+      $('#disable2FAConfirmModal').modal('show');
+    } else {
+      showFlashMessage('Modal system not ready, please try again', 'error');
+    }
+  });
+
+  // Handle confirmation of 2FA disable
+  document.getElementById('confirmDisable2FABtn').addEventListener('click', async function() {
+    try {
+      this.disabled = true;
+      const confirmBtn = this; // Store reference
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Disabling...';
+      
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+      const response = await fetch('/api/account/disable-2fa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      const data = await response.json();
+
+      if (response.ok) {
+        showFlashMessage('✓ 2FA has been disabled', 'success');
+        console.log('2FA disabled successfully');
+        
+        // Close the confirmation modal
+        if (typeof $ !== 'undefined') {
+          $('#disable2FAConfirmModal').modal('hide');
+        }
+        
+        // Update UI - switch from enabled to disabled state
+        setTimeout(() => {
+          document.getElementById('twoFactorEnabledState').style.display = 'none';
+          document.getElementById('twoFactorDisabledState').style.display = 'block';
+          // Reset button
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Yes, Disable 2FA';
+        }, 500);
+      } else {
+        showFlashMessage(data.message || 'Failed to disable 2FA', 'error');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Yes, Disable 2FA';
+      }
+    } catch (error) {
+      console.error('Disable 2FA error:', error);
+      showFlashMessage('Error: ' + error.message, 'error');
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Yes, Disable 2FA';
+    }
+  });
+
+  // Check 2FA status when modal opens
+  const twoFactorModalElement = document.getElementById('settingsTwoFactorModal');
+  if (twoFactorModalElement) {
+    // Wait for jQuery before setting up modal event handlers
+    waitForJQuery(() => {
+      $(twoFactorModalElement).on('show.bs.modal', function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        fetch('/api/account/2fa-status', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          }
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('2FA Status Response (RAW):', data);
+            console.log('is_2fa_enabled value:', data.is_2fa_enabled);
+            console.log('is_2fa_enabled type:', typeof data.is_2fa_enabled);
+            console.log('has_totp_secret value:', data.has_totp_secret);
+            
+            // Check if 2FA is enabled - support multiple type conversions
+            const is2faEnabledValue = data.is_2fa_enabled;
+            let is2faEnabled = false;
+            
+            // Check various representations of true
+            if (is2faEnabledValue === true || is2faEnabledValue === 1 || is2faEnabledValue === '1' || is2faEnabledValue === 'true' || is2faEnabledValue === 'True') {
+              is2faEnabled = true;
+            }
+            
+            console.log('Final is2faEnabled determination:', is2faEnabled);
+            
+            if (is2faEnabled) {
+              console.log('✓ 2FA is ENABLED - showing disable state');
+              document.getElementById('twoFactorDisabledState').style.display = 'none';
+              document.getElementById('twoFactorEnabledState').style.display = 'block';
+            } else {
+              console.log('✗ 2FA is DISABLED - showing enable state');
+              document.getElementById('twoFactorDisabledState').style.display = 'block';
+              document.getElementById('twoFactorEnabledState').style.display = 'none';
+            }
+            document.getElementById('twoFactorSetupState').style.display = 'none';
+            document.getElementById('setupFooter').style.display = 'none';
+            document.getElementById('defaultFooter').style.display = 'flex';
+          })
+          .catch(error => {
+            console.error('Error checking 2FA status:', error);
+            showFlashMessage('Error loading 2FA status: ' + error.message, 'error');
+            // Default to disabled state on error
+            document.getElementById('twoFactorDisabledState').style.display = 'block';
+            document.getElementById('twoFactorEnabledState').style.display = 'none';
+          });
+      });
+      
+      // Clear form when modal is closed
+      $(twoFactorModalElement).on('hidden.bs.modal', function() {
+        document.getElementById('verificationCode').value = '';
+        document.getElementById('manualEntrySection').style.display = 'none';
+        currentTwoFactorSecret = null;
+      });
+    });
+  }
+
+  // Global function to open 2FA modal
+  function openTwoFactorModal() {
+    if (typeof $ === 'undefined' || typeof jQuery === 'undefined') {
+      showFlashMessage('jQuery not loaded yet, please try again', 'error');
+      return;
+    }
+    const modal = $('#settingsTwoFactorModal');
+    if (modal.length) {
+      modal.modal('show');
+    } else {
+      showFlashMessage('2FA settings modal not found', 'error');
+    }
+  }
+
+  // Global function to close 2FA modal
+  function closeModal() {
+    if (typeof $ === 'undefined' || typeof jQuery === 'undefined') {
+      const modal = document.getElementById('settingsTwoFactorModal');
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
+      }
+      return;
+    }
+    const modal = $('#settingsTwoFactorModal');
+    if (modal.length) {
+      modal.modal('hide');
+    }
+  }
+
+  // Helper function to open disable 2FA confirmation modal
+  function openDisable2FAConfirm() {
+    if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
+      $('#disable2FAConfirmModal').modal('show');
+    } else {
+      showFlashMessage('Modal system not ready', 'error');
+    }
+  }
+
+  // Helper function to close disable 2FA confirmation modal
+  function closeDisable2FAConfirm() {
+    if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
+      $('#disable2FAConfirmModal').modal('hide');
+    }
+  }
+</script>

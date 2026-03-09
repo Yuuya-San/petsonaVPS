@@ -1,9 +1,12 @@
-// Global Loader Management
+// Global Loader Management - Request Queue Based System
 window.LoaderManager = window.LoaderManager || {
     overlay: null,
-    timeout: null,
-    maxWaitTime: 5000, // 5 second max timeout
+    activeRequests: 0, // Track number of ongoing requests
+    globalTimeout: null,
+    maxGlobalWaitTime: 120000, // 2 minute absolute max (fallback only)
     isLoading: false,
+    debounceTimer: null,
+    debounceDelay: 300, // Delay before actually hiding
     
     init() {
         this.overlay = document.getElementById('loader-overlay');
@@ -11,6 +14,8 @@ window.LoaderManager = window.LoaderManager || {
         
         // Show loader on various events
         this.attachEventListeners();
+        this.interceptFetch();
+        this.interceptXHR();
     },
     
     hasExistingLoader() {
@@ -48,6 +53,7 @@ window.LoaderManager = window.LoaderManager || {
             // Skip modal forms and opt-out forms
             if (form.closest('.modal') || form.dataset.noLoader === 'true') return;
             
+            this.incrementRequest('form-submit');
             this.show();
         });
         
@@ -84,6 +90,7 @@ window.LoaderManager = window.LoaderManager || {
             if (isSubmitButton || hasSubmitClass || (isInForm && !button.classList.contains('cancel')) || hasSubmitAction) {
                 // Show loader (respects page's own loader if it exists)
                 if (!this.hasExistingLoader()) {
+                    this.incrementRequest('button-click');
                     this.show();
                 }
             }
@@ -91,17 +98,12 @@ window.LoaderManager = window.LoaderManager || {
         
         // Tab switching (if using tab libraries)
         document.addEventListener('tabChange', () => {
+            this.incrementRequest('tab-change');
             this.show();
         });
         document.addEventListener('tab-change', () => {
+            this.incrementRequest('tab-change');
             this.show();
-        });
-        
-        // Page visibility change (switching tabs/windows)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && this.isLoading && !this.hasExistingLoader()) {
-                this.show();
-            }
         });
         
         // Navigation links that aren't hash-based
@@ -130,43 +132,89 @@ window.LoaderManager = window.LoaderManager || {
             if (this.hasExistingLoader()) return;
             
             // Show loader for actual navigation
+            this.incrementRequest('navigation');
             this.show();
-        });
-        
-        // AJAX/Fetch requests
-        this.interceptFetch();
-        
-        // Hide loader when page finishes loading
-        window.addEventListener('load', () => this.hide());
-        
-        // Failsafe: Hide if stuck for too long
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && this.isLoading && !this.hasExistingLoader()) {
-                this.resetTimeout();
-            }
         });
     },
     
     interceptFetch() {
         const originalFetch = window.fetch;
+        const self = this;
         
         window.fetch = function(...args) {
             // Only show loader if no existing loader on page
-            if (!LoaderManager.hasExistingLoader()) {
-                LoaderManager.show();
+            if (!self.hasExistingLoader()) {
+                self.incrementRequest('fetch');
+                self.show();
             }
             
             return originalFetch.apply(this, args)
                 .then(response => {
-                    // Keep loader visible briefly for better UX
-                    setTimeout(() => LoaderManager.hide(), 300);
+                    // Decrement after response received (not after processing)
+                    self.decrementRequest('fetch');
                     return response;
                 })
                 .catch(error => {
-                    setTimeout(() => LoaderManager.hide(), 300);
+                    self.decrementRequest('fetch');
                     throw error;
                 });
         };
+    },
+    
+    interceptXHR() {
+        const originalOpen = XMLHttpRequest.prototype.open;
+        const originalSend = XMLHttpRequest.prototype.send;
+        const self = this;
+        
+        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            this._loaderTracked = true;
+            return originalOpen.apply(this, [method, url, ...rest]);
+        };
+        
+        XMLHttpRequest.prototype.send = function(...args) {
+            if (this._loaderTracked && !self.hasExistingLoader()) {
+                self.incrementRequest('xhr');
+                self.show();
+            }
+            
+            const self_ref = self;
+            const onStateChange = () => {
+                if (this.readyState === XMLHttpRequest.DONE) {
+                    self_ref.decrementRequest('xhr');
+                }
+            };
+            
+            this.addEventListener('readystatechange', onStateChange);
+            return originalSend.apply(this, args);
+        };
+    },
+    
+    incrementRequest(source) {
+        this.activeRequests++;
+        this.clearGlobalTimeout();
+        this.resetGlobalTimeout();
+    },
+    
+    decrementRequest(source) {
+        if (this.activeRequests > 0) {
+            this.activeRequests--;
+        }
+        
+        // Only hide if no more active requests
+        if (this.activeRequests <= 0) {
+            this.activeRequests = 0; // Reset to 0 to prevent negative
+            this.scheduleHide();
+        }
+    },
+    
+    scheduleHide() {
+        // Debounce the hide to prevent flickering from rapid requests
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(() => {
+            if (this.activeRequests <= 0) {
+                this.hide();
+            }
+        }, this.debounceDelay);
     },
     
     show() {
@@ -174,30 +222,39 @@ window.LoaderManager = window.LoaderManager || {
         
         this.isLoading = true;
         this.overlay.classList.add('active');
-        this.resetTimeout();
+        
+        // Clear any pending hide
+        clearTimeout(this.debounceTimer);
     },
     
     hide() {
-        if (!this.overlay) return;
+        if (!this.overlay || this.activeRequests > 0) {
+            // Don't hide if there are still active requests
+            return;
+        }
         
         this.isLoading = false;
         this.overlay.classList.remove('active');
-        this.clearTimeout();
+        this.activeRequests = 0;
+        this.clearGlobalTimeout();
     },
     
-    resetTimeout() {
-        this.clearTimeout();
+    resetGlobalTimeout() {
+        this.clearGlobalTimeout();
         
-        // Auto-hide after max wait time to prevent stuck loader
-        this.timeout = setTimeout(() => {
+        // Absolute maximum timeout (fallback only, should rarely trigger)
+        // This prevents completely stuck loaders but respects actual requests
+        this.globalTimeout = setTimeout(() => {
+            console.warn('LoaderManager: Global timeout reached. Forcing hide.');
+            this.activeRequests = 0;
             this.hide();
-        }, this.maxWaitTime);
+        }, this.maxGlobalWaitTime);
     },
     
-    clearTimeout() {
-        if (this.timeout) {
-            clearTimeout(this.timeout);
-            this.timeout = null;
+    clearGlobalTimeout() {
+        if (this.globalTimeout) {
+            clearTimeout(this.globalTimeout);
+            this.globalTimeout = null;
         }
     }
 };
@@ -210,5 +267,18 @@ if (document.readyState === 'loading') {
 }
 
 // Expose for manual control if needed
-window.showLoader = () => LoaderManager.show();
-window.hideLoader = () => LoaderManager.hide();
+window.showLoader = () => {
+    LoaderManager.incrementRequest('manual');
+    LoaderManager.show();
+};
+
+window.hideLoader = () => {
+    LoaderManager.decrementRequest('manual');
+    LoaderManager.hide();
+};
+
+// For cases where you need to manually manage loader
+window.getLoaderStatus = () => ({
+    isLoading: LoaderManager.isLoading,
+    activeRequests: LoaderManager.activeRequests
+});

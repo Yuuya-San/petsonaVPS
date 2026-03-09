@@ -10,24 +10,34 @@
 
     background: linear-gradient(
         135deg,
-        rgba(255, 255, 255, 0.3),
-        rgba(245, 237, 255, 0.2)
+        rgba(255, 255, 255, 0.5),
+        rgba(245, 237, 255, 0.4)
     );
 
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #loader-overlay.active {
     opacity: 1;
     visibility: visible;
     pointer-events: all;
+    animation: fadeInLoader 0.5s ease-out;
+}
+
+@keyframes fadeInLoader {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* ===== TRUE VIEWPORT CENTER (TRANSFORM SAFE) ===== */
@@ -67,24 +77,31 @@
     font-size: 2.5rem;
     color: #7c3aed;
     animation: pawBeat 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    filter: drop-shadow(0 0 4px rgba(124, 58, 237, 0.3));
 }
 
 .loader-ring {
     position: absolute;
     inset: 0;
-    border: 3px solid rgba(124, 58, 237, 0.15);
+    border: 3px solid transparent;
+    border-top-color: rgba(124, 58, 237, 0.4);
+    border-right-color: rgba(124, 58, 237, 0.2);
+    border-bottom-color: rgba(124, 58, 237, 0.1);
     border-radius: 50%;
-    animation: rotate 2s linear infinite;
+    animation: rotate 2.5s linear infinite;
+    box-shadow: inset 0 0 8px rgba(124, 58, 237, 0.1);
 }
 
 .loader-ring-inner {
     position: absolute;
     inset: 10%;
-    border: 2px solid transparent;
-    border-top-color: #7c3aed;
-    border-right-color: #a78bfa;
+    border: 3px solid transparent;
+    border-top-color: #a78bfa;
+    border-right-color: #7c3aed;
+    border-bottom-color: rgba(124, 58, 237, 0.2);
     border-radius: 50%;
-    animation: rotateReverse 1.5s linear infinite;
+    animation: rotateReverse 1.8s linear infinite;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
 }
 
 /* ===== LOADING TEXT WITH DOTS ===== */
@@ -123,16 +140,20 @@
 /* ===== PROGRESS BAR ===== */
 .loader-progress {
     width: 200px;
-    height: 3px;
-    background: rgba(124, 58, 237, 0.1);
+    height: 4px;
+    background: rgba(124, 58, 237, 0.12);
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.1);
 }
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #7c3aed, #a78bfa, #7c3aed);
-    animation: progress 2s ease-in-out infinite;
+    background: linear-gradient(90deg, #7c3aed, #a78bfa, #ec4899, #7c3aed);
+    background-size: 200% 100%;
+    animation: progress 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.6);
+    border-radius: 10px;
 }
 
 /* ===== ANIMATIONS ===== */
@@ -155,9 +176,27 @@
 }
 
 @keyframes progress {
-    0% { width: 0%; opacity: 0.3; }
-    50% { width: 100%; opacity: 1; }
-    100% { width: 0%; opacity: 0.3; }
+    0% {
+        width: 0%;
+        opacity: 0.2;
+        background-position: 200% 0;
+    }
+    25% {
+        opacity: 0.8;
+    }
+    50% {
+        width: 100%;
+        opacity: 1;
+        background-position: 100% 0;
+    }
+    75% {
+        opacity: 0.8;
+    }
+    100% {
+        width: 0%;
+        opacity: 0.2;
+        background-position: 0% 0;
+    }
 }
 
 /* ===== RESPONSIVE ===== */

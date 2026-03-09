@@ -12,6 +12,8 @@ from app.models.breed import Breed
 from app.models.species import Species
 from app.models.merchant import Merchant
 from app.models.booking import Booking
+from app.models.notification import Notification
+from app.models.user import User
 from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
 from app.models.audit_log import AuditLog
@@ -1045,6 +1047,38 @@ def apply():
             
             db.session.add(merchant)
             db.session.commit()
+            
+            # ========== CREATE NOTIFICATIONS ==========
+            
+            # 1️⃣ Notify all admin users about the new merchant application
+            admin_users = User.query.filter_by(role='admin').all()
+            
+            for admin_user in admin_users:
+                Notification.create_notification(
+                    user_id=admin_user.id,
+                    title='New Merchant Application',
+                    message=f'{current_user.first_name} {current_user.last_name} has submitted a merchant application for "{merchant.business_name}"',
+                    notification_type='warning',
+                    icon='fas fa-store',
+                    link=f'/admin/merchants/applications',
+                    related_id=merchant.id,
+                    related_type='merchant_application',
+                    from_user_id=current_user.id
+                )
+                logger.info(f"Notification created for admin {admin_user.id} about merchant application {merchant.id}")
+            
+            # 2️⃣ Optionally, create a notification for the merchant user about submission
+            Notification.create_notification(
+                user_id=current_user.id,
+                title='Application Submitted',
+                message=f'Your merchant application for "{merchant.business_name}" has been submitted successfully. Our admin team will review it within 5-7 business days.',
+                notification_type='success',
+                icon='fas fa-check-circle',
+                link=f'/user/dashboard',
+                related_id=merchant.id,
+                related_type='merchant_application'
+            )
+            logger.info(f"Notification created for merchant user {current_user.id} about their application submission")
             
             flash('Application submitted successfully! Our team will review your application and contact you within 5-7 business days.', 'success')
             return redirect(url_for('user.dashboard'))

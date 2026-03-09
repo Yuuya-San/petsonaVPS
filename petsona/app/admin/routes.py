@@ -9,6 +9,7 @@ from .forms import (
 )
 from app.extensions import limiter, csrf
 from app.models import User, AuditLog, Merchant
+from app.models.notification import Notification
 from app import db
 from sqlalchemy import func
 import random
@@ -577,6 +578,20 @@ def approve_merchant(merchant_id):
         
         db.session.commit()
         
+        # ========== CREATE NOTIFICATION FOR MERCHANT USER ==========
+        Notification.create_notification(
+            user_id=user.id,
+            title='🎉 Application Approved!',
+            message=f'Congratulations! Your merchant application for "{merchant.business_name}" has been approved by the admin team. You can now start listing your services and accepting bookings!',
+            notification_type='success',
+            icon='fas fa-check-circle',
+            link=f'/merchant/store',
+            related_id=merchant.id,
+            related_type='merchant_application',
+            from_user_id=current_user.id
+        )
+        print(f"[✅ NOTIF] Approval notification sent to user {user.id} for merchant {merchant.id}")
+        
         # Log the event
         log_event(
             event='merchant.approved',
@@ -620,7 +635,25 @@ def reject_merchant(merchant_id):
         merchant.rejection_reason = reason.strip()
         merchant.reviewed_by = current_user.id
         
+        # Get the user to notify
+        user = User.query.get(merchant.user_id)
+        
         db.session.commit()
+        
+        # ========== CREATE NOTIFICATION FOR MERCHANT USER ==========
+        if user:
+            Notification.create_notification(
+                user_id=user.id,
+                title='Application Status Update',
+                message=f'Your merchant application for "{merchant.business_name}" has been reviewed and unfortunately was not approved at this time. Reason: {reason.strip()}',
+                notification_type='danger',
+                icon='fas fa-times-circle',
+                link=f'/merchant/apply',
+                related_id=merchant.id,
+                related_type='merchant_application',
+                from_user_id=current_user.id
+            )
+            print(f"[✅ NOTIF] Rejection notification sent to user {user.id} for merchant {merchant.id}")
         
         # Log the event
         log_event(

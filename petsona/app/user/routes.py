@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, abort, jso
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.user import bp
 from app.decorators import user_required
-from app.models import Species, Breed, Merchant
+from app.models import Species, Breed, Merchant, MatchHistory
 from app import db
 from app.extensions import csrf
 from app.utils.notification_manager import NotificationManager
@@ -68,9 +68,7 @@ def dashboard():
     user_count = User.query.count()
     
     # Count total completed/successful bookings (matches made)
-    match_count = Booking.query.filter(
-        Booking.status.in_(['completed', 'confirmed'])
-    ).count()
+    match_count = MatchHistory.query.count()
     
     # ======================== TOP SPECIES SECTION ========================
     # Get top 3 species by vote count

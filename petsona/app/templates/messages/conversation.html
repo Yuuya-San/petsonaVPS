@@ -16,7 +16,8 @@
      data-conversation-id="{{ conversation.id }}"
      data-other-user-name="{{ other_user.first_name }}"
      data-other-user-photo="{{ url_for('static', filename=other_user.photo_url) if other_user.photo_url else '' }}"
-     data-other-user-id="{{ other_user.id }}">
+     data-other-user-id="{{ other_user.id }}"
+     data-other-user-last-seen="{{ other_user.last_seen.isoformat() if other_user.last_seen else '' }}">
   
   <!-- Conversation List Panel (Hidden on mobile ≤1023px) -->
   <div class="conversations-panel md:block hidden" id="conversations-panel">
@@ -91,47 +92,16 @@
           </div>
           <div>
             <h2 class="font-bold text-slate-900">{{ other_user.first_name }} {{ other_user.last_name }}</h2>
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-slate-500 flex items-center gap-2">
               {% if conversation.is_blocked_for_user(current_user.id) %}
-                <i class="fas fa-ban text-red-500 mr-1"></i>Blocked
+                <i class="fas fa-ban text-red-500"></i>
+                <span>Blocked</span>
               {% else %}
-                Active now
+                <!-- Online Status Indicator (updated by JS) -->
+                <span class="user-status-indicator w-2 h-2 rounded-full bg-slate-300"></span>
+                <span class="user-status-text">Loading...</span>
               {% endif %}
             </p>
-          </div>
-        </div>
-
-        <!-- Action Menu -->
-        <div class="relative group">
-          <button class="text-slate-600 hover:text-slate-900 text-lg transition focus-ring p-2">
-            <i class="fas fa-ellipsis-v"></i>
-          </button>
-          <!-- Dropdown -->
-          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-hard z-10 hidden group-hover:block animate-scale-in">
-            {% if not conversation.is_blocked_for_user(current_user.id) %}
-              <button class="action-btn w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-red-600 border-b border-slate-100"
-                      data-action="block-user"
-                      data-conversation-id="{{ conversation.id }}">
-                <i class="fas fa-ban mr-2"></i>Block User
-              </button>
-            {% else %}
-              <button class="action-btn w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-green-600 border-b border-slate-100"
-                      data-action="unblock-user"
-                      data-conversation-id="{{ conversation.id }}">
-                <i class="fas fa-check mr-2"></i>Unblock User
-              </button>
-            {% endif %}
-            
-            <button class="action-btn w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-yellow-600 border-b border-slate-100"
-                    data-action="archive"
-                    data-conversation-id="{{ conversation.id }}">
-              <i class="fas fa-archive mr-2"></i>Archive
-            </button>
-            
-            <a href="{{ url_for('messages.report_message_route', message_id=conversation.last_message_id or 0) }}" 
-               class="w-full text-left px-4 py-3 hover:bg-slate-100 text-sm transition text-orange-600 block">
-              <i class="fas fa-flag mr-2"></i>Report
-            </a>
           </div>
         </div>
       </div>

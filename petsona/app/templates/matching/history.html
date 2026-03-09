@@ -17,152 +17,665 @@
     animation: fadeIn 0.3s ease-out;
   }
 
-  @keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
   }
 
-  .history-card { animation: slideUp 0.5s ease-out forwards; }
-  .history-card:nth-child(1) { animation-delay: 0s; }
-  .history-card:nth-child(2) { animation-delay: 0.1s; }
-  .history-card:nth-child(3) { animation-delay: 0.2s; }
-  .history-card:nth-child(4) { animation-delay: 0.3s; }
-  .history-card:nth-child(5) { animation-delay: 0.4s; }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+  }
+
+  .stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+  .stat-icon.average { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+  .stat-icon.best { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+  .stat-icon.types { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+
+  .stat-content {
+    flex: 1;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-top: 5px;
+  }
+
+  .history-section {
+    width: 100%;
+    min-height: 100vh;
+    background-color: rgba(249, 250, 251, 0.5);
+  }
+
+  .history-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .page-header {
+    margin-bottom: 32px;
+  }
+
+  .page-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #111827;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 1024px) {
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .stats-container {
+      grid-template-columns: 1fr;
+    }
+    .stat-card {
+      padding: 15px;
+    }
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+    .stat-number {
+      font-size: 22px;
+    }
+  }
+
+  .history-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .history-table thead {
+    background-color: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  .history-table thead th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .history-table tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+    transition: background-color 0.2s;
+  }
+
+  .history-table tbody tr:hover {
+    background-color: #f3f4f6;
+  }
+
+  .history-table tbody td {
+    padding: 16px;
+    vertical-align: middle;
+  }
+
+  .history-table th.th-type,
+  .history-table th.th-score,
+  .history-table th.th-match,
+  .history-table th.th-actions {
+    text-align: center;
+  }
+
+  .history-table td.td-type,
+  .history-table td.td-score,
+  .history-table td.td-match,
+  .history-table td.td-actions {
+    text-align: center;
+  }
+
+  .match-type-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .match-type-badge.breed {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+
+  .match-type-badge.general {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+  }
+
+  .score-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .score-badge.high {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  }
+
+  .score-badge.medium {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  }
+
+  .score-badge.low {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+  }
+
+  .action-btn.view {
+    background-color: #dbeafe;
+    color: #1e40af;
+    margin-right: 8px;
+  }
+
+  .action-btn.view:hover {
+    background-color: #bfdbfe;
+    transform: translateY(-2px);
+  }
+
+  .action-btn.download {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+
+  .action-btn.download:hover {
+    background-color: #bbf7d0;
+    transform: translateY(-2px);
+  }
+
+  .strength-text, .consider-text {
+    font-size: 12px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .top-match-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .no-data-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 64px 32px;
+    text-align: center;
+  }
+
+  .no-data-icon {
+    font-size: 64px;
+    color: #d1d5db;
+    margin-bottom: 16px;
+  }
+
+  .no-data-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 16px;
+  }
+
+  .no-data-subtitle {
+    color: #666;
+    margin-bottom: 24px;
+  }
+
+  .no-data-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .no-data-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .modal-content.view-modal {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .modal-content.view-modal .modal-header {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    border-bottom: 1px solid rgba(102, 126, 234, 0.15);
+  }
+
+  body.modal-open {
+    overflow: hidden !important;
+  }
 </style>
 
-<div class="w-full min-h-screen" style="background-color: rgba(249, 250, 251, 0.5);">
-  <div class="max-w-full sm:max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
-
-    <!-- HEADER -->
-    <div class="animate-fadeIn">
-      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-        <i class="fa-solid fa-history text-indigo-600"></i> Matching History
+<section class="history-section">
+  <div class="history-container">
+    
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+      <h1 class="page-title">
+        <i class="fa-solid fa-history"></i> Matching History
       </h1>
-      <p class="text-sm sm:text-base text-gray-600">
-        View all your past compatibility assessments and track your progress
-      </p>
+      <p class="page-subtitle">View all your past compatibility assessments and track your progress</p>
     </div>
 
-    <!-- ANALYTICS SUMMARY -->
+    <!-- Statistics Cards -->
     {% if matches|length > 0 %}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white rounded-lg shadow p-4 border border-indigo-100">
-        <p class="text-xs text-gray-600">Total Quizzes</p>
-        <p class="text-2xl font-bold text-indigo-600">{{ matches|length }}</p>
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon total">
+          <i class="fa-solid fa-chart-simple"></i>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Total Quizzes</p>
+          <p class="stat-number">{{ matches|length }}</p>
+        </div>
       </div>
-      <div class="bg-white rounded-lg shadow p-4 border border-green-100">
-        <p class="text-xs text-gray-600">Average Score</p>
-        <p class="text-2xl font-bold text-green-600">{{ (matches|map(attribute='compatibility_score')|sum / matches|length)|round|int }}%</p>
+      
+      <div class="stat-card">
+        <div class="stat-icon average">
+          <i class="fa-solid fa-square-poll-vertical"></i>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Average Score</p>
+          <p class="stat-number">{{ (matches|map(attribute='compatibility_score')|sum / matches|length)|round|int }}%</p>
+        </div>
       </div>
-      <div class="bg-white rounded-lg shadow p-4 border border-purple-100">
-        <p class="text-xs text-gray-600">Best Match</p>
-        <p class="text-2xl font-bold text-purple-600">{{ (matches|map(attribute='compatibility_score')|max)|round|int }}%</p>
+      
+      <div class="stat-card">
+        <div class="stat-icon best">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Best Match</p>
+          <p class="stat-number">{{ (matches|map(attribute='compatibility_score')|max)|round|int }}%</p>
+        </div>
       </div>
-      <div class="bg-white rounded-lg shadow p-4 border border-blue-100">
-        <p class="text-xs text-gray-600">Match Types</p>
-        <p class="text-lg font-bold text-blue-600">
-          {{ matches|selectattr('match_type', 'equalto', 'general')|list|length }}G / {{ matches|selectattr('match_type', 'equalto', 'breed')|list|length }}B
-        </p>
-        <p class="text-xs text-gray-500">General / Breed</p>
+      
+      <div class="stat-card">
+        <div class="stat-icon types">
+          <i class="fa-solid fa-tags"></i>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Match Types</p>
+          <p class="stat-number">{{ matches|selectattr('match_type', 'equalto', 'general')|list|length }}G / {{ matches|selectattr('match_type', 'equalto', 'breed')|list|length }}B</p>
+        </div>
       </div>
     </div>
     {% endif %}
 
+    <!-- Matches Table Card -->
     {% if matches|length > 0 %}
-    <!-- MATCHES GRID -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for match in matches %}
-      <div class="bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition history-card flex flex-col justify-between overflow-hidden">
-        <!-- BREED IMAGE/ICON -->
-        <div class="relative h-32 bg-gray-200 overflow-hidden">
-          {% if match.match_type == 'breed' and match.breed and match.breed.image_url %}
-            <img src="/static/{{ match.breed.image_url }}" alt="{{ match.breed.name }}" class="w-full h-full object-cover">
-          {% elif match.match_type == 'general' and match.top_matches %}
-            <img src="/static/{{ match.top_matches[0].image_url }}" alt="Top Match" class="w-full h-full object-cover" onerror="this.src='/static/images/breeds/default.jpg'">
-          {% else %}
-            <div class="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 text-4xl">
-              <i class="fa-solid fa-star"></i>
-            </div>
-          {% endif %}
-          <!-- OVERLAY SCORE -->
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
-            <div class="text-white">
-              <p class="text-2xl font-bold">{{ (match.compatibility_score|round|int) }}%</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-4 sm:p-5 flex-1 flex flex-col">
-          <!-- HEADER -->
-          <div class="mb-3">
-            <h3 class="text-base font-bold text-gray-900 line-clamp-2">
-              {% if match.match_type == 'breed' and match.breed %}
-                {{ match.breed.name }}
-              {% else %}
-                Top 5 Breed Matches
-              {% endif %}
-            </h3>
-            <p class="text-xs text-gray-500 mt-1">{{ match.created_at }}</p>
-          </div>
-
-          <!-- MATCH TYPE -->
-          <span class="inline-block w-fit text-xs font-semibold px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 mb-3">
-            {% if match.match_type == 'breed' %}
-              Breed Match
-            {% else %}
-              General
-            {% endif %}
-          </span>
-
-          <!-- TOP 5 BREEDS (for general) -->
-          {% if match.match_type == 'general' and match.top_matches %}
-          <div class="mb-3 space-y-1 flex-1">
-            <p class="text-xs font-semibold text-gray-700 mb-1">Top Recommendations:</p>
-            {% for breed in match.top_matches[:5] %}
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-gray-800 truncate">{{ breed.breed_name }}</span>
-              <span class="font-bold text-indigo-600 flex-shrink-0">{{ (breed.score|round|int) }}%</span>
-            </div>
+    <div class="history-card">
+      <div class="table-container">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th class="th-type">Match Type</th>
+              <th>Name</th>
+              <th class="th-score">Score</th>
+              <th>Top Match</th>
+              <th>Strength</th>
+              <th>Consider</th>
+              <th>Date</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for match in matches %}
+            <tr>
+              <td class="td-type">
+                <span class="match-type-badge {% if match.match_type == 'breed' %}breed{% else %}general{% endif %}">
+                  {% if match.match_type == 'breed' %}
+                    <i class="fa-solid fa-paw"></i> Breed
+                  {% else %}
+                    <i class="fa-solid fa-list"></i> General
+                  {% endif %}
+                </span>
+              </td>
+              <td>
+                <span class="top-match-text" title="{% if match.match_type == 'breed' and match.breed %}{{ match.breed.name }}{% else %}Top 5 Breed Matches{% endif %}">
+                  {% if match.match_type == 'breed' and match.breed %}
+                    {{ match.breed.name }}
+                  {% else %}
+                    Top 5 Breed Matches
+                  {% endif %}
+                </span>
+              </td>
+              <td class="td-score">
+                <span class="score-badge {% if match.compatibility_score >= 75 %}high{% elif match.compatibility_score >= 50 %}medium{% else %}low{% endif %}">
+                  {{ (match.compatibility_score|round|int) }}%
+                </span>
+              </td>
+              <td>
+                {% if match.match_type == 'general' and match.top_matches %}
+                  <span class="top-match-text" title="{{ match.top_matches[0].breed_name }}">
+                    {{ match.top_matches[0].breed_name }}
+                  </span>
+                {% else %}
+                  <span class="top-match-text" style="color: #999;">N/A</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if match.strength_areas|length > 0 %}
+                  <span class="strength-text" title="{{ match.strength_areas[0] }}">
+                    <i class="fa-solid fa-check" style="color: #16a34a;"></i> {{ match.strength_areas[0][:40] }}
+                  </span>
+                {% else %}
+                  <span class="strength-text" style="color: #999;">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if match.mismatches|length > 0 %}
+                  <span class="consider-text" title="{{ match.mismatches[0] }}">
+                    <i class="fa-solid fa-warning" style="color: #d97706;"></i> {{ match.mismatches[0][:40] }}
+                  </span>
+                {% else %}
+                  <span class="consider-text" style="color: #999;">-</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="top-match-text">{{ match.created_at }}</span>
+              </td>
+              <td class="td-actions">
+                <button class="action-btn view" onclick="showMatchDetails(this)" 
+                  data-match-id="{{ match.id }}"
+                  data-match-type="{{ match.match_type }}"
+                  data-breed-name="{% if match.match_type == 'breed' and match.breed %}{{ match.breed.name }}{% else %}Top 5 Breed Matches{% endif %}"
+                  data-score="{{ match.compatibility_score|round|int }}"
+                  data-created-at="{{ match.created_at }}"
+                  data-strength-areas="{{ match.strength_areas|tojson|escape }}"
+                  data-mismatches="{{ match.mismatches|tojson|escape }}"
+                  data-top-matches="{{ match.top_matches|tojson|escape }}"
+                  title="View Details">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <a href="/matching/results/{{ match.id }}" download class="action-btn download" title="Download Result">
+                  <i class="fa-solid fa-download"></i>
+                </a>
+              </td>
+            </tr>
             {% endfor %}
-          </div>
-          {% endif %}
-
-          <!-- INFO PREVIEW -->
-          {% if match.strength_areas|length > 0 %}
-          <div class="mb-2 text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200">
-            <p class="font-semibold mb-0.5"><i class="fa-solid fa-check text-green-600"></i> Strength:</p>
-            <p class="line-clamp-2">{{ match.strength_areas[0][:50] }}{% if match.strength_areas[0]|length > 50 %}...{% endif %}</p>
-          </div>
-          {% endif %}
-
-          {% if match.mismatches|length > 0 %}
-          <div class="mb-3 text-xs text-orange-700 bg-orange-50 p-2 rounded border border-orange-200">
-            <p class="font-semibold mb-0.5"><i class="fa-solid fa-warning text-orange-600"></i> Consider:</p>
-            <p class="line-clamp-2">{{ match.mismatches[0][:50] }}{% if match.mismatches[0]|length > 50 %}...{% endif %}</p>
-          </div>
-          {% endif %}
-
-          <!-- VIEW DETAILS BUTTON -->
-          <a href="/matching/results/{{ match.id }}" class="mt-auto w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded-lg text-xs transition active:scale-95">
-            <i class="fa-solid fa-eye"></i> View Details
-          </a>
-        </div>
+          </tbody>
+        </table>
       </div>
-      {% endfor %}
     </div>
 
     {% else %}
-    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-8 text-center">
-      <i class="fa-solid fa-inbox text-gray-300 text-5xl mb-4 block"></i>
-      <h3 class="text-xl font-semibold text-gray-700 mb-2">No Matches Yet</h3>
-      <p class="text-gray-600 mb-4">Complete a compatibility quiz to start building your match history</p>
-      <a href="{{ url_for('matching.quiz') }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-lg transition">
+    <div class="no-data-section">
+      <div class="no-data-icon">
+        <i class="fa-solid fa-inbox"></i>
+      </div>
+      <h3 class="no-data-title">No Matches Yet</h3>
+      <p class="no-data-subtitle">Complete a compatibility quiz to start building your match history</p>
+      <a href="{{ url_for('matching.quiz') }}" class="no-data-btn">
         <i class="fa-solid fa-play"></i> Start Quiz
       </a>
     </div>
     {% endif %}
 
   </div>
+</section>
+
+<!-- View Match Details Modal -->
+<div class="modal fade" id="viewMatchModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" style="max-height: 85vh; display: flex; align-items: center;">
+    <div class="modal-content view-modal" style="border-radius: 1rem; box-shadow: 0 12px 48px rgba(102, 126, 234, 0.15); border: 1px solid rgba(102, 126, 234, 0.25); max-height: 85vh; display: flex; flex-direction: column;">
+      
+      <div class="modal-header" style="padding: 1.5rem; flex-shrink: 0;">
+        <h5 class="modal-title" style="color: #667eea; font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem; margin: 0;">
+          <i class="fa-solid fa-chart-pie"></i> <span id="modalMatchTitle">Match Details</span>
+        </h5>
+        <button type="button" class="modal-close" data-dismiss="modal" style="background: transparent; border: none; color: #6b7280; cursor: pointer; font-size: 1.25rem; padding: 0;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.5rem; max-height: calc(85vh - 120px); overflow-y: auto; flex: 1;">
+        
+        <!-- Match Info Section -->
+        <div style="background: rgba(102, 126, 234, 0.05); border: 1px solid rgba(102, 126, 234, 0.15); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Match Type</p>
+              <p id="modalMatchType" style="font-size: 1rem; font-weight: 600; color: #333;">-</p>
+            </div>
+            <div>
+              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Compatibility Score</p>
+              <p id="modalMatchScore" style="font-size: 1.5rem; font-weight: 700; color: #667eea;">-</p>
+            </div>
+            <div>
+              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Date Created</p>
+              <p id="modalMatchDate" style="font-size: 0.95rem; color: #333;">-</p>
+            </div>
+            <div>
+              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Breed Name</p>
+              <p id="modalBreedName" style="font-size: 0.95rem; color: #333;">-</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strength Areas -->
+        <div style="margin-bottom: 1.5rem;">
+          <h6 style="font-weight: 700; color: #333; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-check" style="color: #16a34a;"></i> Strength Areas
+          </h6>
+          <div id="modalStrengthAreas" style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.15); border-radius: 0.75rem; padding: 1rem; color: #166534;">
+            <p style="font-size: 0.9rem; margin: 0;">No strengths recorded</p>
+          </div>
+        </div>
+
+        <!-- Mismatches/Considerations -->
+        <div style="margin-bottom: 1.5rem;">
+          <h6 style="font-weight: 700; color: #333; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #d97706;"></i> Considerations
+          </h6>
+          <div id="modalMismatches" style="background: rgba(217, 119, 6, 0.05); border: 1px solid rgba(217, 119, 6, 0.15); border-radius: 0.75rem; padding: 1rem; color: #92400e;">
+            <p style="font-size: 0.9rem; margin: 0;">No considerations recorded</p>
+          </div>
+        </div>
+
+        <!-- Top Matches (for general) -->
+        <div id="topMatchesSection" style="display: none; margin-bottom: 1.5rem;">
+          <h6 style="font-weight: 700; color: #333; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-star" style="color: #f59e0b;"></i> Top Breed Recommendations
+          </h6>
+          <div id="modalTopMatches" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 0.75rem; padding: 1rem;">
+            <p style="font-size: 0.9rem; margin: 0; color: #92400e;">No recommendations available</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="padding: 1.5rem; background: rgba(102, 126, 234, 0.02); display: flex; gap: 0.75rem; justify-content: flex-end; flex-shrink: 0; border-top: 1px solid rgba(102, 126, 234, 0.15);">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding: 10px 20px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; color: #333; font-weight: 600; cursor: pointer;">
+          Close
+        </button>
+        <a id="viewDetailsLink" href="#" class="btn btn-primary" style="padding: 10px 20px; border-radius: 6px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; text-decoration: none; cursor: pointer;">
+          <i class="fa-solid fa-external-link-alt"></i> View Full Details
+        </a>
+      </div>
+
+    </div>
+  </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function showMatchDetails(button) {
+    const matchId = button.getAttribute('data-match-id');
+    const matchType = button.getAttribute('data-match-type');
+    const breedName = button.getAttribute('data-breed-name');
+    const score = button.getAttribute('data-score');
+    const createdAt = button.getAttribute('data-created-at');
+    
+    // Parse JSON data
+    let strengthAreas = [];
+    let mismatches = [];
+    let topMatches = [];
+    
+    try {
+      const strengthStr = button.getAttribute('data-strength-areas');
+      strengthAreas = strengthStr ? JSON.parse(strengthStr.replace(/&quot;/g, '"')) : [];
+    } catch (e) {
+      console.error('Error parsing strength areas:', e);
+      strengthAreas = [];
+    }
+    
+    try {
+      const mismatchStr = button.getAttribute('data-mismatches');
+      mismatches = mismatchStr ? JSON.parse(mismatchStr.replace(/&quot;/g, '"')) : [];
+    } catch (e) {
+      console.error('Error parsing mismatches:', e);
+      mismatches = [];
+    }
+    
+    try {
+      const topMatchesStr = button.getAttribute('data-top-matches');
+      topMatches = topMatchesStr ? JSON.parse(topMatchesStr.replace(/&quot;/g, '"')) : [];
+    } catch (e) {
+      console.error('Error parsing top matches:', e);
+      topMatches = [];
+    }
+
+    // Populate modal
+    document.getElementById('modalMatchTitle').textContent = breedName;
+    document.getElementById('modalMatchType').textContent = matchType === 'breed' ? 'Breed Match' : 'General';
+    document.getElementById('modalMatchScore').textContent = score + '%';
+    document.getElementById('modalMatchDate').textContent = createdAt;
+    document.getElementById('modalBreedName').textContent = breedName;
+
+    // Populate strength areas
+    const strengthDiv = document.getElementById('modalStrengthAreas');
+    if (strengthAreas.length > 0) {
+      strengthDiv.innerHTML = strengthAreas.map(area => 
+        `<div style="padding: 0.5rem 0; font-size: 0.9rem;">• ${area}</div>`
+      ).join('');
+    } else {
+      strengthDiv.innerHTML = '<p style="font-size: 0.9rem; margin: 0;">No strengths recorded</p>';
+    }
+
+    // Populate mismatches
+    const mismatchDiv = document.getElementById('modalMismatches');
+    if (mismatches.length > 0) {
+      mismatchDiv.innerHTML = mismatches.map(mismatch => 
+        `<div style="padding: 0.5rem 0; font-size: 0.9rem;">• ${mismatch}</div>`
+      ).join('');
+    } else {
+      mismatchDiv.innerHTML = '<p style="font-size: 0.9rem; margin: 0;">No considerations recorded</p>';
+    }
+
+    // Populate top matches for general type
+    const topMatchesSection = document.getElementById('topMatchesSection');
+    if (matchType === 'general' && topMatches.length > 0) {
+      topMatchesSection.style.display = 'block';
+      const topMatchesDiv = document.getElementById('modalTopMatches');
+      topMatchesDiv.innerHTML = topMatches.map(match => 
+        `<div style="padding: 0.75rem; background: white; border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; color: #333;">${match.breed_name || 'N/A'}</span>
+          <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">${Math.round(match.score || 0)}%</span>
+        </div>`
+      ).join('');
+    } else {
+      topMatchesSection.style.display = 'none';
+    }
+
+    // Set view details link
+    document.getElementById('viewDetailsLink').href = `/matching/results/${matchId}`;
+
+    // Show modal
+    $('#viewMatchModal').modal('show');
+  }
+</script>
 {% endblock %}

@@ -1673,6 +1673,47 @@ a:focus-visible {
   transform: translateY(-2px);
 }
 
+/* ==================== USER STATUS INDICATOR ==================== */
+
+.user-status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #cbd5e1;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-status-indicator.bg-green-400 {
+  background-color: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+.user-status-indicator.status-online {
+  background-color: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+.user-status-indicator.animate-pulse {
+  animation: pulse-status 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-status {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.user-status-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .file-attachment {

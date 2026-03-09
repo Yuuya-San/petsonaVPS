@@ -690,6 +690,34 @@
 
 <script>
   console.log('✅ Script starting...');
+  
+  // ==================== INPUT FIELD LENGTH LIMITS DOCUMENTATION ====================
+  // This form enforces the following input limits to prevent data overflow:
+  //
+  // Text Fields:
+  //   - business_name: 100 characters
+  //   - owner_manager_name: 100 characters
+  //   - contact_email: 100 characters
+  //   - business_address: 200 characters
+  //   - full_address: 300 characters
+  //
+  // Textarea Fields:
+  //   - business_description: 500 characters (with live counter)
+  //
+  // Numeric Fields:
+  //   - contact_phone: 10 digits exactly (no letters, symbols)
+  //   - fullday_hours: 5 characters max
+  //   - halfday_hours: 5 characters max
+  //   - night_checkin_time: 5 characters (time format)
+  //   - night_checkout_time: 5 characters (time format)
+  //   - prices: ₱0.00 to ₱999,999.99
+  //
+  // Protection Methods:
+  //   - maxlength attributes prevent entry beyond limit
+  //   - Paste detection truncates pasted content to fit
+  //   - Real-time validation shows character count for long fields
+  //   - Feedback messages alert user when limit is reached
+  // =========================================================================
 
   // Wait for page to fully load
   window.addEventListener('load', function() {
@@ -835,8 +863,103 @@
     // Users can simply click on the map to place their location marker
   }
 
+  // ==================== INPUT FIELD LENGTH LIMITS ====================
+  function applyInputLimits() {
+    // Define input field limits
+    const inputLimits = {
+      'business_name': 100,
+      'business_description': 500,
+      'owner_manager_name': 100,
+      'contact_email': 100,
+      'business_address': 200,
+      'full_address': 300,
+      'fullday_hours': 5,
+      'halfday_hours': 5,
+      'night_checkin_time': 5,
+      'night_checkout_time': 5
+    };
+    
+    // Apply maxlength to specific fields by name
+    Object.entries(inputLimits).forEach(([fieldName, maxLength]) => {
+      const field = document.querySelector(`[name="${fieldName}"]`);
+      if (field) {
+        field.setAttribute('maxlength', maxLength);
+        console.log(`✅ Applied maxlength=${maxLength} to ${fieldName}`);
+      }
+    });
+    
+    // Apply maxlength to phone input (fixed 10 digits)
+    const phoneInput = document.getElementById('contact_phone_input');
+    if (phoneInput) {
+      phoneInput.setAttribute('maxlength', '10');
+      console.log('✅ Applied maxlength=10 to contact_phone_input');
+    }
+    
+    // Apply maxlength to all textarea fields
+    document.querySelectorAll('textarea').forEach(textarea => {
+      const maxLen = textarea.name.includes('description') ? 1000 : 500;
+      textarea.setAttribute('maxlength', maxLen);
+      // Add character counter
+      setupCharacterCounter(textarea, maxLen);
+      console.log(`✅ Applied maxlength=${maxLen} to textarea: ${textarea.name}`);
+    });
+    
+    // Apply limits to price inputs (max 10 digits before decimal, 2 after)
+    document.querySelectorAll('input[name^="price_"]').forEach(input => {
+      input.setAttribute('maxlength', '10');
+      input.setAttribute('pattern', '[0-9]*(\\.?[0-9]{1,2})?');
+      console.log('✅ Applied limits to price input');
+    });
+    
+    // Add character counters to long text fields
+    const counteredFields = [
+      { name: 'business_description', maxLen: 500 },
+      { name: 'business_address', maxLen: 200 },
+      { name: 'full_address', maxLen: 300 }
+    ];
+    
+    counteredFields.forEach(({ name, maxLen }) => {
+      const field = document.querySelector(`[name="${name}"]`);
+      if (field) {
+        setupCharacterCounter(field, maxLen);
+      }
+    });
+  }
+  
+  function setupCharacterCounter(field, maxLength) {
+    // Add event listener for character count display
+    field.addEventListener('input', function() {
+      const currentLength = this.value.length;
+      const remaining = maxLength - currentLength;
+      
+      // Create or update counter element
+      let counter = this.parentElement.querySelector(`.char-count-${this.name}`);
+      if (!counter) {
+        counter = document.createElement('div');
+        counter.className = `char-count-${this.name} text-xs mt-1 transition-colors`;
+        this.parentElement.appendChild(counter);
+      }
+      
+      // Update counter text
+      counter.textContent = `${currentLength}/${maxLength} characters`;
+      
+      // Change color based on usage
+      if (currentLength >= maxLength * 0.9) {
+        counter.classList.remove('text-gray-500', 'text-yellow-600');
+        counter.classList.add('text-red-600', 'font-semibold');
+      } else if (currentLength >= maxLength * 0.75) {
+        counter.classList.remove('text-gray-500', 'text-red-600');
+        counter.classList.add('text-yellow-600', 'font-semibold');
+      } else {
+        counter.classList.remove('text-yellow-600', 'text-red-600');
+        counter.classList.add('text-gray-500');
+      }
+    });
+  }
+
   // Load provinces on ready
   document.addEventListener('DOMContentLoaded', function() {
+    applyInputLimits();
     loadProvinces();
     
     // Initialize pricing interface based on category selection
@@ -1533,9 +1656,66 @@
       errorEl.style.display = 'none';
     }
   }
+  
+  function showFeedback(field, message) {
+    // Create temporary feedback message
+    const feedback = document.createElement('div');
+    feedback.className = 'text-yellow-600 text-xs font-medium mt-1 animate-pulse';
+    feedback.textContent = message;
+    
+    // Add to field's container
+    const container = field.parentElement;
+    const existingFeedback = container.querySelector('[class*="animate-pulse"]');
+    if (existingFeedback) {
+      existingFeedback.remove();
+    }
+    
+    container.appendChild(feedback);
+    
+    // Remove feedback after 3 seconds
+    setTimeout(() => {
+      feedback.remove();
+    }, 3000);
+  }
 
   // ==================== EVENT LISTENERS ====================
   function setupEventListeners() {
+    // Add input length enforcement to all text inputs and textareas
+    document.querySelectorAll('input[type="text"], input[type="email"], textarea, input[type="number"]').forEach(field => {
+      // Enforce length on input
+      field.addEventListener('input', function(e) {
+        const maxLen = this.maxLength;
+        if (maxLen > 0 && this.value.length > maxLen) {
+          this.value = this.value.substring(0, maxLen);
+          showFeedback(this, '⚠️ Maximum length reached');
+        }
+      });
+      
+      // Prevent paste from exceeding length
+      field.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const maxLen = this.maxLength;
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        const currentValue = this.value;
+        const cursorPos = this.selectionStart;
+        
+        // Calculate what can fit
+        const availableSpace = maxLen - currentValue.length;
+        const textToInsert = pastedText.substring(0, availableSpace);
+        
+        // Insert the text
+        this.value = currentValue.substring(0, cursorPos) + textToInsert + currentValue.substring(cursorPos);
+        this.selectionStart = this.selectionEnd = cursorPos + textToInsert.length;
+        
+        if (availableSpace < pastedText.length) {
+          showFeedback(this, '⚠️ Pasted text was truncated to fit the limit');
+        }
+        
+        // Trigger change event
+        this.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+    
     // Add live validation to all text inputs
     const textFields = ['business_name', 'business_description', 'owner_manager_name', 'contact_email'];
     textFields.forEach(fieldName => {
@@ -1610,6 +1790,7 @@
         // Limit to 10 digits
         if (value.length > 10) {
           value = value.substring(0, 10);
+          showFeedback(this, '⚠️ Maximum 10 digits allowed');
         }
         
         e.target.value = value;
@@ -1631,8 +1812,6 @@
           phoneInput.classList.add('border-purple-300', 'hover:border-purple-600', 'focus:ring-purple-600', 'focus:border-purple-600');
           clearFieldError('contact_phone');
         }
-        
-        validateForm();
       });
       
       phoneInput.addEventListener('blur', function() {
@@ -1647,7 +1826,6 @@
           this.classList.add('border-green-500', 'focus:ring-green-500', 'focus:border-green-600');
           this.classList.remove('border-purple-300', 'hover:border-purple-600', 'focus:ring-purple-600', 'focus:border-purple-600');
         }
-        validateForm();
       });
     }
 
@@ -1660,11 +1838,22 @@
         validateForm();
       });
     }
+    
+    // Agreement checkbox - controls submit button
+    const agreeCheckbox = document.getElementById('agree_terms');
+    if (agreeCheckbox) {
+      agreeCheckbox.addEventListener('change', function() {
+        updateSubmitButtonState();
+        console.log('Agreement checkbox:', this.checked ? '✅ Checked' : '❌ Unchecked');
+      });
+    }
 
     // Pets accepted checkboxes
     document.querySelectorAll('input[name="pets_accepted"]').forEach(checkbox => {
       checkbox.addEventListener('change', function() {
-        validateForm();
+        // Don't call validateForm here as it controls submit button
+        // Just update pricing UI
+        savePricingToJSON();
       });
     });
     
@@ -1681,7 +1870,17 @@
     // Custom duration hours input
     const customDurationInput = document.getElementById('customDurationInput');
     if (customDurationInput) {
+      customDurationInput.setAttribute('maxlength', '5');
       customDurationInput.addEventListener('input', function() {
+        // Ensure only numbers and decimal
+        this.value = this.value.replace(/[^0-9.]/g, '');
+        
+        // Prevent multiple decimals
+        const decimalCount = (this.value.match(/\./g) || []).length;
+        if (decimalCount > 1) {
+          this.value = this.value.substring(0, this.value.length - 1);
+        }
+        
         const validation = validateField(this.name, this.value);
         if (validation.valid) {
           clearFieldError(this.name);
@@ -1707,10 +1906,17 @@
       });
     });
     
-    // Price inputs - save to JSON
+    // Price inputs - save to JSON and enforce max value
     document.addEventListener('input', function(e) {
       if (e.target.name && e.target.name.startsWith('price_')) {
+        // Enforce max value of 999,999.99
         if (e.target.value) {
+          const maxPrice = 999999.99;
+          const value = parseFloat(e.target.value);
+          if (value > maxPrice) {
+            e.target.value = maxPrice;
+            showFeedback(e.target, `⚠️ Maximum price is ₱${maxPrice.toFixed(2)}`);
+          }
           e.target.classList.remove('border-red-400');
           e.target.classList.add('border-green-300');
         }
@@ -1754,35 +1960,64 @@
   function initializeFormValidation() {
     const form = document.getElementById('merchantForm');
     const submitBtn = document.getElementById('submitBtn');
+    const agreeCheckbox = document.getElementById('agree_terms');
     
-    if (!form || !submitBtn) {
-      console.error('❌ Form or submit button not found');
+    if (!form || !submitBtn || !agreeCheckbox) {
+      console.error('❌ Form, submit button, or agreement checkbox not found');
       return;
     }
     
     console.log('🔧 Form validation initialized');
     
-    // Always enable submit button
-    submitBtn.disabled = false;
-    submitBtn.style.opacity = '1';
-    submitBtn.style.cursor = 'pointer';
+    // Start with submit button DISABLED
+    updateSubmitButtonState();
+    
+    // Listen for checkbox changes
+    agreeCheckbox.addEventListener('change', updateSubmitButtonState);
+  }
+  
+  function updateSubmitButtonState() {
+    const submitBtn = document.getElementById('submitBtn');
+    const agreeCheckbox = document.getElementById('agree_terms');
+    
+    if (!submitBtn || !agreeCheckbox) return;
+    
+    if (agreeCheckbox.checked) {
+      // Enable button
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+      submitBtn.style.backgroundColor = '';
+      submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      console.log('✅ Submit button enabled');
+    } else {
+      // Disable button
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'not-allowed';
+      submitBtn.style.backgroundColor = '#e9d5ff';
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      console.log('🔒 Submit button disabled - please check "I agree" to continue');
+    }
   }
 
   function validateForm() {
     const form = document.getElementById('merchantForm');
     const submitBtn = document.getElementById('submitBtn');
     const msgDiv = document.getElementById('validationMsg');
+    const agreeCheckbox = document.getElementById('agree_terms');
     
     if (!submitBtn) {
       console.warn('⚠️ Submit button not found');
       return;
     }
     
-    // Always enable submit button
-    submitBtn.disabled = false;
-    submitBtn.style.opacity = '1';
-    submitBtn.style.cursor = 'pointer';
-    msgDiv.classList.add('hidden');
+    // Only update button state based on checkbox - don't auto-enable
+    updateSubmitButtonState();
+    
+    if (msgDiv) {
+      msgDiv.classList.add('hidden');
+    }
   }
 
   function checkAllFields() {
@@ -1799,7 +2034,7 @@
     const category = getInputValue('business_category');
     if (!category) { debugInfo.push('❌ business_category'); return logAndReturn(debugInfo); }
 
-    // Location fields
+    // Location fields - preserve these on error
     if (!getInputValue('province')) { debugInfo.push('❌ province missing'); return logAndReturn(debugInfo); }
     if (!getInputValue('city')) { debugInfo.push('❌ city missing'); return logAndReturn(debugInfo); }
     if (!getInputValue('barangay')) { debugInfo.push('❌ barangay missing'); return logAndReturn(debugInfo); }
@@ -1856,9 +2091,12 @@
     const photoCount = photosInput?.files?.length || 0;
     if (photoCount < 3) { debugInfo.push(`❌ need 3+ facility photos (have ${photoCount})`); return logAndReturn(debugInfo); }
 
-    // Agreement checkbox
+    // Agreement checkbox - already enforced in submit handler, just verify
     const agreeCheckbox = document.getElementById('agree_terms');
-    if (!agreeCheckbox || !agreeCheckbox.checked) { debugInfo.push('❌ agreement checkbox not checked'); return logAndReturn(debugInfo); }
+    if (!agreeCheckbox || !agreeCheckbox.checked) { 
+      debugInfo.push('❌ agreement checkbox not checked'); 
+      return logAndReturn(debugInfo); 
+    }
 
     console.log('✅✅✅ ALL FIELDS VALID - FORM READY TO SUBMIT ✅✅✅');
     return true;
@@ -1884,6 +2122,15 @@
     if (!form || !submitBtn) return;
     
     form.addEventListener('submit', function(e) {
+      // Check if agreement checkbox is checked before allowing submit
+      const agreeCheckbox = document.getElementById('agree_terms');
+      if (!agreeCheckbox || !agreeCheckbox.checked) {
+        e.preventDefault();
+        alert('Please agree to the terms and conditions to continue.');
+        agreeCheckbox.focus();
+        return false;
+      }
+      
       // Save pricing JSON before submitting
       savePricingToJSON();
       
@@ -1891,6 +2138,7 @@
       submitBtn.disabled = true;
       submitBtn.style.opacity = '0.7';
       submitBtn.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i>Submitting...';
+      console.log('📤 Form submitted with data preserved');
       
       // Allow form to submit
       return true;

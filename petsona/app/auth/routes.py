@@ -1,6 +1,7 @@
 
 from app.models.species import Species
 from app.models.breed import Breed
+from app.models import BackupCode
 
 from flask import g, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user # pyright: ignore[reportMissingImports]
@@ -12,7 +13,7 @@ from itsdangerous import URLSafeTimedSerializer
 import random
 from datetime import datetime, timedelta
 from ..extensions import limiter
-from .emails import send_password_reset_email
+from .emails import send_password_reset_email, send_backup_codes_email
 from app.utils.audit import log_event, user_snapshot
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 import pyotp
@@ -166,7 +167,8 @@ def verify_otp():
                 first_name=reg['first_name'],
                 last_name=reg['last_name'],
                 photo_url=reg.get('photo_url'),
-                role='user'
+                role='user',
+                registration_method='system'
             )
 
             user.set_password(reg['password'])
@@ -277,7 +279,8 @@ def google_callback():
                 first_name=first_name.strip(),
                 last_name=last_name.strip(),
                 photo_url=avatar_url,
-                role='user'
+                role='user',
+                registration_method='google'
             )
             user.set_password(secrets.token_urlsafe(32))
             db.session.add(user)
@@ -285,7 +288,13 @@ def google_callback():
             log_event('user.register_google', details={'user': user_snapshot(user)})
             flash(f'✓ Account created with {email}. Welcome to Petsona!', 'success')
         else:
-            # User exists - just login
+            # User exists - check if they registered via Google
+            if user.registration_method != 'google':
+                flash('This account was created using email registration. Please use the login form to sign in.', 'danger')
+                log_event('user.login_google_failed', details={'email': email, 'reason': 'wrong_registration_method', 'registration_method': user.registration_method})
+                return redirect(url_for('auth.login'))
+            
+            # User exists and registered via Google - just login
             log_event('user.login_google', details={'email': email})
         
         # Log in the user
@@ -331,6 +340,12 @@ def login():
             log_event('user.login_failed', details={**base_meta, 'reason': 'no_user'})
             flash('Invalid email or password.', 'danger')
             return redirect(url_for('auth.login'))
+        
+        # Check if user registered via Google - they must use Google login
+        if user.registration_method == 'google':
+            log_event('user.login_failed', details={**base_meta, 'reason': 'google_account_must_use_google_login'})
+            flash('This account was created using Google Sign-In. Please use the Google login button instead.', 'danger')
+            return redirect(url_for('auth.login'))
 
         # Lockout check
         if user.lockout_until and user.lockout_until > get_ph_datetime():
@@ -341,11 +356,11 @@ def login():
         if user.check_password(form.password.data):
             # 2FA check (if enabled)
             if user.is_2fa_enabled:
-                code = form.two_factor_code.data or ''
-                if not code or not user.totp_secret or not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
-                    log_event('user.login_failed_2fa', details={'email': email, 'reason': '2fa_failed'})
-                    flash('2FA code required or invalid.', 'danger')
-                    return redirect(url_for('auth.login'))
+                # Store user info in session for 2FA verification
+                session['pending_2fa_user_id'] = user.id
+                session['pending_2fa_login_type'] = 'user'
+                log_event('user.login_pending_2fa', details={'email': email})
+                return redirect(url_for('auth.verify_2fa'))
 
             # Success: reset counters
             user.failed_login_attempts = 0
@@ -438,18 +453,11 @@ def admin_login():
 
             # 2FA check
             if user.is_2fa_enabled:
-                code = (form.two_factor_code.data or '').strip()
-                if (
-                    not code
-                    or not user.totp_secret
-                    or not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1)
-                ):
-                    log_event(
-                        'admin.login_failed_2fa',
-                        details={'email': email, 'reason': '2fa_failed'}
-                    )
-                    flash('Invalid or missing 2FA code.', 'danger')
-                    return redirect(url_for('auth.admin_login'))
+                # Store user info in session for 2FA verification
+                session['pending_2fa_user_id'] = user.id
+                session['pending_2fa_login_type'] = 'admin'
+                log_event('admin.login_pending_2fa', details={'email': email})
+                return redirect(url_for('auth.verify_2fa'))
 
             # Successful login
             user.failed_login_attempts = 0
@@ -500,6 +508,105 @@ def admin_login():
             flash(error, 'danger')
 
     return render_template('auth/admin_login.html', form=form)
+
+
+@bp.route('/verify-2fa', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
+def verify_2fa():
+    """Verify 2FA code after successful password entry."""
+    # Check if user has a pending 2FA verification
+    if 'pending_2fa_user_id' not in session:
+        flash('No pending 2FA verification. Please log in again.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    user_id = session.get('pending_2fa_user_id')
+    login_type = session.get('pending_2fa_login_type', 'user')
+    user = User.query.get(user_id)
+    
+    if not user:
+        flash('User not found. Please log in again.', 'danger')
+        session.pop('pending_2fa_user_id', None)
+        session.pop('pending_2fa_login_type', None)
+        return redirect(url_for('auth.login'))
+    
+    if not user.is_2fa_enabled or not user.totp_secret:
+        flash('2FA is not enabled for this account.', 'danger')
+        session.pop('pending_2fa_user_id', None)
+        session.pop('pending_2fa_login_type', None)
+        return redirect(url_for('auth.login'))
+    
+    if request.method == 'POST':
+        code = request.form.get('two_factor_code', '').strip()
+        
+        if not code or len(code) < 6:
+            flash('Please enter a valid code.', 'warning')
+            return render_template('auth/verify_2fa.html', email=user.email)
+        
+        # Try TOTP verification first (authenticator app)
+        if len(code) == 6 and code.isdigit():
+            if pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
+                # TOTP code verified successfully
+                session_token = secrets.token_urlsafe(32)
+                user.failed_login_attempts = 0
+                user.lockout_until = None
+                user.session_token = session_token
+                db.session.commit()
+                
+                session['session_token'] = session_token
+                session.pop('pending_2fa_user_id', None)
+                session.pop('pending_2fa_login_type', None)
+                
+                login_user(user)
+                log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr, '2fa': 'verified'})
+                flash('✓ Login successful!', 'success')
+                
+                # Redirect based on role
+                if user.role == 'user':
+                    return redirect(url_for('user.dashboard'))
+                elif user.role == 'merchant':
+                    return redirect(url_for('merchant.dashboard'))
+                elif user.role == 'admin':
+                    return redirect(url_for('admin.dashboard'))
+                else:
+                    return redirect(url_for('auth.login'))
+            else:
+                log_event('user.login_failed_2fa', details={'email': user.email, 'reason': '2fa_invalid'})
+                flash('Invalid 2FA code. Please try again.', 'danger')
+                return render_template('auth/verify_2fa.html', email=user.email)
+        
+        # Try backup code (with dashes)
+        else:
+            if BackupCode.verify_code(user_id, code):
+                # Backup code verified successfully
+                session_token = secrets.token_urlsafe(32)
+                user.failed_login_attempts = 0
+                user.lockout_until = None
+                user.session_token = session_token
+                db.session.commit()
+                
+                session['session_token'] = session_token
+                session.pop('pending_2fa_user_id', None)
+                session.pop('pending_2fa_login_type', None)
+                
+                login_user(user)
+                log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr, '2fa': 'backup_code'})
+                flash('✓ Login successful! (Backup code used)', 'success')
+                
+                # Redirect based on role
+                if user.role == 'user':
+                    return redirect(url_for('user.dashboard'))
+                elif user.role == 'merchant':
+                    return redirect(url_for('merchant.dashboard'))
+                elif user.role == 'admin':
+                    return redirect(url_for('admin.dashboard'))
+                else:
+                    return redirect(url_for('auth.login'))
+            else:
+                log_event('user.login_failed_2fa', details={'email': user.email, 'reason': 'backup_code_invalid'})
+                flash('Invalid code. Use your 6-digit authenticator code or a backup code.', 'danger')
+                return render_template('auth/verify_2fa.html', email=user.email)
+    
+    return render_template('auth/verify_2fa.html', email=user.email)
 
 
 @bp.route('/logout')

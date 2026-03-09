@@ -128,6 +128,10 @@ def create_app(config_class: type = Config):
     from .notifications_api import notifications_bp
     app.register_blueprint(notifications_bp)
 
+    # ACCOUNT API BLUEPRINT
+    from .account_api import bp as account_api_bp
+    app.register_blueprint(account_api_bp)
+
     # SOCKET.IO EVENTS
     from . import socket_events
 

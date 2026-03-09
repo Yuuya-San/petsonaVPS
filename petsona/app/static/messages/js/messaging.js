@@ -16,6 +16,12 @@ class MessagingApp {
     this.isSending = false;
     this.parseMediaHandler = null;
     this.pendingParseMessages = new Set();
+    
+    // Status tracking intervals
+    this.heartbeatInterval = null;
+    this.statusRefreshInterval = null;
+    this.statusRequestInterval = null;
+    
     this.init();
   }
 
@@ -27,6 +33,26 @@ class MessagingApp {
     
     // Parse initial messages after initialization
     this.parseInitialMessages();
+    
+    // Cleanup on page leave
+    window.addEventListener('beforeunload', () => {
+      this.cleanup();
+    });
+  }
+
+  cleanup() {
+    // Clear all intervals
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    if (this.statusRefreshInterval) clearInterval(this.statusRefreshInterval);
+    if (this.statusRequestInterval) clearInterval(this.statusRequestInterval);
+    
+    // Mark user as inactive when leaving page
+    if (this.socket && this.socket.connected && this.currentConversationId) {
+      this.socket.emit('user_inactive', {
+        conversation_id: this.currentConversationId
+      });
+      console.log('👋 Marked user as inactive on page leave');
+    }
   }
 
   parseInitialMessages() {
@@ -149,6 +175,16 @@ class MessagingApp {
 
     this.socket.on('user_stopped_typing', (data) => {
       this.hideTypingIndicator(data);
+    });
+
+    this.socket.on('user_status_changed', (data) => {
+      console.log('🟢 Received user_status_changed event:', data);
+      this.updateUserStatus(data);
+    });
+
+    this.socket.on('user_status', (data) => {
+      console.log('👤 Received user_status event:', data);
+      this.updateUserStatus(data);
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -931,6 +967,89 @@ class MessagingApp {
     console.log('✋ User stopped typing');
   }
 
+  updateUserStatus(statusData) {
+    try {
+      const statusEl = document.querySelector('.user-status-indicator');
+      const statusTextEl = document.querySelector('.user-status-text');
+      
+      if (!statusEl || !statusTextEl) {
+        console.log('⚠️ Status elements not found');
+        return;
+      }
+
+      const { is_online, timestamp } = statusData;
+      
+      let shouldShowActive = false;
+      
+      // SIMPLE RULE: Show "Active now" ONLY if BOTH true:
+      // 1. is_online = true (user has activity/connection)
+      // 2. timestamp < 5 minutes
+      if (is_online && timestamp) {
+        const lastSeenDate = new Date(timestamp);
+        const now = new Date();
+        const minutesDiff = (now - lastSeenDate) / (1000 * 60);
+        
+        console.log(`⏱️ Last seen: ${minutesDiff.toFixed(1)}m ago, is_online: ${is_online}`);
+        
+        if (minutesDiff < 5) {
+          shouldShowActive = true;
+        }
+      }
+
+      if (shouldShowActive) {
+        // Show "Active now" - green indicator
+        statusEl.classList.remove('bg-slate-300', 'bg-gray-400');
+        statusEl.classList.add('bg-green-400', 'animate-pulse');
+        statusTextEl.textContent = 'Active now';
+        console.log(`🟢 ACTIVE NOW`);
+      } else {
+        // Show offline with time - gray indicator
+        statusEl.classList.remove('bg-green-400', 'animate-pulse');
+        statusEl.classList.add('bg-slate-300');
+        
+        if (timestamp) {
+          statusTextEl.dataset.lastSeenTimestamp = timestamp;
+          this.updateOfflineStatusText(statusTextEl, timestamp);
+        } else {
+          statusTextEl.textContent = 'Offline';
+        }
+        console.log(`⚫ OFFLINE`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error updating status:', error);
+    }
+  }
+
+  updateOfflineStatusText(statusTextEl, timestamp) {
+    // Update the offline status text with live time difference
+    try {
+      const lastSeenDate = new Date(timestamp);
+      const now = new Date();
+      const diffSeconds = Math.floor((now - lastSeenDate) / 1000);
+      
+      let displayText = '';
+      
+      if (diffSeconds < 60) {
+        displayText = 'Just now';
+      } else if (diffSeconds < 3600) {
+        const minutes = Math.floor(diffSeconds / 60);
+        displayText = minutes === 1 ? '1m ago' : `${minutes}m ago`;
+      } else if (diffSeconds < 86400) {
+        const hours = Math.floor(diffSeconds / 3600);
+        displayText = hours === 1 ? '1h ago' : `${hours}h ago`;
+      } else {
+        const days = Math.floor(diffSeconds / 86400);
+        displayText = days === 1 ? '1d ago' : `${days}d ago`;
+      }
+      
+      statusTextEl.textContent = displayText;
+    } catch (error) {
+      console.error('❌ Error updating offline text:', error);
+      statusTextEl.textContent = 'Offline';
+    }
+  }
+
   // ==================== UI UTILITIES ====================
 
   showNotification(message, type = 'info') {
@@ -1151,7 +1270,142 @@ class MessagingApp {
       this.currentConversationId = parseInt(convId);
       console.log(`📋 Current conversation ID: ${this.currentConversationId}`);
     }
+
+    // Get other user ID
+    const otherUserIdEl = document.querySelector('[data-other-user-id]');
+    const otherUserId = otherUserIdEl ? parseInt(otherUserIdEl.dataset.otherUserId) : null;
+
+    if (!otherUserId) {
+      console.error('❌ Could not find other user ID');
+      return;
+    }
+
+    // Request other user's current status immediately if socket is ready
+    const requestStatus = () => {
+      if (this.socket && this.socket.connected) {
+        console.log(`👤 Requesting status for user ${otherUserId}...`);
+        this.socket.emit('get_user_status', { user_id: otherUserId });
+      } else {
+        console.log('⏳ Socket not connected yet, retrying status request...');
+        setTimeout(requestStatus, 300);
+      }
+    };
+
+    requestStatus();
+
+    // Notify server that user is online in this conversation
+    const notifyOnline = () => {
+      if (this.socket && this.socket.connected && this.currentConversationId) {
+        this.socket.emit('user_online', {
+          conversation_id: this.currentConversationId,
+          other_user_id: otherUserId
+        });
+        console.log('🟢 Notified server user is online');
+      } else {
+        setTimeout(notifyOnline, 300);
+      }
+    };
+
+    notifyOnline();
+
+    // Set up activity tracking for online/offline status
+    this.setupActivityTracking(otherUserId);
+
+    // Set up frequent periodic heartbeats to keep user status fresh (every 20 seconds)
+    this.heartbeatInterval = setInterval(() => {
+      if (this.socket && this.socket.connected && this.currentConversationId) {
+        this.socket.emit('user_online', {
+          conversation_id: this.currentConversationId,
+          other_user_id: otherUserId
+        });
+        console.log('💓 Heartbeat: User online');
+      }
+    }, 20000);
+
+    // Set up frequent status text refresh for offline users (every 10 seconds)
+    this.statusRefreshInterval = setInterval(() => {
+      const statusTextEl = document.querySelector('.user-status-text');
+      const statusEl = document.querySelector('.user-status-indicator');
+      
+      if (statusTextEl && statusTextEl.dataset.lastSeenTimestamp && !statusEl.classList.contains('status-online')) {
+        this.updateOfflineStatusText(statusTextEl, statusTextEl.dataset.lastSeenTimestamp);
+        console.log('🔄 Auto-refresh: Updated offline status text');
+      }
+    }, 10000);
+
+    // Request status more frequently to ensure 5-minute offline threshold is properly detected (every 3 seconds)
+    this.statusRequestInterval = setInterval(() => {
+      if (this.socket && this.socket.connected && otherUserId) {
+        this.socket.emit('get_user_status', { user_id: otherUserId });
+        console.log('🔎 Auto-refresh: Requested latest status');
+      }
+    }, 3000);
   }
+
+  setupActivityTracking(otherUserId) {
+    // Set up tracking for user inactivity and online status
+    let inactivityTimeout;
+    const inactivityDuration = 3 * 60 * 1000; // 3 minutes for demo (normally 5)
+
+    const resetActivityTimer = () => {
+      clearTimeout(inactivityTimeout);
+
+      // Notify server that user is active WITH MORE FREQUENCY
+      if (this.socket && this.socket.connected && this.currentConversationId) {
+        this.socket.emit('user_online', {
+          conversation_id: this.currentConversationId,
+          other_user_id: otherUserId
+        });
+      }
+
+      // Set inactivity timer - shorter for faster detection
+      inactivityTimeout = setTimeout(() => {
+        console.log('⏱️ User idle for 3 minutes, marking as inactive');
+        if (this.socket && this.socket.connected && this.currentConversationId) {
+          this.socket.emit('user_inactive', {
+            conversation_id: this.currentConversationId
+          });
+        }
+      }, inactivityDuration);
+    };
+
+    // Track user activity with aggressive debouncing (500ms)
+    let activityThrottle = false;
+    const throttledActivity = () => {
+      if (!activityThrottle) {
+        resetActivityTimer();
+        activityThrottle = true;
+        setTimeout(() => { activityThrottle = false; }, 500); // More frequent checks
+      }
+    };
+
+    document.addEventListener('mousemove', throttledActivity, true);
+    document.addEventListener('keydown', throttledActivity, true);
+    document.addEventListener('click', throttledActivity, true);
+    document.addEventListener('scroll', throttledActivity, true);
+    document.addEventListener('focus', throttledActivity, true);
+    document.addEventListener('input', throttledActivity, true);
+
+    // Track page visibility
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        console.log('📵 Page hidden, marking user as inactive');
+        if (this.socket && this.socket.connected && this.currentConversationId) {
+          this.socket.emit('user_inactive', {
+            conversation_id: this.currentConversationId
+          });
+        }
+        clearTimeout(inactivityTimeout);
+      } else {
+        console.log('📱 Page visible, marking user as online');
+        resetActivityTimer();
+      }
+    });
+
+    // Initialize the timer
+    resetActivityTimer();
+  }
+
 }
 
 // Global helper functions

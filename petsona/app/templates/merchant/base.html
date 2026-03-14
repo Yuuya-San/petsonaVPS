@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/compatibility-scores.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flash-messages.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 
     <!-- Alpine -->
@@ -68,7 +69,7 @@
                         {% if messages %}
                             <div class="flash-container">
                                 {% for category, message in messages %}
-                                    <div class="flash flash-{{ category }}">
+                                    <div class="flash flash-{{ category }}" data-dismiss-time="6400">
                                         <div class="flash-icon">
                                             {% if category == 'success' %}
                                                 <i class="fas fa-check-circle"></i>
@@ -80,8 +81,8 @@
                                                 <i class="fas fa-info-circle"></i>
                                             {% endif %}
                                         </div>
-                                        <div>{{ message }}</div>
-                                        <button class="flash-close">
+                                        <div class="flash-content">{{ message }}</div>
+                                        <button class="flash-close" aria-label="Close notification">
                                             <i class="fas fa-times"></i>
                                         </button>
                                     </div>
@@ -127,16 +128,39 @@ window.addEventListener('load', () => {
 });
 </script>
 
-<!-- ================= FLASH AUTO DISMISS ================= -->
+<!-- ================= FLASH AUTO DISMISS WITH COUNTDOWN ================= -->
 <script>
 document.querySelectorAll('.flash').forEach(flash => {
-    const timeout = setTimeout(() => {
-        flash.remove();
-    }, 6400);
+    const dismissTime = parseInt(flash.dataset.dismissTime || '6400');
+    let startTime = Date.now();
+    let frameId = null;
 
-    flash.querySelector('.flash-close')?.addEventListener('click', () => {
-        clearTimeout(timeout);
-        flash.remove();
+    // Remove flash with smooth animation
+    const removeFlash = () => {
+        flash.style.animation = 'flashSlideOut 0.5s ease-in forwards';
+        setTimeout(() => flash.remove(), 500);
+    };
+
+    // Handle close button click
+    flash.querySelector('.flash-close')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (frameId) cancelAnimationFrame(frameId);
+        removeFlash();
+    });
+
+    // Auto dismiss after dismiss time
+    const autoTimeout = setTimeout(removeFlash, dismissTime);
+
+    // Pause on hover
+    flash.addEventListener('mouseenter', () => {
+        if (frameId) cancelAnimationFrame(frameId);
+        clearTimeout(autoTimeout);
+        flash.style.animationPlayState = 'paused';
+    });
+
+    flash.addEventListener('mouseleave', () => {
+        flash.style.animationPlayState = 'running';
     });
 });
 

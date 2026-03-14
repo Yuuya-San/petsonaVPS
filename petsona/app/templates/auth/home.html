@@ -11,13 +11,15 @@
 
 .hero {
   position: relative;
-  min-height: 100svh;
+  height: calc(100vh - 80px);
   width: 100vw;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: clamp(2rem, 5vw, 6rem) clamp(1rem, 4vw, 8rem);
   overflow: hidden;
+  margin: 0 !important;
+  padding: clamp(2rem, 5vw, 6rem) clamp(1rem, 4vw, 8rem) !important;
 }
 
 /* True fullscreen background */

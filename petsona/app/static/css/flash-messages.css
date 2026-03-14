@@ -1,0 +1,464 @@
+/* ================= FLASH MESSAGES - IMPROVED DESIGN ================= */
+
+:root {
+    --flash-success-color: #10b981;
+    --flash-danger-color: #ef4444;
+    --flash-warning-color: #f59e0b;
+    --flash-info-color: #3b82f6;
+    --flash-bg: #ffffff;
+    --flash-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Container - Position Below Navbar, Top Right */
+.flash-container {
+    position: fixed;
+    top: 74px; /* Below navbar (56px) + padding */
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: calc(100vw - 40px);
+    pointer-events: none; /* Allow clicks to pass through to page */
+}
+
+/* Individual Flash Message */
+.flash {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--flash-bg);
+    padding: 16px 18px;
+    border-radius: 12px;
+    min-width: 300px;
+    max-width: 420px;
+    box-shadow: var(--flash-shadow);
+    border-left: 5px solid;
+    position: relative;
+    overflow: hidden;
+    pointer-events: auto;
+    animation: flashSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+              flashSlideOut 0.5s ease-in 6s forwards;
+}
+
+/* Countdown Progress Bar */
+.flash::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.6;
+    animation: countdownBar 6s linear forwards;
+}
+
+/* Flash Status Colors */
+.flash-success {
+    border-left-color: var(--flash-success-color);
+    color: var(--flash-success-color);
+}
+
+.flash-danger {
+    border-left-color: var(--flash-danger-color);
+    color: var(--flash-danger-color);
+}
+
+.flash-warning {
+    border-left-color: var(--flash-warning-color);
+    color: var(--flash-warning-color);
+}
+
+.flash-info {
+    border-left-color: var(--flash-info-color);
+    color: var(--flash-info-color);
+}
+
+/* Icon */
+.flash-icon {
+    flex-shrink: 0;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-top: 2px;
+    animation: iconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+.flash-icon i {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Message Content */
+.flash-content {
+    font-size: 0.975rem;
+    line-height: 1.5;
+    color: #374151;
+    word-break: break-word;
+    flex: 1;
+    animation: textSlideIn 0.6s ease-out 0.15s both;
+}
+
+/* Close Button */
+.flash-close {
+    background: none;
+    border: none;
+    margin-left: auto;
+    margin-top: -2px;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 1.2rem;
+    padding: 4px 6px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+}
+
+.flash-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #6b7280;
+    transform: rotate(90deg);
+}
+
+/* Countdown Timer Display */
+.flash-countdown {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 6px;
+    text-align: center;
+    opacity: 0.7;
+    animation: countdownFade 6s linear forwards;
+}
+
+/* ================= ANIMATIONS ================= */
+
+/* Slide In - Bounce Effect */
+@keyframes flashSlideIn {
+    0% {
+        transform: translateX(420px) translateY(-20px);
+        opacity: 0;
+    }
+    60% {
+        transform: translateX(-8px) translateY(0);
+        opacity: 1;
+    }
+    80% {
+        transform: translateX(4px) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(0) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Slide Out - Fade */
+@keyframes flashSlideOut {
+    0% {
+        transform: translateX(0) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(420px) translateY(-20px);
+        opacity: 0;
+    }
+}
+
+/* Icon Pop Animation */
+@keyframes iconPop {
+    0% {
+        transform: scale(0) rotate(-45deg);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.15) rotate(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
+}
+
+/* Text Slide In */
+@keyframes textSlideIn {
+    0% {
+        transform: translateX(-12px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Countdown Bar Animation */
+@keyframes countdownBar {
+    0% {
+        width: 100%;
+    }
+    100% {
+        width: 0%;
+    }
+}
+
+/* Countdown Fade */
+@keyframes countdownFade {
+    0%, 95% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* ================= RESPONSIVE DESIGN ================= */
+
+/* Large Desktop (1920px and up) */
+@media (min-width: 1920px) {
+    .flash-container {
+        top: 80px;
+        right: 32px;
+    }
+
+    .flash {
+        min-width: 320px;
+        max-width: 480px;
+    }
+}
+
+/* Standard Desktop (1024px - 1919px) */
+@media (min-width: 1024px) and (max-width: 1919px) {
+    .flash-container {
+        top: 74px;
+        right: 20px;
+    }
+
+    .flash {
+        min-width: 300px;
+        max-width: 420px;
+    }
+}
+
+/* Tablet Landscape (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .flash-container {
+        top: 70px;
+        right: 16px;
+        left: auto;
+        max-width: none;
+    }
+
+    .flash {
+        min-width: 280px;
+        max-width: 380px;
+        padding: 15px 16px;
+    }
+
+    .flash-content {
+        font-size: 0.92rem;
+    }
+
+    .flash-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 1.3rem;
+    }
+
+    .flash-close {
+        width: 26px;
+        height: 26px;
+        font-size: 1.1rem;
+    }
+}
+
+/* Tablet Portrait (600px - 767px) */
+@media (min-width: 600px) and (max-width: 767px) {
+    .flash-container {
+        top: 68px;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100vw - 24px);
+        max-width: calc(100vw - 24px);
+    }
+
+    .flash {
+        min-width: unset;
+        max-width: none;
+        padding: 14px 16px;
+    }
+
+    .flash-content {
+        font-size: 0.91rem;
+    }
+
+    .flash-icon {
+        width: 25px;
+        height: 25px;
+        font-size: 1.25rem;
+    }
+
+    @keyframes flashSlideIn {
+        0% {
+            transform: translateY(-30px);
+            opacity: 0;
+        }
+        60% {
+            transform: translateY(4px);
+            opacity: 1;
+        }
+        80% {
+            transform: translateY(-2px);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes flashSlideOut {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-30px);
+            opacity: 0;
+        }
+    }
+}
+
+/* Large Mobile (480px - 599px) */
+@media (min-width: 480px) and (max-width: 599px) {
+    .flash-container {
+        top: 65px;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+    }
+
+    .flash {
+        min-width: unset;
+        max-width: none;
+        padding: 13px 15px;
+        gap: 12px;
+    }
+
+    .flash-content {
+        font-size: 0.89rem;
+    }
+
+    .flash-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 1.2rem;
+    }
+
+    .flash-close {
+        width: 24px;
+        height: 24px;
+        font-size: 1.05rem;
+    }
+
+    @keyframes flashSlideIn {
+        0% {
+            transform: translateY(-28px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes flashSlideOut {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-28px);
+            opacity: 0;
+        }
+    }
+}
+
+/* Small Mobile (360px - 479px) */
+@media (max-width: 479px) {
+    .flash-container {
+        top: 60px;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100vw - 16px);
+        max-width: calc(100vw - 16px);
+        gap: 10px;
+    }
+
+    .flash {
+        min-width: unset;
+        max-width: none;
+        padding: 12px 14px;
+        gap: 10px;
+        border-radius: 10px;
+    }
+
+    .flash-icon {
+        width: 22px;
+        height: 22px;
+        font-size: 1.1rem;
+        margin-top: 1px;
+    }
+
+    .flash-content {
+        font-size: 0.87rem;
+        line-height: 1.4;
+    }
+
+    .flash-close {
+        width: 22px;
+        height: 22px;
+        font-size: 1rem;
+        padding: 2px 4px;
+    }
+
+    @keyframes flashSlideIn {
+        0% {
+            transform: translateY(-25px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes flashSlideOut {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-25px);
+            opacity: 0;
+        }
+    }
+}

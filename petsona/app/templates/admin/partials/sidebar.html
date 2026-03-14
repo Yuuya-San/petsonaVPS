@@ -18,7 +18,6 @@
           </a>
         </li>
 
-        <!-- Users -->
         <li class="nav-item">
           <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
             <i class="nav-icon fas fa-users"></i>
@@ -33,8 +32,9 @@
         </li>
         <li class="nav-item">
           <a href="{{ url_for('admin.merchant_applications') }}" class="nav-link {% if request.endpoint == 'admin.merchant_applications' %}active{% endif %}">
-            <i class="nav-icon fas fa-list"></i>
+            <i class="nav-icon fa-solid fa-address-card"></i>
             <p>Pending Applications</p>
+            
           </a>
         </li>
         <li class="nav-item">
@@ -44,12 +44,10 @@
           </a>
         </li>
 
-        <!-- Pets -->
         <li class="nav-item">
           <a href="{{ url_for('pets.species_index') }}"
             class="nav-link {% if request.path.startswith('/pets/species') %}active{% endif %}">
-            
-            <i class="nav-icon fas fa-paw"></i>
+            <i class="nav-icon fa-solid fa-database"></i>
             <p>Pet Database</p>
           </a>
         </li>
@@ -61,12 +59,11 @@
         </li>
         <li class="nav-item">
           <a href="{{ url_for('pets.archived_items') }}" class="nav-link {% if request.endpoint == 'pets.archived_items' %}active{% endif %}">
-            <i class="nav-icon fas fa-paw"></i>
+            <i class="nav-icon fa-solid fa-folder-minus"></i>
             <p>Archived Pets</p>
           </a>
         </li>
 
-        <!-- System Audits -->
         <li class="nav-item">
           <a href="{{ url_for('admin.audit_logs') }}" class="nav-link {% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">
             <i class="nav-icon fas fa-file-alt"></i>
@@ -75,7 +72,7 @@
         </li>
         <li class="nav-item">
           <a href="{{ url_for('admin.archive_audit_logs') }}" class="nav-link {% if request.endpoint == 'admin.archive_audit_logs' %}active{% endif %}">
-            <i class="nav-icon fas fa-archive"></i>
+            <i class="nav-icon fa-solid fa-file-zipper"></i>
             <p>Archive Audit</p>
           </a>
         </li>
@@ -95,6 +92,28 @@
 
 <!-- CSS for tab underline -->
 <style>
+  /* ================= SCROLLBAR STYLING ================= */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #8C00FF;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7a00d9;
+  }
+  /* Firefox scrollbar */
+  .sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: #8C00FF transparent;
+  }
+
   .nav-link {
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
@@ -105,5 +124,20 @@
   }
   .nav-link.active i {
     color: #8C00FF;
+  }
+  .nav-header {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8C00FF;
+  }
+  .nav-header::after {
+    content: '';
+    flex-grow: 1;
+    margin-left: 8px;
+    border-bottom: 1px dashed #8C00FF;
   }
 </style>

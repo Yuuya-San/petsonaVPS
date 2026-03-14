@@ -165,6 +165,18 @@ def nearby_services():
     )
 
 
+@bp.route('/location-picker')
+@login_required
+def location_picker():
+    """Location picker tool for selecting service location"""
+    return_url = request.args.get('returnUrl', url_for('user.nearby_services'))
+    return render_template(
+        'user/location_picker.html',
+        page_title='Pick Your Location',
+        return_url=return_url
+    )
+
+
 @bp.route('/api/merchants/test', methods=['GET'])
 @csrf.exempt
 def test_merchants():

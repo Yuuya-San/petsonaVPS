@@ -27,7 +27,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/compatibility-scores.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/flash-messages.css') }}">
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -62,6 +63,28 @@
   {% block styles %}{% endblock %}
 
   <style>
+    /* ================= SCROLLBAR STYLING ================= */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #8C00FF;
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #7a00d9;
+    }
+    /* Firefox scrollbar */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #8C00FF transparent;
+    }
+
     /* ================= FULL PAGE GLASSMORPHISM ================= */
     html, body {
       margin: 0;
@@ -93,20 +116,10 @@
     }
 
     /* ================= FLASH MESSAGES ================= */
-    .flash-wrapper {
-      position: fixed;
-      top: 90px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 500px;
-      z-index: 9999;
-      padding: 0 1rem;
-      box-sizing: border-box;
-    }
+    /* Handled by flash-messages.css */
 
     /* ================= MAIN CONTENT AREA ================= */
-    #page-content > *:not(.flash-wrapper):not(footer) {
+    #page-content > .main-content {
       flex: 1;
       padding: 1.5rem clamp(1rem, 4vw, 3.5rem);
       background: linear-gradient(
@@ -150,18 +163,14 @@
 
     /* ================= RESPONSIVE ================= */
     @media (max-width: 768px) {
-      #page-content > *:not(.flash-wrapper):not(footer) {
+      #page-content > .main-content {
         padding: 1.5rem 1rem;
         margin: 1rem auto;
-      }
-
-      .flash-wrapper {
-        top: 80px;
       }
     }
 
     @media (max-width: 480px) {
-      #page-content > *:not(.flash-wrapper):not(footer) {
+      #page-content > .main-content {
         padding: 1.2rem 0.8rem;
         margin: 0.8rem auto;
       }
@@ -185,14 +194,29 @@
   <div id="page-content">
 
     <!-- ================= FLASH MESSAGES ================= -->
-    <div class="flash-wrapper">
+    <div class="flash-container">
       {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, msg in messages %}
-          <div class="flash flash-{{ category }}">
-            <span>{{ msg }}</span>
-            <button class="close-flash">&times;</button>
-          </div>
-        {% endfor %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}" data-dismiss-time="6400">
+              <div class="flash-icon">
+                {% if category == 'success' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif category == 'danger' %}
+                  <i class="fas fa-times-circle"></i>
+                {% elif category == 'warning' %}
+                  <i class="fas fa-exclamation-triangle"></i>
+                {% else %}
+                  <i class="fas fa-info-circle"></i>
+                {% endif %}
+              </div>
+              <div class="flash-content">{{ message }}</div>
+              <button class="flash-close" aria-label="Close notification">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          {% endfor %}
+        {% endif %}
       {% endwith %}
     </div>
 
@@ -222,11 +246,41 @@
       if (skeleton) skeleton.remove();
       if (content) content.style.display = 'flex';
     });
+  </script>
 
-    // Flash close
-    document.querySelectorAll('.close-flash').forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.parentElement.remove();
+  <!-- ================= FLASH AUTO DISMISS WITH COUNTDOWN ================= -->
+  <script>
+    document.querySelectorAll('.flash').forEach(flash => {
+      const dismissTime = parseInt(flash.dataset.dismissTime || '6400');
+      let startTime = Date.now();
+      let frameId = null;
+
+      // Remove flash with smooth animation
+      const removeFlash = () => {
+        flash.style.animation = 'flashSlideOut 0.5s ease-in forwards';
+        setTimeout(() => flash.remove(), 500);
+      };
+
+      // Handle close button click
+      flash.querySelector('.flash-close')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (frameId) cancelAnimationFrame(frameId);
+        removeFlash();
+      });
+
+      // Auto dismiss after dismiss time
+      const autoTimeout = setTimeout(removeFlash, dismissTime);
+
+      // Pause on hover
+      flash.addEventListener('mouseenter', () => {
+        if (frameId) cancelAnimationFrame(frameId);
+        clearTimeout(autoTimeout);
+        flash.style.animationPlayState = 'paused';
+      });
+
+      flash.addEventListener('mouseleave', () => {
+        flash.style.animationPlayState = 'running';
       });
     });
   </script>

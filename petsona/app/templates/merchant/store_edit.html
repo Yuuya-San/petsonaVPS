@@ -172,16 +172,22 @@
             </div>
 
             <div class="space-y-6">
-              <div class="grid sm:grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-location-dot text-purple-700 mr-2"></i>Region</label>
+                  {{ form.region(class='w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium text-sm sm:text-base', id='region', required=True) }}
+                </div>
+
+                <div id="province-group" class="transition-all duration-300 ease-out">
                   <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-map text-purple-700 mr-2"></i>Province <span class="text-red-600">*</span></label>
-                  <select id="province" name="province" class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium text-sm sm:text-base" required>
-                    <option value="">Loading provinces...</option>
+                  <select id="province" name="province" class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium text-sm sm:text-base" required disabled>
+                    <option value="">Select a region first...</option>
                   </select>
+                  <p id="province-skip-hint" class="text-xs text-purple-700 mt-2 hidden">If your province is not listed, <button type="button" id="skip-province-button" class="underline font-semibold text-purple-700">skip to City / Municipality</button>.</p>
                 </div>
 
                 <div>
-                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-city text-purple-700 mr-2"></i>City/Municipality <span class="text-red-600">*</span></label>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-city text-purple-700 mr-2"></i>City / Municipality <span class="text-red-600">*</span></label>
                   {{ form.city(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium placeholder-gray-400 text-sm sm:text-base", id="city", placeholder="Select province first...") }}
                   {% if form.city.errors %}
                     <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.city.errors[0] }}</span></p>
@@ -189,12 +195,16 @@
                 </div>
 
                 <div>
-                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-home text-purple-700 mr-2"></i>Barangay <span class="text-red-600">*</span></label>
+                  <label class="block text-xs sm:text-sm font-semibold text-purple-900 mb-3"><i class="fas fa-home text-purple-700 mr-2"></i>Barangay</label>
                   {{ form.barangay(class="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-white border-2 border-purple-300 hover:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium placeholder-gray-400 text-sm sm:text-base", id="barangay", placeholder="Select city first...") }}
                   {% if form.barangay.errors %}
                     <p class="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.barangay.errors[0] }}</span></p>
                   {% endif %}
                 </div>
+
+                <input type="hidden" id="province-fallback" name="province_fallback" value="{{ form.province.data or merchant.province or '' }}">
+                <input type="hidden" id="city-fallback" name="city_fallback" value="{{ form.city.data or merchant.city or '' }}">
+                <input type="hidden" id="barangay-fallback" name="barangay_fallback" value="{{ form.barangay.data or merchant.barangay or '' }}">
               </div>
 
               <div class="grid sm:grid-cols-2 gap-6">
@@ -510,7 +520,7 @@
                     <input type="file" id="store_logo_input" name="store_logo" class="hidden" accept=".jpg,.jpeg,.png,.gif,.webp" onchange="handleLogoSelect(event)">
                     <i class="fas fa-store text-3xl text-purple-600 mb-2"></i>
                     <p class="text-sm font-medium text-gray-800">Click to upload logo</p>
-                    <p class="text-xs text-gray-500">JPG, PNG, GIF, WebP • Max 5MB</p>
+                    <p class="text-xs text-gray-500">JPG, PNG, GIF, WebP • Max 2MB</p>
                   </label>
                   <p class="text-xs sm:text-sm text-gray-500 mt-2"><i class="fas fa-lightbulb mr-1"></i>Upload a logo for your store (recommended: 500x500px or square)</p>
                   {% if form.store_logo.errors %}
@@ -549,7 +559,7 @@
                       <input type="file" id="government_id_input" name="government_id" class="hidden" accept=".jpg,.jpeg,.png,.pdf" onchange="handleFileSelect(event, 'gov_id_preview', 'gov_id_name')">
                       <i class="fas fa-file-pdf text-3xl text-purple-600 mb-2"></i>
                       <p class="text-sm font-medium text-gray-800">Click to upload</p>
-                      <p class="text-xs text-gray-500">JPG, PNG, PDF • Max 5MB</p>
+                      <p class="text-xs text-gray-500">JPG, PNG, PDF • Max 2MB</p>
                     </label>
                     {% if form.government_id.errors %}
                       <p class="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.government_id.errors[0] }}</span></p>
@@ -586,7 +596,7 @@
                       <input type="file" id="business_permit_input" name="business_permit" class="hidden" accept=".jpg,.jpeg,.png,.pdf" onchange="handleFileSelect(event, 'permit_preview', 'permit_name')">
                       <i class="fas fa-file-contract text-3xl text-purple-600 mb-2"></i>
                       <p class="text-sm font-medium text-gray-800">Click to upload</p>
-                      <p class="text-xs text-gray-500">JPG, PNG, PDF • Max 5MB</p>
+                      <p class="text-xs text-gray-500">JPG, PNG, PDF • Max 2MB</p>
                     </label>
                     {% if form.business_permit.errors %}
                       <p class="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-1"><i class="fas fa-circle-xmark flex-shrink-0 mt-0.5"></i> <span class="flex-1 break-words">{{ form.business_permit.errors[0] }}</span></p>
@@ -596,7 +606,7 @@
 
                 <!-- Facility Photos -->
                 <div class="mt-6">
-                  <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider"><i class="fas fa-images mr-1"></i>Facility Photos (3+ photos)</p>
+                  <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider"><i class="fas fa-images mr-1"></i>Facility Photos (3-5 photos)</p>
                   
                   <!-- Current Facility Photos Display -->
                   {% if merchant and merchant.facility_photos_paths %}
@@ -619,7 +629,7 @@
                     <input type="file" id="facility_photos_input" name="facility_photos" multiple class="hidden" accept=".jpg,.jpeg,.png" onchange="handlePhotoSelect(event)">
                     <i class="fas fa-image text-4xl text-purple-600 mb-2"></i>
                     <p class="text-sm font-medium text-gray-800">Click to upload photos</p>
-                    <p class="text-xs sm:text-sm text-gray-500">JPG or PNG • Max 5MB each</p>
+                    <p class="text-xs sm:text-sm text-gray-500">JPG or PNG • Max 5MB</p>
                   </label>
                   <p class="text-xs sm:text-sm text-gray-500 mt-3"><i class="fas fa-lightbulb mr-1"></i>Upload at least 3 photos showcasing your facility</p>
                   <p id="photo_count" class="text-xs sm:text-sm text-purple-700 font-medium mt-2 hidden"></p>
@@ -720,6 +730,7 @@
 <!-- Merchant data as JSON (processed by Jinja2 before this script is seen by JS linter) -->
 <script type="application/json" id="merchant-data">
 {
+  "region": "{{ merchant.region if merchant else '' }}",
   "province": "{{ merchant.province if merchant else '' }}",
   "city": "{{ merchant.city if merchant else '' }}",
   "barangay": "{{ merchant.barangay if merchant else '' }}",
@@ -902,7 +913,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    loadProvinces();
+    loadRegions();
     
     // Check if store is 24/7 based on opening/closing times and days
     const openingTime = document.getElementById('opening_time');
@@ -979,114 +990,324 @@
   });
 
   // ==================== LOCATION LOADING ====================
-  async function loadProvinces() {
+  function _selectOptionByText(selectElement, text) {
+    if (!selectElement || !text) return null;
+    const normalized = text.trim().toLowerCase();
+    for (const option of selectElement.options) {
+      if (option.textContent.trim().toLowerCase() === normalized) {
+        option.selected = true;
+        return option;
+      }
+    }
+    return null;
+  }
+
+  function cleanPsgcName(name, code) {
+    if (!name || typeof name !== 'string') return '';
+    if (code && name.endsWith(` (${code})`)) {
+      return name.slice(0, -code.length - 3);
+    }
+    return name;
+  }
+
+  function normalizeLocationName(name) {
+    if (!name || typeof name !== 'string') return '';
+    return cleanPsgcName(name).trim().toLowerCase();
+  }
+
+  function namesMatch(optionName, storedName) {
+    const normalizedOption = normalizeLocationName(optionName);
+    const normalizedStored = normalizeLocationName(storedName);
+    if (!normalizedOption || !normalizedStored) return false;
+    return normalizedOption === normalizedStored || normalizedOption.includes(normalizedStored) || normalizedStored.includes(normalizedOption);
+  }
+
+  function resetLocationPath() {
+    const provinceSelect = document.getElementById('province');
+    const citySelect = document.getElementById('city');
+    const barangaySelect = document.getElementById('barangay');
+
+    if (provinceSelect) {
+      provinceSelect.innerHTML = '<option value="">Select a region first...</option>';
+      provinceSelect.disabled = true;
+      provinceSelect.required = true;
+    }
+    if (citySelect) {
+      citySelect.innerHTML = '<option value="">Select province first...</option>';
+      citySelect.disabled = true;
+    }
+    if (barangaySelect) {
+      barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      barangaySelect.disabled = true;
+    }
+    toggleSkipProvinceButton(false);
+  }
+
+  function toggleSkipProvinceButton(show) {
+    const button = document.getElementById('skip-province-button');
+    const hint = document.getElementById('province-skip-hint');
+    if (!button || !hint) return;
+    button.disabled = !show;
+    hint.classList.toggle('hidden', !show);
+    button.classList.toggle('opacity-50', !show);
+  }
+
+  async function loadRegions() {
     try {
-      const response = await fetch('{{ url_for("merchant.get_provinces") }}');
+      const response = await fetch('{{ url_for("merchant.get_regions") }}');
+      const regions = await response.json();
+      const regionSelect = document.getElementById('region');
+      const provinceGroup = document.getElementById('province-group');
+
+      regionSelect.innerHTML = '<option value="">Select Region...</option>';
+      regions.forEach(region => {
+        const option = document.createElement('option');
+        option.value = cleanPsgcName(region.name, region.code);
+        option.textContent = cleanPsgcName(region.name, region.code);
+        option.dataset.code = region.code;
+        regionSelect.appendChild(option);
+      });
+
+      regionSelect.addEventListener('change', function() {
+        const selectedRegionCode = this.selectedOptions[0]?.dataset.code;
+        if (selectedRegionCode) {
+          loadProvinces(selectedRegionCode);
+        } else {
+          resetLocationPath();
+          provinceGroup.classList.remove('hidden');
+          provinceGroup.style.display = '';
+        }
+      });
+
+      if (merchantData.hasData) {
+        const storedRegion = merchantData.region || '';
+        const storedProvince = merchantData.province || '';
+        const targetRegionText = storedRegion.trim() || (storedProvince.trim().toUpperCase().startsWith('NCR') ? storedProvince.trim() : '');
+
+        if (targetRegionText) {
+          const selectedOption = Array.from(regionSelect.options).find(opt => {
+            const optionText = opt.textContent.trim();
+            return namesMatch(optionText, targetRegionText) ||
+              (targetRegionText.toUpperCase().startsWith('NCR') && optionText.toLowerCase().includes('ncr'));
+          });
+
+          if (selectedOption) {
+            selectedOption.selected = true;
+            if (targetRegionText.toUpperCase().startsWith('NCR')) {
+              provinceGroup.classList.add('hidden');
+              provinceGroup.style.display = 'none';
+            }
+            await loadProvinces(selectedOption.dataset.code);
+            return;
+          }
+        }
+
+        await loadProvinces();
+      } else {
+        resetLocationPath();
+      }
+    } catch (error) {
+      console.error('Error loading regions:', error);
+      resetLocationPath();
+    }
+  }
+
+  function _regionHasNoProvince() {
+    const region = document.getElementById('region');
+    const provinceGroup = document.getElementById('province-group');
+    const selectedCode = region?.selectedOptions[0]?.dataset.code;
+    const ncrCodes = ['NCR', '130000000'];
+    return (selectedCode && ncrCodes.includes(selectedCode.toUpperCase())) || (provinceGroup && provinceGroup.classList.contains('hidden'));
+  }
+
+  async function loadProvinces(regionCode = '') {
+    const provinceSelect = document.getElementById('province');
+    const provinceGroup = document.getElementById('province-group');
+    const citySelect = document.getElementById('city');
+    const barangaySelect = document.getElementById('barangay');
+
+    const ncrCodes = ['NCR', '130000000'];
+    if (regionCode && ncrCodes.includes(regionCode.toUpperCase())) {
+      provinceGroup.classList.add('hidden');
+      provinceGroup.style.display = 'none';
+      provinceSelect.value = 'NCR / Metro Manila';
+      provinceSelect.required = false;
+      provinceSelect.disabled = true;
+      citySelect.innerHTML = '<option value="">Loading cities...</option>';
+      citySelect.disabled = true;
+      barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      barangaySelect.disabled = true;
+      toggleSkipProvinceButton(false);
+      await loadCities(regionCode);
+      return;
+    }
+
+    provinceGroup.classList.remove('hidden');
+    provinceGroup.style.display = '';
+    provinceSelect.required = true;
+    provinceSelect.disabled = true;
+    provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
+    citySelect.innerHTML = '<option value="">Select province first...</option>';
+    citySelect.disabled = true;
+    barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+    barangaySelect.disabled = true;
+    toggleSkipProvinceButton(false);
+
+    try {
+      const endpoint = regionCode ? '{{ url_for("merchant.get_provinces", region_code="") }}' + regionCode : '{{ url_for("merchant.get_provinces") }}';
+      const response = await fetch(endpoint);
       const provinces = await response.json();
-      
-      const provinceSelect = document.getElementById('province');
+
+      if (!Array.isArray(provinces) || provinces.length === 0) {
+        provinceGroup.classList.add('hidden');
+        provinceGroup.style.display = 'none';
+        provinceSelect.innerHTML = '<option value="">No provinces found for selected region</option>';
+        provinceSelect.disabled = true;
+        provinceSelect.required = false;
+        toggleSkipProvinceButton(true);
+        await loadCities(regionCode);
+        return;
+      }
+
       provinceSelect.innerHTML = '<option value="">Select Province...</option>';
-      
       let selectedCode = null;
       provinces.forEach(province => {
         const option = document.createElement('option');
-        option.value = province.name; // Save human-readable name
-        option.textContent = province.name;
-        option.dataset.code = province.code; // Keep code for AJAX calls
-        if (merchantData.hasData && merchantData.province && province.name === merchantData.province) {
+        option.value = cleanPsgcName(province.name, province.code);
+        option.textContent = cleanPsgcName(province.name, province.code);
+        option.dataset.code = province.code;
+        if (merchantData.hasData && merchantData.province && namesMatch(province.name, merchantData.province)) {
           option.selected = true;
           selectedCode = province.code;
         }
         provinceSelect.appendChild(option);
       });
+      provinceSelect.disabled = false;
+      toggleSkipProvinceButton(false);
 
-      if (merchantData.hasData && merchantData.province && selectedCode) {
-        await loadCities(merchantData.province);
+      if (selectedCode) {
+        await loadCities(selectedCode);
       }
     } catch (error) {
       console.error('Error loading provinces:', error);
+      provinceSelect.innerHTML = '<option value="">Error loading provinces</option>';
+      provinceSelect.disabled = true;
+      toggleSkipProvinceButton(true);
     }
   }
 
-  async function loadCities(provinceName) {
+  async function loadCities(locationCode) {
     const citySelect = document.getElementById('city');
     const barangaySelect = document.getElementById('barangay');
     
-    // Get the province code from the selected option's data attribute
-    const provinceSelect = document.getElementById('province');
-    const selectedOption = provinceSelect.options[provinceSelect.selectedIndex];
-    const provinceCode = selectedOption.dataset.code;
-    
-    if (!provinceCode) {
+    if (!locationCode) {
       citySelect.innerHTML = '<option value="">Select province first...</option>';
+      citySelect.disabled = true;
       barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      barangaySelect.disabled = true;
       return;
     }
     
     try {
       citySelect.innerHTML = '<option value="">Loading cities...</option>';
-      const response = await fetch(`{{ url_for("merchant.get_cities", location_code="") }}${provinceCode}`);
+      citySelect.disabled = true;
+      barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      barangaySelect.disabled = true;
+      const response = await fetch(`{{ url_for("merchant.get_cities", location_code="") }}${locationCode}`);
       const cities = await response.json();
       
       citySelect.innerHTML = '<option value="">Select City/Municipality...</option>';
       let selectedCityCode = null;
       cities.forEach(city => {
         const option = document.createElement('option');
-        option.value = city.name; // Save human-readable name
-        option.textContent = city.name;
-        option.dataset.code = city.code; // Keep code for AJAX calls
-        if (merchantData.hasData && merchantData.city && city.name === merchantData.city) {
+        option.value = cleanPsgcName(city.name, city.code);
+        option.textContent = cleanPsgcName(city.name, city.code);
+        option.dataset.code = city.code;
+        if (merchantData.hasData && merchantData.city && namesMatch(city.name, merchantData.city)) {
           option.selected = true;
           selectedCityCode = city.code;
         }
         citySelect.appendChild(option);
       });
+      citySelect.disabled = false;
       
-      if (merchantData.hasData && merchantData.city && selectedCityCode) {
-        await loadBarangays(merchantData.city);
-      } else {
-        barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      if (selectedCityCode) {
+        await loadBarangays(selectedCityCode);
       }
     } catch (error) {
       console.error('Error loading cities:', error);
       citySelect.innerHTML = '<option value="">Error loading cities</option>';
+      citySelect.disabled = true;
     }
   }
 
-  async function loadBarangays(cityName) {
-    // Get the city code from the selected option's data attribute
-    const citySelect = document.getElementById('city');
-    const selectedOption = citySelect.options[citySelect.selectedIndex];
-    const cityCode = selectedOption.dataset.code;
-    
+  async function loadBarangays(cityCode) {
     const barangaySelect = document.getElementById('barangay');
-    
+
+    if (!barangaySelect) return;
     if (!cityCode) {
       barangaySelect.innerHTML = '<option value="">Select city first...</option>';
+      barangaySelect.disabled = true;
       return;
     }
     
     try {
       barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
+      barangaySelect.disabled = true;
       const response = await fetch(`{{ url_for("merchant.get_barangays", city_code="") }}${cityCode}`);
       const barangays = await response.json();
       
       barangaySelect.innerHTML = '<option value="">Select Barangay...</option>';
       barangays.forEach(barangay => {
         const option = document.createElement('option');
-        option.value = barangay.name; // Save human-readable name
-        option.textContent = barangay.name;
-        option.dataset.code = barangay.code; // Keep code for AJAX calls
-        if (merchantData.hasData && merchantData.barangay && barangay.name === merchantData.barangay) {
+        option.value = cleanPsgcName(barangay.name, barangay.code);
+        option.textContent = cleanPsgcName(barangay.name, barangay.code);
+        option.dataset.code = barangay.code;
+        if (merchantData.hasData && merchantData.barangay && namesMatch(barangay.name, merchantData.barangay)) {
           option.selected = true;
         }
         barangaySelect.appendChild(option);
       });
+      barangaySelect.disabled = false;
     } catch (error) {
       console.error('Error loading barangays:', error);
       barangaySelect.innerHTML = '<option value="">Error loading barangays</option>';
+      barangaySelect.disabled = true;
     }
   }
+
+  document.getElementById('region')?.addEventListener('change', function() {
+    const selectedRegionCode = this.selectedOptions[0]?.dataset.code;
+    if (selectedRegionCode) {
+      loadProvinces(selectedRegionCode);
+    } else {
+      resetLocationPath();
+    }
+  });
+
+  document.getElementById('province')?.addEventListener('change', function() {
+    const selectedCode = this.selectedOptions[0]?.dataset.code;
+    if (selectedCode) {
+      loadCities(selectedCode);
+    } else {
+      document.getElementById('city').innerHTML = '<option value="">Select province first...</option>';
+      document.getElementById('city').disabled = true;
+      document.getElementById('barangay').innerHTML = '<option value="">Select city first...</option>';
+      document.getElementById('barangay').disabled = true;
+    }
+  });
+
+  document.getElementById('city')?.addEventListener('change', function() {
+    const selectedCode = this.selectedOptions[0]?.dataset.code;
+    loadBarangays(selectedCode);
+  });
+
+  document.getElementById('skip-province-button')?.addEventListener('click', function() {
+    const regionCode = document.getElementById('region')?.selectedOptions[0]?.dataset.code;
+    if (regionCode) {
+      loadCities(regionCode);
+    }
+  });
 
   // ==================== LIVE VALIDATION ====================
   function validateField(fieldName, value) {
@@ -1107,6 +1328,10 @@
 
     const rules = fieldMap[fieldName];
     if (!rules) return true;
+
+    if (fieldName === 'province' && _regionHasNoProvince()) {
+      return { valid: true, message: '' };
+    }
 
     if (rules.required && (!value || value.trim() === '')) {
       return { valid: false, message: rules.message || 'This field is required' };
@@ -1299,7 +1524,8 @@
     if (provinceSelect) {
       provinceSelect.addEventListener('change', function() {
         clearFieldError('province');
-        loadCities(this.value);
+        const selectedCode = this.selectedOptions[0]?.dataset.code;
+        loadCities(selectedCode);
       });
     }
 
@@ -1308,7 +1534,8 @@
     if (citySelect) {
       citySelect.addEventListener('change', function() {
         clearFieldError('city');
-        loadBarangays(this.value);
+        const selectedCode = this.selectedOptions[0]?.dataset.code;
+        loadBarangays(selectedCode);
       });
     }
 
@@ -1459,6 +1686,20 @@
     if (!form || !submitBtn) return;
     
     form.addEventListener('submit', function(e) {
+      // Preserve location values and ensure disabled selects are enabled so data is submitted
+      ['province', 'city', 'barangay'].forEach(id => {
+        const select = document.getElementById(id);
+        const fallback = document.getElementById(`${id}-fallback`);
+        if (select && select.value) {
+          if (fallback) {
+            fallback.value = select.value;
+          }
+          if (select.disabled) {
+            select.disabled = false;
+          }
+        }
+      });
+
       // Show loading state with spinner
       submitBtn.disabled = true;
       submitBtn.style.opacity = '0.7';
@@ -1470,15 +1711,70 @@
   }
 
   // ==================== FILE UPLOAD HANDLERS ====================
+  function createFlashContainer() {
+    let container = document.querySelector('.flash-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'flash-container';
+      document.body.prepend(container);
+    }
+    return container;
+  }
+
+  function setupFlashAutoDismiss(flash) {
+    const dismissTime = parseInt(flash.dataset.dismissTime || '6400');
+    let autoTimeout = setTimeout(() => removeFlash(flash), dismissTime);
+
+    function removeFlash(element) {
+      element.style.animation = 'flashSlideOut 0.5s ease-in forwards';
+      setTimeout(() => element.remove(), 500);
+    }
+
+    flash.querySelector('.flash-close')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearTimeout(autoTimeout);
+      removeFlash(flash);
+    });
+
+    flash.addEventListener('mouseenter', () => {
+      clearTimeout(autoTimeout);
+      flash.style.animationPlayState = 'paused';
+    });
+
+    flash.addEventListener('mouseleave', () => {
+      autoTimeout = setTimeout(() => removeFlash(flash), dismissTime);
+      flash.style.animationPlayState = 'running';
+    });
+  }
+
+  function showFlashMessage(message, category = 'danger') {
+    const container = createFlashContainer();
+    const flash = document.createElement('div');
+    flash.className = `flash flash-${category}`;
+    flash.dataset.dismissTime = '6400';
+    flash.innerHTML = `
+      <div class="flash-icon">
+        ${category === 'success' ? '<i class="fas fa-check-circle"></i>' : category === 'warning' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-times-circle"></i>'}
+      </div>
+      <div class="flash-content">${message}</div>
+      <button class="flash-close" aria-label="Close notification">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+    container.appendChild(flash);
+    setupFlashAutoDismiss(flash);
+  }
+
   function handleLogoSelect(event) {
     const input = event.currentTarget || event.target;
     const file = input.files[0];
     if (!file) return;
     
     // Validate file size
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
-      alert('File size exceeds 5MB limit');
+      showFlashMessage('File size exceeds 2MB limit');
       input.value = '';
       return;
     }
@@ -1486,7 +1782,7 @@
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      alert('Please select a valid image file (JPG, PNG, GIF, or WebP)');
+      showFlashMessage('Please select a valid image file (JPG, PNG, GIF, or WebP)');
       input.value = '';
       return;
     }
@@ -1517,9 +1813,9 @@
     if (!file) return;
     
     // Validate file size
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
-      alert('File size exceeds 5MB limit');
+      showFlashMessage('File size exceeds 2MB limit');
       input.value = '';
       return;
     }
@@ -1537,23 +1833,43 @@
     
     if (files.length === 0) return;
     
+    if (files.length < 3 || files.length > 5) {
+      showFlashMessage('Please select between 3 and 5 facility photos.');
+      input.value = '';
+      const preview = document.getElementById('photos_preview');
+      const photoCount = document.getElementById('photo_count');
+      preview.classList.add('hidden');
+      photoCount.classList.add('hidden');
+      return;
+    }
+    
     const preview = document.getElementById('photos_preview');
     const photoCount = document.getElementById('photo_count');
     
     preview.innerHTML = '';
     let validCount = 0;
+    let totalPhotoSize = 0;
     
     Array.from(files).forEach((file, index) => {
       // Validate file
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
-        alert(`File "${file.name}" exceeds 5MB limit`);
+        showFlashMessage(`File "${file.name}" exceeds 5MB limit`);
         return;
       }
       
       const allowedTypes = ['image/jpeg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
-        alert(`File "${file.name}" is not a valid image (JPG/PNG only)`);
+        showFlashMessage(`File "${file.name}" is not a valid image (JPG/PNG only)`);
+        return;
+      }
+      
+      totalPhotoSize += file.size;
+      if (totalPhotoSize > 5 * 1024 * 1024) {
+        showFlashMessage('Facility photos total size must be 5MB or smaller');
+        input.value = '';
+        preview.classList.add('hidden');
+        photoCount.classList.add('hidden');
         return;
       }
       

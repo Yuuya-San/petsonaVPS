@@ -244,11 +244,17 @@
                 </h4>
                 <div class="space-y-3">
                   <p class="text-gray-700 text-sm leading-relaxed">{{ merchant.full_address }}</p>
-                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div class="grid grid-cols-2 gap-3">
                     {% if merchant.barangay %}
                     <div>
                       <p class="text-gray-600 text-xs font-semibold uppercase mb-1">Barangay</p>
                       <p class="text-gray-900 text-sm font-medium">{{ merchant.barangay }}</p>
+                    </div>
+                    {% endif %}
+                    {% if merchant.city %}
+                    <div>
+                      <p class="text-gray-600 text-xs font-semibold uppercase mb-1">City / Municipality</p>
+                      <p class="text-gray-900 text-sm font-medium">{{ merchant.city }}</p>
                     </div>
                     {% endif %}
                     {% if merchant.postal_code %}

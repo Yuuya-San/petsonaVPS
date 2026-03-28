@@ -20,7 +20,6 @@ class Merchant(db.Model):
     business_category = db.Column(db.String(50), nullable=False)
 
     business_description = db.Column(LONGTEXT, nullable=True)
-    years_in_operation = db.Column(db.Integer, nullable=True)
 
     # ========== SECTION 2: CONTACT PERSON ==========
     owner_manager_name = db.Column(db.String(128), nullable=False)
@@ -29,17 +28,15 @@ class Merchant(db.Model):
 
     # ========== SECTION 3: LOCATION ==========
     full_address = db.Column(db.String(500), nullable=False)
+    region = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(100), nullable=False)
     province = db.Column(db.String(100), nullable=False)
-    barangay = db.Column(db.String(100), nullable=True)
+    barangay = db.Column(db.String(100), nullable=False, default='')
     postal_code = db.Column(db.String(10), nullable=True)
     google_maps_link = db.Column(db.String(500), nullable=True)
     
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
-
-    # ========== SECTION 4: SERVICES OFFERED (Checkboxes) ==========
-    services_offered = db.Column(JSON, nullable=True, default=[])
 
     # ========== SECTION 5: PETS ACCEPTED (Checkboxes) ==========
     pets_accepted = db.Column(JSON, nullable=False, default=[])
@@ -73,7 +70,6 @@ class Merchant(db.Model):
 
     is_verified = db.Column(db.Boolean, default=False)
     is_open = db.Column(db.Boolean, default=True)  # Store open/closed status
-    search_keywords = db.Column(db.String(500), nullable=True)
 
     def __repr__(self):
         return f'<Merchant {self.business_name}>'
@@ -103,8 +99,26 @@ class Merchant(db.Model):
         self.latitude = float(latitude)
         self.longitude = float(longitude)
 
+    @property
+    def services_offered(self):
+        """Return currently configured services based on service pricing."""
+        if isinstance(self.service_pricing, dict):
+            return list(self.service_pricing.keys())
+        return []
+
+    @services_offered.setter
+    def services_offered(self, services):
+        """Persist a list of offered services by ensuring they exist in service_pricing."""
+        if not isinstance(services, list):
+            return
+        pricing = self.get_service_pricing()
+        for service in services:
+            if service not in pricing:
+                pricing[service] = {}
+        self.service_pricing = pricing
+
     def get_services_list(self):
-        """Returns services as list"""
+        """Returns service names as a list based on pricing configuration"""
         return self.services_offered if isinstance(self.services_offered, list) else []
 
     def get_pets_list(self):
@@ -213,6 +227,7 @@ class Merchant(db.Model):
             'longitude': self.longitude,
 
             'full_address': self.full_address,
+            'region': self.region,
             'city': self.city,
             'province': self.province,
             'barangay': self.barangay,

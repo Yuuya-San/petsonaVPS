@@ -30,39 +30,46 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
-
+# Default avatars
 DEFAULT_AVATARS = [
-    "images/avatar/cat.png",
-    "images/avatar/dog.png",
-    "images/avatar/frog-.png",
-    "images/avatar/hamster.png",
-    "images/avatar/penguin.png",
-    "images/avatar/puffer-fish.png",
-    "images/avatar/rabbit.png",
-    "images/avatar/snake.png"
+    "images/avatar/avatar-1.png",
+    "images/avatar/avatar-2.png",
+    "images/avatar/avatar-3.png",
+    "images/avatar/avatar-4.png",
+    "images/avatar/avatar-5.png",
+    "images/avatar/avatar-6.png",
+    "images/avatar/avatar-7.png",
+    "images/avatar/avatar-8.png",
+    "images/avatar/avatar-9.png",
+    "images/avatar/avatar-10.png",
+    "images/avatar/avatar-11.png",
+    "images/avatar/avatar-12.png",
+    "images/avatar/avatar-13.png",
+    "images/avatar/avatar-14.png",
+    "images/avatar/avatar-15.png",
+    "images/avatar/avatar-16.png",
 ]
-
-
 
 @bp.route('/dashboard')
 @login_required
 @admin_required
 def dashboard():
+    """Display admin dashboard with stats and recent activities"""
     if current_user.role != 'admin':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
 
-    # Get dashboard stats (function should return a dict with stats)
+    # Retrieve aggregated dashboard statistics
     stats = get_dashboard_stats()
 
-    # Define which events to include in recent activities
+    # Define trackable event types for recent activity dashboard
     RECENT_ACTIVITY_EVENTS = [
         "species.created", "species.updated", "species.deleted", "species.restored",
         "breed.created", "breed.updated", "breed.deleted", "breed.restored",
         "user.registered", "user.updated",
     ]
 
-    # Fetch recent audit logs (limit 5, newest first)
+    # Fetch 5 most recent undeleted audit logs matching tracked events
     logs = (
         AuditLog.query
         .filter(AuditLog.deleted_at.is_(None))
@@ -72,18 +79,16 @@ def dashboard():
         .all()
     )
 
-    # Philippine timezone
+    # Convert timestamps to Philippine timezone for display
     ph_tz = timezone("Asia/Manila")
 
     recent_activities = []
     for log in logs:
         act = format_activity(log)
         if act["time"]:
-            # Make sure the timestamp is timezone-aware (assume it's UTC in DB)
             utc_time = act["time"]
             if utc_time.tzinfo is None:
                 utc_time = UTC.localize(utc_time)
-            # Convert to PH time
             act["time"] = utc_time.astimezone(ph_tz)
         recent_activities.append(act)
 
@@ -93,18 +98,18 @@ def dashboard():
         recent_activities=recent_activities
     )
 
-
 @bp.route("/users")
 @login_required
 @admin_required
 def users():
+    """List all active users with optional role filtering and pagination"""
     if current_user.role != "admin":
         abort(403)
 
     role = request.args.get("role")
-    page = request.args.get("page", 1, type=int)  # Get current page number
+    page = request.args.get("page", 1, type=int)
 
-    # Only active users
+    # Query only active (non-deleted) users sorted by first name
     query = User.query.filter_by(is_active=True).order_by(User.first_name)
 
     # Filter by role if selected
@@ -128,18 +133,19 @@ def users():
 @login_required
 @admin_required
 def archive_users():
+    """Display archived (soft-deleted) users with pagination"""
     if current_user.role != "admin":
         abort(403)
 
     page = request.args.get("page", 1, type=int)
 
-    # Only show soft-deleted users
+    # Query soft-deleted users sorted by deletion date (newest first)
     query = User.query.filter_by(is_active=False).order_by(User.deleted_at.desc())
 
     # Paginate 10 users per page
     users_paginated = query.paginate(page=page, per_page=10)
 
-    # Convert deleted_at to Asia/Manila timezone for each user
+    # Convert deletion timestamps to Manila timezone for display consistency
     import pytz # pyright: ignore[reportMissingModuleSource]
     manila = pytz.timezone('Asia/Manila')
     for user in users_paginated.items:
@@ -157,44 +163,34 @@ def archive_users():
 @login_required
 @admin_required
 def restore_user(id):
+    """Restore a soft-deleted user account"""
     if current_user.role != "admin":
         abort(403)
 
     user = User.query.get_or_404(id)
 
-    # Take snapshot before restoring
+    # Capture user state before restoration
     before = user_snapshot(user)
 
-    # Restore user
+    # Mark user as active again and clear deletion timestamp
     user.is_active = True
     user.deleted_at = None
     db.session.commit()
 
-    # Take snapshot after restoring
+    # Capture user state after restoration for audit trail
     after = user_snapshot(user)
 
-    # Log the event
+    # Record restoration action in audit log
     log_event(event="user.restored", details={"before": before, "after": after})
 
     flash(f"User {user.first_name} restored successfully.", "success")
     return redirect(url_for("admin.archive_users"))
 
-
-
-@bp.route("/users/<int:id>")
-@login_required
-@admin_required
-def view_user(id):
-    if current_user.role != "admin":
-        abort(403)
-
-    user = User.query.get_or_404(id)
-    return render_template("admin/view_user.html", user=user)
-
 @bp.route('/users/add', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def admin_add_user():
+    """Create new user account and send temporary credentials"""
     if current_user.role != 'admin':
         abort(403)
 
@@ -203,6 +199,7 @@ def admin_add_user():
     if form.validate_on_submit():
         temp_password = form.password.data
 
+        # Initialize new user with provided details and random avatar
         user = User(
             email=form.email.data.lower(),
             first_name=form.first_name.data,
@@ -212,11 +209,10 @@ def admin_add_user():
         )
 
         user.set_password(temp_password)
-
         db.session.add(user)
         db.session.commit()
 
-        # AUDIT LOG 
+        # Record user creation in audit log
         log_event(
             event='user.created',
             details={
@@ -226,6 +222,7 @@ def admin_add_user():
             }
         )
 
+        # Email credentials to new user
         send_temp_credentials(user.email, temp_password)
 
         flash('User created and credentials sent via email.', 'success')
@@ -235,39 +232,40 @@ def admin_add_user():
                             form=form,
                             button_text="Save")
 
-# ------------------ EDIT USER ------------------
 @bp.route("/users/edit/<int:id>", methods=["GET", "POST"])
 @login_required
 @admin_required
 def edit_user(id):
+    """Edit user details and track changes in audit log"""
     if current_user.role != "admin":
         abort(403)
 
     user = User.query.get_or_404(id)
 
-    # Pass the original email for validation
+    # Initialize form with current user data
     form = AdminEditUserForm(obj=user, original_email=user.email)
 
     if form.validate_on_submit():
-        # Track changes for audit log
+        # Dictionary to track which fields changed
         changes = {}
 
         def track_change(field_name, new_value):
+            """Compare old vs new value and record changes"""
             old_value = getattr(user, field_name, None)
             if old_value != new_value:
                 changes[field_name] = {"old": old_value, "new": new_value}
                 setattr(user, field_name, new_value)
 
-        # Track editable fields
+        # Check each editable field for changes
         track_change("first_name", form.first_name.data.strip())
         track_change("last_name", form.last_name.data.strip())
         track_change("email", form.email.data.lower())
         track_change("role", form.role.data)
 
-        # Commit only if there are changes
+        # Only commit and log if changes exist
         if changes:
             db.session.commit()
-            # ---- AUDIT LOG ----
+            # Record changes in audit log
             log_event(
                 event="user.updated",
                 details={
@@ -282,7 +280,7 @@ def edit_user(id):
 
         return redirect(url_for("admin.users"))
 
-    # Pre-populate form with current user data if not submitted
+    # Populate form fields with current user data on GET request
     elif not form.is_submitted():
         form.first_name.data = user.first_name or ""
         form.last_name.data = user.last_name or ""
@@ -296,12 +294,11 @@ def edit_user(id):
         button_text="Update"
     )
 
-
-# ------------------ DELETE USER ACTION ------------------
 @bp.route("/users/delete/<int:id>", methods=["POST"])
 @login_required
 @admin_required
 def delete_user(id):
+    """Soft-delete user account (mark inactive with timestamp)"""
     if current_user.role != "admin":
         abort(403)
 
@@ -309,71 +306,30 @@ def delete_user(id):
     if user.id == current_user.id:
         abort(400, "You cannot delete your own account.")
 
-    # Soft delete: mark inactive and store deletion timestamp
+    # Mark user as inactive and record deletion time
     user.is_active = False
     user.deleted_at = get_ph_datetime()
     db.session.commit()
 
+    # Capture user state and record deletion in audit log
     snapshot = user_snapshot(user)
     log_event(event="user.deleted", details=snapshot)
     flash("User deleted successfully (soft delete).", "success")
     return redirect(url_for("admin.users"))
 
-
-@bp.route('/system-settings')
-@login_required
-@admin_required
-def system_settings():
-    # Which section to show? Defaults to 'general'
-    active_section = request.args.get('section', 'general')
-
-    # Instantiate all forms
-    general_form = GeneralSettingsForm()
-    security_form = SecuritySettingsForm()
-    audit_form = AuditSettingsForm()
-    email_form = EmailSettingsForm()
-    api_form = APISettingsForm()
-    backup_form = BackupSettingsForm()
-    compliance_form = ComplianceSettingsForm()
-    appearance_form = AppearanceSettingsForm()
-
-    # Sidebar sections (key, label, icon)
-    sections = [
-        ('general', 'General Settings', 'fas fa-cogs'),
-        ('security', 'Security', 'fas fa-shield-alt'),
-        ('audit', 'Audit & Logging', 'fas fa-file-alt'),
-        ('email', 'Email & Notifications', 'fas fa-envelope'),
-        ('api', 'API & Integrations', 'fas fa-network-wired'),
-        ('backup', 'Backup & Maintenance', 'fas fa-database'),
-        ('compliance', 'Compliance & Legal', 'fas fa-balance-scale'),
-        ('appearance', 'Appearance', 'fas fa-paint-brush'),
-    ]
-
-    return render_template(
-        'admin/settings/system_settings.html',
-        active_section=active_section,
-        sections=sections,
-        general_form=general_form,
-        security_form=security_form,
-        audit_form=audit_form,
-        email_form=email_form,
-        api_form=api_form,
-        backup_form=backup_form,
-        compliance_form=compliance_form,
-        appearance_form=appearance_form
-    )
-
 @bp.route("/audit_logs")
 @login_required
 @admin_required
 def audit_logs():
+    """Display paginated audit logs (non-deleted entries only)"""
     if current_user.role != "admin":
         flash("Access denied.", "danger")
         return redirect(url_for("admin.dashboard"))
 
     page = request.args.get("page", 1, type=int)
-    per_page = 10  # 5–10 is ideal → using 10
+    per_page = 10
 
+    # Fetch non-deleted logs sorted by timestamp (newest first) with pagination
     pagination = (
         AuditLog.query
         .filter_by(deleted_at=None)
@@ -388,29 +344,29 @@ def audit_logs():
         page_title="Audit Logs"
     )
 
-
 @bp.route("/audit_logs/delete/<int:log_id>", methods=["POST"])
 @login_required
 @admin_required
 def delete_audit_log(log_id):
+    """Soft-delete an audit log entry"""
     if current_user.role != "admin":
         flash("Access denied.", "danger")
         return redirect(url_for("admin.audit_logs"))
 
     log = AuditLog.query.get_or_404(log_id)
 
+    # Mark log as deleted with timestamp
     log.deleted_at = get_ph_datetime()
     db.session.commit()
 
     flash("Audit log deleted successfully (soft delete).", "success")
     return redirect(url_for("admin.audit_logs"))
 
-
-# Archive Audit Logs page
 @bp.route("/audit_logs/archive")
 @login_required
 @admin_required
 def archive_audit_logs():
+    """Display archived (soft-deleted) audit logs with pagination"""
     if current_user.role != "admin":
         flash("Access denied.", "danger")
         return redirect(url_for("admin.dashboard"))
@@ -418,6 +374,7 @@ def archive_audit_logs():
     page = request.args.get("page", 1, type=int)
     per_page = 10
 
+    # Fetch soft-deleted logs sorted by deletion date (newest first)
     pagination = AuditLog.query.filter(AuditLog.deleted_at.isnot(None))\
         .order_by(AuditLog.deleted_at.desc())\
         .paginate(page=page, per_page=per_page, error_out=False)
@@ -428,67 +385,49 @@ def archive_audit_logs():
                             pagination=pagination,
                             page_title="Archived Audit Logs")
 
-
-# Restore soft-deleted audit log
 @bp.route("/audit_logs/restore/<int:log_id>", methods=["POST"])
 @login_required
 @admin_required
 def restore_audit_log(log_id):
+    """Restore a soft-deleted audit log entry"""
     if current_user.role != "admin":
         flash("Access denied.", "danger")
         return redirect(url_for("admin.archive_audit_logs"))
 
     log = AuditLog.query.get_or_404(log_id)
 
+    # Restore log by clearing deletion timestamp
     log.deleted_at = None
     db.session.commit()
 
     flash("Audit log restored successfully.", "success")
     return redirect(url_for("admin.archive_audit_logs"))
 
-
-# ==================== MERCHANT MANAGEMENT ==================== 
-
 @bp.route("/api/merchants", methods=["GET"])
 @login_required
 @admin_required
 def get_merchants():
-    """Get all merchant applications as JSON with optional status filter"""
+    """Retrieve merchant applications as JSON, optionally filtered by status"""
     if current_user.role != "admin":
         abort(403)
     
     try:
+        # Get status filter from query params (default: show all non-deleted)
         status = request.args.get('status', 'all')
         
-        print(f"[DEBUG] get_merchants called with status={status}")
-        
-        # First, check total merchants in DB (including soft-deleted)
-        total_merchants = Merchant.query.count()
-        print(f"[DEBUG] Total merchants in database: {total_merchants}")
-        
-        # Check how many have deleted_at set
-        deleted_merchants = Merchant.query.filter(Merchant.deleted_at.isnot(None)).count()
-        print(f"[DEBUG] Soft-deleted merchants: {deleted_merchants}")
-        
-        # Query merchants - not soft deleted
+        # Query non-deleted merchants and apply status filter if specified
         query = Merchant.query.filter(Merchant.deleted_at.is_(None))
-        print(f"[DEBUG] After filtering deleted_at.is_(None): {query.count()}")
         
         if status and status != 'all':
             query = query.filter_by(application_status=status)
-            print(f"[DEBUG] After filtering status={status}: {query.count()}")
         
-        # Use COALESCE to sort by submitted_at if available, else by created_at, as fallback
+        # Sort by submission date if available, otherwise by creation date (newest first)
         merchants = query.order_by(func.coalesce(Merchant.submitted_at, Merchant.created_at).desc()).all()
-        
-        print(f"[DEBUG] Found {len(merchants)} merchants")
-        if merchants:
-            print(f"[DEBUG] First merchant: ID={merchants[0].id}, name={merchants[0].business_name}, status={merchants[0].application_status}")
         
         merchants_data = []
         for merchant in merchants:
             try:
-                # Safe access to user data
+                # Safely retrieve associated user information
                 user_email = 'N/A'
                 user_name = 'N/A'
                 if merchant.user_id:
@@ -497,6 +436,7 @@ def get_merchants():
                         user_email = user.email or 'N/A'
                         user_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or 'N/A'
                 
+                # Build comprehensive merchant data object for JSON response
                 merchant_dict = {
                     'id': merchant.id,
                     'year': merchant.created_at.year if merchant.created_at else '',
@@ -524,7 +464,6 @@ def get_merchants():
                     'submitted_at': merchant.submitted_at.isoformat() if merchant.submitted_at else '',
                     'reviewed_at': merchant.reviewed_at.isoformat() if merchant.reviewed_at else None,
                     'rejection_reason': merchant.rejection_reason or '',
-                    'years_in_operation': merchant.years_in_operation or 'N/A',
                     'application_status': merchant.application_status or 'pending',
                     'business_description': merchant.business_description or '',
                     'opening_time': merchant.opening_time or '',
@@ -539,37 +478,33 @@ def get_merchants():
                     'updated_at': merchant.updated_at.isoformat() if merchant.updated_at else ''
                 }
                 merchants_data.append(merchant_dict)
-                print(f"[DEBUG] Added merchant: {merchant.business_name}")
             except Exception as e:
-                print(f"[ERROR] Failed to process merchant {merchant.id}: {str(e)}")
+                # Skip merchants with processing errors
                 continue
         
-        print(f"[DEBUG] Returning {len(merchants_data)} merchants")
         return jsonify({'merchants': merchants_data})
     except Exception as e:
-        print(f"[ERROR] Error in get_merchants: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 @bp.route("/api/merchants/<int:merchant_id>/approve", methods=["POST"])
 @csrf.exempt
 @login_required
 @admin_required
 def approve_merchant(merchant_id):
-    """Approve a merchant application"""
+    """Approve a pending merchant application and upgrade user role"""
     try:
         merchant = Merchant.query.get_or_404(merchant_id)
         
         if merchant.application_status != 'pending':
             return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
         
-        # Update merchant record
+        # Update merchant status and verification info
         merchant.application_status = 'approved'
         merchant.reviewed_at = get_ph_datetime()
         merchant.reviewed_by = current_user.id
         merchant.is_verified = True
         
-        # Update associated user's role to merchant
+        # Upgrade associated user to merchant role
         user = User.query.get(merchant.user_id)
         if user:
             user.role = 'merchant'
@@ -578,10 +513,10 @@ def approve_merchant(merchant_id):
         
         db.session.commit()
         
-        # ========== CREATE NOTIFICATION FOR MERCHANT USER ==========
+        # Notify merchant of approval and redirect them to store setup
         Notification.create_notification(
             user_id=user.id,
-            title='🎉 Application Approved!',
+            title='Application Approved!',
             message=f'Congratulations! Your merchant application for "{merchant.business_name}" has been approved by the admin team. You can now start listing your services and accepting bookings!',
             notification_type='success',
             icon='fas fa-check-circle',
@@ -590,9 +525,8 @@ def approve_merchant(merchant_id):
             related_type='merchant_application',
             from_user_id=current_user.id
         )
-        print(f"[✅ NOTIF] Approval notification sent to user {user.id} for merchant {merchant.id}")
         
-        # Log the event
+        # Record approval action in audit log
         log_event(
             event='merchant.approved',
             details={
@@ -607,7 +541,6 @@ def approve_merchant(merchant_id):
         return jsonify({'success': True, 'message': 'Merchant approved successfully'})
     except Exception as e:
         db.session.rollback()
-        print(f"Error approving merchant: {str(e)}")
         flash(f'Error approving merchant: {str(e)}', 'danger')
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -617,8 +550,9 @@ def approve_merchant(merchant_id):
 @login_required
 @admin_required
 def reject_merchant(merchant_id):
-    """Reject a merchant application with reason"""
+    """Reject a pending merchant application with reason provided"""
     try:
+        # Extract rejection reason from request JSON
         data = request.get_json()
         reason = data.get('reason', '') if data else ''
         
@@ -630,17 +564,17 @@ def reject_merchant(merchant_id):
         if merchant.application_status != 'pending':
             return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
         
+        # Update merchant status with rejection details
         merchant.application_status = 'rejected'
         merchant.reviewed_at = get_ph_datetime()
         merchant.rejection_reason = reason.strip()
         merchant.reviewed_by = current_user.id
         
-        # Get the user to notify
+        # Retrieve user for notification
         user = User.query.get(merchant.user_id)
-        
         db.session.commit()
         
-        # ========== CREATE NOTIFICATION FOR MERCHANT USER ==========
+        # Notify merchant of rejection with reason
         if user:
             Notification.create_notification(
                 user_id=user.id,
@@ -653,9 +587,8 @@ def reject_merchant(merchant_id):
                 related_type='merchant_application',
                 from_user_id=current_user.id
             )
-            print(f"[✅ NOTIF] Rejection notification sent to user {user.id} for merchant {merchant.id}")
         
-        # Log the event
+        # Record rejection action in audit log
         log_event(
             event='merchant.rejected',
             details={
@@ -674,12 +607,11 @@ def reject_merchant(merchant_id):
         flash(f'Error rejecting merchant: {str(e)}', 'danger')
         return jsonify({'success': False, 'message': str(e)}), 500
 
-
 @bp.route("/merchants/applications")
 @login_required
 @admin_required
 def merchant_applications():
-    """Display all merchant applications"""
+    """Render merchant applications review dashboard"""
     if current_user.role != "admin":
         abort(403)
     

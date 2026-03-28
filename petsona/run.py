@@ -2,7 +2,7 @@ from app import create_app, db
 from app.models import *
 
 # Default admin photo
-DEFAULT_ADMIN_PHOTO = "images/avatar/dog.png"
+DEFAULT_ADMIN_PHOTO = "images/avatar/avatar-12.png",
 
 # Create Flask app and get Socket.IO instance
 app, socketio = create_app()

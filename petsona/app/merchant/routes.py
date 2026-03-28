@@ -1,13 +1,14 @@
 import os
 import json
-import requests
-import pytz
+from ..extensions import limiter
+import requests # pyright: ignore[reportMissingModuleSource]
+import pytz # pyright: ignore[reportMissingModuleSource]
 from datetime import datetime, time as dt_time
-from werkzeug.utils import secure_filename
-from flask import render_template, flash, redirect, request, url_for, jsonify
+from werkzeug.utils import secure_filename # pyright: ignore[reportMissingImports]
+from flask import render_template, flash, redirect, request, url_for, jsonify # pyright: ignore[reportMissingImports]
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.merchant import bp
-from app.decorators import merchant_required
+from app.decorators import merchant_required, user_required
 from app.models.breed import Breed
 from app.models.species import Species
 from app.models.merchant import Merchant
@@ -17,7 +18,7 @@ from app.models.user import User
 from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
 from app.models.audit_log import AuditLog
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_ # pyright: ignore[reportMissingImports]
 from app.utils.notification_manager import NotificationManager
 import logging
 
@@ -30,70 +31,45 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+
+def _normalize_province_for_region(region_name):
+    if not region_name or not isinstance(region_name, str):
+        return None
+    normalized = region_name.strip().upper()
+    if 'NCR' in normalized or 'METRO MANILA' in normalized or 'NATIONAL CAPITAL REGION' in normalized:
+        return 'Metropolitan Manila'
+    return None
+
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'pdf', 'gif', 'webp'}
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_SINGLE_FILE_SIZE = 2 * 1024 * 1024  # 2MB per logo / government ID / business permit
+MAX_FACILITY_PHOTOS_TOTAL_SIZE = 5 * 1024 * 1024  # 5MB total for facility photo uploads
+MIN_FACILITY_PHOTOS = 3
+MAX_FACILITY_PHOTOS = 5
+
+
+def get_file_size(file):
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    return size
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def get_province_name(province_code):
-    """Convert province code to name"""
-    if not province_code:
-        return None
-    try:
-        response = requests.get(f'https://psgc.gitlab.io/api/provinces/{province_code}/', timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('name', province_code)
-    except:
-        pass
-    return province_code
-
-def get_city_name(city_code):
-    """Convert city code to name"""
-    if not city_code:
-        return None
-    try:
-        # Try city endpoint first
-        response = requests.get(f'https://psgc.gitlab.io/api/cities/{city_code}/', timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('name', city_code)
-        
-        # Try municipality endpoint
-        response = requests.get(f'https://psgc.gitlab.io/api/municipalities/{city_code}/', timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('name', city_code)
-    except:
-        pass
-    return city_code
-
-def get_barangay_name(barangay_code):
-    """Convert barangay code to name"""
-    if not barangay_code:
-        return None
-    try:
-        response = requests.get(f'https://psgc.gitlab.io/api/barangays/{barangay_code}/', timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('name', barangay_code)
-    except:
-        pass
-    return barangay_code
 
 @bp.route('/dashboard')
 @login_required
 @merchant_required
 def dashboard():
+    """Display merchant dashboard with booking stats and trending pet species"""
     if current_user.role != 'merchant':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
 
-    # Check if merchant has completed application
+    # Retrieve merchant profile associated with current user
     merchant = Merchant.query.filter_by(user_id=current_user.id).first()
     
-    # Get bookings statistics
+    # Query booking counts by status for dashboard metrics
     total_bookings = Booking.query.filter_by(merchant_id=merchant.id).count()
     total_pending = Booking.query.filter_by(merchant_id=merchant.id, status='pending').count()
     total_confirmed = Booking.query.filter_by(merchant_id=merchant.id, status='confirmed').count()
@@ -101,13 +77,13 @@ def dashboard():
     total_rejected = Booking.query.filter_by(merchant_id=merchant.id, status='rejected').count()
     total_no_show = Booking.query.filter_by(merchant_id=merchant.id, status='no-show').count()
     
-    # Get recent bookings (latest 5)
+    # Fetch 5 most recent bookings for preview
     recent_bookings = Booking.query.filter_by(merchant_id=merchant.id).order_by(Booking.created_at.desc()).limit(5).all()
     
-    # Calculate completion rate (completed / total) * 100
+    # Calculate completion rate as percentage of completed vs total bookings
     completion_rate = round((total_completed / total_bookings * 100) if total_bookings > 0 else 0)
     
-    # Get top species by vote count
+    # Retrieve top 3 active pet species by popularity
     top_species = Species.query.filter(
         Species.deleted_at.is_(None)
     ).order_by(Species.heart_vote_count.desc()).limit(3).all()
@@ -126,12 +102,11 @@ def dashboard():
         recent_bookings=recent_bookings
     )
 
-
 @bp.route('/store')
 @login_required
 @merchant_required
 def store():
-    """Display merchant store information with real statistics from bookings"""
+    """Display merchant store profile with real-time booking statistics and analytics"""
     if current_user.role != 'merchant':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
@@ -142,9 +117,9 @@ def store():
         flash('Store information not found. Please complete your merchant application first.', 'warning')
         return redirect(url_for('merchant.apply'))
     
-    # ========== REAL DATA QUERIES FROM BOOKING MODEL ==========
+    # Query booking statistics from Booking model (non-deleted bookings only)
     
-    # 1. Total Bookings Count
+    # Count total, confirmed, pending, completed, and cancelled bookings
     total_bookings = db.session.query(func.count(Booking.id)).filter(
         Booking.merchant_id == merchant.id,
         Booking.deleted_at.is_(None)
@@ -179,22 +154,20 @@ def store():
     ).scalar() or 0
     
     # 6. Store Rating (Not yet implemented in simplified booking system)
-    store_rating = 0
+    store_rating = 4.0
     
     # 7. Total Reviews Count (Not yet implemented in simplified booking system)
     total_reviews = 0
     
-    # 8. Completion Rate (%)
+    # Calculate completion rate as percentage
     completion_rate = 0
     if total_bookings > 0:
         completion_rate = round((completed_bookings / total_bookings) * 100, 1)
     
-    # 9. Average Response Time (hours) - MySQL compatible
-    # Calculate time from booking created to merchant_confirmed_at
-    avg_response_hours = 24  # Default
+    # Calculate average merchant response time (from booking creation to confirmation)
+    avg_response_hours = 24  # Default fallback
     try:
-        # MySQL-compatible way to calculate time difference in seconds, then convert to hours
-        from sqlalchemy import literal_column
+        # Use MySQL unix_timestamp to compute time difference in hours
         response_times = db.session.query(
             func.avg(
                 (func.unix_timestamp(Booking.merchant_confirmed_at) - 
@@ -209,8 +182,7 @@ def store():
         if response_times and response_times > 0:
             avg_response_hours = max(1, round(float(response_times), 1))
     except Exception as e:
-        logger.error(f"Error calculating response time: {e}")
-        avg_response_hours = 24  # Fallback to default
+        avg_response_hours = 24
     
     # Format response time
     if avg_response_hours < 1:
@@ -220,7 +192,7 @@ def store():
     else:
         avg_response_time = f"{round(avg_response_hours / 24, 1)}d"
     
-    # 10. Total Revenue (sum of all completed booking amounts)
+    # Calculate total revenue from completed bookings
     total_revenue = db.session.query(func.sum(Booking.total_amount)).filter(
         Booking.merchant_id == merchant.id,
         Booking.status == 'completed',
@@ -228,7 +200,7 @@ def store():
     ).scalar() or 0
     total_revenue = float(total_revenue)
     
-    # 11. Merchant Earnings (after commission)
+    # Calculate merchant earnings (currently same as revenue, can add commission logic later)
     merchant_earnings = db.session.query(func.sum(Booking.total_amount)).filter(
         Booking.merchant_id == merchant.id,
         Booking.status == 'completed',
@@ -236,10 +208,10 @@ def store():
     ).scalar() or 0
     merchant_earnings = float(merchant_earnings)
     
-    # 12. Platform Fee Collected
+    # Calculate platform fees (revenue difference after commission)
     platform_fees = total_revenue - merchant_earnings if total_revenue > 0 else 0
     
-    # 13. Bookings this month (30 days)
+    # Count bookings created in last 30 days
     from datetime import timedelta
     thirty_days_ago = get_ph_datetime() - timedelta(days=30)
     bookings_this_month = db.session.query(func.count(Booking.id)).filter(
@@ -248,17 +220,17 @@ def store():
         Booking.deleted_at.is_(None)
     ).scalar() or 0
     
-    # 14. No-show Rate (Booking model doesn't currently track no-shows)
-    no_show_count = 0  # TODO: Add no_show field to Booking model when feature is implemented
+    # No-show tracking (placeholder for future implementation)
+    no_show_count = 0
     no_show_rate = 0
     
-    # 15. Recent bookings (last 5 for dashboard preview)
+    # Fetch 5 most recent bookings for analytics preview
     recent_bookings = db.session.query(Booking).filter(
         Booking.merchant_id == merchant.id,
         Booking.deleted_at.is_(None)
     ).order_by(Booking.created_at.desc()).limit(5).all()
     
-    # 16. Month-over-month growth
+    # Calculate month-over-month booking growth percentage (compare last month vs previous month)
     sixty_days_ago = get_ph_datetime() - timedelta(days=60)
     prev_month_bookings = db.session.query(func.count(Booking.id)).filter(
         Booking.merchant_id == merchant.id,
@@ -267,19 +239,21 @@ def store():
         Booking.deleted_at.is_(None)
     ).scalar() or 0
     
+    # Compute growth rate as percentage change
     month_growth = 0
     if prev_month_bookings > 0:
         month_growth = round(((bookings_this_month - prev_month_bookings) / prev_month_bookings) * 100, 1)
     else:
         month_growth = 100 if bookings_this_month > 0 else 0
     
-    # Determine growth direction
+    # Determine if growth is positive or negative
     growth_direction = "up" if month_growth >= 0 else "down"
 
+    # Build public URL for merchant logo if exists
     logo_path = merchant.logo_path
     logo_url = url_for('static', filename=f'uploads/merchants/{merchant.id}/{logo_path}') if logo_path else None
     
-    # Prepare statistics dictionary
+    # Compile all store statistics for template rendering
     store_stats = {
         'booking_count': total_bookings,
         'confirmed_bookings': confirmed_bookings,
@@ -306,7 +280,6 @@ def store():
         **store_stats
     )
 
-
 @bp.route('/store/logo-upload', methods=['POST'])
 @login_required
 @merchant_required
@@ -323,7 +296,6 @@ def upload_logo():
         merchant = Merchant.query.filter_by(user_id=current_user.id).first()
         
         if not merchant:
-            logger.warning(f"User {current_user.id} has no merchant record")
             return jsonify({'success': False, 'message': 'Store not found'}), 404
         
         # Check if file is in request
@@ -348,27 +320,22 @@ def upload_logo():
         file.seek(0)
         
         if file_size > MAX_FILE_SIZE:
-            logger.warning(f"Logo upload: file too large ({file_size} bytes) from user {current_user.id}")
             return jsonify({'success': False, 'message': 'File too large. Max 5MB'}), 400
         
-        logger.info(f"Logo upload: file validated ({file.filename}, {file_size} bytes)")
-        
-        # Create user upload directory if it doesn't exist (using user_id not merchant_id)
+        # Create upload directory using user ID (grouped by user, not merchant)
         upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
         os.makedirs(upload_dir, exist_ok=True)
-        logger.info(f"Logo upload: directory ready at {upload_dir}")
         
-        # Generate unique filename
+        # Generate unique filename with timestamp to avoid conflicts
         timestamp = int(datetime.utcnow().timestamp())
         file_extension = file.filename.rsplit('.', 1)[1].lower()
         filename = secure_filename(f"logo_{timestamp}.{file_extension}")
         
-        # Save file
+        # Persist uploaded file to disk
         filepath = os.path.join(upload_dir, filename)
         file.save(filepath)
-        logger.info(f"Logo upload: file saved to {filepath}")
         
-        # Delete old logo if exists
+        # Remove previous logo file if one exists
         if merchant.logo_path:
             # Extract just the filename from the stored path
             old_filename = merchant.logo_path.split('/')[-1] if '/' in merchant.logo_path else merchant.logo_path
@@ -376,18 +343,16 @@ def upload_logo():
             try:
                 if os.path.exists(old_path):
                     os.remove(old_path)
-                    logger.info(f"Logo upload: old logo deleted from {old_path}")
             except Exception as e:
-                logger.error(f"Error deleting old logo: {e}")
+                pass
         
-        # Update merchant record with full relative path (using user_id)
+        # Update merchant record with relative path to uploaded logo
         merchant.logo_path = f"merchants/{current_user.id}/{filename}"
         merchant.updated_at = get_ph_datetime()
         db.session.add(merchant)
         db.session.commit()
-        logger.info(f"Logo upload: merchant record updated for merchant {merchant.id}")
         
-        # Log the action
+        # Record upload action in audit log
         audit_log = AuditLog(
             event='merchant_logo_uploaded',
             actor_id=current_user.id,
@@ -399,11 +364,9 @@ def upload_logo():
         audit_log.set_details({'merchant_id': merchant.id, 'filename': filename})
         db.session.add(audit_log)
         db.session.commit()
-        logger.info(f"Logo upload: audit log created")
         
-        # Get fresh logo URL
+        # Build public URL for the uploaded logo
         logo_url = url_for('static', filename=f'uploads/merchants/{merchant.id}/{filename}')
-        logger.info(f"Logo upload: success, URL = {logo_url}")
         
         return jsonify({
             'success': True,
@@ -412,19 +375,19 @@ def upload_logo():
         }), 200
         
     except Exception as e:
+        # Log error and rollback transaction on upload failure
         logger.error(f"Error uploading logo: {str(e)}", exc_info=True)
         try:
             db.session.rollback()
         except:
             pass
-        return jsonify({'success': False, 'message': f'Upload failed: {str(e)}'}), 500
-
+        return jsonify({'success': False, 'message': 'Upload failed'}), 500
 
 @bp.route('/store/edit', methods=['GET', 'POST'])
 @login_required
 @merchant_required
 def store_edit():
-    """Edit merchant store information"""
+    """Edit merchant store profile with validation and audit logging"""
     if current_user.role != 'merchant':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
@@ -439,7 +402,7 @@ def store_edit():
     
     if form.validate_on_submit():
         try:
-            # Custom validation: Check operating schedule requirements
+            # Validate operating hours if not 24-hour operation
             if not form.is_24h.data:
                 # Manual schedule mode - hours and days are required
                 if not form.opening_time.data or not form.closing_time.data:
@@ -450,7 +413,7 @@ def store_edit():
                     flash('Please select at least one operating day when not using 24/7 mode.', 'danger')
                     return render_template('merchant/store_edit.html', form=form, merchant=merchant)
             
-            # Store previous values for audit log
+            # Capture merchant state before updates for audit trail
             previous_values = {
                 'business_name': merchant.business_name,
                 'business_category': merchant.business_category,
@@ -472,13 +435,12 @@ def store_edit():
                 'cancellation_policy': merchant.cancellation_policy,
             }
             
-            # Update merchant information - SECTION 1: BUSINESS INFO
+            # SECTION 1: Update business details
             merchant.business_name = form.business_name.data
             merchant.business_category = form.business_category.data
             merchant.business_description = form.business_description.data
             
-            
-            # Handle logo upload if provided
+            # Process logo upload if file provided
             if 'store_logo' in request.files and request.files['store_logo'].filename:
                 logo_file = request.files['store_logo']
                 if allowed_file(logo_file.filename):
@@ -500,7 +462,7 @@ def store_edit():
                                 if os.path.exists(old_path):
                                     os.remove(old_path)
                             except Exception as e:
-                                logger.error(f"Error deleting old logo: {e}")
+                                pass
                         
                         # Generate unique filename and save
                         timestamp = int(datetime.utcnow().timestamp())
@@ -517,12 +479,8 @@ def store_edit():
             if request.files.get('government_id') and request.files['government_id'].filename:
                 file = request.files['government_id']
                 if file and allowed_file(file.filename):
-                    # Validate file size
-                    file.seek(0, os.SEEK_END)
-                    file_size = file.tell()
-                    file.seek(0)
-                    
-                    if file_size <= MAX_FILE_SIZE:
+                    file_size = get_file_size(file)
+                    if file_size <= MAX_SINGLE_FILE_SIZE:
                         # Create merchant upload directory
                         upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
                         os.makedirs(upload_dir, exist_ok=True)
@@ -534,8 +492,8 @@ def store_edit():
                             try:
                                 if os.path.exists(old_path):
                                     os.remove(old_path)
-                            except Exception as e:
-                                logger.error(f"Error deleting old government ID: {e}")
+                            except Exception:
+                                pass
                         
                         # Generate unique filename and save
                         timestamp = datetime.utcnow().timestamp()
@@ -547,17 +505,16 @@ def store_edit():
                         # Update merchant with full path
                         merchant.government_id_path = f"merchants/{current_user.id}/{filename}"
                         logger.info(f"Government ID updated for merchant {merchant.id}: {merchant.government_id_path}")
+                    else:
+                        flash('Government ID must be 2MB or smaller.', 'danger')
+                        return render_template('merchant/store_edit.html', form=form, merchant=merchant)
             
             # Handle business permit upload
             if request.files.get('business_permit') and request.files['business_permit'].filename:
                 file = request.files['business_permit']
                 if file and allowed_file(file.filename):
-                    # Validate file size
-                    file.seek(0, os.SEEK_END)
-                    file_size = file.tell()
-                    file.seek(0)
-                    
-                    if file_size <= MAX_FILE_SIZE:
+                    file_size = get_file_size(file)
+                    if file_size <= MAX_SINGLE_FILE_SIZE:
                         # Create merchant upload directory
                         upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
                         os.makedirs(upload_dir, exist_ok=True)
@@ -569,8 +526,8 @@ def store_edit():
                             try:
                                 if os.path.exists(old_path):
                                     os.remove(old_path)
-                            except Exception as e:
-                                logger.error(f"Error deleting old business permit: {e}")
+                            except Exception:
+                                pass
                         
                         # Generate unique filename and save
                         timestamp = datetime.utcnow().timestamp()
@@ -582,56 +539,59 @@ def store_edit():
                         # Update merchant with full path
                         merchant.business_permit_path = f"merchants/{current_user.id}/{filename}"
                         logger.info(f"Business permit updated for merchant {merchant.id}: {merchant.business_permit_path}")
+                    else:
+                        flash('Business permit must be 2MB or smaller.', 'danger')
+                        return render_template('merchant/store_edit.html', form=form, merchant=merchant)
             
             # Handle facility photos upload
-            facility_photos = []
-            if request.files.getlist('facility_photos'):
-                files = request.files.getlist('facility_photos')
+            all_files = request.files.getlist('facility_photos') or []
+            files = [file for file in all_files if file and getattr(file, 'filename', None)]
+            if files:
                 upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
                 os.makedirs(upload_dir, exist_ok=True)
-                
-                for idx, file in enumerate(files):
+                valid_files = []
+                total_photo_size = 0
+                for file in files:
                     if file and file.filename and allowed_file(file.filename):
-                        # Validate file size
-                        file.seek(0, os.SEEK_END)
-                        file_size = file.tell()
-                        file.seek(0)
-                        
-                        if file_size <= MAX_FILE_SIZE:
-                            # Generate unique filename and save
-                            timestamp = datetime.utcnow().timestamp()
-                            file_extension = file.filename.rsplit('.', 1)[1].lower()
-                            filename = secure_filename(f"facility_{idx}_{timestamp}.{file_extension}")
-                            filepath = os.path.join(upload_dir, filename)
-                            file.save(filepath)
-                            facility_photos.append(f"merchants/{current_user.id}/{filename}")
+                        file_size = get_file_size(file)
+                        total_photo_size += file_size
+                        valid_files.append((file, file_size))
                 
-                if len(facility_photos) > 0:
-                    # Update facility photos (allow editing existing ones)
-                    merchant.facility_photos_paths = facility_photos
-                    logger.info(f"Facility photos updated for merchant {merchant.id}: {len(facility_photos)} photos")
+                if len(valid_files) < MIN_FACILITY_PHOTOS:
+                    flash(f'Please upload at least {MIN_FACILITY_PHOTOS} facility photos.', 'danger')
+                    return render_template('merchant/store_edit.html', form=form, merchant=merchant)
+                if len(valid_files) > MAX_FACILITY_PHOTOS:
+                    flash(f'Please upload no more than {MAX_FACILITY_PHOTOS} facility photos.', 'danger')
+                    return render_template('merchant/store_edit.html', form=form, merchant=merchant)
+                if total_photo_size > MAX_FACILITY_PHOTOS_TOTAL_SIZE:
+                    flash(f'Facility photos must be {MAX_FACILITY_PHOTOS_TOTAL_SIZE // (1024 * 1024)}MB or smaller in total.', 'danger')
+                    return render_template('merchant/store_edit.html', form=form, merchant=merchant)
+                
+                facility_photos = []
+                for idx, (file, _) in enumerate(valid_files):
+                    timestamp = datetime.utcnow().timestamp()
+                    file_extension = file.filename.rsplit('.', 1)[1].lower()
+                    filename = secure_filename(f"facility_{idx}_{timestamp}.{file_extension}")
+                    filepath = os.path.join(upload_dir, filename)
+                    file.save(filepath)
+                    facility_photos.append(f"merchants/{current_user.id}/{filename}")
+                
+                merchant.facility_photos_paths = facility_photos
+                logger.info(f"Facility photos updated for merchant {merchant.id}: {len(facility_photos)} photos")
             
-            # SECTION 2: CONTACT PERSON
+            # SECTION 2: Update contact person information
             merchant.owner_manager_name = form.owner_manager_name.data
             merchant.contact_email = form.contact_email.data
             merchant.contact_phone = form.contact_phone.data
             
-            # SECTION 3: LOCATION
-            # Convert codes to human-readable names
-            province_code = form.province.data
-            city_code = form.city.data
-            barangay_code = form.barangay.data
-            
-            # Get human-readable names from API
-            province_name = get_province_name(province_code)
-            city_name = get_city_name(city_code)
-            barangay_name = get_barangay_name(barangay_code)
-            
+            # SECTION 3: Update location details
+            region_name = form.region.data or ''
+            merchant.region = region_name or None
+            merchant.province = _normalize_province_for_region(region_name) or form.province.data or region_name or None
+
             merchant.full_address = form.full_address.data
-            merchant.city = city_name
-            merchant.province = province_name
-            merchant.barangay = barangay_name
-            merchant.postal_code = form.postal_code.data or ''
+            merchant.city = form.city.data
+            merchant.barangay = form.barangay.data or ''
             merchant.google_maps_link = form.google_maps_link.data
             
             # Update coordinates from hidden fields
@@ -640,13 +600,10 @@ def store_edit():
             if request.form.get('longitude'):
                 merchant.longitude = float(request.form.get('longitude'))
             
-            # SECTION 4: SERVICES OFFERED
-            merchant.services_offered = form.services_offered.data if form.services_offered.data else []
-            
-            # SECTION 5: PETS ACCEPTED
+            # SECTION 4: Update pet types
             merchant.pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
             
-            # Parse service pricing JSON from form
+            # Parse service pricing configuration from form JSON
             service_pricing_json = form.service_pricing_json.data
             if service_pricing_json:
                 try:
@@ -727,7 +684,7 @@ def store_edit():
             return render_template('merchant/store_edit.html', form=form, merchant=merchant)
     
     elif request.method == 'GET':
-        # Pre-fill form with existing data
+        # Populate form fields with current merchant data for editing
         form.business_name.data = merchant.business_name
         form.business_category.data = merchant.business_category
         form.business_description.data = merchant.business_description
@@ -735,11 +692,11 @@ def store_edit():
         form.contact_email.data = merchant.contact_email
         form.contact_phone.data = merchant.contact_phone
         form.full_address.data = merchant.full_address
+        form.region.data = merchant.region or (merchant.province if merchant.province and ('NCR' in merchant.province.upper() or 'METRO MANILA' in merchant.province.upper() or 'NATIONAL CAPITAL REGION' in merchant.province.upper()) else '')
         # Skip province/city/barangay - they're names in DB but form expects codes
         # These will be handled by JavaScript loading from API
         form.postal_code.data = merchant.postal_code
         form.google_maps_link.data = merchant.google_maps_link
-        form.services_offered.data = merchant.services_offered or []
         form.pets_accepted.data = merchant.pets_accepted or []
         form.opening_time.data = merchant.opening_time
         form.closing_time.data = merchant.closing_time
@@ -757,7 +714,6 @@ def store_edit():
             form.longitude.data = str(merchant.longitude)
     
     return render_template('merchant/store_edit.html', form=form, merchant=merchant)
-
 
 @bp.route('/store-status', methods=['POST'])
 @login_required
@@ -811,29 +767,30 @@ def update_store_status():
         db.session.rollback()
         return jsonify({'success': False, 'message': 'An error occurred'}), 500
 
-
 @bp.route('/store-public/<int:merchant_id>')
+@login_required
+@user_required
 def store_public(merchant_id):
-    """Display public view of merchant store - no login required"""
+    """Display public merchant store profile (no authentication required)"""
     merchant = Merchant.query.filter_by(id=merchant_id).first()
     
     if not merchant:
         flash('Store not found.', 'danger')
         return redirect(url_for('user.nearby_services'))
     
-    # Rating stats not yet implemented in simplified booking system
+    # Placeholder for ratings/reviews (not yet implemented)
     store_rating = 0
     total_reviews = 0
     
-    # Check if store is open right now
+    # Determine if store is currently open based on operating hours
     is_open = False
     if merchant.opening_time and merchant.closing_time and merchant.operating_days:
         from datetime import datetime, time
-        now = datetime.now()  # Use local time for business hours
+        now = datetime.now()
         current_day = now.weekday()  # 0=Monday, 6=Sunday
         current_time = now.time()
         
-        # Check if today is in operating days
+        # Check if current day and time fall within operating schedule
         operating_days = merchant.get_operating_days()
         if current_day in operating_days:
             # Check if current time is within operating hours
@@ -868,14 +825,14 @@ def store_public(merchant_id):
                          total_reviews=total_reviews,
                          is_open=is_open)
 
-
 @bp.route('/species')
 @login_required
 @merchant_required
 def species_index():
+    """Display paginated list of all active pet species"""
     page = request.args.get('page', 1, type=int)
 
-    # Paginate active species
+    # Query active (non-deleted) species sorted alphabetically with pagination
     pagination = Species.query.filter(
         Species.deleted_at.is_(None)
     ).order_by(Species.name.asc()).paginate(
@@ -895,9 +852,10 @@ def species_index():
 @login_required
 @merchant_required
 def view_species(id):
+    """Display specific pet species with all active breeds"""
     species = Species.query.get_or_404(id)
 
-    # Only fetch active breeds (not soft-deleted)
+    # Fetch active breeds for the selected species, sorted alphabetically
     breeds = Breed.query.filter_by(
         species_id=species.id,
         is_active=True   
@@ -910,15 +868,13 @@ def view_species(id):
         page_title=f"{species.name} Breeds"
     )
 
-
-# ========== MERCHANT APPLICATION ROUTES ==========
-
 @bp.route('/apply', methods=['GET', 'POST'])
 @login_required
+@user_required
 def apply():
-    """Merchant application form"""
+    """Merchant application form - collect business details and documents from user"""
     
-    # Check if user already has merchant application
+    # Prevent duplicate merchant applications
     existing_merchant = Merchant.query.filter_by(user_id=current_user.id).first()
     
     if existing_merchant and existing_merchant.application_status in ['pending', 'under_review']:
@@ -945,10 +901,12 @@ def apply():
             merchant.contact_email = form.contact_email.data
             merchant.contact_phone = form.contact_phone.data
             
-            # Location - convert codes to names
-            merchant.province = get_province_name(form.province.data)
-            merchant.city = get_city_name(form.city.data)
-            merchant.barangay = get_barangay_name(form.barangay.data) if form.barangay.data else None
+            # Location - store human-readable names
+            region_name = form.region.data or ''
+            merchant.region = region_name or None
+            merchant.province = _normalize_province_for_region(region_name) or form.province.data or region_name or None
+            merchant.city = form.city.data
+            merchant.barangay = form.barangay.data or ''
             merchant.postal_code = form.postal_code.data or None
             merchant.full_address = form.full_address.data
             merchant.google_maps_link = form.google_maps_link.data or None
@@ -962,8 +920,7 @@ def apply():
             except (ValueError, TypeError):
                 logger.warning(f"Invalid coordinates provided: lat={form.latitude.data}, lng={form.longitude.data}")
             
-            # Services and pets (convert to JSON)
-            merchant.services_offered = form.services_offered.data if form.services_offered.data else []
+            # Pets accepted (service offerings were removed from the form)
             merchant.pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
             
             # Parse service pricing JSON from form
@@ -995,7 +952,6 @@ def apply():
                 merchant.is_24h = False
             
             # Policies
-            merchant.vaccination_required = form.vaccination_required.data
             merchant.cancellation_policy = form.cancellation_policy.data or None
             
             # Create merchant uploads directory
@@ -1006,40 +962,70 @@ def apply():
             if request.files.get('store_logo') and request.files['store_logo'].filename:
                 file = request.files['store_logo']
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(f"logo_{datetime.utcnow().timestamp()}_{file.filename}")
-                    file.save(os.path.join(merchant_upload_dir, filename))
-                    merchant.logo_path = f'merchants/{current_user.id}/{filename}'
+                    file_size = get_file_size(file)
+                    if file_size <= MAX_SINGLE_FILE_SIZE:
+                        filename = secure_filename(f"logo_{datetime.utcnow().timestamp()}_{file.filename}")
+                        file.save(os.path.join(merchant_upload_dir, filename))
+                        merchant.logo_path = f'merchants/{current_user.id}/{filename}'
+                    else:
+                        flash('Store logo must be 2MB or smaller.', 'danger')
+                        return render_template('merchant/apply.html', form=form)
             
-            # Handle file uploads
+            # Handle government ID upload
             if request.files.get('government_id') and request.files['government_id'].filename:
                 file = request.files['government_id']
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(f"gov_id_{datetime.utcnow().timestamp()}_{file.filename}")
-                    file.save(os.path.join(merchant_upload_dir, filename))
-                    merchant.government_id_path = f'merchants/{current_user.id}/{filename}'
+                    file_size = get_file_size(file)
+                    if file_size <= MAX_SINGLE_FILE_SIZE:
+                        filename = secure_filename(f"gov_id_{datetime.utcnow().timestamp()}_{file.filename}")
+                        file.save(os.path.join(merchant_upload_dir, filename))
+                        merchant.government_id_path = f'merchants/{current_user.id}/{filename}'
+                    else:
+                        flash('Government ID must be 2MB or smaller.', 'danger')
+                        return render_template('merchant/apply.html', form=form)
             
+            # Handle business permit upload
             if request.files.get('business_permit') and request.files['business_permit'].filename:
                 file = request.files['business_permit']
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(f"permit_{datetime.utcnow().timestamp()}_{file.filename}")
-                    file.save(os.path.join(merchant_upload_dir, filename))
-                    merchant.business_permit_path = f'merchants/{current_user.id}/{filename}'
+                    file_size = get_file_size(file)
+                    if file_size <= MAX_SINGLE_FILE_SIZE:
+                        filename = secure_filename(f"permit_{datetime.utcnow().timestamp()}_{file.filename}")
+                        file.save(os.path.join(merchant_upload_dir, filename))
+                        merchant.business_permit_path = f'merchants/{current_user.id}/{filename}'
+                    else:
+                        flash('Business permit must be 2MB or smaller.', 'danger')
+                        return render_template('merchant/apply.html', form=form)
             
             # Handle multiple facility photos
             facility_photos = []
-            if request.files.getlist('facility_photos'):
-                files = request.files.getlist('facility_photos')
-                for idx, file in enumerate(files):
+            all_files = request.files.getlist('facility_photos') or []
+            files = [file for file in all_files if file and getattr(file, 'filename', None)]
+            if files:
+                valid_files = []
+                total_photo_size = 0
+                for file in files:
                     if file and file.filename and allowed_file(file.filename):
-                        filename = secure_filename(f"facility_{idx}_{datetime.utcnow().timestamp()}_{file.filename}")
-                        file.save(os.path.join(merchant_upload_dir, filename))
-                        facility_photos.append(f'merchants/{current_user.id}/{filename}')
+                        file_size = get_file_size(file)
+                        total_photo_size += file_size
+                        valid_files.append((file, file_size))
                 
-                if len(facility_photos) >= 3:
-                    merchant.facility_photos_paths = facility_photos
-                else:
-                    flash('Please upload at least 3 facility photos.', 'danger')
+                if len(valid_files) < MIN_FACILITY_PHOTOS:
+                    flash(f'Please upload at least {MIN_FACILITY_PHOTOS} facility photos.', 'danger')
                     return render_template('merchant/apply.html', form=form)
+                if len(valid_files) > MAX_FACILITY_PHOTOS:
+                    flash(f'Please upload no more than {MAX_FACILITY_PHOTOS} facility photos.', 'danger')
+                    return render_template('merchant/apply.html', form=form)
+                if total_photo_size > MAX_FACILITY_PHOTOS_TOTAL_SIZE:
+                    flash(f'Facility photos must be {MAX_FACILITY_PHOTOS_TOTAL_SIZE // (1024 * 1024)}MB or smaller in total.', 'danger')
+                    return render_template('merchant/apply.html', form=form)
+                
+                for idx, (file, file_size) in enumerate(valid_files):
+                    filename = secure_filename(f"facility_{idx}_{datetime.utcnow().timestamp()}_{file.filename}")
+                    file.save(os.path.join(merchant_upload_dir, filename))
+                    facility_photos.append(f'merchants/{current_user.id}/{filename}')
+                
+                merchant.facility_photos_paths = facility_photos
             
             # Set application status
             merchant.application_status = 'pending'
@@ -1050,7 +1036,7 @@ def apply():
             
             # ========== CREATE NOTIFICATIONS ==========
             
-            # 1️⃣ Notify all admin users about the new merchant application
+            # 1️ Notify all admin users about the new merchant application
             admin_users = User.query.filter_by(role='admin').all()
             
             for admin_user in admin_users:
@@ -1067,7 +1053,7 @@ def apply():
                 )
                 logger.info(f"Notification created for admin {admin_user.id} about merchant application {merchant.id}")
             
-            # 2️⃣ Optionally, create a notification for the merchant user about submission
+            # 2 Optionally, create a notification for the merchant user about submission
             Notification.create_notification(
                 user_id=current_user.id,
                 title='Application Submitted',
@@ -1085,11 +1071,11 @@ def apply():
             
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error submitting merchant application: {str(e)}")
+            logger.exception('Error submitting merchant application')
             flash('An error occurred while submitting your application. Please try again.', 'danger')
             return render_template('merchant/apply.html', form=form)
     
-    # Log form errors if any
+    # Log validation errors if form submission fails
     if request.method == 'POST' and not form.validate_on_submit():
         for field, errors in form.errors.items():
             for error in errors:
@@ -1098,209 +1084,199 @@ def apply():
     
     return render_template('merchant/apply.html', form=form)
 
+def _parse_psgc_list(raw_data):
+    if isinstance(raw_data, list):
+        return raw_data
+    if isinstance(raw_data, dict):
+        if 'data' in raw_data and isinstance(raw_data['data'], list):
+            return raw_data['data']
+        return [raw_data]
+    return []
 
-@bp.route('/api/get-provinces')
-def get_provinces():
-    """Get all provinces AND special regions in Philippines
-    
-    This includes:
-    - Regular provinces
-    - Special administrative regions (Metro Manila, Cordillera, etc.)
-    These are returned as "provinces" for the frontend, but special regions
-    won't have sub-provinces (they go directly to cities).
-    """
+
+def _normalize_region_name(region):
+    if not isinstance(region, dict):
+        return region
+
+    name = str(region.get('name', '')).strip()
+    code = str(region.get('code', '')).strip().upper()
+
+    if not name:
+        return region
+
+    if code == 'NCR' or 'national capital region' in name.lower() or 'metro manila' in name.lower():
+        region['name'] = 'NCR / Metro Manila'
+    elif 'calabarzon' in name.lower():
+        region['name'] = 'CALABARZON (Region IV-A)'
+    elif '(' not in name and code:
+        region['name'] = f'{name} ({code})'
+
+    return region
+
+
+@bp.route('/api/get-regions')
+@login_required
+def get_regions():
+    """Fetch Philippine regions from the PSGC API."""
     try:
-        all_locations = []
-        
-        # 1️⃣ Try to get all regions first (includes special administrative regions)
-        # The PSGC API has a regions endpoint that includes Metro Manila, CALABARZON, etc.
-        try:
-            regions_response = requests.get(
-                'https://psgc.gitlab.io/api/regions/',
-                timeout=5
-            )
-            if regions_response.status_code == 200:
-                regions_data = regions_response.json()
-                
-                # Convert to list
-                regions_list = []
-                if isinstance(regions_data, list):
-                    regions_list = regions_data
-                elif isinstance(regions_data, dict):
-                    if 'data' in regions_data:
-                        regions_list = regions_data['data']
-                    else:
-                        regions_list = [regions_data]
-                
-                # Mark as region type for frontend handling
-                for region in regions_list:
-                    if isinstance(region, dict):
-                        region['_type'] = 'region'
-                        all_locations.append(region)
-        except Exception as e:
-            logger.warning(f"Could not fetch regions: {str(e)}")
-        
-        # 2️⃣ Get regular provinces
-        try:
-            provinces_response = requests.get(
-                'https://psgc.gitlab.io/api/provinces/',
-                timeout=5
-            )
-            if provinces_response.status_code == 200:
-                provinces_data = provinces_response.json()
-                
-                # Convert to list
-                provinces_list = []
-                if isinstance(provinces_data, list):
-                    provinces_list = provinces_data
-                elif isinstance(provinces_data, dict):
-                    if 'data' in provinces_data:
-                        provinces_list = provinces_data['data']
-                    else:
-                        provinces_list = [provinces_data]
-                
-                # Mark as province type
-                for province in provinces_list:
-                    if isinstance(province, dict):
-                        province['_type'] = 'province'
-                        all_locations.append(province)
-        except Exception as e:
-            logger.warning(f"Could not fetch provinces: {str(e)}")
-        
-        # 3️⃣ If we have no locations, fallback to provinces only
-        if not all_locations:
-            provinces_response = requests.get(
-                'https://psgc.gitlab.io/api/provinces/',
-                timeout=5
-            )
-            if provinces_response.status_code == 200:
-                provinces_data = provinces_response.json()
-                if isinstance(provinces_data, list):
-                    all_locations = provinces_data
-                elif isinstance(provinces_data, dict) and 'data' in provinces_data:
-                    all_locations = provinces_data['data']
-        
-        # 4️⃣ Remove duplicates by code
-        seen = {}
-        unique_locations = []
-        for loc in all_locations:
-            if isinstance(loc, dict) and 'code' in loc:
-                if loc['code'] not in seen:
-                    seen[loc['code']] = True
-                    unique_locations.append(loc)
-        
-        # 5️⃣ Sort alphabetically by name
-        unique_locations.sort(key=lambda x: x.get('name', '').lower())
-        
-        logger.info(f"Returning {len(unique_locations)} locations (provinces + regions)")
-        return jsonify(unique_locations)
+        regions = []
+        response = requests.get('https://psgc.gitlab.io/api/regions/', timeout=5)
+        if response.status_code == 200:
+            regions = _parse_psgc_list(response.json())
+
+        unique_regions = []
+        seen = set()
+        for region in regions:
+            if not isinstance(region, dict):
+                continue
+            if 'code' not in region or 'name' not in region:
+                continue
+
+            region = _normalize_region_name(region)
+            code = str(region.get('code', '')).strip()
+            if code and code not in seen:
+                region['_type'] = 'region'
+                seen.add(code)
+                unique_regions.append(region)
+
+        unique_regions.sort(key=lambda x: x.get('name', '').lower())
+        return jsonify(unique_regions)
     except Exception as e:
-        logger.error(f"Error fetching provinces/regions: {str(e)}")
-    
+        logger.error(f'Error fetching regions: {str(e)}')
+    return jsonify({'error': 'Failed to fetch regions'}), 500
+
+
+@bp.route('/api/get-provinces', defaults={'region_code': None})
+@bp.route('/api/get-provinces/<region_code>')
+@login_required
+def get_provinces(region_code):
+    """Fetch all Philippine provinces or region-specific provinces from PSGC API."""
+    try:
+        provinces = []
+        response = requests.get('https://psgc.gitlab.io/api/provinces/', timeout=5)
+        if response.status_code == 200:
+            provinces = _parse_psgc_list(response.json())
+
+        if region_code:
+            region_key = str(region_code).strip().upper()
+            if region_key == 'NCR':
+                provinces = []
+            else:
+                filtered = []
+                for province in provinces:
+                    if not isinstance(province, dict):
+                        continue
+                    # PSGC province data can use different keys for the region code field
+                    region_code_field = ''
+                    for key in ('regionCode', 'region_code', 'region'):
+                        if province.get(key):
+                            region_code_field = str(province.get(key)).strip().upper()
+                            break
+                    if region_code_field == region_key or region_key in region_code_field:
+                        filtered.append(province)
+                provinces = filtered
+
+        unique_provinces = []
+        seen = set()
+        for province in provinces:
+            if not isinstance(province, dict) or 'code' not in province or 'name' not in province:
+                continue
+            code = str(province['code']).strip()
+            if code and code not in seen:
+                province['_type'] = 'province'
+                seen.add(code)
+                unique_provinces.append(province)
+
+        unique_provinces.sort(key=lambda x: x.get('name', '').lower())
+        return jsonify(unique_provinces)
+    except Exception as e:
+        logger.error(f'Error fetching provinces: {str(e)}')
     return jsonify({'error': 'Failed to fetch provinces'}), 500
 
 
 @bp.route('/api/get-cities/<location_code>')
+@login_required
 def get_cities(location_code):
-    """Get cities and municipalities for a given province OR region
-    
-    Handles both:
-    - Regular provinces (uses /provinces/{code}/cities/)
-    - Special regions like Metro Manila (uses /regions/{code}/cities/)
-    """
+    """Fetch cities/municipalities for a province or region from PSGC API."""
     try:
         all_cities = []
-        
-        # 1️⃣ Try as a region first (for Metro Manila, CALABARZON, etc.)
+        location_code = str(location_code or '').strip()
+        location_code_upper = location_code.upper()
+
+        # 1) Region lookup: cities and municipalities for special regions like NCR
         try:
-            region_response = requests.get(
+            response = requests.get(
                 f'https://psgc.gitlab.io/api/regions/{location_code}/cities/',
                 timeout=5
             )
-            
-            if region_response.status_code == 200:
-                cities = region_response.json()
-                if isinstance(cities, list):
-                    all_cities.extend(cities)
-                elif isinstance(cities, dict):
-                    if 'data' in cities:
-                        all_cities.extend(cities['data'])
-                    else:
-                        all_cities.extend([cities])
+            if response.status_code == 200:
+                all_cities.extend(_parse_psgc_list(response.json()))
         except Exception as e:
-            logger.debug(f"Not a region code or failed to fetch: {str(e)}")
-        
-        # 2️⃣ If no cities from region, try as province
-        if not all_cities:
-            try:
-                province_response = requests.get(
-                    f'https://psgc.gitlab.io/api/provinces/{location_code}/cities/',
-                    timeout=5
-                )
-                
-                if province_response.status_code == 200:
-                    cities = province_response.json()
-                    if isinstance(cities, list):
-                        all_cities.extend(cities)
-                    elif isinstance(cities, dict):
-                        if 'data' in cities:
-                            all_cities.extend(cities['data'])
-                        else:
-                            all_cities.extend([cities])
-            except Exception as e:
-                logger.debug(f"Not a province code or failed to fetch cities: {str(e)}")
-        
-        # 3️⃣ Also try to fetch municipalities (for completeness)
+            logger.debug(f'Region cities lookup failed for {location_code}: {str(e)}')
+
         try:
-            mun_response = requests.get(
+            response = requests.get(
+                f'https://psgc.gitlab.io/api/regions/{location_code}/municipalities/',
+                timeout=5
+            )
+            if response.status_code == 200:
+                all_cities.extend(_parse_psgc_list(response.json()))
+        except Exception as e:
+            logger.debug(f'Region municipalities lookup failed for {location_code}: {str(e)}')
+
+        # 2) Province lookup: cities + municipalities
+        try:
+            response = requests.get(
+                f'https://psgc.gitlab.io/api/provinces/{location_code}/cities/',
+                timeout=5
+            )
+            if response.status_code == 200:
+                all_cities.extend(_parse_psgc_list(response.json()))
+        except Exception as e:
+            logger.debug(f'Province cities lookup failed for {location_code}: {str(e)}')
+
+        try:
+            response = requests.get(
                 f'https://psgc.gitlab.io/api/provinces/{location_code}/municipalities/',
                 timeout=5
             )
-            if mun_response.status_code == 200:
-                municipalities = mun_response.json()
-                if isinstance(municipalities, list):
-                    all_cities.extend(municipalities)
-                elif isinstance(municipalities, dict):
-                    if 'data' in municipalities:
-                        all_cities.extend(municipalities['data'])
-                    else:
-                        all_cities.extend([municipalities])
-        except:
-            pass  # If municipalities endpoint fails, just use cities
-        
-        # 4️⃣ Remove duplicates by code
+            if response.status_code == 200:
+                all_cities.extend(_parse_psgc_list(response.json()))
+        except Exception as e:
+            logger.debug(f'Province municipalities lookup failed for {location_code}: {str(e)}')
+
+        # 3) Deduplicate and normalize results
         seen = set()
         unique_cities = []
         for city in all_cities:
-            if isinstance(city, dict) and 'code' in city:
-                if city['code'] not in seen:
-                    seen.add(city['code'])
-                    unique_cities.append(city)
-        
-        # 5️⃣ Sort alphabetically by name
+            if not isinstance(city, dict) or 'code' not in city or 'name' not in city:
+                continue
+            code = str(city['code']).strip()
+            if not code or code in seen:
+                continue
+            seen.add(code)
+            unique_cities.append(city)
+
         unique_cities.sort(key=lambda x: x.get('name', '').lower())
-        
-        logger.info(f"Found {len(unique_cities)} cities/municipalities for location {location_code}")
+
+        if location_code_upper == 'NCR' and len(unique_cities) != 17:
+            logger.warning(f'NCR / Metro Manila expected 17 cities/municipalities, found {len(unique_cities)}')
+
+        logger.info(f'Found {len(unique_cities)} cities/municipalities for {location_code}')
         return jsonify(unique_cities)
     except Exception as e:
-        logger.error(f"Error fetching cities/municipalities for {location_code}: {str(e)}")
-    
+        logger.error(f'Error fetching cities/municipalities for {location_code}: {str(e)}')
     return jsonify({'error': 'Failed to fetch cities/municipalities'}), 500
 
 
 @bp.route('/api/get-barangays/<city_code>')
+@login_required
 def get_barangays(city_code):
-    """Get barangays for a given city or municipality (robust fallback)
-    
-    Tries multiple endpoints to find barangays:
-    1. City endpoint: /cities/{code}/barangays/
-    2. Municipality endpoint: /municipalities/{code}/barangays/
-    3. District endpoint: /districts/{code}/barangays/
-    """
+    """Fetch barangays for city/municipality from PSGC API with multiple fallbacks"""
     try:
         barangay_list = []
 
-        # 1️⃣ Try city endpoint first
+        # 1 Try city endpoint first
         try:
             city_url = f'https://psgc.gitlab.io/api/cities/{city_code}/barangays/'
             response = requests.get(city_url, timeout=5)
@@ -1314,7 +1290,7 @@ def get_barangays(city_code):
         except Exception as e:
             logger.debug(f"City endpoint failed: {str(e)}")
 
-        # 2️⃣ If empty, try municipality endpoint
+        # 2️ If empty, try municipality endpoint
         if not barangay_list:
             try:
                 muni_url = f'https://psgc.gitlab.io/api/municipalities/{city_code}/barangays/'
@@ -1329,7 +1305,7 @@ def get_barangays(city_code):
             except Exception as e:
                 logger.debug(f"Municipality endpoint failed: {str(e)}")
 
-        # 3️⃣ If still empty, try district endpoint (some areas use districts)
+        # 3️ If still empty, try district endpoint (some areas use districts)
         if not barangay_list:
             try:
                 dist_url = f'https://psgc.gitlab.io/api/districts/{city_code}/barangays/'
@@ -1344,15 +1320,13 @@ def get_barangays(city_code):
             except Exception as e:
                 logger.debug(f"District endpoint failed: {str(e)}")
 
-        # 4️⃣ Still empty = invalid or no barangays available
+        # 4️ Still empty = invalid or no barangays available
         if not barangay_list:
             logger.warning(f"No barangays found for city code: {city_code}")
             return jsonify([])
 
-        # 5️⃣ Sort safely by name
+        # 5 Sort barangays alphabetically for consistent display
         barangay_list.sort(key=lambda x: x.get('name', '').lower() if isinstance(x, dict) else '')
-
-        logger.info(f"Found {len(barangay_list)} barangays for city {city_code}")
         return jsonify(barangay_list)
 
     except Exception as e:
@@ -1361,34 +1335,36 @@ def get_barangays(city_code):
 
 
 @bp.route('/api/get-services/<category>')
+@login_required
 def get_services_for_category(category):
-    """Get services allowed for a given business category"""
+    """Fetch available services for merchant business category"""
     from app.utils.merchant_service_config import CATEGORY_TO_SERVICES
     
+    # Look up services for selected business category from configuration
     category_services = CATEGORY_TO_SERVICES.get(category, [])
     
     if not category_services:
-        return jsonify({'error': f'No services found for category: {category}'}), 404
+        return jsonify({'services': []}) 
     
     return jsonify({
         'category': category,
         'services': category_services
     })
 
-
 @bp.route('/api/geocode', methods=['POST'])
+@login_required
 def geocode():
-    """Geocode address to get coordinates"""
+    """Convert address to geographic coordinates using Nominatim API"""
     data = request.get_json()
     address = data.get('address')
     city = data.get('city')
     province = data.get('province')
     
     if not address:
-        return jsonify({'error': 'Address is required'}), 400
+        return jsonify({'error': 'Address required'}), 400 
     
     try:
-        # Build full address for geocoding
+        # Construct complete address and query Nominatim geocoding service
         full_address = f"{address}, {city}, {province}, Philippines"
         
         response = requests.get(
@@ -1403,6 +1379,7 @@ def geocode():
         )
         
         if response.status_code == 200 and response.json():
+            pass
             result = response.json()[0]
             return jsonify({
                 'latitude': float(result['lat']),
@@ -1411,43 +1388,13 @@ def geocode():
             })
     except Exception as e:
         logger.error(f"Error geocoding address: {str(e)}")
+        pass
     
     return jsonify({'error': 'Failed to geocode address'}), 500
 
-
-@bp.route('/api/search-location', methods=['POST'])
-def search_location():
-    """Search for locations using Nominatim"""
-    data = request.get_json()
-    query = data.get('q', '').strip()
-    
-    if not query:
-        return jsonify({'error': 'Query is required'}), 400
-    
-    try:
-        response = requests.get(
-            'https://nominatim.openstreetmap.org/search',
-            params={
-                'q': query,
-                'format': 'json',
-                'limit': 8,
-                'countrycodes': 'ph'
-            },
-            headers={'User-Agent': 'PetsonaApp/1.0'},
-            timeout=10
-        )
-        
-        if response.status_code == 200:
-            return jsonify(response.json())
-        else:
-            return jsonify({'error': 'Search failed'}), response.status_code
-    except Exception as e:
-        logger.error(f"Error searching location: {str(e)}")
-        return jsonify({'error': 'Failed to search location'}), 500
-
-
 @bp.route('/api/reverse-geocode', methods=['POST', 'OPTIONS'])
 @csrf.exempt
+@login_required
 def reverse_geocode():
     """Reverse geocode coordinates to get address"""
     # Handle CORS preflight
@@ -1460,17 +1407,16 @@ def reverse_geocode():
         if not data:
             return jsonify({'error': 'Missing JSON data'}), 400
         
-        # Extract coordinates - accept both 'lon' and 'lng'
+        # Extract coordinates (accept both 'lon' and 'lng' for flexibility)
         lat = data.get('lat')
         lon = data.get('lon') or data.get('lng')
         
-        logger.info(f"Reverse geocode request - lat: {lat}, lon: {lon}")
-        
         if lat is None or lon is None:
+            return jsonify({'error': 'Coordinates required'}), 400
             logger.error(f"Missing coordinates - lat: {lat}, lon: {lon}")
             return jsonify({'error': 'Latitude and longitude are required'}), 400
         
-        # Convert to float
+        # Validate and convert coordinates to float type
         try:
             lat = float(lat)
             lon = float(lon)
@@ -1478,7 +1424,7 @@ def reverse_geocode():
             logger.error(f"Invalid coordinate format - lat: {lat}, lon: {lon}, error: {str(e)}")
             return jsonify({'error': 'Latitude and longitude must be numbers'}), 400
         
-        # Call Nominatim reverse geocoding
+        # Query Nominatim reverse geocoding API with coordinate details
         response = requests.get(
             'https://nominatim.openstreetmap.org/reverse',
             params={
@@ -1493,6 +1439,7 @@ def reverse_geocode():
         )
         
         if response.status_code == 200:
+            pass
             geocode_data = response.json()
             
             # Use the full display_name (works like Google Maps)
@@ -1538,19 +1485,18 @@ def reverse_geocode():
         logger.error(f"Error reverse geocoding: {str(e)}", exc_info=True)
         return jsonify({'error': 'Failed to reverse geocode', 'details': str(e)}), 500
 
-
-# ========== BOOKING ROUTES ==========
-
 @bp.route('/booking/<int:merchant_id>')
+@login_required
+@user_required
 def booking(merchant_id):
-    """Display booking form for a specific merchant"""
+    """Display booking form for customer to book appointment at merchant"""
     merchant = Merchant.query.filter_by(id=merchant_id).first()
     
     if not merchant:
         flash('Store not found.', 'danger')
         return redirect(url_for('user.nearby_services'))
     
-    # Merchant ratings not yet implemented in simplified booking system
+    # Placeholder for ratings/reviews (not yet implemented)
     store_rating = 0
     total_reviews = 0
     
@@ -1559,24 +1505,25 @@ def booking(merchant_id):
                          store_rating=store_rating,
                          total_reviews=total_reviews)
 
-
 @bp.route('/booking/<int:merchant_id>/create', methods=['POST'])
 @login_required
 def create_booking(merchant_id):
-    """Create a new appointment-based booking from form submission"""
+    """Create booking from form submission with customer details and pet info"""
     try:
         merchant = Merchant.query.filter_by(id=merchant_id).first()
         
         if not merchant:
+            return jsonify({'error': 'Merchant not found'}), 404
             flash('Store not found.', 'danger')
             return redirect(url_for('user.nearby_services'))
         
-        # Parse appointment-based data
+        # Extract appointment date and time from form
         appointment_date_str = request.form.get('check_in_date')
         appointment_time = request.form.get('check_in_time', '09:00')
         
-        # Validate required appointment fields
+        # Validate appointment date is provided
         if not appointment_date_str:
+            return jsonify({'error': 'Date required'}), 400
             flash('Please select an appointment date.', 'warning')
             return redirect(url_for('merchant.booking', merchant_id=merchant_id))
         
@@ -1588,10 +1535,11 @@ def create_booking(merchant_id):
             flash('Invalid date format.', 'danger')
             return redirect(url_for('merchant.booking', merchant_id=merchant_id))
         
-        # Parse pets from form array (pets[0][pet_name], pets[0][pet_species], etc.)
+        # Extract multi-pet booking data from form (pets[index][field] format)
         pets_data = []
         pet_index = 0
         while True:
+            pass
             pet_name = request.form.get(f'pets[{pet_index}][pet_name]')
             if not pet_name:
                 break
@@ -1612,8 +1560,9 @@ def create_booking(merchant_id):
         
         total_pets = len(pets_data)
         
-        # Get price breakdown from form (pre-calculated by JavaScript)
+        # Parse pre-calculated price breakdown from form JSON
         try:
+            pass
             price_breakdown_str = request.form.get('price_breakdown', '{}')
             price_breakdown = json.loads(price_breakdown_str) if price_breakdown_str else {}
         except:
@@ -1625,7 +1574,9 @@ def create_booking(merchant_id):
             if isinstance(size_data, dict) and 'price' in size_data:
                 total_amount += float(size_data.get('price', 0))
         
+        # Validate booking amount is positive
         if total_amount <= 0:
+            return jsonify({'error': 'Invalid booking amount'}), 400
             flash('Invalid pricing information. Please refresh and try again.', 'danger')
             return redirect(url_for('merchant.booking', merchant_id=merchant_id))
         
@@ -1647,7 +1598,7 @@ def create_booking(merchant_id):
         # Ensure total_amount is a proper float
         total_amount = float(total_amount) if total_amount else 0.0
         
-        # Create appointment-based booking
+        # Persist booking record to database
         booking = Booking(
             user_id=current_user.id,
             merchant_id=merchant_id,
@@ -1706,32 +1657,11 @@ def create_booking(merchant_id):
         flash('An error occurred while creating your booking. Please try again.', 'danger')
         return redirect(url_for('merchant.booking', merchant_id=merchant_id))
 
-
-@bp.route('/booking/confirmation/<int:booking_id>')
-def booking_confirmation(booking_id):
-    """Display booking confirmation page"""
-    booking = Booking.query.get(booking_id)
-    
-    if not booking:
-        flash('Booking not found.', 'danger')
-        return redirect(url_for('user.dashboard'))
-    
-    # Security check: user can only view their own booking
-    if booking.user_id != current_user.id and current_user.role != 'admin':
-        # Allow access via confirmation code if not logged in as the booker
-        confirmation_code = request.args.get('confirmation_code')
-        if not confirmation_code or confirmation_code != booking.confirmation_code:
-            flash('Unauthorized access.', 'danger')
-            return redirect(url_for('user.dashboard'))
-    
-    return render_template('merchant/booking_confirmation.html', booking=booking)
-
-
 @bp.route('/bookings-list')
 @login_required
 @merchant_required
 def bookings_list():
-    """Display all bookings for the merchant"""
+    """Display merchant booking list with status filtering and statistics"""
     if current_user.role != 'merchant':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
@@ -1742,17 +1672,16 @@ def bookings_list():
         flash('Store information not found.', 'warning')
         return redirect(url_for('merchant.apply'))
     
-    # Get page pagination parameter
     page = request.args.get('page', 1, type=int)
     status_filter = request.args.get('status', '', type=str)
     
-    # Base query for merchant's bookings
+    # Query all non-deleted bookings for this merchant
     query = Booking.query.filter(
         Booking.merchant_id == merchant.id,
         Booking.deleted_at.is_(None)
     )
     
-    # Calculate statistics for all bookings (not filtered)
+    # Calculate booking counts by status for dashboard metrics
     all_bookings = Booking.query.filter(
         Booking.merchant_id == merchant.id,
         Booking.deleted_at.is_(None)
@@ -1765,17 +1694,17 @@ def bookings_list():
     total_rejected = all_bookings.filter(Booking.status == 'rejected').count()
     total_no_show = all_bookings.filter(Booking.status == 'no-show').count()
     
-    # Apply status filter if provided
+    # Apply status filter if specified
     if status_filter and status_filter != '':
         query = query.filter(Booking.status == status_filter)
     
-    # Order by most recent first
+    # Sort by creation date (newest first)
     query = query.order_by(Booking.created_at.desc())
     
-    # Paginate with 10 bookings per page
+    # Paginate results (10 bookings per page)
     pagination = query.paginate(page=page, per_page=10, error_out=False)
     
-    # Get unique statuses for filter dropdown
+    # Retrieve distinct booking statuses for filter dropdown
     statuses = db.session.query(Booking.status.distinct()).filter(
         Booking.merchant_id == merchant.id,
         Booking.deleted_at.is_(None)
@@ -1797,14 +1726,14 @@ def bookings_list():
         total_no_show=total_no_show
     )
 
-
 @bp.route('/bookings/<int:booking_id>/confirm', methods=['POST'])
 @login_required
 @merchant_required
 def confirm_booking(booking_id):
-    """Confirm a pending booking"""
+    """Confirm pending booking and notify customer"""
     if current_user.role != 'merchant':
         if request.is_json or request.args.get('api'):
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
             return jsonify({'success': False, 'error': 'Access denied'}), 403
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
@@ -1826,12 +1755,13 @@ def confirm_booking(booking_id):
         return redirect(url_for('merchant.bookings_list'))
     
     try:
+        # Update booking to confirmed status
         booking.status = 'confirmed'
         booking.merchant_confirmed = True
         booking.merchant_confirmed_at = get_ph_datetime()
         db.session.commit()
         
-        # Log the action
+        # Record confirmation action in audit log
         audit_log = AuditLog(
             event='booking_confirmed',
             actor_id=current_user.id,
@@ -1844,8 +1774,7 @@ def confirm_booking(booking_id):
         db.session.add(audit_log)
         db.session.commit()
         
-        # Send notification to customer
-        appointment_date_str = booking.appointment_date.strftime('%B %d, %Y') if booking.appointment_date else 'Scheduled'
+        # Send confirmation notification to customer
         NotificationManager.notify_booking_confirmed(
             user_id=booking.user_id,
             booking_number=booking.booking_number,
@@ -1863,19 +1792,20 @@ def confirm_booking(booking_id):
         db.session.rollback()
         logger.error(f"Error confirming booking: {str(e)}")
         if request.is_json or request.args.get('api'):
+            return jsonify({'success': False, 'message': 'Error confirming booking'}), 500
             return jsonify({'success': False, 'error': str(e)}), 500
         flash('Error confirming booking.', 'danger')
     
     return redirect(url_for('merchant.bookings_list'))
 
-
 @bp.route('/bookings/<int:booking_id>/cancel', methods=['POST'])
 @login_required
 @merchant_required
-def cancel_booking(booking_id):
-    """Cancel a booking"""
+def reject_booking(booking_id):
+    """Reject/cancel booking and notify customer"""
     if current_user.role != 'merchant':
         if request.is_json or request.args.get('api'):
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
             return jsonify({'success': False, 'error': 'Access denied'}), 403
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
@@ -1933,6 +1863,7 @@ def cancel_booking(booking_id):
         db.session.rollback()
         logger.error(f"Error rejecting booking: {str(e)}")
         if request.is_json or request.args.get('api'):
+            return jsonify({'success': False, 'message': 'Error rejecting booking'}), 500
             return jsonify({'success': False, 'error': str(e)}), 500
         flash('Error rejecting booking.', 'danger')
     
@@ -1943,8 +1874,9 @@ def cancel_booking(booking_id):
 
 @bp.route('/book/<int:merchant_id>', methods=['GET'])
 @login_required
+@user_required
 def book_now(merchant_id):
-    """Display booking form for customer"""
+    """Display customer booking form for merchant"""
     merchant = Merchant.query.filter_by(id=merchant_id).first()
     
     if not merchant:
@@ -1957,8 +1889,9 @@ def book_now(merchant_id):
 
 @bp.route('/book/<int:merchant_id>', methods=['POST'])
 @login_required
+@user_required
 def customer_create_booking(merchant_id):
-    """Create a new appointment-based booking from customer"""
+    """Process customer booking submission with pet and appointment details"""
     merchant = Merchant.query.filter_by(id=merchant_id).first()
     
     if not merchant:
@@ -1968,19 +1901,22 @@ def customer_create_booking(merchant_id):
     try:
         import uuid
         
-        # Get form data
+        # Extract form data: customer info and appointment details
         customer_name = request.form.get('customer_name', '').strip()
         customer_email = request.form.get('customer_email', '').strip()
         customer_phone = request.form.get('customer_phone', '').strip()
         appointment_date_str = request.form.get('check_in_date')
         appointment_time = request.form.get('check_in_time')
         
-        # Validation
+        # Validate required customer fields
         if not customer_phone:
+            return jsonify({'error': 'Phone required'}), 400
             flash('Phone number is required.', 'danger')
             return redirect(url_for('merchant.book_now', merchant_id=merchant_id))
         
+        # Validate appointment date and time
         if not appointment_date_str or not appointment_time:
+            return jsonify({'error': 'Date and time required'}), 400
             flash('Appointment date and time are required.', 'danger')
             return redirect(url_for('merchant.book_now', merchant_id=merchant_id))
         
@@ -1992,10 +1928,11 @@ def customer_create_booking(merchant_id):
             flash('Invalid date or time format.', 'danger')
             return redirect(url_for('merchant.book_now', merchant_id=merchant_id))
         
-        # Collect multi-pet form data
+        # Collect pet data from multi-pet form fields
         pets_data = []
         pet_index = 0
         while True:
+            pass
             pet_name_key = f'pets[{pet_index}][pet_name]'
             pet_species_key = f'pets[{pet_index}][pet_species]'
             
@@ -2022,30 +1959,36 @@ def customer_create_booking(merchant_id):
                 })
             pet_index += 1
         
-        # Validate we have at least one pet
+        # Ensure booking includes at least one pet
         if not pets_data:
+            return jsonify({'error': 'At least one pet required'}), 400
             flash('Please add at least one pet to your booking.', 'danger')
             return redirect(url_for('merchant.book_now', merchant_id=merchant_id))
         
         total_pets = len(pets_data)
         
-        # Get price breakdown from form (calculated by JavaScript)
+        # Parse price breakdown JSON pre-calculated by frontend
         price_breakdown_str = request.form.get('price_breakdown', '{}')
         try:
+            pass
             import json
+            price_breakdown = json.loads(price_breakdown_str)
             price_breakdown = json.loads(price_breakdown_str)
         except (json.JSONDecodeError, ValueError):
             price_breakdown = {}
+            price_breakdown = {}
         
-        # Calculate total amount from price breakdown
+        # Sum total booking amount from price breakdown
         total_amount = 0.0
         if price_breakdown:
+            pass
             for size_data in price_breakdown.values():
                 if isinstance(size_data, dict) and 'price' in size_data:
                     total_amount += float(size_data['price'])
         
-        # If no price breakdown, calculate from merchant pricing and pet sizes
+        # Fallback calculation if price breakdown unavailable
         if total_amount == 0 or not price_breakdown:
+            pass
             service_pricing = merchant.get_service_pricing() or {}
             
             # Get first service type and prices
@@ -2098,11 +2041,11 @@ def customer_create_booking(merchant_id):
         pet_special_notes = request.form.get('pet_special_notes', '').strip()
         special_requests = request.form.get('special_requests', '').strip()
         
-        # Generate booking number and confirmation code
+        # Generate unique booking number and confirmation code
         booking_number = f"BK-{datetime.now().strftime('%Y')}-{int(datetime.now().timestamp()) % 100000:05d}"
         confirmation_code = str(uuid.uuid4())[:12].upper()
         
-        # Create booking record
+        # Persist booking to database
         booking = Booking(
             user_id=current_user.id,
             merchant_id=merchant.id,
@@ -2127,7 +2070,7 @@ def customer_create_booking(merchant_id):
         db.session.add(booking)
         db.session.commit()
         
-        # Log the booking creation
+        # Record booking creation in audit log
         audit_log = AuditLog(
             event='booking_created',
             actor_id=current_user.id,
@@ -2146,8 +2089,9 @@ def customer_create_booking(merchant_id):
         db.session.add(audit_log)
         db.session.commit()
         
-        # Send notification to merchant about new booking
+        # Notify merchant about new booking request
         if merchant.user_id:
+            pass
             NotificationManager.notify_merchant_new_booking(
                 user_id=merchant.user_id,
                 booking_number=booking_number,
@@ -2171,14 +2115,14 @@ def customer_create_booking(merchant_id):
 @login_required
 @merchant_required
 def mark_booking_complete(booking_id):
-    """Mark a booking as completed"""
+    """Mark booking as completed and notify customer"""
     booking = Booking.query.filter_by(id=booking_id).first()
     
     if not booking:
         flash('Booking not found', 'error')
         return redirect(url_for('merchant.bookings_list'))
     
-    # Check if merchant owns this booking
+    # Verify merchant ownership
     merchant = Merchant.query.filter_by(user_id=current_user.id).first()
     if not merchant or booking.merchant_id != merchant.id:
         flash('Unauthorized', 'error')
@@ -2189,9 +2133,7 @@ def mark_booking_complete(booking_id):
         booking.status = 'completed'
         db.session.commit()
         
-        # Log the action
-        from app.models.audit_log import AuditLog
-        from datetime import datetime
+        # Record completion in audit log
         audit_log = AuditLog(
             event='booking_completed',
             actor_id=current_user.id,
@@ -2204,7 +2146,7 @@ def mark_booking_complete(booking_id):
         db.session.add(audit_log)
         db.session.commit()
         
-        # Send notification to customer that booking is completed
+        # Send completion notification to customer
         NotificationManager.notify_booking_completed(
             user_id=booking.user_id,
             booking_number=booking.booking_number,
@@ -2225,14 +2167,14 @@ def mark_booking_complete(booking_id):
 @login_required
 @merchant_required
 def mark_booking_no_show(booking_id):
-    """Mark a booking as no-show"""
+    """Mark booking as no-show and notify customer"""
     booking = Booking.query.filter_by(id=booking_id).first()
     
     if not booking:
         flash('Booking not found', 'error')
         return redirect(url_for('merchant.bookings_list'))
     
-    # Check if merchant owns this booking
+    # Verify merchant ownership
     merchant = Merchant.query.filter_by(user_id=current_user.id).first()
     if not merchant or booking.merchant_id != merchant.id:
         flash('Unauthorized', 'error')
@@ -2243,9 +2185,7 @@ def mark_booking_no_show(booking_id):
         booking.status = 'no-show'
         db.session.commit()
         
-        # Log the action
-        from app.models.audit_log import AuditLog
-        from datetime import datetime
+        # Record no-show in audit log
         audit_log = AuditLog(
             event='booking_no_show',
             actor_id=current_user.id,
@@ -2258,7 +2198,7 @@ def mark_booking_no_show(booking_id):
         db.session.add(audit_log)
         db.session.commit()
         
-        # Send notification to customer about no-show
+        # Send no-show notification to customer
         NotificationManager.notify_booking_no_show(
             user_id=booking.user_id,
             booking_number=booking.booking_number,
@@ -2274,16 +2214,14 @@ def mark_booking_no_show(booking_id):
         flash(f'Error: {str(e)}', 'error')
         return redirect(url_for('merchant.bookings_list'))
 
-
 @bp.route('/api/merchant/<int:merchant_id>/services', methods=['GET'])
 @login_required
 def get_merchant_services(merchant_id):
-    """API endpoint to get merchant services and pricing"""
+    """Fetch merchant services, pricing, and accepted pet types via API"""
     merchant = Merchant.query.filter_by(id=merchant_id).first()
     
     if not merchant:
-        return jsonify({'error': 'Merchant not found'}), 404
-    
+        return jsonify({'error': 'Merchant not found'}), 404 
     services = merchant.services_offered or []
     pricing = merchant.get_service_pricing() or {}
     pets_accepted = merchant.get_pets_list() or []

@@ -46,7 +46,7 @@
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
   max-height: 80vh;
   padding: 1.8rem;
   border-radius: 22px;
@@ -397,7 +397,7 @@
         <p>Use your 6-digit code or one of your backup codes (format: XXXX-XXXX-XXXX).</p>
       </div>
 
-      <button class="btn-primary" type="submit" aria-label="Verify 2FA Code">
+      <button id="verify-btn" class="btn-primary" type="submit" disabled aria-label="Verify 2FA Code">
         <i class="fas fa-check mr-2"></i>Verify Code
       </button>
 
@@ -413,56 +413,55 @@
 </div>
 
 <script>
-  // Auto-focus and format input
-  const codeInput = document.getElementById('two_factor_code');
-  
-  if (codeInput) {
-    // Handle input formatting and validation
-    codeInput.addEventListener('input', function(e) {
-      let value = this.value.replace(/\s/g, '').toUpperCase();
-      
-      // Remove non-alphanumeric except hyphens
-      value = value.replace(/[^0-9A-F\-]/g, '');
-      
-      // For 6-digit numeric code (authenticator)
-      if (value.length === 6 && /^\d{6}$/.test(value)) {
-        this.value = value;
-        // Auto-submit after a short delay
-        setTimeout(() => {
-          const form = this.closest('form');
-          if (form) {
-            form.submit();
-          }
-        }, 200);
-      } 
-      // For backup code format XXXX-XXXX-XXXX (12 chars + 2 hyphens = 14 total)
-      else if (value.length === 14 && /^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(value)) {
-        this.value = value;
-        // Auto-submit backup code after a short delay
-        setTimeout(() => {
-          const form = this.closest('form');
-          if (form) {
-            form.submit();
-          }
-        }, 200);
-      }
-      // Auto-format backup code as user types (add hyphens at positions 4 and 9)
-      else if (/^[0-9A-F]{4}$/.test(value)) {
-        this.value = value;
-      } else if (/^[0-9A-F]{5}$/.test(value)) {
-        this.value = value.slice(0, 4) + '-' + value.slice(4);
-      } else if (/^[0-9A-F]{4}-[0-9A-F]{4}$/.test(value)) {
-        this.value = value;
-      } else if (/^[0-9A-F]{4}-[0-9A-F]{5}$/.test(value)) {
-        this.value = value.slice(0, 9) + '-' + value.slice(9);
-      } else {
-        this.value = value;
-      }
-    });
+const codeInput = document.getElementById('two_factor_code');
+const verifyBtn = document.querySelector('.btn-primary');
 
-    // Focus on load
-    codeInput.focus();
+if (codeInput) {
+
+  codeInput.addEventListener('input', function () {
+
+    let raw = this.value.toUpperCase().replace(/\s/g, '');
+
+    // Allow only letters and numbers always
+    raw = raw.replace(/[^0-9A-Z]/g, '');
+
+    // =========================
+    // BACKUP CODE MODE (>6)
+    // =========================
+    if (raw.length > 6) {
+      const groups = raw.match(/.{1,4}/g) || [];
+      let formatted = groups.join('-');
+      formatted = formatted.substring(0, 14); // XXXX-XXXX-XXXX
+      this.value = formatted;
+    } else {
+      // Keep raw as typed (letters and numbers allowed)
+      this.value = raw;
+    }
+
+    validateInput();
+  });
+
+  codeInput.focus();
+}
+
+// =========================
+// BUTTON ENABLE LOGIC
+// =========================
+function validateInput() {
+  const value = codeInput.value.trim();
+
+  const validFirst6 = /^[0-9A-Z]{6}$/; // letters+numbers allowed
+  const validBackup = /^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/;
+
+  if (validFirst6.test(value) || validBackup.test(value)) {
+    verifyBtn.disabled = false;
+  } else {
+    verifyBtn.disabled = true;
   }
+}
+
+// disable on load
+verifyBtn.disabled = true;
 </script>
 
 {% endblock %}

@@ -50,6 +50,10 @@
   margin-bottom: 2.5rem;
 }
 
+.metrics-grid.system-records {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .metric-card {
   background: white;
   padding: 2rem;
@@ -328,6 +332,92 @@
 }
 
 /* ================================
+   NEW DATA ITEMS CONTAINER
+================================ */
+.new-data-items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+/* ================================
+   NEW DATA ITEMS (WEEKLY STATS)
+================================ */
+.new-data-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 1.2rem;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.5), rgba(237, 233, 254, 0.2));
+  border-radius: 12px;
+  border: 1px solid rgba(203, 213, 225, 0.3);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.new-data-item:hover {
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8), rgba(237, 233, 254, 0.4));
+  transform: translateY(-2px);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.new-data-item:last-child {
+  margin-bottom: 0;
+}
+
+.new-data-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.new-data-icon.users-new {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.new-data-icon.merchants-new {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.new-data-icon.bookings-new {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.new-data-icon.matches-new {
+  background: rgba(236, 72, 153, 0.15);
+  color: #ec4899;
+}
+
+.new-data-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.new-data-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 600;
+  display: block;
+}
+
+.new-data-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+/* ================================
    RESPONSIVE
 ================================ */
 @media (max-width: 1024px) {
@@ -359,6 +449,11 @@
 
   .metrics-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .metrics-grid.system-records {
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
 
@@ -396,6 +491,177 @@
 
   .stats-sidebar {
     margin-top: 2rem;
+  }
+
+  .new-data-items-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+
+  .new-data-item {
+    padding: 1rem;
+    gap: 0.6rem;
+  }
+
+  .new-data-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+  }
+
+  .new-data-label {
+    font-size: 0.8rem;
+  }
+
+  .new-data-value {
+    font-size: 1.4rem;
+  }
+
+  .stats-sidebar h4 {
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .stats-sidebar p {
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-dashboard {
+    padding: 1rem 0.5rem;
+  }
+
+  .section-container {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .metrics-grid.system-records {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .metric-card {
+    padding: 1.2rem;
+    gap: 1rem;
+    flex-direction: row;
+  }
+
+  .metric-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    margin: 0;
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+  }
+
+  .metric-value {
+    font-size: 1.8rem;
+  }
+
+  .role-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .role-card {
+    padding: 1.2rem;
+  }
+
+  .role-card h4 {
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .role-card p {
+    font-size: 0.85rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .activity-card li {
+    padding: 0.8rem;
+    margin-bottom: 0.6rem;
+    border-left-width: 3px;
+  }
+
+  .activity-card li i {
+    font-size: 1rem;
+    min-width: 20px;
+  }
+
+  .activity-message {
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .activity-meta {
+    font-size: 0.75rem;
+  }
+
+  .stats-sidebar {
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .stats-sidebar h4 {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
+  .stats-sidebar p {
+    font-size: 0.75rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .new-data-items-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .new-data-item {
+    padding: 0.9rem;
+    gap: 0.6rem;
+  }
+
+  .new-data-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+  }
+
+  .new-data-label {
+    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .new-data-value {
+    font-size: 1.3rem;
+  }
+
+  .new-data-content {
+    gap: 0.2rem;
   }
 }
 </style>
@@ -456,7 +722,7 @@
         System Records
       </div>
 
-      <div class="metrics-grid">
+      <div class="metrics-grid system-records">
         <div class="metric-card">
           <div class="metric-icon species">
             <i class="fas fa-paw"></i>
@@ -566,37 +832,51 @@
         </div>
       </div>
 
-      <!-- System Health Sidebar -->
+      <!-- New Data Recorded Sidebar -->
       <div class="stats-sidebar">
-        <h4>System Health</h4>
+        <h4><i class="fas fa-sparkles" style="color: #f59e0b; margin-right: 0.6rem;"></i>New Data Recorded</h4>
+        <p style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 1.5rem; margin-top: -0.5rem;">This week</p>
         
-        <div class="stat-item">
-          <span class="stat-label">Database Status</span>
-          <span class="stat-value" style="color: #22c55e;">
-            <i class="fas fa-check-circle"></i> Healthy
-          </span>
-        </div>
+        <div class="new-data-items-grid">
+          <div class="new-data-item">
+            <div class="new-data-icon users-new">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="new-data-content">
+              <span class="new-data-label">New Users</span>
+              <span class="new-data-value">{{ stats.new_users | default(0, true) }}</span>
+            </div>
+          </div>
 
-        <div class="stat-item">
-          <span class="stat-label">API Status</span>
-          <span class="stat-value" style="color: #22c55e;">
-            <i class="fas fa-check-circle"></i> Operational
-          </span>
-        </div>
+          <div class="new-data-item">
+            <div class="new-data-icon merchants-new">
+              <i class="fas fa-store"></i>
+            </div>
+            <div class="new-data-content">
+              <span class="new-data-label">New Merchants</span>
+              <span class="new-data-value">{{ stats.new_merchants | default(0, true) }}</span>
+            </div>
+          </div>
 
-        <div class="stat-item">
-          <span class="stat-label">System Uptime</span>
-          <span class="stat-value">99.9%</span>
-        </div>
+          <div class="new-data-item">
+            <div class="new-data-icon bookings-new">
+              <i class="fas fa-calendar-plus"></i>
+            </div>
+            <div class="new-data-content">
+              <span class="new-data-label">New Bookings</span>
+              <span class="new-data-value">{{ stats.new_bookings | default(0, true) }}</span>
+            </div>
+          </div>
 
-        <div class="stat-item">
-          <span class="stat-label">Active Sessions</span>
-          <span class="stat-value">{{ active_sessions | default(24, true) }}</span>
-        </div>
-
-        <div class="stat-item">
-          <span class="stat-label">Last Backup</span>
-          <span class="stat-value" style="font-size: 0.95rem;">Today 2:00 AM</span>
+          <div class="new-data-item">
+            <div class="new-data-icon matches-new">
+              <i class="fas fa-heart"></i>
+            </div>
+            <div class="new-data-content">
+              <span class="new-data-label">New Matches</span>
+              <span class="new-data-value">{{ stats.new_matches | default(0, true) }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -626,6 +906,17 @@
         item.style.opacity = '1';
         item.style.transform = 'translateX(0)';
       }, index * 80);
+    });
+
+    // Animate new data items
+    document.querySelectorAll('.new-data-item').forEach((item, index) => {
+      item.style.opacity = '0';
+      item.style.transform = 'translateX(20px)';
+      setTimeout(() => {
+        item.style.transition = 'all 0.4s ease';
+        item.style.opacity = '1';
+        item.style.transform = 'translateX(0)';
+      }, 500 + index * 100);
     });
   });
 </script>

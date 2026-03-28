@@ -4,6 +4,270 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='merchant/css/bookings_list.css') }}">
 
 <style>
+  /* Root Variables */
+  :root {
+    --primary: #a855f7;
+    --primary-dark: #9333ea;
+    --primary-light: #c084fc;
+    --text-dark: #111827;
+    --text-gray: #6b7280;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+  }
+
+  /* Search Filter Card - White Theme with Glassmorphism */
+  .search-filter-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 
+      0 12px 48px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .search-filter-card:hover {
+    box-shadow: 
+      0 16px 56px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 0 1px rgba(168, 85, 247, 0.15);
+  }
+
+  .search-filter-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: flex-end;
+  }
+
+  /* Search Box Wrapper */
+  .search-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-label i {
+    font-size: 1rem;
+    color: #a855f7;
+    filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.875rem 2.75rem 0.875rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(168, 85, 247, 0.08);
+  }
+
+  .search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+  }
+
+  .search-input:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 6px 16px rgba(168, 85, 247, 0.12);
+  }
+
+  .search-input:focus {
+    outline: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.98) 100%);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(168, 85, 247, 0.15);
+  }
+
+  /* Filter Box Wrapper */
+  .filter-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 240px;
+  }
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .filter-label i {
+    font-size: 1rem;
+    color: #a855f7;
+    filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 0.875rem 2.5rem 0.875rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+    background-size: 1rem 1rem;
+    padding-right: 2.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(168, 85, 247, 0.08);
+  }
+
+  .filter-select option {
+    color: var(--text-dark);
+    background: white;
+    padding: 0.5rem;
+  }
+
+  .filter-select:hover {
+    background-color: rgba(255, 255, 255, 1);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 6px 16px rgba(168, 85, 247, 0.12);
+  }
+
+  .filter-select:focus {
+    outline: none;
+    background-color: rgba(255, 255, 255, 1);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(168, 85, 247, 0.15);
+  }
+
+  /* Hidden row for filtering */
+  .bookings-table tbody tr[data-hidden="true"] {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .search-filter-card {
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-filter-content {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .search-box-wrapper {
+      gap: 0.65rem;
+    }
+
+    .filter-box-wrapper {
+      min-width: auto;
+      gap: 0.65rem;
+    }
+
+    .search-label,
+    .filter-label {
+      font-size: 0.8125rem;
+      color: #a855f7;
+    }
+
+    .search-input {
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      font-size: 0.9375rem;
+    }
+
+    .filter-select {
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      font-size: 0.9375rem;
+    }
+
+    .search-input::placeholder {
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .search-filter-card {
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-filter-content {
+      gap: 1rem;
+    }
+
+    .search-box-wrapper {
+      gap: 0.5rem;
+    }
+
+    .filter-box-wrapper {
+      gap: 0.5rem;
+    }
+
+    .search-label,
+    .filter-label {
+      font-size: 0.75rem;
+      color: #a855f7;
+    }
+
+    .search-label i,
+    .filter-label i {
+      font-size: 0.875rem;
+    }
+
+    .search-input {
+      padding: 0.65rem 2rem 0.65rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+
+    .filter-select {
+      padding: 0.65rem 2rem 0.65rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+  }
+
   /* --- Modal Glassmorphism --- */
   .modal-content.view-modal {
     background: rgba(255, 255, 255, 0.8);
@@ -207,19 +471,37 @@
         <h1 class="page-title">Bookings</h1>
         <p class="page-subtitle">Manage customer bookings and reservations</p>
       </div>
-      
-      <div class="header-right">
-        <form method="GET" class="filter-form">
-          <select name="status" class="status-select" onchange="this.form.submit()">
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="search-filter-card">
+      <div class="search-filter-content">
+        <div class="search-box-wrapper">
+          <label class="search-label">
+            <i class="fas fa-search"></i> Search Bookings
+          </label>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="Search by booking ID, customer name, or email..."
+            onkeyup="filterBookings()">
+        </div>
+        
+        <div class="filter-box-wrapper">
+          <label class="filter-label">
+            <i class="fas fa-filter"></i> Filter Status
+          </label>
+          <select id="statusFilter" class="filter-select" onchange="filterBookings()">
             <option value="">All Status</option>
-            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
-            <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
-            <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
-            <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-            <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
-            <option value="no-show" {% if selected_status == 'no-show' %}selected{% endif %}>No Show</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="rejected">Rejected</option>
+            <option value="no-show">No Show</option>
           </select>
-        </form>
+        </div>
       </div>
     </div>
 
@@ -1320,6 +1602,75 @@
     }
   }
 
+  // Filter bookings based on search term and status
+  function filterBookings() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+    const tableBody = document.querySelector('.bookings-table tbody');
+    const rows = tableBody.querySelectorAll('tr');
+    
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+      // Skip empty state row
+      if (row.querySelector('.empty-state')) {
+        return;
+      }
+      
+      // Get booking ID, customer name, and email from the row
+      const bookingId = row.querySelector('.booking-id')?.textContent.toLowerCase() || '';
+      const customerName = row.querySelector('.customer-name')?.textContent.toLowerCase() || '';
+      const customerEmail = row.querySelector('.customer-email')?.textContent.toLowerCase() || '';
+      const status = row.querySelector('.status-badge span')?.textContent.toLowerCase() || '';
+      
+      // Check if row matches search term
+      const matchesSearch = !searchTerm || 
+        bookingId.includes(searchTerm) || 
+        customerName.includes(searchTerm) || 
+        customerEmail.includes(searchTerm);
+      
+      // Check if row matches status filter
+      const matchesStatus = !statusFilter || status.includes(statusFilter);
+      
+      // Show or hide row
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+    
+    // Show empty state if no rows are visible
+    const existingEmptyRow = tableBody.querySelector('.empty-row');
+    if (visibleCount === 0 && !existingEmptyRow) {
+      const emptyStateRow = document.createElement('tr');
+      emptyStateRow.classList.add('empty-row');
+      emptyStateRow.innerHTML = `
+        <td colspan="6" class="empty-state">
+          <div class="empty-content">
+            <i class="fas fa-search"></i>
+            <p>No bookings match your search criteria</p>
+          </div>
+        </td>
+      `;
+      tableBody.appendChild(emptyStateRow);
+    } else if (visibleCount > 0 && existingEmptyRow) {
+      existingEmptyRow.remove();
+    }
+  }
+
+  // Allow Enter key to trigger search
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          filterBookings();
+        }
+      });
+    }
+  });
 
 </script>
 {% endblock %}

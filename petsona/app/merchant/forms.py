@@ -1,3 +1,4 @@
+from flask import request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, IntegerField, FloatField, SelectField, SelectMultipleField, TimeField, BooleanField, SubmitField, HiddenField
@@ -138,10 +139,18 @@ class MerchantApplicationForm(FlaskForm):
     )
 
     # ========== SECTION 3: LOCATION ==========
+    region = SelectField(
+        'Region',
+        choices=[('', '-- Select Region --')],
+        validators=[DataRequired(message='Please select a region')],
+        validate_choice=False,
+        render_kw={'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800'}
+    )
+
     province = SelectField(
         'Province',
         choices=[('', '-- Select Province --')],
-        validators=[DataRequired(message='Please select a province')],
+        validators=[Optional()],
         validate_choice=False,
         render_kw={'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors bg-white text-gray-800'}
     )
@@ -204,13 +213,6 @@ class MerchantApplicationForm(FlaskForm):
     latitude = HiddenField('Latitude', validators=[Optional()])
     longitude = HiddenField('Longitude', validators=[Optional()])
 
-    # ========== SECTION 4: SERVICES OFFERED ==========
-    services_offered = MultiCheckboxField(
-        'Services Offered',
-        choices=[(svc, svc) for svc in ALLOWED_SERVICES],
-        validators=[Optional()],
-        render_kw={'class': 'space-y-2'}
-    )
 
     # ========== SECTION 5: PETS ACCEPTED ==========
     pets_accepted = MultiCheckboxField(
@@ -271,11 +273,6 @@ class MerchantApplicationForm(FlaskForm):
     )
 
     # ========== SECTION 8: POLICIES ==========
-    vaccination_required = BooleanField(
-        'Vaccination Required',
-        render_kw={'class': 'w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500'}
-    )
-
     cancellation_policy = TextAreaField(
         'Cancellation Policy',
         validators=[
@@ -370,6 +367,14 @@ class MerchantApplicationForm(FlaskForm):
             if not field.data or len(field.data) == 0:
                 raise ValidationError('Please select at least one operating day')
 
+    def validate_province(self, field):
+        """Require province unless NCR / Metro Manila is selected."""
+        region_value = self.region.data if hasattr(self, 'region') else ''
+        if region_value and str(region_value).strip().upper().startswith('NCR'):
+            return
+        if not field.data or not str(field.data).strip():
+            raise ValidationError('Please select a province')
+
 class MerchantStoreUpdateForm(FlaskForm):
     """Form for updating merchant store information - mirrors MerchantApplicationForm for editing"""
 
@@ -455,10 +460,19 @@ class MerchantStoreUpdateForm(FlaskForm):
     )
 
     # ========== SECTION 3: LOCATION ==========
+    region = SelectField(
+        'Region',
+        choices=[('', '-- Select Region --')],
+        validators=[DataRequired(message='Please select a region')],
+        validate_choice=False,
+        render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
+    )
+
     province = SelectField(
         'Province',
         choices=[('', '-- Select Province --')],
-        validators=[DataRequired(message='Please select a province')],
+        filters=[lambda x: x if x else request.form.get('province_fallback')],
+        validators=[Optional()],
         validate_choice=False,
         render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
     )
@@ -466,6 +480,7 @@ class MerchantStoreUpdateForm(FlaskForm):
     city = SelectField(
         'City / Municipality',
         choices=[('', '-- Select City/Municipality --')],
+        filters=[lambda x: x if x else request.form.get('city_fallback')],
         validators=[DataRequired(message='Please select a city or municipality')],
         validate_choice=False,
         render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
@@ -474,6 +489,7 @@ class MerchantStoreUpdateForm(FlaskForm):
     barangay = SelectField(
         'Barangay (Optional)',
         choices=[('', '-- Select Barangay --')],
+        filters=[lambda x: x if x else request.form.get('barangay_fallback')],
         validators=[Optional()],
         validate_choice=False,
         render_kw={'class': 'w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-slate-900 text-sm'}
@@ -521,13 +537,6 @@ class MerchantStoreUpdateForm(FlaskForm):
     latitude = HiddenField('Latitude', validators=[Optional()])
     longitude = HiddenField('Longitude', validators=[Optional()])
 
-    # ========== SECTION 4: SERVICES OFFERED ==========
-    services_offered = MultiCheckboxField(
-        'Services Offered',
-        choices=[(svc, svc) for svc in ALLOWED_SERVICES],
-        validators=[Optional()],
-        render_kw={'class': 'space-y-2'}
-    )
 
     # ========== SECTION 5: PETS ACCEPTED ==========
     pets_accepted = MultiCheckboxField(
@@ -669,3 +678,11 @@ class MerchantStoreUpdateForm(FlaskForm):
         if self.business_category.data == 'Pet Daycare':
             if not field.data or len(field.data) == 0:
                 raise ValidationError('Please select at least one operating day')
+
+    def validate_province(self, field):
+        """Require province unless NCR / Metro Manila is selected."""
+        region_value = self.region.data if hasattr(self, 'region') else ''
+        if region_value and str(region_value).strip().upper().startswith('NCR'):
+            return
+        if not field.data or not str(field.data).strip():
+            raise ValidationError('Please select a province')

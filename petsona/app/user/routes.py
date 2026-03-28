@@ -153,7 +153,6 @@ def view_species(id):
         page_title=f"{species.name} Breeds"
     )
 
-
 @bp.route('/nearby-services')
 @login_required
 @user_required
@@ -167,60 +166,18 @@ def nearby_services():
 
 @bp.route('/location-picker')
 @login_required
+@user_required
 def location_picker():
-    """Location picker tool for selecting service location"""
-    return_url = request.args.get('returnUrl', url_for('user.nearby_services'))
+    """Allow user to pick a location using OpenStreetMap"""
     return render_template(
         'user/location_picker.html',
-        page_title='Pick Your Location',
-        return_url=return_url
+        page_title='Pick Location'
     )
-
-
-@bp.route('/api/merchants/test', methods=['GET'])
-@csrf.exempt
-def test_merchants():
-    """Test endpoint to check merchants in database"""
-    try:
-        print("\n[TEST] Starting test endpoint")
-        all_merchants = Merchant.query.all()
-        print(f"[TEST] Total merchants: {len(all_merchants)}")
-        approved_merchants = Merchant.query.filter_by(
-            application_status='approved',
-            is_verified=True
-        ).all()
-        print(f"[TEST] Approved & verified: {len(approved_merchants)}\n")
-        
-        result = {
-            'total_merchants': len(all_merchants),
-            'approved_verified_count': len(approved_merchants),
-            'approved_merchants': []
-        }
-        
-        for m in approved_merchants:
-            result['approved_merchants'].append({
-                'id': m.id,
-                'name': m.business_name,
-                'status': m.application_status,
-                'verified': m.is_verified,
-                'lat': m.latitude,
-                'lon': m.longitude,
-                'city': m.city,
-                'services': m.services_offered
-            })
-            print(f"[TEST] {m.business_name}: status={m.application_status}, verified={m.is_verified}, coords=({m.latitude}, {m.longitude})")
-        
-        print(f"[TEST] Returning result")
-        return jsonify(result)
-    except Exception as e:
-        print(f"[ERROR] Test error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
 
 
 @bp.route('/api/merchants/nearby', methods=['POST'])
 @csrf.exempt
+@login_required
 def get_nearby_merchants():
     """Get nearby merchants based on user location and filters"""
     try:

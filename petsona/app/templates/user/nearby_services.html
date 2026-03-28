@@ -265,10 +265,13 @@
       </div>
       <div class="flex items-center justify-between mt-4">
 
-        <!-- Current Location Badge -->
-        <div x-data="locationBadge()" @mount="init()" x-show="hasLocation" class="inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-white border-2 border-purple-200 rounded-full text-xs lg:text-sm font-bold text-slate-900 shadow-sm">
+        <!-- Current Location Badge with Edit Button -->
+        <div x-data="locationBadge()" @mount="init()" x-show="hasLocation" class="inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-white border-2 border-purple-200 rounded-full text-xs lg:text-sm font-bold text-slate-900 shadow-sm hover:shadow-md transition-all">
           <i class="fas fa-location-dot text-purple-600"></i>
           <span x-text="locationText">Loading location...</span>
+          <a href="{{ url_for('user.location_picker') }}" class="ml-2 inline-flex items-center justify-center w-5 h-5 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200 transition-colors" title="Edit Location">
+            <i class="fas fa-edit text-xs"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -634,7 +637,24 @@ function premiumNearbyServices() {
 
     init() {
       console.log('Premium Nearby Services initialized');
-      this.requestLocation();
+      
+      // Check if location was selected from location picker
+      const selectedLat = sessionStorage.getItem('petsona_selected_lat');
+      const selectedLng = sessionStorage.getItem('petsona_selected_lng');
+      
+      if (selectedLat && selectedLng) {
+        this.userLocation = {
+          lat: parseFloat(selectedLat),
+          lng: parseFloat(selectedLng)
+        };
+        this.hasLocation = true;
+        this.locationRequested = true;
+        sessionStorage.removeItem('petsona_selected_lat');
+        sessionStorage.removeItem('petsona_selected_lng');
+        this.fetchMerchants();
+      } else {
+        this.requestLocation();
+      }
     },
 
     requestLocation() {
@@ -659,7 +679,8 @@ function premiumNearbyServices() {
           console.log('Location error:', error);
           this.locationRequested = true;
           this.fetchMerchants();
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     },
 
@@ -848,6 +869,10 @@ function locationBadge() {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
+                    // Store accurate coordinates in sessionStorage
+                    sessionStorage.setItem('petsona_user_lat', lat.toString());
+                    sessionStorage.setItem('petsona_user_lng', lng.toString());
+
                     // Call backend to reverse geocode and avoid CORS issues
                     try {
                         const res = await fetch('/user/api/location/reverse-geocode', {
@@ -871,13 +896,12 @@ function locationBadge() {
                             this.locationText = data.locationText;
                             this.hasLocation = true;
                         } else {
-                            this.locationText = 'Your Location';
+                            this.locationText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                             this.hasLocation = true;
                         }
                     } catch (e) {
                         console.error('Location reverse geocode error:', e);
-                        // Show user-friendly message instead of coordinates
-                        this.locationText = 'Your Location';
+                        this.locationText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                         this.hasLocation = true;
                     }
                 },
@@ -885,7 +909,8 @@ function locationBadge() {
                     console.error('Geolocation error:', error);
                     this.locationText = 'Your Location';
                     this.hasLocation = true;
-                }
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
     }

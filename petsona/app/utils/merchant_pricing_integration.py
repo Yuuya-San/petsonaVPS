@@ -257,7 +257,7 @@ def find_merchants_with_service_budget(service_name, max_budget, pet_size='small
     from app.utils.merchant_service_config import get_pricing_type_for_service
     
     merchants = Merchant.query.filter(
-        Merchant.services_offered.contains(service_name),
+        Merchant.service_pricing.has_key(service_name),
         Merchant.application_status == 'approved'
     ).all()
     

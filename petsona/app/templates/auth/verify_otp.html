@@ -45,7 +45,7 @@
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
   padding: 2.2rem;
   border-radius: 22px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(99, 102, 241, 0.08) 100%);
@@ -183,7 +183,7 @@
         <span class="input-status" id="otp-status"></span>
       </div>
 
-      <button class="btn-primary loading-btn" type="submit" aria-label="Verify OTP">
+      <button id="verify-btn" class="btn-primary loading-btn" type="submit" disabled aria-label="Verify OTP">
         <span class="btn-text">Verify</span>
         <span class="loader"></span>
       </button>
@@ -235,6 +235,23 @@ resendBtn.addEventListener('click', () => {
   localStorage.setItem(cooldownKey, Date.now());
   startCooldown(RESEND_COOLDOWN);
 });
+
+const otpInput = document.getElementById("otp");
+const verifyBtn = document.getElementById("verify-btn");
+
+function toggleVerifyButton() {
+  if (otpInput.value.trim().length > 0) {
+    verifyBtn.disabled = false;
+  } else {
+    verifyBtn.disabled = true;
+  }
+}
+
+// Run on typing
+otpInput.addEventListener("input", toggleVerifyButton);
+
+// Run once on page load (in case browser autofills)
+toggleVerifyButton();
 </script>
 
 

@@ -1018,7 +1018,6 @@ function merchantApplications() {
                         facility_photos_paths: Array.isArray(m.facility_photos_paths) ? m.facility_photos_paths : (m.facility_photos_paths ? [m.facility_photos_paths] : []),
                         submitted_at: m.submitted_at ? new Date(m.submitted_at).toISOString() : new Date().toISOString(),
                         rejection_reason: m.rejection_reason || '',
-                        years_in_operation: m.years_in_operation || 0,
                         status: m.application_status || 'pending',
                         business_description: m.business_description || '',
                         opening_time: m.opening_time || 'N/A',

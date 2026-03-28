@@ -1,5 +1,6 @@
 """Application factory. Initializes extensions, registers blueprints."""
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, request, flash
+from werkzeug.exceptions import RequestEntityTooLarge
 from .config import Config
 from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman, socketio, oauth
 from app.utils.db_init import ensure_database_exists, create_tables
@@ -169,6 +170,12 @@ def create_app(config_class: type = Config):
             recent_conversations=recent_conversations,
             unread_badge_count=unread_count
         )
+
+    # Global error handler for oversized multipart uploads
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_request_entity_too_large(error):
+        flash('Uploaded files exceed the maximum allowed upload size. Reduce attachments and try again.', 'danger')
+        return redirect(request.referrer or url_for('merchant.apply'))
 
     # Root route
     @app.route("/")

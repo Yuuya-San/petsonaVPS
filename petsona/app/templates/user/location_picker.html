@@ -1,0 +1,470 @@
+{% extends "user/base.html" %}
+
+{% block title %}Select Your Location - PetSona{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-slate-50 py-12">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-10">
+      <div class="flex items-center justify-center mb-6">
+        <div class="w-16 h-16 bg-gradient-to-br from-purple-600 via-purple-600 to-purple-800 rounded-full flex items-center justify-center text-white shadow-2xl">
+          <i class="fas fa-map-marker-alt text-2xl"></i>
+        </div>
+      </div>
+      <div class="text-center">
+        <h1 class="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Select Your Location</h1>
+        <p class="text-lg text-slate-600">Choose your location on the map to discover nearby pet services and merchants</p>
+      </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden mb-8 border border-slate-100">
+      <div class="p-8 border-b-2 border-slate-100 bg-gradient-to-r from-slate-50 to-transparent">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center text-white">
+            <i class="fas fa-map text-lg"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-slate-900">Interactive Map</h2>
+        </div>
+        <p class="text-slate-600 text-sm ml-13">Click on the map to set your location, or drag the marker to adjust</p>
+      </div>
+
+      <!-- Map -->
+      <div id="locationMap" class="w-full bg-gray-100"></div>
+
+      <!-- Coordinates Display -->
+      <div class="p-8 bg-gradient-to-br from-slate-50 via-purple-50 to-slate-50 border-t-2 border-slate-100">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Coordinates Card -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-compass text-purple-600"></i>
+              </div>
+              <label class="text-sm font-bold text-slate-700">Your Coordinates</label>
+            </div>
+            <div id="coordsDisplay" class="text-base font-mono text-purple-700 bg-slate-50 px-4 py-3 rounded-xl border border-purple-200">
+              📍 Click on the map to select location
+            </div>
+          </div>
+
+          <!-- Address Card -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-location-dot text-purple-600"></i>
+              </div>
+              <label class="text-sm font-bold text-slate-700">Location Address</label>
+            </div>
+            <div id="addressDisplay" class="text-sm text-slate-600 bg-slate-50 px-4 py-3 rounded-xl border border-purple-200 min-h-[3rem] flex items-center">
+              Address will appear here
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+
+        <!-- Use Current Location -->
+        <button
+            id="useCurrentLocationBtn"
+            onclick="useCurrentLocation()"
+            class="px-8 py-3 
+                bg-gradient-to-r from-green-500 to-green-700
+                text-white font-semibold
+                rounded-xl shadow-lg
+                hover:shadow-2xl hover:scale-105
+                active:scale-95
+                transition-all duration-300
+                flex items-center justify-center gap-2">
+            <i class="fas fa-location-crosshairs"></i>
+            <span>Use My Current Location</span>
+        </button>
+
+        <!-- Confirm Location -->
+        <button
+            id="confirmLocation"
+            class="px-8 py-3 
+                bg-gradient-to-r from-purple-600 to-purple-700
+                text-white font-semibold
+                rounded-xl shadow-lg
+                hover:shadow-2xl hover:scale-105
+                active:scale-95
+                transition-all duration-300
+                disabled:opacity-50 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2"
+            disabled>
+            <i class="fas fa-check"></i>
+            <span>Use This Location</span>
+        </button>
+
+        <!-- Back -->
+        <a
+        href="{{ url_for('user.nearby_services') }}"
+        class="inline-flex items-center justify-center gap-2
+                px-8 py-3
+                !bg-gradient-to-r !from-slate-600 !to-slate-700
+                !text-white font-semibold
+                rounded-xl shadow-lg
+                hover:shadow-xl hover:!from-slate-700 hover:!to-slate-800
+                active:shadow-md
+                transition-all duration-200
+                no-underline">
+        <i class="fas fa-arrow-left"></i>
+        <span>Cancel</span>
+        </a>
+
+        </div>
+
+  </div>
+</div>
+
+<!-- Hidden inputs for coordinates -->
+<input type="hidden" id="latitude" name="latitude">
+<input type="hidden" id="longitude" name="longitude">
+
+<!-- LEAFLET SCRIPTS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  #locationMap {
+    width: 100% !important;
+    height: 600px !important;
+    display: block !important;
+    position: relative !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    border-radius: 0 !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+  }
+
+  #locationMap.leaflet-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    z-index: 1 !important;
+    border-radius: 0 !important;
+  }
+
+  #locationMap .leaflet-pane {
+    z-index: 2 !important;
+  }
+
+  #locationMap .leaflet-control {
+    z-index: 3 !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+  }
+
+  .leaflet-popup-content {
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+  }
+
+  .leaflet-popup-tip {
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* Smooth transitions */
+  .leaflet-container {
+    transition: background-color 0.3s ease;
+  }
+
+  /* Responsive map height */
+  @media (max-width: 640px) {
+    #locationMap {
+      height: 350px !important;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 768px) {
+    #locationMap {
+      height: 450px !important;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1199px) {
+    #locationMap {
+      height: 550px !important;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    #locationMap {
+      height: 650px !important;
+    }
+  }
+
+  /* Premium Loading Spinner Animation */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(147, 41, 234, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(147, 41, 234, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(147, 41, 234, 0);
+    }
+  }
+
+  .spinner-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  .loading-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .loading-badge i {
+    animation: spin 1.5s linear infinite;
+  }
+
+  /* Button loading state */
+  button:disabled {
+    opacity: 0.9 !important;
+  }
+
+  button.is-loading {
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+
+  .btn-spinner {
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: rgba(255, 255, 255, 1);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+</style>
+
+<script>
+let map;
+let marker;
+let selectedLat = null;
+let selectedLng = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  initMap();
+});
+
+function initMap() {
+  console.log('🌍 Initializing location picker map...');
+
+  try {
+    // Create the map centered on Philippines
+    map = L.map('locationMap', {
+      center: [12.8797, 121.7740], // Center of Philippines
+      zoom: 6, // Zoomed out to show whole country
+      attributionControl: true,
+      zoomControl: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      dragging: true,
+      touchZoom: true
+    });
+
+    console.log('✅ Map instance created');
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+      minZoom: 5
+    }).addTo(map);
+
+    console.log('✅ Tiles added');
+
+    // Create draggable marker at center
+    marker = L.marker([12.8797, 121.7740], {
+      draggable: true
+    }).addTo(map).bindPopup('Click on the map to set your location<br><small>Or drag this marker</small>');
+
+    console.log('✅ Marker added');
+
+    // Update coordinates when dragging
+    marker.on('dragend', function() {
+      const pos = marker.getLatLng();
+      updateLocation(pos.lat, pos.lng);
+    });
+
+    // Click to place marker
+    map.on('click', function(e) {
+      marker.setLatLng(e.latlng);
+      updateLocation(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Force map to resize after a delay
+    setTimeout(() => {
+      map.invalidateSize(true);
+      console.log('✅ Map resized');
+    }, 100);
+
+    // Add a second delay for better rendering
+    setTimeout(() => {
+      map.invalidateSize(true);
+      console.log('✅ Map re-resized');
+    }, 500);
+
+    console.log('✅✅✅ LOCATION PICKER MAP READY!!!');
+
+  } catch(err) {
+    console.error('❌ MAP ERROR:', err.message);
+    console.error(err);
+  }
+}
+
+function updateLocation(lat, lng) {
+  console.log('📍 Updating location:', lat, lng);
+
+  selectedLat = lat;
+  selectedLng = lng;
+
+  // Update hidden inputs
+  document.getElementById('latitude').value = lat.toFixed(6);
+  document.getElementById('longitude').value = lng.toFixed(6);
+
+  // Update display
+  document.getElementById('coordsDisplay').textContent = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+  // Reverse geocode to get address
+  reverseGeocode(lat, lng);
+
+  // Enable confirm button
+  document.getElementById('confirmLocation').disabled = false;
+  document.getElementById('confirmLocation').classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+}
+
+function reverseGeocode(lat, lng) {
+  const addressDisplay = document.getElementById('addressDisplay');
+  addressDisplay.textContent = 'Loading address...';
+
+  // Use backend reverse geocoding to avoid CORS issues
+  fetch('{{ url_for("user.reverse_geocode") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      latitude: lat,
+      longitude: lng
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      addressDisplay.textContent = data.locationText;
+    } else {
+      addressDisplay.textContent = 'Address not found';
+    }
+  })
+  .catch(error => {
+    console.error('Geocoding error:', error);
+    addressDisplay.textContent = 'Unable to load address';
+  });
+}
+
+function useCurrentLocation() {
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by this browser.');
+    return;
+  }
+
+  const btn = document.getElementById('useCurrentLocationBtn');
+  const originalHTML = btn.innerHTML;
+  
+  // Show loading state
+  btn.disabled = true;
+  btn.classList.add('is-loading');
+  btn.innerHTML = '<div class="btn-spinner"></div><span>Getting Location...</span>';
+  document.getElementById('coordsDisplay').innerHTML = '<i class="fas fa-spinner spinner-spin"></i> Getting your location...';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      // Center map on current location with appropriate zoom
+      map.setView([lat, lng], 15);
+
+      // Move marker to current location
+      marker.setLatLng([lat, lng]);
+
+      // Update location
+      updateLocation(lat, lng);
+      
+      // Reset button state
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      btn.innerHTML = originalHTML;
+    },
+    (error) => {
+      console.error('Geolocation error:', error);
+      alert('Unable to get your current location. Please select location manually on the map.');
+      document.getElementById('coordsDisplay').innerHTML = '📍 Click on the map to select location';
+      
+      // Reset button state
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      btn.innerHTML = originalHTML;
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+// Confirm location and save to sessionStorage
+document.getElementById('confirmLocation').addEventListener('click', function() {
+  if (!selectedLat || !selectedLng) {
+    alert('Please select a location first.');
+    return;
+  }
+
+  const btn = this;
+  const originalHTML = btn.innerHTML;
+  const originalClasses = btn.className;
+
+  // Show saving state - keep same color, show spinner
+  btn.disabled = true;
+  btn.classList.add('is-loading');
+  btn.innerHTML = '<div class="btn-spinner"></div><span>Saving Location...</span>';
+
+  // Save to sessionStorage
+  sessionStorage.setItem('petsona_selected_lat', selectedLat.toString());
+  sessionStorage.setItem('petsona_selected_lng', selectedLng.toString());
+
+  // Show success message
+  setTimeout(() => {
+    btn.innerHTML = '<i class="fas fa-check-circle"></i><span>Location Saved!</span>';
+
+    // Redirect back to nearby services after a short delay
+    setTimeout(() => {
+      window.location.href = '{{ url_for("user.nearby_services") }}';
+    }, 800);
+  }, 600);
+});
+</script>
+
+{% endblock %}

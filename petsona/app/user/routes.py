@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
-    """Calculate distance in km between two coordinates using Haversine formula"""
+    """Calculate distance in km between two coordinates using Haversine formula (fallback for air distance)"""
     R = 6371  # Earth's radius in kilometers
     
     dLat = math.radians(lat2 - lat1)
@@ -41,6 +41,47 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     
     c = 2 * math.asin(math.sqrt(a))
     return R * c
+
+
+def get_road_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate actual road distance in km using OpenRouteService API
+    Falls back to Haversine distance if API fails
+    """
+    try:
+        # Use OpenRouteService for road distance calculation
+        url = "https://api.openrouteservice.org/v2/directions/driving-car"
+        
+        payload = {
+            "coordinates": [[lon1, lat1], [lon2, lat2]],
+            "format": "json"
+        }
+        
+        headers = {
+            "Accept": "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
+            "Content-Type": "application/json"
+        }
+        
+        # Try with API key from environment, or use free tier
+        api_key = os.environ.get('OPENROUTE_API_KEY')
+        if api_key:
+            headers["Authorization"] = api_key
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=5)
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Distance is in meters, convert to km
+            if 'routes' in data and len(data['routes']) > 0:
+                distance_meters = data['routes'][0]['summary']['distance']
+                distance_km = distance_meters / 1000
+                logger.info(f"Road distance calculated: {distance_km:.2f} km")
+                return distance_km
+    except Exception as e:
+        logger.warning(f"OpenRouteService failed: {str(e)}. Falling back to Haversine distance.")
+    
+    # Fallback to Haversine distance if API fails or no API key
+    return haversine_distance(lat1, lon1, lat2, lon2)
 
 
 @bp.route('/dashboard')
@@ -206,8 +247,8 @@ def get_nearby_merchants():
         from datetime import datetime
         
         for merchant in merchants:
-            # Calculate distance
-            distance = haversine_distance(
+            # Calculate road distance (more accurate than straight-line)
+            distance = get_road_distance(
                 user_lat, user_lon,
                 float(merchant.latitude), float(merchant.longitude)
             )

@@ -269,6 +269,9 @@
         <div x-data="locationBadge()" @mount="init()" x-show="hasLocation" class="inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-white border-2 border-purple-200 rounded-full text-xs lg:text-sm font-bold text-slate-900 shadow-sm hover:shadow-md transition-all">
           <i class="fas fa-location-dot text-purple-600"></i>
           <span x-text="locationText">Loading location...</span>
+          <a href="{{ url_for('user.location_picker') }}" class="ml-2 text-purple-600 hover:text-purple-800 transition-colors" title="Change location">
+            <i class="fas fa-edit text-xs"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -286,7 +289,10 @@
               <p class="text-slate-600 leading-relaxed text-sm lg:text-base font-medium">Show pet services near you. <span class="text-slate-900 font-bold">Private & secure.</span></p>
               <p class="text-slate-500 text-xs lg:text-sm mt-2 flex items-center gap-2">
                 <i class="fas fa-shield-alt text-emerald-600"></i>
-                Encrypted
+                Encrypted • 
+                <a href="{{ url_for('user.location_picker') }}" class="text-purple-600 hover:text-purple-800 font-medium underline">
+                  Or pick location manually
+                </a>
               </p>
             </div>
           </div>
@@ -400,8 +406,8 @@
             <div class="absolute top-3 right-3 lg:top-4 lg:right-4">
               <div class="distance-badge rounded-full px-2.5 lg:px-4 py-1 lg:py-2 text-xs lg:text-xs font-black shadow-xl flex items-center gap-1.5"
                   style="background: transparent; color: #9929EA;">
-                <i class="fas fa-location-arrow text-xs" style="color: #9929EA;"></i>
-                <span x-text="merchant.distance.toFixed(1) + 'km'"></span>
+                <i class="fas fa-road text-xs" style="color: #9929EA;"></i>
+                <span x-text="merchant.distance.toFixed(1) + ' km'"></span>
               </div>
             </div>
 
@@ -646,8 +652,8 @@ function premiumNearbyServices() {
         };
         this.hasLocation = true;
         this.locationRequested = true;
-        sessionStorage.removeItem('petsona_selected_lat');
-        sessionStorage.removeItem('petsona_selected_lng');
+        // Keep selected coordinates in sessionStorage for locationBadge to use
+        // They will be cleared when user changes location or refreshes
         this.fetchMerchants();
       } else {
         this.requestLocation();
@@ -670,6 +676,9 @@ function premiumNearbyServices() {
           };
           this.hasLocation = true;
           this.locationRequested = true;
+          // Clear any previously selected location when using geolocation
+          sessionStorage.removeItem('petsona_selected_lat');
+          sessionStorage.removeItem('petsona_selected_lng');
           this.fetchMerchants();
         },
         (error) => {
@@ -683,6 +692,9 @@ function premiumNearbyServices() {
 
     skipLocation() {
       this.locationRequested = true;
+      // Clear any selected location when skipping
+      sessionStorage.removeItem('petsona_selected_lat');
+      sessionStorage.removeItem('petsona_selected_lng');
       this.fetchMerchants();
     },
 
@@ -855,6 +867,16 @@ function locationBadge() {
         locationText: 'Loading location...',
         
         init() {
+            // First check if location was selected from location picker
+            const selectedLat = sessionStorage.getItem('petsona_selected_lat');
+            const selectedLng = sessionStorage.getItem('petsona_selected_lng');
+            
+            if (selectedLat && selectedLng) {
+                this.reverseGeocodeSelectedLocation(parseFloat(selectedLat), parseFloat(selectedLng));
+                return;
+            }
+            
+            // Otherwise, try to get current location
             if (!navigator.geolocation) {
                 this.locationText = 'Your Location';
                 this.hasLocation = true;
@@ -909,6 +931,39 @@ function locationBadge() {
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
+        },
+        
+        async reverseGeocodeSelectedLocation(lat, lng) {
+            try {
+                const res = await fetch('/user/api/location/reverse-geocode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng
+                    })
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    this.locationText = data.locationText;
+                    this.hasLocation = true;
+                } else {
+                    this.locationText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    this.hasLocation = true;
+                }
+            } catch (e) {
+                console.error('Selected location reverse geocode error:', e);
+                this.locationText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                this.hasLocation = true;
+            }
         }
     }
 }

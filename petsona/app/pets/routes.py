@@ -11,7 +11,6 @@ from app import db
 from app.models import Species, Breed
 from app.utils.audit import log_event
 from . import bp
-from app.utils.icons import get_species_icon
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from app.decorators import admin_required, user_required, merchant_required
 import pytz
@@ -86,6 +85,7 @@ def save_species():
     # ---- BASIC FIELDS ----
     track_change("name", request.form.get("name", "").strip())
     track_change("description", request.form.get("description", "").strip())
+    track_change("icon", request.form.get("icon", "").strip())
 
     # ---- BOOLEAN FIELDS ----
     boolean_fields = [
@@ -111,9 +111,6 @@ def save_species():
 
     # ---- TEXT FIELDS ----
     track_change("ethical_notes", request.form.get("ethical_notes", "").strip())
-
-    # ---- AUTO ICON (SYSTEM CONTROLLED) ----
-    auto_icon = get_species_icon(species.name)
 
     # ---- IMAGE HANDLING ----
     file = request.files.get("image")

@@ -65,6 +65,12 @@ class Notification(db.Model):
             self.read_at = get_ph_datetime()
             db.session.commit()
 
+    def soft_delete(self):
+        """Soft delete the notification by setting deleted_at."""
+        if self.deleted_at is None:
+            self.deleted_at = get_ph_datetime()
+            db.session.commit()
+
     def to_dict(self):
         """Convert notification to dictionary for JSON serialization"""
         # Get sender information using from_user_id from users table

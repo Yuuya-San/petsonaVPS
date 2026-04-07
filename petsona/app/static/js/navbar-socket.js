@@ -75,9 +75,9 @@ class NavbarSocketManager {
   setupEventHandlers() {
     if (!this.socket) return;
 
-    // Listen for unread count updates
-    this.socket.on('unread_count_update', (data) => {
-      console.log('📬 Unread count update:', data);
+    // Listen for unread message count updates
+    this.socket.on('message_unread_count_update', (data) => {
+      console.log('📬 Message unread count update:', data);
       this.updateUnreadBadge(data.unread_count);
     });
 

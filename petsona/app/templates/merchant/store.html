@@ -220,23 +220,6 @@
               </div>
               {% endif %}
 
-              <!-- Services Offered -->
-              {% if merchant.get_services_list() %}
-              <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg mb-6 sm:mb-8">
-                <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
-                  <i class="fas fa-briefcase text-purple-600"></i> Services Offered
-                </h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {% for service in merchant.get_services_list() %}
-                  <div class="flex items-center gap-2 p-2 bg-purple-50/50 rounded-lg">
-                    <i class="fas fa-check text-purple-600 text-sm"></i>
-                    <span class="text-gray-700 text-sm">{{ service }}</span>
-                  </div>
-                  {% endfor %}
-                </div>
-              </div>
-              {% endif %}
-
               <!-- Address & Map -->
               <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg mb-6 sm:mb-8">
                 <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
@@ -276,6 +259,26 @@
                 </div>
               </div>
 
+              {% if merchant.get_operating_days() %}
+              <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-white/70 shadow-lg mb-6 sm:mb-8">
+                <h4 class="font-bold text-gray-900 text-sm sm:text-base mb-3 flex items-center gap-2">
+                  <i class="fas fa-calendar-week text-purple-600"></i> Operating Days
+                </h4>
+                <div class="flex flex-wrap gap-2">
+                  {% set day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                  {% for day_num in merchant.get_operating_days() %}
+                    <span class="inline-flex px-2.5 py-1.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full whitespace-nowrap">
+                      {% if day_num is number %}
+                        {{ day_names[day_num] }}
+                      {% else %}
+                        {{ day_num }}
+                      {% endif %}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
               <!-- Cancellation Policy -->
               {% if merchant.cancellation_policy %}
               <div class="bg-amber-50/60 backdrop-blur-lg rounded-2xl p-4 sm:p-5 border border-amber-200/50 shadow-lg mb-6 sm:mb-8">
@@ -311,26 +314,6 @@
             </div>
             {% endif %}
 
-            <!-- Operating Days -->
-            {% if merchant.get_operating_days() %}
-            <div class="bg-white/70 backdrop-blur-lg rounded-2xl p-5 border border-white/70 shadow-lg hover:shadow-xl transition-all">
-              <h4 class="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
-                <i class="fas fa-calendar-week text-purple-600"></i> Operating Days
-              </h4>
-              <div class="flex flex-wrap gap-2">
-                {% set day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
-                {% for day_num in merchant.get_operating_days() %}
-                  <span class="inline-flex px-2.5 py-1.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full whitespace-nowrap">
-                    {% if day_num is number %}
-                      {{ day_names[day_num] }}
-                    {% else %}
-                      {{ day_num }}
-                    {% endif %}
-                  </span>
-                {% endfor %}
-              </div>
-            </div>
-            {% endif %}
           </div>
 
           <!-- Map Section -->

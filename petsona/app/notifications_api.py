@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 from app.extensions import db, csrf
 from app.models import Notification
+from app.models.notification import get_ph_datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -19,14 +20,15 @@ def delete_notification(notification_id):
         # Get the notification and ensure it belongs to the current user
         notification = Notification.query.filter_by(
             id=notification_id,
-            user_id=current_user.id
+            user_id=current_user.id,
+            deleted_at=None
         ).first_or_404()
         
-        # Delete the notification
-        db.session.delete(notification)
+        # Soft delete the notification
+        notification.deleted_at = get_ph_datetime()
         db.session.commit()
         
-        logger.info(f"✅ Notification {notification_id} deleted for user {current_user.id}")
+        logger.info(f"✅ Notification {notification_id} soft deleted for user {current_user.id}")
         
         return jsonify({
             'success': True,
@@ -49,14 +51,16 @@ def delete_notification(notification_id):
 def delete_all_notifications():
     """Delete all notifications for the current user"""
     try:
-        # Get count of notifications to be deleted
-        count = Notification.query.filter_by(user_id=current_user.id).count()
+        # Get count of notifications to be soft deleted
+        count = Notification.query.filter_by(user_id=current_user.id, deleted_at=None).count()
         
-        # Delete all notifications for the current user
-        Notification.query.filter_by(user_id=current_user.id).delete()
+        # Soft delete all notifications for the current user
+        Notification.query.filter_by(user_id=current_user.id, deleted_at=None).update({
+            Notification.deleted_at: get_ph_datetime()
+        }, synchronize_session=False)
         db.session.commit()
         
-        logger.info(f"✅ {count} notifications deleted for user {current_user.id}")
+        logger.info(f"✅ {count} notifications soft deleted for user {current_user.id}")
         
         return jsonify({
             'success': True,
@@ -82,7 +86,8 @@ def mark_notification_read(notification_id):
         # Get the notification and ensure it belongs to the current user
         notification = Notification.query.filter_by(
             id=notification_id,
-            user_id=current_user.id
+            user_id=current_user.id,
+            deleted_at=None
         ).first_or_404()
         
         # Mark as read

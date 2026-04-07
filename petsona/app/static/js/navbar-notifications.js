@@ -642,6 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', async function() {
             if (!notificationToDelete) return;
+            setButtonLoading(confirmDeleteBtn, true, 'Delete');
             
             try {
                 const response = await fetch(`/api/notifications/${notificationToDelete}`, {
@@ -657,16 +658,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             $('#notificationModal').modal('hide');
                         }, 200);
                     }
-                    // Refresh notifications
-                    await fetchNotifications();
-                    updateNotificationCounter();
-                    showSuccessMessage('Notification deleted successfully');
+                    // Refresh notifications via socket update
+                    if (notificationSocket) {
+                        notificationSocket.emit('get_notifications');
+                        notificationSocket.emit('get_unread_count');
+                    }
+                    showFlashMessage('Notification deleted successfully', 'success');
                 } else {
-                    showErrorMessage('Failed to delete notification');
+                    showFlashMessage('Failed to delete notification', 'danger');
                 }
             } catch (error) {
                 console.error('Error deleting notification:', error);
-                showErrorMessage('Error deleting notification');
+                showFlashMessage('Error deleting notification', 'danger');
+            } finally {
+                setButtonLoading(confirmDeleteBtn, false, 'Delete');
             }
         });
     }
@@ -685,6 +690,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmDeleteAllBtn = document.getElementById('confirmDeleteAllNotifBtn');
     if (confirmDeleteAllBtn) {
         confirmDeleteAllBtn.addEventListener('click', async function() {
+            setButtonLoading(confirmDeleteAllBtn, true, 'Delete all');
+
             try {
                 const response = await fetch('/api/notifications/delete-all', {
                     method: 'DELETE',
@@ -699,16 +706,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             $('#notificationModal').modal('hide');
                         }, 200);
                     }
-                    // Refresh notifications
-                    await fetchNotifications();
-                    updateNotificationCounter();
-                    showSuccessMessage('All notifications deleted successfully');
+                    // Refresh notifications via socket update
+                    if (notificationSocket) {
+                        notificationSocket.emit('get_notifications');
+                        notificationSocket.emit('get_unread_count');
+                    }
+                    showFlashMessage('All notifications deleted successfully', 'success');
                 } else {
-                    showErrorMessage('Failed to delete notifications');
+                    showFlashMessage('Failed to delete notifications', 'danger');
                 }
             } catch (error) {
                 console.error('Error deleting all notifications:', error);
-                showErrorMessage('Error deleting notifications');
+                showFlashMessage('Error deleting notifications', 'danger');
+            } finally {
+                setButtonLoading(confirmDeleteAllBtn, false, 'Delete all');
             }
         });
     }
@@ -719,60 +730,71 @@ function setNotificationToDelete(notificationId) {
     notificationToDelete = notificationId;
 }
 
-// === HELPER: Show success message ===
-function showSuccessMessage(message) {
-    console.log('✅ ' + message);
-    // Create and show a toast/alert notification
-    const alertDiv = document.createElement('div');
-    alertDiv.className = 'alert alert-success alert-dismissible fade show';
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10001;
-        min-width: 300px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-    alertDiv.innerHTML = `
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <i class="fas fa-check-circle"></i> ${message}
-    `;
-    document.body.appendChild(alertDiv);
-    
-    // Auto-dismiss after 4 seconds
-    setTimeout(() => {
-        if (alertDiv.parentElement) {
-            alertDiv.remove();
-        }
-    }, 4000);
+function setButtonLoading(button, isLoading, defaultLabel) {
+    if (!button) return;
+    const spinner = button.querySelector('.spinner-border');
+    const btnText = button.querySelector('.btn-text');
+
+    button.disabled = isLoading;
+    button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+
+    if (spinner) {
+        spinner.classList.toggle('d-none', !isLoading);
+    }
+
+    if (btnText) {
+        btnText.textContent = defaultLabel;
+    }
+
+    if (isLoading) {
+        button.classList.add('disabled', 'opacity-75');
+    } else {
+        button.classList.remove('disabled', 'opacity-75');
+    }
 }
 
-// === HELPER: Show error message ===
+function showFlashMessage(message, category = 'success') {
+    const container = document.querySelector('.flash-container');
+    if (!container) return;
+
+    const flash = document.createElement('div');
+    flash.className = `flash flash-${category}`;
+    flash.dataset.dismissTime = '6400';
+    flash.style.animation = 'flashSlideIn 0.3s ease-out';
+
+    const icon = category === 'success'
+        ? '<i class="fas fa-check-circle"></i>'
+        : category === 'danger'
+            ? '<i class="fas fa-times-circle"></i>'
+            : category === 'warning'
+                ? '<i class="fas fa-exclamation-triangle"></i>'
+                : '<i class="fas fa-info-circle"></i>';
+
+    flash.innerHTML = `
+        <div class="flash-icon">${icon}</div>
+        <div class="flash-content">${message}</div>
+        <button class="flash-close" aria-label="Close notification">
+          <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    container.appendChild(flash);
+
+    const removeFlash = () => {
+        flash.style.animation = 'flashSlideOut 0.4s ease-in forwards';
+        setTimeout(() => flash.remove(), 400);
+    };
+
+    flash.querySelector('.flash-close')?.addEventListener('click', removeFlash);
+    setTimeout(removeFlash, 6400);
+}
+
+function showSuccessMessage(message) {
+    showFlashMessage(message, 'success');
+}
+
 function showErrorMessage(message) {
-    console.error('❌ ' + message);
-    // Create and show a toast/alert notification
-    const alertDiv = document.createElement('div');
-    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10001;
-        min-width: 300px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-    alertDiv.innerHTML = `
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <i class="fas fa-exclamation-circle"></i> ${message}
-    `;
-    document.body.appendChild(alertDiv);
-    
-    // Auto-dismiss after 4 seconds
-    setTimeout(() => {
-        if (alertDiv.parentElement) {
-            alertDiv.remove();
-        }
-    }, 4000);
+    showFlashMessage(message, 'danger');
 }
 
 // === HELPER: Generate color from name ===

@@ -29,8 +29,8 @@ def handle_connect():
     sid = request.sid
     if current_user.is_authenticated:
         if current_user.id not in active_users:
-            active_users[current_user.id] = []
-        active_users[current_user.id].append(sid)
+            active_users[current_user.id] = set()
+        active_users[current_user.id].add(sid)
         
         # Join user-specific room for navbar updates
         room = f'user_{current_user.id}'
@@ -367,7 +367,7 @@ def notify_unread_message_count(recipient_id, unread_count):
     """Notify a specific user about their unread message count."""
     try:
         logger.info(f"📡 Notifying user {recipient_id} of {unread_count} unread messages")
-        socketio.emit('unread_count_update', {
+        socketio.emit('message_unread_count_update', {
             'unread_count': unread_count,
             'timestamp': get_ph_datetime().isoformat()
         }, room=f'user_{recipient_id}')

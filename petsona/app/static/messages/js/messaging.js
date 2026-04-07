@@ -16,6 +16,7 @@ class MessagingApp {
     this.isSending = false;
     this.parseMediaHandler = null;
     this.pendingParseMessages = new Set();
+    this.lastSendTime = 0; // For rate limiting rapid sends
     
     // Status tracking intervals
     this.heartbeatInterval = null;
@@ -165,6 +166,11 @@ class MessagingApp {
       this.handleNewMessage(data);
     });
 
+    this.socket.on('navbar_message_update', (data) => {
+      console.log('📣 Received navbar_message_update event:', data);
+      this.handleNavbarMessageUpdate(data);
+    });
+
     this.socket.on('message_read', (data) => {
       this.handleMessageRead(data);
     });
@@ -249,6 +255,36 @@ class MessagingApp {
       const statusEl = messageEl.querySelector('.message-status');
       if (statusEl) {
         statusEl.innerHTML = '<i class="fas fa-check-double text-blue-300"></i>';
+      }
+    }
+    
+    // Also update the conversation preview in sidebar if this conversation has no more unread messages
+    this.updateConversationReadStatus(data.conversation_id);
+  }
+
+  updateConversationReadStatus(conversationId) {
+    const convItem = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+    if (convItem) {
+      const previewEl = convItem.querySelector('.conversation-preview');
+      if (previewEl) {
+        // When messages are read, we should show the normal preview instead of "You have new message"
+        // For now, we'll get the last message content from the current chat
+        const chatMessages = document.querySelectorAll('.message-bubble');
+        if (chatMessages.length > 0) {
+          const lastMessage = chatMessages[chatMessages.length - 1];
+          const messageText = lastMessage.querySelector('.message-text');
+          if (messageText) {
+            const content = messageText.textContent || '';
+            previewEl.textContent = content.substring(0, 50) + (content.length > 50 ? '...' : '');
+            previewEl.className = 'text-sm text-slate-500 truncate';
+            
+            // Remove unread badge
+            const badgeEl = convItem.querySelector('.unread-badge');
+            if (badgeEl) {
+              badgeEl.remove();
+            }
+          }
+        }
       }
     }
   }
@@ -445,6 +481,14 @@ class MessagingApp {
   }
 
   sendMessage() {
+    // Prevent rapid clicking - minimum 500ms between sends
+    const now = Date.now();
+    if (this.lastSendTime && (now - this.lastSendTime) < 500) {
+      console.warn('⚠️ Send too fast, ignoring');
+      return;
+    }
+    this.lastSendTime = now;
+
     if (this.isSending) {
       console.warn('⚠️ Already sending a message, ignoring duplicate click');
       return;
@@ -540,10 +584,20 @@ class MessagingApp {
       body: JSON.stringify({ content: content }),
       signal: abortController.signal,
     })
-      .then((res) => {
+      .then(async (res) => {
         clearTimeout(timeoutId);
         console.log(`📩 Send response status: ${res.status}, headers:`, res.headers.get('content-type'));
-        return res.json().then(data => ({ status: res.status, data }));
+        
+        // Check if response is JSON
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          return { status: res.status, data };
+        } else {
+          // Handle non-JSON responses (like HTML error pages)
+          const text = await res.text();
+          return { status: res.status, data: { success: false, error: `Server error (${res.status}): ${text.substring(0, 100)}...` } };
+        }
       })
       .then(({ status, data }) => {
         console.log(`📩 Server response:`, data);
@@ -597,6 +651,14 @@ class MessagingApp {
           messageEl.style.opacity = '1';
         } else {
           console.error('❌ Server rejected message:', data.error);
+          
+          // Handle rate limiting with retry
+          if (status === 429) {
+            console.log('⏳ Rate limited, will retry message:', tempMessageId);
+            this.retryMessageWithBackoff(tempMessageId, content, 1);
+            return;
+          }
+          
           messageEl.classList.add('failed-message');
           const timeEl = messageEl.querySelector('.message-time');
           if (timeEl) {
@@ -659,6 +721,121 @@ class MessagingApp {
 
     // Retry the send
     this.sendTextMessageWithButton(content, document.querySelector('.send-button'));
+  }
+
+  retryMessageWithBackoff(tempMessageId, content, attemptNumber = 1) {
+    const maxAttempts = 3;
+    const baseDelay = 2000; // 2 seconds
+    const delay = baseDelay * Math.pow(2, attemptNumber - 1); // Exponential backoff
+
+    console.log(`⏳ Scheduling retry ${attemptNumber}/${maxAttempts} for message ${tempMessageId} in ${delay}ms`);
+
+    setTimeout(() => {
+      const messageEl = document.querySelector(`[data-message-id="${tempMessageId}"]`);
+      if (!messageEl) {
+        console.log('⚠️ Message element no longer exists, cancelling retry');
+        return;
+      }
+
+      // Update UI to show retry attempt
+      messageEl.classList.remove('failed-message');
+      const timeEl = messageEl.querySelector('.message-time');
+      if (timeEl) {
+        timeEl.innerHTML = `<span style="display:flex; align-items:center; gap:6px; font-size:0.75rem;">
+          <span>retrying (${attemptNumber}/${maxAttempts})...</span>
+          <div class="sending-spinner">
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+          </div>
+        </span>`;
+      }
+
+      // Attempt to resend
+      this.sendTextMessageWithRetry(content, tempMessageId, attemptNumber + 1);
+    }, delay);
+  }
+
+  sendTextMessageWithRetry(content, tempMessageId, nextAttemptNumber = 1) {
+    const convIdToSendTo = this.getCurrentConversationId();
+    const sendUrl = `/messages/send-message/${convIdToSendTo}`;
+
+    console.log(`🔄 RETRY ATTEMPT: Sending message ${tempMessageId} to ${sendUrl}`);
+
+    fetch(sendUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.getCSRFToken(),
+      },
+      body: JSON.stringify({ content: content }),
+    })
+      .then(async (res) => {
+        console.log(`📩 Retry response status: ${res.status}`);
+        
+        // Check if response is JSON
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          return { status: res.status, data };
+        } else {
+          // Handle non-JSON responses
+          const text = await res.text();
+          return { status: res.status, data: { success: false, error: `Server error (${res.status}): ${text.substring(0, 100)}...` } };
+        }
+      })
+      .then(({ status, data }) => {
+        const messageEl = document.querySelector(`[data-message-id="${tempMessageId}"]`);
+        if (!messageEl) return;
+
+        if (data.success && status === 200) {
+          console.log('✅ Retry successful:', data.message.id);
+          
+          // Update message element with server data
+          messageEl.setAttribute('data-message-id', data.message.id);
+          messageEl.setAttribute('data-sender-id', data.message.sender_id);
+          messageEl.classList.remove('failed-message', 'loading-message');
+          messageEl.style.opacity = '1';
+          
+          const timeEl = messageEl.querySelector('.message-time');
+          if (timeEl) {
+            timeEl.innerHTML = `${data.message.created_at_formatted_full || data.message.created_at_formatted}<span class="message-status ml-2"><i class="fas fa-check text-gray-400"></i></span>`;
+          }
+
+          // Parse media if any
+          const messageParser = messageEl.querySelector('.message-parser');
+          if (messageParser && messageParser.innerHTML.includes('[')) {
+            this.scheduleMediaParse(messageEl);
+          }
+
+          this.showNotification('✅ Message sent successfully', 'success');
+        } else if (status === 429 && nextAttemptNumber <= 3) {
+          console.log(`⏳ Rate limited again, retrying (${nextAttemptNumber}/3)...`);
+          this.retryMessageWithBackoff(tempMessageId, content, nextAttemptNumber);
+        } else {
+          console.error('❌ Retry failed:', data.error);
+          messageEl.classList.add('failed-message');
+          const timeEl = messageEl.querySelector('.message-time');
+          if (timeEl) {
+            timeEl.innerHTML = `<span class="text-red-500 text-xs">Failed after retries - <span class="cursor-pointer hover:underline" onclick="messagingApp.retryMessage('${tempMessageId}')">retry</span></span>`;
+          }
+          this.showNotification(data.error || 'Failed to send after retries', 'error');
+        }
+      })
+      .catch((err) => {
+        console.error('❌ Retry network error:', err);
+        const messageEl = document.querySelector(`[data-message-id="${tempMessageId}"]`);
+        if (messageEl && nextAttemptNumber <= 3) {
+          this.retryMessageWithBackoff(tempMessageId, content, nextAttemptNumber);
+        } else if (messageEl) {
+          messageEl.classList.add('failed-message');
+          const timeEl = messageEl.querySelector('.message-time');
+          if (timeEl) {
+            timeEl.innerHTML = `<span class="text-red-500 text-xs">Network error - <span class="cursor-pointer hover:underline" onclick="messagingApp.retryMessage('${tempMessageId}')">retry</span></span>`;
+          }
+          this.showNotification('❌ Network error - check your connection', 'error');
+        }
+      });
   }
 
   addLoadingMessage(content) {
@@ -1079,8 +1256,57 @@ class MessagingApp {
     if (convItem) {
       const previewEl = convItem.querySelector('.conversation-preview');
       if (previewEl) {
-        previewEl.textContent = messageData.content.substring(0, 50);
+        const currentUserId = parseInt(document.querySelector('.messaging-container')?.dataset.currentUserId);
+        const isFromOtherUser = messageData.sender_id !== currentUserId;
+
+        if (isFromOtherUser) {
+          previewEl.innerHTML = '<i class="fas fa-circle mr-2" style="font-size: 0.5rem;"></i>You have new message';
+          previewEl.className = 'conversation-preview text-sm text-red-600 truncate';
+          
+          let badgeEl = convItem.querySelector('.unread-badge');
+          if (!badgeEl) {
+            const nameEl = convItem.querySelector('h4');
+            if (nameEl) {
+              badgeEl = document.createElement('span');
+              badgeEl.className = 'bg-red-600 text-white text-xs font-bold rounded-full px-2 py-1 flex-shrink-0 unread-badge';
+              badgeEl.textContent = '1';
+              nameEl.parentNode.insertBefore(badgeEl, nameEl.nextSibling);
+            }
+          }
+        } else {
+          previewEl.textContent = messageData.content.substring(0, 50);
+          previewEl.className = 'conversation-preview text-sm text-slate-500 truncate';
+          
+          const badgeEl = convItem.querySelector('.unread-badge');
+          if (badgeEl) {
+            badgeEl.remove();
+          }
+        }
       }
+    }
+  }
+
+  handleNavbarMessageUpdate(data) {
+    const convItem = document.querySelector(`[data-conversation-id="${data.conversation_id}"]`);
+    if (!convItem) return;
+
+    const previewEl = convItem.querySelector('.conversation-preview');
+    if (!previewEl) return;
+
+    previewEl.innerHTML = '<i class="fas fa-circle mr-2" style="font-size: 0.5rem;"></i>You have new message';
+    previewEl.className = 'conversation-preview text-sm text-red-600 truncate';
+
+    let badgeEl = convItem.querySelector('.unread-badge');
+    if (!badgeEl) {
+      const nameEl = convItem.querySelector('h4');
+      if (nameEl) {
+        badgeEl = document.createElement('span');
+        badgeEl.className = 'bg-red-600 text-white text-xs font-bold rounded-full px-2 py-1 flex-shrink-0 unread-badge';
+        nameEl.parentNode.insertBefore(badgeEl, nameEl.nextSibling);
+      }
+    }
+    if (badgeEl) {
+      badgeEl.textContent = '1';
     }
   }
 

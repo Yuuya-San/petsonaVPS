@@ -55,11 +55,12 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2 mb-1">
                 <h4 class="font-semibold text-slate-900 truncate">{{ conv_other_user.first_name }} {{ conv_other_user.last_name }}</h4>
-                {% if unread_count > 0 %}
-                  <span class="bg-purple-600 text-white text-xs font-bold rounded-full px-2 py-1 flex-shrink-0">{{ unread_count }}</span>
-                {% endif %}
               </div>
-              <p class="text-sm text-slate-500 truncate">{{ conv.get_last_message_preview() }}</p>
+                {% if unread_count > 0 %}
+                  <p class="mb-0 message-status-unread"><i class="fas fa-circle" style="font-size: 0.5rem; margin-right: 6px;"></i>You have new message</p>
+                {% else %}
+                  <p class="mb-0 message-status-read">No message yet</p>
+                {% endif %}
             </div>
           </a>
         {% endfor %}

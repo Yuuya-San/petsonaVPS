@@ -41,8 +41,8 @@ class SocketManager {
           reconnectionDelay: 500,
           reconnectionDelayMax: 2000,
           reconnectionAttempts: this.maxReconnectAttempts,
-          transports: ['websocket'],
-          upgrade: false,
+          transports: ['websocket', 'polling'],
+          upgrade: true,
         });
         this.socket = window.sharedSocket;
       } else {

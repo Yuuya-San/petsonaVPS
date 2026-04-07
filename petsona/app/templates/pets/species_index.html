@@ -649,7 +649,7 @@
             @click="editingSpecies = JSON.parse($el.getAttribute('data-species'));
                     imagePreview='{{ url_for('static', filename=species.image_url) }}';
                     speciesName = editingSpecies.name;
-                    speciesIcon = getSpeciesIcon(editingSpecies.name);
+                    speciesIcon = editingSpecies.icon || 'fa-solid fa-paw';
                     speciesModal = true;
                     formSubmitting=false;
                     menu=false"
@@ -790,7 +790,7 @@
           Cancel
         </button>
         <form method="POST"
-              :action="'/pets/delete-species/' + (deletingSpecies?.id || '')"
+              :action="'/pets/species/' + (deletingSpecies?.id || '') + '/delete'"
               class="flex">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button type="submit" class="modal-btn modal-btn-delete">
@@ -846,8 +846,27 @@
                   </span>
                   <span class="text-xs text-gray-500" x-text="(editingSpecies?.name || '').length + '/100'"></span>
                 </label>
-                <input type="text" name="name" x-bind:value="editingSpecies?.name || ''" @input="speciesName = $event.target.value; speciesIcon = getSpeciesIcon(speciesName)" placeholder="e.g., Dog, Cat, Rabbit" maxlength="100"
+                <input type="text" name="name" x-bind:value="editingSpecies?.name || ''" @input="speciesName = $event.target.value" placeholder="e.g., Dog, Cat, Rabbit" maxlength="100"
                       class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-800 focus:border-indigo-800 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required>
+              </div>
+
+              <!-- Icon -->
+              <div class="flex flex-col w-full">
+                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-icons text-indigo-800"></i> Species Icon <span class="text-red-600">*</span>
+                </label>
+                <select name="icon" x-bind:value="editingSpecies?.icon || 'fa-solid fa-paw'" @change="speciesIcon = $event.target.value"
+                        class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-800 focus:border-indigo-800 bg-white transition shadow-sm hover:shadow-md w-full" required>
+                  <option value="fa-solid fa-dog">🐶 Dog</option>
+                  <option value="fa-solid fa-cat">🐱 Cat</option>
+                  <option value="fa-solid fa-dove">🐦 Bird</option>
+                  <option value="fa-solid fa-fish">🐟 Fish</option>
+                  <option value="fa-solid fa-otter">🐹 Small Mammal</option>
+                  <option value="fa-solid fa-dragon">🐍 Reptile</option>
+                  <option value="fa-solid fa-frog">🐸 Amphibian</option>
+                  <option value="fa-solid fa-spider">🕷️ Invertebrate</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Choose the appropriate icon category for this species</p>
               </div>
 
               <!-- Description -->
@@ -1052,7 +1071,7 @@
       <div class="mb-6">
         <div class="flex items-center gap-3 mb-2">
           <span class="inline-flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
-            <i :class="getSpeciesIcon(viewSpecies?.name)" class="text-purple-800 text-lg"></i>
+            <i :class="viewSpecies?.icon || 'fa-solid fa-paw'" class="text-purple-800 text-lg"></i>
           </span>
           <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
         </div>

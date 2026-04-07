@@ -5,7 +5,7 @@ from . import bp
 from .forms import SendMessageForm, ReportMessageForm, BlockUserForm
 from app.models import User
 from app.models.message import Message, Conversation
-from app.extensions import db, csrf
+from app.extensions import db, csrf, limiter
 from app.utils.messaging import (
     get_or_create_conversation,
     create_message,
@@ -106,6 +106,7 @@ def conversation(conversation_id):
 
 
 @bp.route('/send-message/<int:conversation_id>', methods=['POST'])
+@limiter.limit("100 per minute")  # More permissive for messaging
 @csrf.exempt
 @login_required
 def send_message(conversation_id):
@@ -237,6 +238,7 @@ def send_message(conversation_id):
 
 
 @bp.route('/mark-read/<int:message_id>', methods=['POST'])
+@limiter.limit("200 per minute")  # Very permissive for marking messages read
 @csrf.exempt
 @login_required
 def mark_read(message_id):
@@ -478,6 +480,7 @@ def get_conversations_api():
     })
 
 @bp.route('/upload-file/<int:conversation_id>', methods=['POST'])
+@limiter.limit("50 per minute")  # Reasonable limit for file uploads
 @login_required
 def upload_file(conversation_id):
     """Upload a file to a conversation."""

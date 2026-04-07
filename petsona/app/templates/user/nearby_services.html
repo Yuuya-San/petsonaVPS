@@ -269,9 +269,6 @@
         <div x-data="locationBadge()" @mount="init()" x-show="hasLocation" class="inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-white border-2 border-purple-200 rounded-full text-xs lg:text-sm font-bold text-slate-900 shadow-sm hover:shadow-md transition-all">
           <i class="fas fa-location-dot text-purple-600"></i>
           <span x-text="locationText">Loading location...</span>
-          <a href="{{ url_for('user.location_picker') }}" class="ml-2 inline-flex items-center justify-center w-5 h-5 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200 transition-colors" title="Edit Location">
-            <i class="fas fa-edit text-xs"></i>
-          </a>
         </div>
       </div>
     </div>

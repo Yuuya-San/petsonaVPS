@@ -1120,6 +1120,22 @@
     return (selectedCode && ncrCodes.includes(selectedCode.toUpperCase())) || (provinceGroup && provinceGroup.classList.contains('hidden'));
   }
 
+  function syncLocationFallbacks() {
+    const provinceSelect = document.getElementById('province');
+    const citySelect = document.getElementById('city');
+    const barangaySelect = document.getElementById('barangay');
+    const provinceFallback = document.getElementById('province-fallback');
+    const cityFallback = document.getElementById('city-fallback');
+    const barangayFallback = document.getElementById('barangay-fallback');
+
+    if (provinceFallback) provinceFallback.value = provinceSelect?.value || '';
+    if (cityFallback) cityFallback.value = citySelect?.value || '';
+    if (barangayFallback) barangayFallback.value = barangaySelect?.value || '';
+    if (typeof updateSubmitButtonState === 'function') {
+      updateSubmitButtonState();
+    }
+  }
+
   async function loadProvinces(regionCode = '') {
     const provinceSelect = document.getElementById('province');
     const provinceGroup = document.getElementById('province-group');
@@ -1128,17 +1144,22 @@
 
     const ncrCodes = ['NCR', '130000000'];
     if (regionCode && ncrCodes.includes(regionCode.toUpperCase())) {
-      provinceGroup.classList.add('hidden');
-      provinceGroup.style.display = 'none';
-      provinceSelect.value = 'NCR / Metro Manila';
-      provinceSelect.required = false;
-      provinceSelect.disabled = true;
+      const ncrLookupCode = '130000000';
+      provinceGroup.classList.remove('hidden');
+      provinceGroup.style.display = '';
+      provinceSelect.required = true;
+      provinceSelect.disabled = false;
+      provinceSelect.innerHTML = '<option value="">Select Province...</option>' +
+        `<option value="Metropolitan Manila" data-code="${ncrLookupCode}">Metropolitan Manila</option>`;
+      provinceSelect.value = 'Metropolitan Manila';
       citySelect.innerHTML = '<option value="">Loading cities...</option>';
       citySelect.disabled = true;
       barangaySelect.innerHTML = '<option value="">Select city first...</option>';
       barangaySelect.disabled = true;
       toggleSkipProvinceButton(false);
-      await loadCities(regionCode);
+      syncLocationFallbacks();
+      await loadCities(ncrLookupCode);
+      validateForm();
       return;
     }
 
@@ -1230,9 +1251,13 @@
         citySelect.appendChild(option);
       });
       citySelect.disabled = false;
-      
+      syncLocationFallbacks();
+
       if (selectedCityCode) {
         await loadBarangays(selectedCityCode);
+      }
+      if (typeof validateForm === 'function') {
+        validateForm();
       }
     } catch (error) {
       console.error('Error loading cities:', error);
@@ -1269,6 +1294,7 @@
         barangaySelect.appendChild(option);
       });
       barangaySelect.disabled = false;
+      syncLocationFallbacks();
     } catch (error) {
       console.error('Error loading barangays:', error);
       barangaySelect.innerHTML = '<option value="">Error loading barangays</option>';
@@ -1295,15 +1321,27 @@
       document.getElementById('barangay').innerHTML = '<option value="">Select city first...</option>';
       document.getElementById('barangay').disabled = true;
     }
+    syncLocationFallbacks();
+    if (typeof validateForm === 'function') validateForm();
   });
 
   document.getElementById('city')?.addEventListener('change', function() {
     const selectedCode = this.selectedOptions[0]?.dataset.code;
     loadBarangays(selectedCode);
+    syncLocationFallbacks();
+    if (typeof validateForm === 'function') validateForm();
+  });
+
+  document.getElementById('barangay')?.addEventListener('change', function() {
+    syncLocationFallbacks();
+    if (typeof validateForm === 'function') validateForm();
   });
 
   document.getElementById('skip-province-button')?.addEventListener('click', function() {
-    const regionCode = document.getElementById('region')?.selectedOptions[0]?.dataset.code;
+    let regionCode = document.getElementById('region')?.selectedOptions[0]?.dataset.code;
+    if (regionCode && ['NCR', '130000000'].includes(regionCode.toUpperCase())) {
+      regionCode = '130000000';
+    }
     if (regionCode) {
       loadCities(regionCode);
     }
@@ -1313,7 +1351,7 @@
   function validateField(fieldName, value) {
     const fieldMap = {
       'business_name': { required: true, pattern: /.{3,}/, message: 'Business name must be at least 3 characters' },
-      'business_description': { required: true, pattern: /.{10,}/, message: 'Description must be at least 10 characters' },
+      'business_description': { required: true, pattern: /.{20,}/, message: 'Description must be at least 20 characters' },
       'contact_email': { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email address' },
       'contact_phone': { required: true, pattern: /^\d{10,}$/, message: 'Phone must be at least 10 digits' },
       'business_category': { required: true, message: 'Please select a category' },
@@ -1624,26 +1662,10 @@
       }
     });
 
-    // Agreement checkbox - enable/disable submit button
+    // Agreement checkbox - update submit state when changed
     const agreeCheckbox = document.getElementById('agree_terms');
-    const submitBtn = document.getElementById('submitBtn');
-    if (agreeCheckbox && submitBtn) {
-      // Update button state based on checkbox
-      const updateButtonState = () => {
-        if (agreeCheckbox.checked) {
-          submitBtn.disabled = false;
-          submitBtn.classList.remove('disabled:bg-gray-300', 'disabled:cursor-not-allowed');
-          submitBtn.classList.add('hover:bg-purple-700');
-        } else {
-          submitBtn.disabled = true;
-          submitBtn.classList.add('disabled:bg-gray-300', 'disabled:cursor-not-allowed');
-          submitBtn.classList.remove('hover:bg-purple-700');
-        }
-      };
-      
-      agreeCheckbox.addEventListener('change', updateButtonState);
-      // Initialize state on page load
-      updateButtonState();
+    if (agreeCheckbox) {
+      agreeCheckbox.addEventListener('change', updateSubmitButtonState);
     }
 
     // Form validation
@@ -1652,21 +1674,133 @@
 
   // ==================== FORM VALIDATION ====================
   function initializeFormValidation() {
+    const form = document.getElementById('merchantForm');
     const submitBtn = document.getElementById('submitBtn');
     const agreeCheckbox = document.getElementById('agree_terms');
     
-    if (!submitBtn) {
-      console.log('❌ Cannot find submitBtn');
+    if (!form || !submitBtn || !agreeCheckbox) {
+      console.error('❌ Form, submit button, or agreement checkbox not found');
       return;
     }
     
-    console.log('✅ Form validation initialized');
+    console.log('🔧 Form validation initialized');
     
-    // Submit button is controlled by agreement checkbox - don't force enable it
-    // Keep it disabled until user checks the agreement box
-    if (agreeCheckbox) {
-      submitBtn.disabled = !agreeCheckbox.checked;
+    // Ensure the submit button starts disabled until required fields are valid
+    submitBtn.disabled = true;
+    submitBtn.setAttribute('aria-disabled', 'true');
+    submitBtn.style.opacity = '0.6';
+    submitBtn.style.cursor = 'not-allowed';
+    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+    updateSubmitButtonState();
+    setTimeout(updateSubmitButtonState, 120);
+    
+    form.addEventListener('change', updateSubmitButtonState);
+    form.addEventListener('input', updateSubmitButtonState);
+    agreeCheckbox.addEventListener('change', updateSubmitButtonState);
+  }
+
+  function updateSubmitButtonState() {
+    const submitBtn = document.getElementById('submitBtn');
+    const agreeCheckbox = document.getElementById('agree_terms');
+    if (!submitBtn || !agreeCheckbox) return;
+
+    const agreeChecked = agreeCheckbox.checked;
+    const canSubmit = agreeChecked && checkAllFields(true);
+
+    submitBtn.disabled = !canSubmit;
+    submitBtn.style.opacity = canSubmit ? '1' : '0.6';
+    submitBtn.style.cursor = canSubmit ? 'pointer' : 'not-allowed';
+    submitBtn.style.backgroundColor = canSubmit ? '' : '#e9d5ff';
+    submitBtn.classList.toggle('opacity-50', !canSubmit);
+    submitBtn.classList.toggle('cursor-not-allowed', !canSubmit);
+    submitBtn.setAttribute('aria-disabled', String(!canSubmit));
+
+    if (canSubmit) {
+      submitBtn.removeAttribute('disabled');
+      console.log('✅ Submit button enabled');
+    } else {
+      if (agreeChecked) {
+        console.warn('🔒 Submit disabled even though agreement is checked. Blocking field:');
+        checkAllFields(false);
+      } else {
+        console.log('🔒 Submit button disabled - required fields incomplete or agreement unchecked');
+      }
     }
+  }
+
+  function checkAllFields(silent = false) {
+    const debugInfo = [];
+
+    if (!getInputValue('business_name')) { debugInfo.push('❌ business_name'); return logAndReturn(debugInfo, silent); }
+    const description = getInputValue('business_description');
+    if (!description || description.length < 20) { debugInfo.push('❌ business_description must be at least 20 characters'); return logAndReturn(debugInfo, silent); }
+    if (!getInputValue('contact_email')) { debugInfo.push('❌ contact_email'); return logAndReturn(debugInfo, silent); }
+    if (!getInputValue('contact_phone')) { debugInfo.push('❌ contact_phone'); return logAndReturn(debugInfo, silent); }
+
+    const category = getInputValue('business_category');
+    if (!category) { debugInfo.push('❌ business_category'); return logAndReturn(debugInfo, silent); }
+
+    if (!getInputValue('province') && !_regionHasNoProvince()) { debugInfo.push('❌ province missing'); return logAndReturn(debugInfo, silent); }
+    if (!getInputValue('city')) { debugInfo.push('❌ city missing'); return logAndReturn(debugInfo, silent); }
+    if (!getInputValue('barangay')) { debugInfo.push('❌ barangay missing'); return logAndReturn(debugInfo, silent); }
+
+    const lat = document.getElementById('latitude')?.value;
+    const lng = document.getElementById('longitude')?.value;
+    if (!lat) { debugInfo.push('❌ latitude not set - click map to place marker'); return logAndReturn(debugInfo, silent); }
+    if (!lng) { debugInfo.push('❌ longitude not set - click map to place marker'); return logAndReturn(debugInfo, silent); }
+
+    const pets = document.querySelectorAll('input[name="pets_accepted"]:checked');
+    if (pets.length === 0) { debugInfo.push('❌ no pets selected - check at least one pet type'); return logAndReturn(debugInfo, silent); }
+
+    const durationSelected = document.querySelector('input[name="duration_type"]:checked');
+    if (!durationSelected) { debugInfo.push('❌ duration_type not selected'); return logAndReturn(debugInfo, silent); }
+
+    const priceInputs = document.querySelectorAll('input[name^="price_"]');
+    const hasPriceInputs = Array.from(priceInputs).some(input => input.value && input.value.trim() !== '');
+    if (!hasPriceInputs) { debugInfo.push('❌ no prices filled - enter price for at least one pet size'); return logAndReturn(debugInfo, silent); }
+
+    if ((category === 'Pet Hotel' || category === 'Pet Boarding') && durationSelected.value === 'night') {
+      const nightCheckinTime = document.querySelector('input[name="night_checkin_time"]')?.value;
+      const nightCheckoutTime = document.querySelector('input[name="night_checkout_time"]')?.value;
+      if (!nightCheckinTime || !nightCheckoutTime) { debugInfo.push('❌ night check-in/out times missing'); return logAndReturn(debugInfo, silent); }
+    }
+
+    if (category === 'Pet Daycare') {
+      const customDurationInput = document.getElementById('customDurationInput');
+      if (customDurationInput && customDurationInput.offsetParent !== null && !customDurationInput.value) {
+        debugInfo.push('❌ custom duration hours missing');
+        return logAndReturn(debugInfo, silent);
+      }
+    }
+
+    const is24h = document.getElementById('is_24h')?.checked;
+    if (!is24h) {
+      const openingTime = getInputValue('opening_time');
+      const closingTime = getInputValue('closing_time');
+      if (!openingTime || !closingTime) { debugInfo.push('❌ operating hours required'); return logAndReturn(debugInfo, silent); }
+      const days = document.querySelectorAll('input[name="operating_days"]:checked');
+      if (days.length === 0) { debugInfo.push('❌ select at least one operating day'); return logAndReturn(debugInfo, silent); }
+    }
+
+    const agreeCheckbox = document.getElementById('agree_terms');
+    if (!agreeCheckbox || !agreeCheckbox.checked) { debugInfo.push('❌ agreement checkbox not checked'); return logAndReturn(debugInfo, silent); }
+
+    console.log('✅✅✅ ALL FIELDS VALID - FORM READY TO SAVE ✅✅✅');
+    return true;
+  }
+
+  function logAndReturn(debugInfo, silent = false) {
+    if (debugInfo.length > 0 && !silent) {
+      console.log('BLOCKING ISSUE:', debugInfo[0]);
+    }
+    return false;
+  }
+
+  function getInputValue(name) {
+    const element = document.querySelector(`[name="${name}"]`);
+    if (!element) return '';
+    return element.value ? element.value.trim() : '';
   }
 
   function checkFormValidity() {
@@ -2589,15 +2723,10 @@
 
   // Basic validation function for store edit
   function validateForm() {
-    // This is a placeholder for store edit context
-    // Full validation may not be needed for editing existing store
-    const customDurationInput = document.getElementById('customDurationInput');
-    if (customDurationInput && customDurationInput.offsetParent !== null) {
-      if (!customDurationInput.value) {
-        return false;
-      }
+    if (typeof updateSubmitButtonState === 'function') {
+      updateSubmitButtonState();
     }
-    return true;
+    return checkAllFields(true);
   }
 
   // Setup event listeners for services and pets

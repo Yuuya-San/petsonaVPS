@@ -1006,16 +1006,26 @@
     console.log('=== EXTRACT PRICING END ===\n');
   }
 
-  // Populate species dropdowns from merchant data
-  function populateAllSpeciesDropdowns() {
+  // Populate a single species dropdown while preserving its selected value
+  function populateSpeciesDropdown(select) {
     const acceptedSpecies = merchantData.pets_accepted || [];
-    
+    const currentValue = select.value;
+    const options = ['<option value="">Select species</option>'];
+
+    acceptedSpecies.forEach(species => {
+      options.push(`<option value="${species}">${species}</option>`);
+    });
+
+    select.innerHTML = options.join('');
+    if (currentValue) {
+      select.value = currentValue;
+    }
+  }
+
+  // Populate all species dropdowns on the page
+  function populateAllSpeciesDropdowns() {
     document.querySelectorAll('.pet_species').forEach(select => {
-      const options = ['<option value="">Select species</option>'];
-      acceptedSpecies.forEach(species => {
-        options.push(`<option value="${species}">${species}</option>`);
-      });
-      select.innerHTML = options.join('');
+      populateSpeciesDropdown(select);
     });
   }
 
@@ -1142,8 +1152,11 @@
     document.getElementById('petsContainer').appendChild(clone);
     document.getElementById('total_pets').value = petCount;
     
-    // Populate species for new pet
-    populateAllSpeciesDropdowns();
+    // Populate species dropdown only for the new pet row
+    const newSpeciesSelect = clone.querySelector('.pet_species');
+    if (newSpeciesSelect) {
+      populateSpeciesDropdown(newSpeciesSelect);
+    }
     
     // Attach event listeners to new form
     attachPetFormListeners(clone);

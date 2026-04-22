@@ -656,8 +656,7 @@
     "Small Mammals": ["small"],
     "Birds": ["small"],
     "Reptiles & Amphibians": ["small"],
-    "Aquatic Pets": ["small"],
-    "Exotic": ["small"]
+    "Aquatic Pets": ["small"]
   },
   "DURATION_UNITS": [
     {"id": "hour", "label": "Per Hour"},
@@ -1865,29 +1864,6 @@
         }
       });
       
-      // Prevent paste from exceeding length
-      field.addEventListener('paste', function(e) {
-        e.preventDefault();
-        const maxLen = this.maxLength;
-        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-        const currentValue = this.value;
-        const cursorPos = this.selectionStart;
-        
-        // Calculate what can fit
-        const availableSpace = maxLen - currentValue.length;
-        const textToInsert = pastedText.substring(0, availableSpace);
-        
-        // Insert the text
-        this.value = currentValue.substring(0, cursorPos) + textToInsert + currentValue.substring(cursorPos);
-        this.selectionStart = this.selectionEnd = cursorPos + textToInsert.length;
-        
-        if (availableSpace < pastedText.length) {
-          showFeedback(this, '⚠️ Pasted text was truncated to fit the limit');
-        }
-        
-        // Trigger change event
-        this.dispatchEvent(new Event('input', { bubbles: true }));
-      });
     });
     
     // Add live validation to all text inputs

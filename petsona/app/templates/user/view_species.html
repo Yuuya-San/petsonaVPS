@@ -39,19 +39,102 @@
      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
 
   <style>
-    .breed-heart-btn { background: rgba(243, 244, 246, 0.85); backdrop-filter: blur(16px); border: 1.5px solid rgba(129, 140, 248, 0.25); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.6rem 0.8rem; border-radius: 50px; cursor: pointer; }
-    .breed-heart-btn:hover { background: rgba(255, 255, 255, 0.95); border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 12px 30px rgba(239, 68, 68, 0.15); }
-    .breed-heart-btn.liked { background: rgba(254, 226, 226, 0.9); border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 12px 35px rgba(239, 68, 68, 0.25); }
-    .breed-heart-icon { font-size: 1.1rem; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
-    .breed-heart-count { font-size: 0.85rem; font-weight: 600; min-width: 1.5rem; text-align: center; transition: all 0.3s ease; }
-    .breed-heart-btn.liked .breed-heart-count { color: #dc2626; }
-    .breed-heart-btn:not(.liked) .breed-heart-count { color: #6b7280; }
-    @keyframes heartPulse { 0% { transform: scale(1); } 25% { transform: scale(1.3) rotate(-10deg); } 50% { transform: scale(1.1) rotate(0deg); } 75% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1); } }
-    .breed-heart-btn:active .breed-heart-icon { animation: heartPulse 0.6s ease-out; }
-    @keyframes votePulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
-    .heart-firework { position: fixed; font-size: 1.5rem; pointer-events: none; z-index: 9999; }
-    @keyframes heartFirework { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); } }
-    .heart-firework { animation: heartFirework 0.8s ease-out forwards; }
+    .breed-heart-btn {
+      background: rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+
+      padding: 0.6rem 0.8rem;
+      border-radius: 50px;
+
+      cursor: pointer;
+    }
+
+    /* Hover glass effect */
+    .breed-heart-btn:hover {
+      background: rgba(255, 255, 255, 0.45);
+      border-color: rgba(239, 68, 68, 0.35);
+      box-shadow: 0 12px 30px rgba(239, 68, 68, 0.12);
+    }
+
+    /* Liked state glass tint */
+    .breed-heart-btn.liked {
+      background: rgba(254, 226, 226, 0.55);
+      border-color: rgba(239, 68, 68, 0.45);
+      box-shadow: 0 12px 35px rgba(239, 68, 68, 0.18);
+    }
+
+    /* Icon */
+    .breed-heart-icon {
+      font-size: 1.1rem;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: inline-block;
+    }
+
+    /* Count */
+    .breed-heart-count {
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .breed-heart-btn.liked .breed-heart-count {
+      color: #dc2626;
+    }
+
+    .breed-heart-btn:not(.liked) .breed-heart-count {
+      color: #6b7280;
+    }
+
+    /* Animations (unchanged) */
+    @keyframes heartPulse {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.3) rotate(-10deg); }
+      50% { transform: scale(1.1) rotate(0deg); }
+      75% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1); }
+    }
+
+    .breed-heart-btn:active .breed-heart-icon {
+      animation: heartPulse 0.6s ease-out;
+    }
+
+    @keyframes votePulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* Firework */
+    .heart-firework {
+      position: fixed;
+      font-size: 1.5rem;
+      pointer-events: none;
+      z-index: 9999;
+      animation: heartFirework 0.8s ease-out forwards;
+    }
+
+    @keyframes heartFirework {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--tx), var(--ty)) scale(0.3);
+      }
+    }
 
     /* Modern Modal Styles */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
@@ -108,7 +191,14 @@
 
       {% for breed in breeds %}
       <!-- Each breed card has its own Alpine.js state for menu/delete -->
+        {% set image_url = url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') %}
+
       <div x-data="{ menu: false, confirm: false }"
+          style="height: 350px; min-height: 350px; max-height: 350px;
+                          background-image: url('{{ image_url }}');
+                          background-size: cover;
+                          background-position: center;
+                          background-repeat: no-repeat;"
            class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative breed-item">
 
         <!-- HEART BUTTON - TOP RIGHT (TOGGLE VOTE) -->
@@ -122,49 +212,59 @@
           <span class="breed-heart-count" x-text="breedVoteCounts['{{ breed.id }}'] || 0"></span>
         </button>
 
-        <!-- IMAGE -->
-        <img src="{{ url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') }}"
-             alt="{{ breed.name }}"
-             class="w-full h-40 sm:h-44 md:h-48 object-cover">
-
         <!-- CONTENT -->
         <div class="p-4 sm:p-5 flex flex-col flex-1">
 
-          <!-- Breed Name + Care Level Side by Side -->
-          <div class="flex justify-between items-center mb-3" 
-              x-data="{ care: '{{ breed.care_intensity or '' }}' }">
+          <!-- ACTION BUTTONS CONTAINER -->
+          <div class="mt-auto flex gap-2">
 
-            <h3 class="font-semibold text-lg text-gray-900">{{ breed.name }}</h3>
+            <!-- VIEW MODAL BUTTON -->
+            <button 
+                @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); viewModal = true;"
+                data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
+              class="flex-1 text-center
+                    bg-white/30 backdrop-blur-md
+                    border border-indigo-200/40
+                    text-indigo-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-white/50
+                    hover:border-indigo-400/60
+                    hover:text-indigo-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                Learn More
+            </button>
 
-            <span
-              class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1"
-              :class="{
-                'bg-green-100 text-green-700': care === 'Low',
-                'bg-yellow-100 text-yellow-800': care === 'Medium',
-                'bg-red-100 text-red-700': care === 'High'
-              }"
-              x-text="care === 'Low' ? 'Beginner' :
-                      care === 'Medium' ? 'Intermediate' :
-                      care === 'High' ? 'Advanced' : 'N/A'"
-            ></span>
+            <!-- MATCH BUTTON -->
+            <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
+            class="flex-1 text-center
+                    bg-white/20 backdrop-blur-md
+                    border border-purple-200/40
+                    text-purple-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-purple-200/40
+                    hover:border-purple-500/60
+                    hover:text-purple-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-purple-300">
+              Match Me
+            </a>
+
           </div>
-
-
-          <!-- VIEW MODAL BUTTON -->
-          <button 
-              @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); viewModal = true;"
-              data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
-              class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
-              View Details
-          </button>
-
-          <!-- MATCH NOW BUTTON - LINKS TO BREED MATCHING -->
-          <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
-             class="mt-2 block w-full text-center bg-purple-500 hover:bg-purple-800 text-white py-2.5 rounded-xl text-sm font-medium transition">
-            Match Now
-          </a>
         </div>
-
+        
       </div>
       {% endfor %}
 

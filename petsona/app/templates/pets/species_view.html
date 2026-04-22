@@ -502,20 +502,23 @@
     {% if breeds %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
 
-      {% for breed in breeds %}
-      <!-- Each breed card has its own Alpine.js state for menu/delete -->
-      <div x-data="{ menu: false, confirm: false }"
-           class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative">
 
-        <!-- IMAGE -->
-        <img src="{{ url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') }}"
-             alt="{{ breed.name }}"
-             class="w-full h-40 sm:h-44 md:h-48 object-cover">
+       {% for breed in breeds %}
+       <!-- Each breed card has its own Alpine.js state for menu/delete -->
+        {% set image_url = url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') %}
+
+        <div x-data="{ menu: false, confirm: false }"
+            class="w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
+            style="height: 350px; min-height: 350px; max-height: 350px;
+                    background-image: url('{{ image_url }}');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;">
 
         <!-- MENU BUTTON -->
         <button @click="menu = !menu"
-                class="absolute top-3 right-3 bg-white rounded-full p-2 shadow-sm z-10 hover:bg-gray-50 transition">
-          <i class="fa-solid fa-ellipsis-vertical text-gray-500"></i>
+                class="absolute top-4 right-4 transition">
+          <i class="fa-solid fa-ellipsis-vertical text-black-900"></i>
         </button>
 
         <!-- DROPDOWN MENU -->
@@ -526,7 +529,8 @@
             x-transition:leave="transition ease-in duration-100"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
-            class="absolute right-3 top-12 bg-white rounded-2xl shadow-lg border border-gray-100 z-20 w-44 px-2 py-1.5">
+            class="absolute right-3 top-12 bg-white/30 backdrop-blur-md
+                  rounded-2xl shadow-lg border border-white/20 z-20 w-44 px-2 py-1.5">
 
           <!-- EDIT BUTTON -->
           <button @click="openEditBreed({
@@ -566,30 +570,41 @@
                     image_url: '{{ breed.image_url|default('') }}'
                   }); menu=false"
                   class="flex items-center gap-3 px-4 py-2 text-sm font-medium
-                        bg-white text-purple-700
-                        border border-purple-200
+                        bg-white/20 backdrop-blur-md
+                        text-purple-800
+                        border border-purple-200/40
                         rounded-xl w-full text-left
-                        transition-all duration-200 ease-in-out
-                        hover:bg-purple-50
-                        hover:border-purple-500
-                        hover:shadow-md
-                        hover:-translate-y-0.5">
-            <i class="fa-solid fa-pen-to-square text-purple-600 transition-colors duration-200"></i>
+                        cursor-pointer
+                        transition-all duration-200 ease-out
+                        hover:bg-purple-200/40
+                        hover:border-purple-400/60
+                        hover:shadow-lg
+                        hover:-translate-y-0.5
+                        hover:scale-[1.02]
+                        active:scale-100
+                        focus:outline-none focus:ring-2 focus:ring-purple-300">
+            <i class="fa-solid fa-pen-to-square text-purple-600"></i>
             Edit
           </button>
 
           <!-- DELETE BUTTON -->
           <button @click="confirm = true; menu=false"
                   class="flex items-center gap-3 px-4 py-2 mt-2 text-sm font-medium
-                        bg-white text-purple-700
-                        border border-purple-200
+                        bg-white/20 backdrop-blur-md
+                        text-purple-800
+                        border border-purple-200/40
                         rounded-xl w-full text-left
-                        transition-all duration-200 ease-in-out
-                        hover:bg-purple-100
-                        hover:border-purple-600
-                        hover:shadow-md
-                        hover:-translate-y-0.5">
-            <i class="fa-regular fa-trash-can text-purple-500 transition-colors duration-200"></i>
+                        cursor-pointer
+                        transition-all duration-200 ease-out
+                        hover:bg-red-200/40
+                        hover:text-red-600
+                        hover:border-red-400/60
+                        hover:shadow-lg
+                        hover:-translate-y-0.5
+                        hover:scale-[1.02]
+                        active:scale-100
+                        focus:outline-none focus:ring-2 focus:ring-red-300">
+            <i class="fa-regular fa-trash-can text-red-500"></i>
             Delete
           </button>
 
@@ -598,39 +613,54 @@
         <!-- CONTENT -->
         <div class="p-4 sm:p-5 flex flex-col flex-1">
 
-          <!-- Breed Name + Care Level Side by Side -->
-          <div class="flex justify-between items-center mb-3" 
-              x-data="{ care: '{{ breed.care_intensity or '' }}' }">
+          <!-- ACTION BUTTONS CONTAINER -->
+          <div class="mt-auto flex gap-2">
 
-            <h3 class="font-semibold text-lg text-gray-900">{{ breed.name }}</h3>
+            <!-- VIEW MODAL BUTTON -->
+            <button 
+                @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); viewModal = true;"
+                data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
+              class="flex-1 text-center
+                    bg-white/30 backdrop-blur-md
+                    border border-indigo-200/40
+                    text-indigo-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-white/50
+                    hover:border-indigo-400/60
+                    hover:text-indigo-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                Learn More
+            </button>
 
-            <span
-              class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1"
-              :class="{
-                'bg-green-100 text-green-700': care === 'Low',
-                'bg-yellow-100 text-yellow-800': care === 'Medium',
-                'bg-red-100 text-red-700': care === 'High'
-              }"
-              x-text="care === 'Low' ? 'Beginner' :
-                      care === 'Medium' ? 'Intermediate' :
-                      care === 'High' ? 'Advanced' : 'N/A'"
-            ></span>
+            <!-- MATCH BUTTON -->
+            <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
+            class="flex-1 text-center
+                    bg-white/20 backdrop-blur-md
+                    border border-purple-200/40
+                    text-purple-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-purple-200/40
+                    hover:border-purple-500/60
+                    hover:text-purple-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-purple-300">
+              Match Me
+            </a>
+
           </div>
-
-
-          <!-- VIEW MODAL BUTTON -->
-          <button 
-              @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); viewModal = true;"
-              data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
-              class="mt-auto block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-medium transition">
-              View Details
-          </button>
-
-          <!-- MATCH NOW BUTTON - LINKS TO BREED MATCHING -->
-          <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
-             class="mt-2 block w-full text-center bg-purple-500 hover:bg-purple-800 text-white py-2.5 rounded-xl text-sm font-medium transition">
-            Match Now
-          </a>
         </div>
 
         <!-- DELETE MODAL -->

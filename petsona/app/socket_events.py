@@ -322,6 +322,11 @@ def broadcast_species_vote_update(species_id, new_vote_count):
         logger.error(f"Error broadcasting vote update: {str(e)}")
 
 
+def broadcast_vote_update(species_id, new_vote_count):
+    """Broadcast vote count update to all clients watching this species (alias for broadcast_species_vote_update)"""
+    broadcast_species_vote_update(species_id, new_vote_count)
+
+
 def broadcast_breed_vote_update(breed_id, total_votes, voted, user_id):
     """Broadcast breed vote update to all connected clients"""
     try:

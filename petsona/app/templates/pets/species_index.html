@@ -629,21 +629,30 @@
          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
 
     {% for species in species_list %}
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full glass-card species-item animate-fadeIn"
-         :class="searchQuery && !('{{ species.name }}'.toLowerCase().includes(searchQuery.toLowerCase())) ? 'hidden' : ''"
-         x-data="{ menu:false }">
+        {% set image_url = url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') %}
+
+        <div x-data="{ menu: false }"
+            class="w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
+            style="height: 350px; min-height: 350px; max-height: 350px;
+                    background-image: url('{{ image_url }}');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;">
 
       <!-- MENU BUTTON -->
       <button @click="menu = !menu"
-              class="absolute top-3 right-3 bg-white rounded-full p-2 shadow-sm z-10">
-        <i class="fa-solid fa-ellipsis-vertical text-gray-500"></i>
+                class="absolute top-4 right-4 transition">
+        <i class="fa-solid fa-ellipsis-vertical text-black-900"></i>
       </button>
 
-      <!-- DROPDOWN -->
+      <!-- DROPDOWN MENU -->
       <div x-show="menu" @click.outside="menu=false"
-           class="absolute right-3 top-12 bg-white rounded-2xl shadow-lg border border-gray-100 z-20 w-44 flex flex-col p-2 space-y-2">
+          class="absolute right-3 top-12 
+                  bg-white/30 backdrop-blur-md
+                  rounded-2xl shadow-lg border border-white/20
+                  z-20 w-44 flex flex-col p-2 space-y-2">
 
-        <!-- EDIT triggers modal -->
+        <!-- EDIT -->
         <button 
             type="button"
             @click="editingSpecies = JSON.parse($el.getAttribute('data-species'));
@@ -655,80 +664,101 @@
                     menu=false"
             data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
             class="flex items-center gap-3 px-4 py-2 text-sm font-medium
-                  bg-white text-purple-700
-                  border border-purple-200
+                  bg-white/20 backdrop-blur-md
+                  text-purple-800
+                  border border-purple-200/40
                   rounded-xl w-full text-left
-                  transition-all duration-200 ease-in-out
-                  hover:bg-purple-50
-                  hover:border-purple-500
-                  hover:shadow-md
-                  hover:-translate-y-0.5">
+                  cursor-pointer
+                  transition-all duration-200 ease-out
+                  hover:bg-purple-200/40
+                  hover:border-purple-500/60
+                  hover:shadow-lg
+                  hover:-translate-y-0.5
+                  hover:scale-[1.02]
+                  active:scale-100
+                  focus:outline-none focus:ring-2 focus:ring-purple-300">
 
-            <i class="fa-regular fa-pen-to-square text-purple-600 transition-colors duration-200 group-hover:text-purple-800"></i>
+            <i class="fa-regular fa-pen-to-square text-purple-600"></i>
             Edit
         </button>
-
 
         <!-- DELETE -->
         <button 
             @click="deletingSpecies = { id: '{{ species.id }}', name: '{{ species.name }}', active_breed_count: {{ species.active_breed_count }} };
                     confirm=true; menu=false"
             class="flex items-center gap-3 px-4 py-2 text-sm font-medium
-                  bg-white text-purple-700
-                  border border-purple-200
+                  bg-white/20 backdrop-blur-md
+                  text-purple-800
+                  border border-purple-200/40
                   rounded-xl w-full text-left
-                  transition-all duration-200 ease-in-out
-                  hover:bg-purple-100
-                  hover:border-purple-600
-                  hover:shadow-md
-                  hover:-translate-y-0.5">
+                  cursor-pointer
+                  transition-all duration-200 ease-out
+                  hover:bg-red-200/40
+                  hover:text-red-600
+                  hover:border-red-400/60
+                  hover:shadow-lg
+                  hover:-translate-y-0.5
+                  hover:scale-[1.02]
+                  active:scale-100
+                  focus:outline-none focus:ring-2 focus:ring-red-300">
 
-            <i class="fa-regular fa-trash-can text-purple-500 transition-colors duration-200"></i>
+            <i class="fa-regular fa-trash-can text-red-500"></i>
             Delete
         </button>
 
       </div>
 
-      <!-- IMAGE -->
-      <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
-           class="w-full h-40 sm:h-44 md:h-48 object-cover">
-
       <!-- CONTENT -->
       <div class="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 gap-4">
 
-        <!-- TITLE -->
-        <div class="flex items-center gap-2 sm:gap-3 min-h-fit">
-          <span>
-            <i class="{{ species.display_icon }} text-indigo-800 text-base sm:text-lg"></i>
-          </span>
-          <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 line-clamp-2">{{ species.name }}</h3>
-        </div>
-
-        <!-- BADGES -->
-        <div class="flex items-center justify-between w-full min-h-fit">
-          <span class="bg-indigo-100 text-indigo-800 px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-            <i class="fa-solid fa-paw text-xs mr-1"></i>{{ species.active_breed_count }} Breeds
-          </span>
-
-          <span 
-            class="px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap
-                  {{ 'bg-teal-50 text-teal-700' if species.beginner_friendly else 'bg-red-100 text-red-700' }}">
-            <i class="fa-solid fa-seedling text-xs"></i>
-            {{ 'Beginner' if species.beginner_friendly else 'Advanced' }}
-          </span>
-        </div>
-
         <!-- CTA BUTTONS -->
-        <div class="mt-auto flex flex-col gap-2 pt-2">
-          <button type="button" @click="viewSpecies = JSON.parse($el.getAttribute('data-species')); viewModal = true; menu=false"
-                  data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
-                  class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
-            View Details
+        <div class="mt-auto flex gap-2 pt-2">
+
+          <!-- VIEW DETAILS -->
+          <button 
+              type="button"
+              @click="viewSpecies = JSON.parse($el.getAttribute('data-species')); viewModal = true; menu=false"
+              data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
+              class="flex-1 text-center
+                    bg-white/30 backdrop-blur-md
+                    border border-indigo-200/40
+                    text-indigo-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-white/50
+                    hover:border-indigo-400/60
+                    hover:text-indigo-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-300">
+            Learn More
           </button>
+
+          <!-- EXPLORE BREEDS -->
           <a href="{{ url_for('pets.view_species', id=species.id) }}"
-             class="w-full text-center bg-indigo-800 hover:bg-indigo-900 text-white py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95">
-            Explore Breeds
+            class="flex-1 text-center
+                    bg-white/20 backdrop-blur-md
+                    border border-purple-200/40
+                    text-purple-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-purple-200/40
+                    hover:border-purple-500/60
+                    hover:text-purple-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-purple-300">
+            {{ species.active_breed_count }} Breed(s)
           </a>
+
         </div>
 
       </div>
@@ -864,7 +894,6 @@
                   <option value="fa-solid fa-otter">🐹 Small Mammal</option>
                   <option value="fa-solid fa-dragon">🐍 Reptile</option>
                   <option value="fa-solid fa-frog">🐸 Amphibian</option>
-                  <option value="fa-solid fa-spider">🕷️ Invertebrate</option>
                 </select>
                 <p class="text-xs text-gray-500 mt-1">Choose the appropriate icon category for this species</p>
               </div>

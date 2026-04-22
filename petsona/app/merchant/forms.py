@@ -27,7 +27,6 @@ ALLOWED_PETS = [
     'Birds',
     'Reptiles & Amphibians',
     'Aquatic Pets',
-    'Exotic',
 ]
 
 

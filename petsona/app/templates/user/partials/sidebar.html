@@ -32,6 +32,13 @@
           </a>
         </li>
 
+        <li class="nav-item">
+          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint == 'matching.quiz' %}active{% endif %}">
+            <i class="nav-icon fa-solid fa-magnifying-glass"></i>
+            <p>Find Pets</p>
+          </a>
+        </li>
+
         <!-- Nearby Services -->
         <li class="nav-item">
           <a href="{{ url_for('user.nearby_services') }}" class="nav-link {% if request.endpoint == 'user.nearby_services' %}active{% endif %}">

@@ -36,12 +36,47 @@
 <div class="w-full min-h-screen" style="background-color: rgba(249, 250, 251, 0.5);">
   <div class="max-w-full sm:max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
 
-    <!-- HEADER -->
-    <div class="animate-fadeIn">
-      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-        Your Perfect Pet Matches
-      </h1>
-      <p class="text-sm sm:text-base text-gray-600 max-w-2xl">Based on your lifestyle and preferences, we've identified the top breeds that align with your living situation and care capabilities.</p>
+    <!-- HEADER WITH BACK BUTTON -->
+    <div class="animate-fadeIn flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
+      <div class="flex-1">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+          Your Perfect Pet Matches
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600 max-w-2xl">Based on your lifestyle and preferences, we've identified the top breeds that align with your living situation and care capabilities.</p>
+      </div>
+
+      <!-- BACK BUTTON -->
+      {% if current_user.is_authenticated %}
+        {% if current_user.role == "admin" %}
+          <a href="{{ url_for('pets.species_index') }}"
+            class="flex items-center justify-center gap-2 h-11 sm:h-12 px-4 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+            <span class="hidden sm:inline">Back to Database</span>
+            <span class="sm:hidden">Back</span>
+          </a>
+        {% elif current_user.role == "merchant" %}
+          <a href="{{ url_for('merchant.species_index') }}"
+            class="flex items-center justify-center gap-2 h-11 sm:h-12 px-4 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+            <span class="hidden sm:inline">Back to Database</span>
+            <span class="sm:hidden">Back</span>
+          </a>
+        {% elif current_user.role == "user" %}
+          <a href="{{ url_for('user.species_index') }}"
+            class="flex items-center justify-center gap-2 h-11 sm:h-12 px-4 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+            <span class="hidden sm:inline">Back to Database</span>
+            <span class="sm:hidden">Back</span>
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth.home') }}"
+            class="flex items-center justify-center gap-2 h-11 sm:h-12 px-4 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+            <span class="hidden sm:inline">Back to Home</span>
+            <span class="sm:hidden">Back</span>
+          </a>
+        {% endif %}
+      {% endif %}
     </div>
 
     {% if matches|length > 0 %}
@@ -50,14 +85,14 @@
       {% set first_match = matches[0] %}
       {% set first_score = first_match.score %}
       
-      <div class="bg-white rounded-3xl shadow-lg overflow-hidden result-card border border-gray-100">
+      <div class="bg-white rounded-3xl shadow-lg overflow-hidden result-card border border-gray-100 transition-smooth hover:shadow-xl">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-0">
           
           <!-- IMAGE SECTION -->
           <div class="relative h-64 sm:h-80 md:h-auto bg-gray-200 overflow-hidden md:rounded-l-3xl">
             <img src="{% if first_match.breed.image_url %}{{ url_for('static', filename=first_match.breed.image_url) }}{% else %}{{ url_for('static', filename='images/breeds/default.jpg') }}{% endif %}" 
                  alt="{{ first_match.breed.name }}" 
-                 class="w-full h-full object-cover">
+                 class="w-full h-full object-cover transition-smooth hover:scale-105 duration-500">
             <div class="absolute inset-0" style="background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);"></div>
             
             <!-- CROWN BADGE -->
@@ -127,7 +162,7 @@
 
             <!-- ACTION BUTTON -->
             <a href="{{ url_for('matching.breed_match', breed_id=first_match.breed.id, from_results=1) }}" 
-               class="mt-6 sm:mt-8 w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition active:scale-95 inline-flex items-center justify-center gap-2">
+               class="mt-6 sm:mt-8 w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition-smooth active:scale-95 hover:shadow-lg inline-flex items-center justify-center gap-2">
               <i class="fa-solid fa-arrow-right"></i> Detailed Analysis
             </a>
           </div>
@@ -145,13 +180,13 @@
           {% for match in matches[1:5] %}
             {% set score = match.score %}
             
-            <div class="bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg hover:border-indigo-200 transition result-card overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg hover:border-indigo-200 transition-smooth result-card overflow-hidden">
               <div class="flex flex-col sm:flex-row h-full">
                 <!-- Image -->
                 <div class="w-full sm:w-32 h-48 sm:h-40 flex-shrink-0 overflow-hidden">
                   <img src="{% if match.breed.image_url %}{{ url_for('static', filename=match.breed.image_url) }}{% else %}{{ url_for('static', filename='images/breeds/default.jpg') }}{% endif %}" 
                        alt="{{ match.breed.name }}" 
-                       class="w-full h-full object-cover">
+                       class="w-full h-full object-cover transition-smooth hover:scale-110 duration-500">
                 </div>
 
                 <!-- Content -->
@@ -178,8 +213,8 @@
                       {% endif %}
                     </div>
                     <a href="{{ url_for('matching.breed_match', breed_id=match.breed.id, from_results=1) }}" 
-                       class="text-indigo-600 hover:text-indigo-700 font-semibold text-xs sm:text-sm mt-3 inline-flex items-center gap-1 transition">
-                      View Details <i class="fa-solid fa-arrow-right text-xs"></i>
+                       class="text-indigo-600 hover:text-indigo-700 font-semibold text-xs sm:text-sm mt-3 inline-flex items-center gap-1 transition-smooth">
+                      View Details <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
                     </a>
                   </div>
                 </div>
@@ -193,7 +228,7 @@
     {% else %}
 
       <!-- NO RESULTS -->
-      <div class="bg-white rounded-3xl shadow-lg p-8 sm:p-12 border border-gray-100 text-center result-card">
+      <div class="bg-white rounded-3xl shadow-lg p-8 sm:p-12 border border-gray-100 text-center result-card transition-smooth hover:shadow-xl">
         <i class="fa-solid fa-search text-5xl sm:text-6xl text-gray-300 mb-4 sm:mb-6"></i>
         <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">No Matches Found</h3>
         <p class="text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base max-w-md mx-auto">It appears we couldn't find suitable matches. Try retaking the quiz to get fresh results.</p>

@@ -28,8 +28,8 @@ class Species(db.Model):
     beginner_friendly = db.Column(db.Boolean,default=True,comment="False if most breeds require advanced care")
     abandonment_risk_level = db.Column(db.Enum("Low", "Medium", "High"),default="Medium",comment="Species-level abandonment trends")
     ethical_notes = db.Column(db.Text,comment="Species-level welfare concerns")
-    requires_permit = db.Column(db.Boolean,default=False,comment="Local permits may be required")
     special_vet_required = db.Column(db.Boolean,default=False,comment="Exotic or specialized vet care needed")
+    has_breed = db.Column(db.Boolean,default=False,comment="True if species only has variations/breeds")
     heart_vote_count = db.Column(db.Integer, default=0, comment="Total heart votes from all users")
 
     deleted_at = db.Column(db.DateTime)
@@ -89,9 +89,8 @@ class Species(db.Model):
 
             "beginner_friendly": self.beginner_friendly,
             "abandonment_risk_level": escape(self.abandonment_risk_level) if self.abandonment_risk_level else "",
-
-            "requires_permit": self.requires_permit,
             "special_vet_required": self.special_vet_required,
+            "has_breed": self.has_breed,
 
             "ethical_notes": escape(self.ethical_notes) if self.ethical_notes else "",
             

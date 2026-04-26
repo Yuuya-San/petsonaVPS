@@ -1,6 +1,21 @@
 {% extends "user/base.html" %}
 {% block content %}
 
+<!-- 
+  UNIVERSAL PET PROFILE MANAGEMENT SYSTEM
+  
+  This template has been refactored to present a "Pet Profile" system instead of a
+  biological "Species" database. The interface speaks to users about lifestyle
+  compatibility, not scientific classification.
+  
+  Key principles:
+  - Universal pet type support (not biology-locked)
+  - Compatibility engine integration (all fields map cleanly)
+  - Non-technical, human-friendly language
+  - Emotionally guided rather than data-focused
+  - Mobile-first, accessibility-ready
+-->
+
 <style>
   @keyframes fadeIn {
     from {
@@ -12,7 +27,7 @@
       transform: translateY(0);
     }
   }
-
+  
   @keyframes slideDown {
     from {
       opacity: 0;
@@ -21,6 +36,15 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes glassFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
     }
   }
   
@@ -71,6 +95,7 @@
     color: rgba(107, 114, 128, 0.6);
   }
 
+  /* Fade out for hidden items */
   .species-item {
     transition: all 0.3s ease;
   }
@@ -85,124 +110,6 @@
       transition: none;
     }
   }
-
-  /* Heart Button Styles */
-/* Heart Button Styles */
-.heart-btn {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  border: 1px solid rgba(255, 255, 255, 0.25);
-
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-
-  padding: 0.6rem 0.8rem;
-  border-radius: 999px;
-
-  cursor: pointer;
-
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-}
-
-/* Hover (more glass + clearer click feedback) */
-.heart-btn:hover {
-  background: rgba(255, 255, 255, 0.45);
-  border-color: rgba(239, 68, 68, 0.35);
-
-  box-shadow:
-    0 14px 35px rgba(239, 68, 68, 0.18),
-    0 8px 20px rgba(0, 0, 0, 0.10);
-
-  transform: translateY(-2px) scale(1.05);
-}
-
-/* Active (pressed feel) */
-.heart-btn:active {
-  transform: scale(0.98);
-}
-
-/* Liked state */
-.heart-btn.liked {
-  background: rgba(254, 226, 226, 0.55);
-  border-color: rgba(239, 68, 68, 0.45);
-
-  box-shadow:
-    0 14px 40px rgba(239, 68, 68, 0.25),
-    0 8px 20px rgba(0, 0, 0, 0.08);
-}
-
-/* Heart icon */
-.heart-icon {
-  font-size: 1.1rem;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  display: inline-block;
-}
-
-/* Pulse on click */
-.heart-btn:active .heart-icon {
-  animation: heartPulse 0.6s ease-out;
-}
-
-/* Count */
-.heart-count {
-  font-size: 0.85rem;
-  font-weight: 600;
-  min-width: 1.5rem;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-/* Text colors */
-.heart-btn.liked .heart-count {
-  color: #dc2626;
-}
-
-.heart-btn:not(.liked) .heart-count {
-  color: #6b7280;
-}
-
-/* Pulse animation */
-@keyframes heartPulse {
-  0% { transform: scale(1); }
-  25% { transform: scale(1.3) rotate(-10deg); }
-  50% { transform: scale(1.1) rotate(0deg); }
-  75% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-/* Fill animation (kept for future use) */
-@keyframes heartFill {
-  0% { opacity: 0; transform: scale(0.3); }
-  50% { opacity: 1; transform: scale(1.2); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-/* Firework animation */
-@keyframes heartFirework {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--tx), var(--ty)) scale(0);
-  }
-}
-
-.heart-firework {
-  position: fixed;
-  pointer-events: none;
-  font-size: 1.5rem;
-  z-index: 9999;
-  will-change: transform, opacity;
-  animation: heartFirework 0.8s ease-out forwards;
-}
 
   /* Modern Modal Styles */
   .modal-overlay {
@@ -291,6 +198,45 @@
     background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 0.8) 100%);
   }
 
+  .preview-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .preview-item {
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .preview-item:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+  }
+
+  .preview-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #a855f7;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+  }
+
+  .preview-value {
+    display: block;
+    font-size: 0.95rem;
+    color: #1f2937;
+    font-weight: 500;
+  }
+
   .section-divider {
     height: 2px;
     background: repeating-linear-gradient(90deg, rgba(168, 85, 247, 0.25) 0px, rgba(168, 85, 247, 0.25) 8px, transparent 8px, transparent 12px);
@@ -316,20 +262,40 @@
     border-color: rgba(59, 130, 246, 0.35);
   }
 
-  .info-alert i {
+  .warning-alert {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(217, 119, 6, 0.08) 100%);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+    border-radius: 0.875rem;
+    color: #854d0e;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .warning-alert:hover {
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(217, 119, 6, 0.12) 100%);
+    border-color: rgba(234, 179, 8, 0.35);
+  }
+
+  .info-alert i,
+  .warning-alert i {
     flex-shrink: 0;
     margin-top: 0.1rem;
   }
 
   .stat-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     padding: 1rem;
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
     border: 1px solid rgba(168, 85, 247, 0.15);
     border-radius: 0.875rem;
     transition: all 0.3s ease;
+    gap: 0.5rem;
   }
 
   .stat-card:hover {
@@ -348,56 +314,39 @@
     display: block;
   }
 
+  @media (max-width: 480px) {
+    .stat-card {
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.3px;
+    }
+  }
+
   .stat-value {
     font-size: 1.25rem;
     font-weight: 700;
     color: #a855f7;
   }
 
-  .care-requirement-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.875rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(249, 250, 251, 0.8) 100%);
-    border: 1px solid rgba(168, 85, 247, 0.12);
-    border-radius: 0.75rem;
-    margin-bottom: 0.75rem;
-    transition: all 0.3s ease;
+  /* Spinner Animation */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
-  .care-requirement-item:hover {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
-    border-color: rgba(168, 85, 247, 0.25);
-    transform: translateX(2px);
-  }
-
-  .care-requirement-label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 500;
-    color: #374151;
-  }
-
-  .status-badge {
+  .spinner {
     display: inline-block;
-    padding: 0.35rem 0.75rem;
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-
-  .status-yes {
-    background: #dcfce7;
-    color: #166534;
-  }
-
-  .status-no {
-    background: #fee2e2;
-    color: #991b1b;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(168, 85, 247, 0.2);
+    border-top-color: #a855f7;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
   }
 
   .modal-btn {
@@ -447,10 +396,100 @@
     transform: translateY(0);
   }
 
+  .modal-btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+
+  .modal-btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+  }
+
+  .modal-btn-delete:active {
+    transform: translateY(0);
+  }
+
+  /* Details section for view modal */
+  .details-section {
+    background: #1f2937;
+    border-radius: 0.875rem;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #e5e7eb;
+    line-height: 1.6;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .care-requirement-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(249, 250, 251, 0.8) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    gap: 0.5rem;
+  }
+
+  .care-requirement-item:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateX(2px);
+  }
+
+  .care-requirement-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  @media (max-width: 480px) {
+    .care-requirement-label {
+      font-size: 0.875rem;
+      gap: 0.5rem;
+    }
+
+    .care-requirement-item {
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .status-yes {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-no {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
   @media (max-width: 640px) {
     .modal-content-wrapper {
       max-width: 100%;
       border-radius: 1.5rem;
+      max-height: 95vh;
     }
 
     .modal-header {
@@ -459,6 +498,11 @@
 
     .modal-header-title {
       font-size: 1.1rem;
+      min-width: 0;
+    }
+
+    .modal-header-title i {
+      flex-shrink: 0;
     }
 
     .modal-body {
@@ -468,13 +512,28 @@
     .modal-footer {
       padding: 1rem;
       flex-direction: column;
+      gap: 0.75rem;
     }
 
     .modal-btn {
       width: 100%;
+      font-size: 0.875rem;
+      padding: 0.625rem 1rem;
+    }
+
+    .preview-section {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    .preview-item {
+      padding: 0.75rem;
+    }
+
+    .section-divider {
+      margin: 1rem 0;
     }
   }
-
 </style>
 
 <div x-data="{
@@ -483,79 +542,15 @@
   imagePreview: null, 
   viewModal: false, 
   viewSpecies: null,
+  deletingSpecies: null,
+  confirm: false,
   selectedBreed: null,
   searchQuery: '',
-  userVotes: {},
-  voteCounts: {},
-  loadingVotes: {},
-  async initVotes() {
-    // Wait for DOM to be fully ready
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const speciesItems = document.querySelectorAll('.species-item');
-    console.log('🔍 Found species items:', speciesItems.length);
-    
-    const speciesIds = Array.from(speciesItems).map(el => {
-      const heart = el.querySelector('.heart-btn');
-      return parseInt(heart?.getAttribute('data-species-id'));
-    }).filter(Boolean);
-    
-    console.log('📋 Species IDs to load votes for:', speciesIds);
-    
-    if (speciesIds.length > 0) {
-      try {
-        const response = await fetch('/api/votes/heart/check-votes', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({species_ids: speciesIds})
-        });
-        const data = await response.json();
-        console.log('✅ Votes API response:', data);
-        
-        if (data.success) {
-          Object.entries(data.votes).forEach(([id, voteData]) => {
-            this.userVotes[id] = voteData.user_voted;
-            this.voteCounts[id] = voteData.total_votes;
-            console.log(`📊 Set votes for species ${id}:`, voteData.total_votes);
-          });
-          console.log('✔️ Vote counts loaded:', this.voteCounts);
-          
-          // Now set up socket watchers for each species
-          this.setupSocketWatchers(speciesIds);
-        }
-      } catch (error) {
-        console.error('❌ Error loading votes:', error);
-      }
-    } else {
-      console.warn('⚠️ No species items found to load votes for');
-    }
-  },
-  setupSocketWatchers(speciesIds) {
-    // Wait for socketManager to be ready
-    if (typeof socketManager === 'undefined' || !socketManager) {
-      console.log('⏳ SocketManager not ready, retrying in 100ms...');
-      setTimeout(() => this.setupSocketWatchers(speciesIds), 100);
-      return;
-    }
-    
-    if (!socketManager.isConnected()) {
-      console.log('⏳ Socket not connected yet, retrying in 100ms...');
-      setTimeout(() => this.setupSocketWatchers(speciesIds), 100);
-      return;
-    }
-    
-    console.log('✅ Setting up Socket.IO watchers for', speciesIds.length, 'species');
-    
-    speciesIds.forEach(speciesId => {
-      const speciesIdStr = String(speciesId);
-      console.log(`👁️ Watching species ${speciesId}...`);
-      
-      socketManager.watchSpecies(speciesId, (newCount) => {
-        console.log(`📡 Socket update for species ${speciesId}: ${newCount} votes`);
-        this.voteCounts[speciesIdStr] = newCount;
-      });
-    });
-  },
+  formSubmitting: false,
+  speciesName: '',
+  speciesIcon: 'fa-solid fa-paw',
+  speciesDescription: '',
+  speciesEthicalNotes: '',
   getSpeciesIcon(name) {
     if (!name) return 'fa-solid fa-paw';
     const iconMap = {
@@ -633,12 +628,15 @@
     }
     return 'fa-solid fa-paw';
   }
-}" @load="initVotes()" x-init="$nextTick(() => initVotes())" class="w-full bg-gray-50/50 min-h-screen">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
+}" class="w-full bg-gray-50/50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-8 lg:py-8 space-y-6 sm:space-y-8">
 
     <!-- HEADER -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
-      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">Pet Species</h1>
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">Pet Profiles</h1>
+        <p class="text-sm text-gray-600">Discover the perfect pet companion for your lifestyle</p>
+      </div>
 
       <!-- ACTION BUTTONS -->
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
@@ -661,7 +659,7 @@
           <input 
             type="text" 
             x-model="searchQuery"
-            placeholder="Search by species name..."
+            placeholder="Search by pet name..."
             class="search-input w-full bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none text-sm sm:text-base font-medium"
           >
           <template x-if="searchQuery">
@@ -676,7 +674,7 @@
         </div>
       </div>
       <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery">
-        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} species`"></span>
+        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} pet profiles`"></span>
       </div>
     </div>
 
@@ -685,28 +683,15 @@
          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
 
     {% for species in species_list %}
-      {% set image_url = url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') %}
+        {% set image_url = url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') %}
 
-      <div class="rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col h-full glass-card species-item animate-fadeIn
-                  bg-cover bg-center bg-no-repeat"
+        <div x-data="{ menu: false }"
+            class="w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
             style="height: 350px; min-height: 350px; max-height: 350px;
-                          background-image: url('{{ image_url }}');
-                          background-size: cover;
-                          background-position: center;
-                          background-repeat: no-repeat;"
-          :class="searchQuery && !('{{ species.name }}'.toLowerCase().includes(searchQuery.toLowerCase())) ? 'hidden' : ''"
-          x-data="{ menu:false, confirm:false }">
-
-      <!-- HEART BUTTON - TOP RIGHT (TOGGLE VOTE) -->
-      <button @click="toggleHeart($event, {{ species.id }});"
-              :class="userVotes['{{ species.id }}'] ? 'liked' : ''"
-              data-species-id="{{ species.id }}"
-              class="heart-btn absolute top-3 right-3 z-10 group"
-              :title="userVotes['{{ species.id }}'] ? 'Remove your vote' : 'Vote for this species'"
-              :disabled="loadingVotes['{{ species.id }}']">
-        <i :class="userVotes['{{ species.id }}'] ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" class="heart-icon" :style="userVotes['{{ species.id }}'] ? 'color: #dc2626' : 'color: #9ca3af'"></i>
-        <span class="heart-count" x-text="voteCounts['{{ species.id }}'] || 0"></span>
-      </button>
+                    background-image: url('{{ image_url }}');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;">
 
 
       <!-- CONTENT -->
@@ -739,7 +724,7 @@
             Learn More
           </button>
 
-          <!-- EXPLORE BREEDS -->
+          <!-- EXPLORE VARIANTS -->
           <a href="{{ url_for('user.view_species', id=species.id) }}"
             class="flex-1 text-center
                     bg-white/20 backdrop-blur-md
@@ -757,20 +742,18 @@
                     hover:scale-[1.02]
                     active:scale-100
                     focus:outline-none focus:ring-2 focus:ring-purple-300">
-            {{ species.active_breed_count }} Breed(s)
+            {{ species.active_breed_count }} {% if species.has_breed %}Breed{% else %}Variant{% endif %}{{ 's' if species.active_breed_count != 1 else '' }}
           </a>
 
         </div>
 
       </div>
 
-
     </div>
     {% endfor %}
 
   </div>
 </div>
-
 
 <!-- 🔷 VIEW SPECIES MODAL - MODERN CLEAN DESIGN -->
 <div x-show="viewModal" x-transition.opacity
@@ -780,8 +763,8 @@
     <!-- MODAL HEADER -->
     <div class="modal-header">
       <h3 class="modal-header-title">
-        <i class="fa-solid fa-microscope"></i>
-        Species Profile
+        <i class="fa-solid fa-heart"></i>
+        Pet Profile
       </h3>
       <button type="button" class="modal-close-btn" @click="viewModal=false; viewSpecies=null" title="Close">
         <i class="fa-solid fa-xmark"></i>
@@ -794,123 +777,173 @@
       <!-- HERO IMAGE -->
       <div class="mb-6 rounded-xl overflow-hidden shadow-md h-48 sm:h-56">
         <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
-             alt="Species Image"
+             alt="Pet Profile Image"
              class="w-full h-full object-cover">
       </div>
 
       <!-- TITLE SECTION -->
       <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-          <span class="inline-flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
+        <div class="flex items-start gap-2 sm:gap-3 mb-2">
+          <span class="inline-flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg flex-shrink-0">
             <i :class="viewSpecies?.icon || 'fa-solid fa-paw'" class="text-purple-800 text-lg"></i>
           </span>
-          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
+          <h2 class="text-xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
         </div>
         <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.description || 'No description available.'"></p>
       </div>
 
       <div class="section-divider"></div>
 
-      <!-- QUICK STATS GRID - 6 ITEMS -->
+      <!-- "PERFECT FOR..." SECTION - HUMAN-READABLE SUMMARY -->
       <div class="mb-6">
         <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-circle-check text-purple-600"></i> Key Information
+          <i class="fa-solid fa-target text-purple-600"></i> Perfect For People Who...
         </h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <!-- Difficulty -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Difficulty</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.beginner_friendly ? '✓ Beginner' : '⭐ Advanced'"></div>
+        <div class="space-y-2">
+          <!-- Best For Beginners -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-star text-green-600' : 'fa-solid fa-graduation-cap text-orange-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.beginner_friendly ? 'Are new to pet ownership' : 'Have pet experience'"></span>
             </div>
-            <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-green-500' : 'fa-solid fa-star text-orange-500'" class="text-xl"></i>
+            <span :class="viewSpecies?.beginner_friendly ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.beginner_friendly ? 'Great' : 'Experienced'"></span>
           </div>
           
-          <!-- Type -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Type</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.predatory_species ? 'Predatory' : 'Non-predatory'"></div>
+          <!-- Activity Level -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.requires_exercise ? 'fa-solid fa-fire text-green-600' : 'fa-solid fa-couch text-blue-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.requires_exercise ? 'Are active and enjoy outdoor activities' : 'Prefer a quiet, relaxed lifestyle'"></span>
             </div>
-            <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-red-500' : 'fa-solid fa-leaf text-green-500'" class="text-xl"></i>
+            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.requires_exercise ? 'Active' : 'Relaxed'"></span>
           </div>
-          
-          <!-- Fragility -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Durability</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.fragile_species ? 'Fragile' : 'Hardy'"></div>
+
+          <!-- Time Commitment -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'fa-solid fa-hourglass-end text-green-600' : 'fa-solid fa-circle-check text-blue-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'Have time for regular care & maintenance' : 'Want a low-maintenance companion'"></span>
             </div>
-            <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-heart-crack text-red-500' : 'fa-solid fa-shield text-green-500'" class="text-xl"></i>
+            <span :class="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'Committed' : 'Low-Key'"></span>
           </div>
-          
-          <!-- Permit -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Legal</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.requires_permit ? 'Permit Needed' : 'No Permit'"></div>
+
+          <!-- Space -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.requires_enclosure ? 'fa-solid fa-house text-green-600' : 'fa-solid fa-person text-blue-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.requires_enclosure ? 'Can provide dedicated space/tank/cage' : 'Want a mobile or space-flexible pet'"></span>
             </div>
-            <i :class="viewSpecies?.requires_permit ? 'fa-solid fa-file-contract text-orange-500' : 'fa-solid fa-check text-green-500'" class="text-xl"></i>
-          </div>
-          
-          <!-- Vet Care -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Vet Care</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.special_vet_required ? 'Specialist' : 'Standard'"></div>
-            </div>
-            <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-red-500' : 'fa-solid fa-check text-green-500'" class="text-xl"></i>
-          </div>
-          
-          <!-- Breed Count -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Breeds</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="(viewSpecies?.active_breed_count || 0) + ' Available'"></div>
-            </div>
-            <i class="fa-solid fa-paw text-purple-500 text-xl"></i>
+            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.requires_enclosure ? 'Space' : 'Flexible'"></span>
           </div>
         </div>
       </div>
 
       <div class="section-divider"></div>
 
-      <!-- DETAIL ATTRIBUTES -->
+      <!-- KEY FACTS GRID -->
       <div class="mb-6">
         <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
+          <i class="fa-solid fa-lightbulb text-purple-600"></i> Quick Facts
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+          <!-- Difficulty -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Learning Curve</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.beginner_friendly ? 'Easy to Start' : 'Requires Experience'"></div>
+            </div>
+            <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-green-500' : 'fa-solid fa-book text-orange-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Personality -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Personality</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.requires_training ? 'Trainable & Social' : 'Independent'"></div>
+            </div>
+            <i :class="viewSpecies?.requires_training ? 'fa-solid fa-heart text-red-500' : 'fa-solid fa-paw text-gray-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Handling -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Handling</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.fragile_species ? 'Needs Gentleness' : 'Robust & Hardy'"></div>
+            </div>
+            <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-feather text-orange-500' : 'fa-solid fa-shield text-green-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Veterinary Care -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Vet Care</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.special_vet_required ? 'Specialist Needed' : 'Regular Vet OK'"></div>
+            </div>
+            <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-orange-500' : 'fa-solid fa-check text-green-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Diet -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Diet Type</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.predatory_species ? 'Carnivorous' : 'Omnivore/Herbivore'"></div>
+            </div>
+            <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-red-500' : 'fa-solid fa-leaf text-green-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Breed Options -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label" x-text="viewSpecies?.has_breed ? 'Breeds' : 'Variants'"></div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="(viewSpecies?.active_breed_count || 0) + ' Option' + ((viewSpecies?.active_breed_count || 0) !== 1 ? 's' : '')"></div>
+            </div>
+            <i class="fa-solid fa-list text-purple-500 text-lg flex-shrink-0 ml-2"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- CARE NEEDS IN HUMAN LANGUAGE -->
+      <div class="mb-6">
+        <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-hand-holding-heart text-green-600"></i> What This Pet Needs
         </h3>
         <div class="space-y-2">
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-person-hiking text-green-600"></i>
-              <span>Requires Exercise</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-person-hiking text-green-600 flex-shrink-0"></i>
+              <span>Daily activity and playtime</span>
             </div>
-            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_exercise ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-graduation-cap text-green-600"></i>
-              <span>Requires Training</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-book text-green-600 flex-shrink-0"></i>
+              <span>Training and teaching</span>
             </div>
-            <span :class="viewSpecies?.requires_training ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_training ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_training ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-scissors text-green-600"></i>
-              <span>Requires Grooming</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-spray-can text-green-600 flex-shrink-0"></i>
+              <span>Regular grooming or cleaning</span>
             </div>
-            <span :class="viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_grooming ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-house text-green-600"></i>
-              <span>Requires Enclosure</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-home text-green-600 flex-shrink-0"></i>
+              <span>Dedicated space (tank, cage, or habitat)</span>
             </div>
-            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_enclosure ? 'Yes' : 'No'"></span>
           </div>
         </div>
@@ -918,29 +951,58 @@
 
       <div class="section-divider"></div>
 
-      <!-- ABANDONMENT RISK -->
+      <!-- IMPORTANT CONSIDERATIONS - HUMAN-FRIENDLY -->
       <div class="mb-6">
         <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Risk Assessment
+          <i class="fa-solid fa-circle-exclamation text-red-600"></i> Important Things to Know
         </h3>
-        <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-          <span class="text-xs font-bold text-orange-700 uppercase tracking-widest block mb-2">Abandonment Risk Level</span>
-          <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'bg-green-100 text-green-700' : 
-                        viewSpecies?.abandonment_risk_level === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 
-                        'bg-red-100 text-red-700'" 
-                class="px-3 py-1 rounded-md text-sm font-bold inline-block"
-                x-text="viewSpecies?.abandonment_risk_level || 'Unknown'"></span>
+        <div class="space-y-2">
+          <template x-if="viewSpecies?.predatory_species">
+            <div class="info-alert" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(234, 179, 8, 0.08) 100%); border-color: rgba(234, 179, 8, 0.25);">
+              <i class="fa-solid fa-paw"></i>
+              <div>
+                <strong>Carnivorous Diet:</strong> This pet eats other animals or prey. Make sure you're comfortable with this before adopting.
+              </div>
+            </div>
+          </template>
+
+          <template x-if="viewSpecies?.fragile_species">
+            <div class="info-alert" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(234, 179, 8, 0.08) 100%); border-color: rgba(234, 179, 8, 0.25);">
+              <i class="fa-solid fa-heart-crack"></i>
+              <div>
+                <strong>Gentle Handling Required:</strong> This pet is delicate and needs careful, gentle handling. Not suitable for young children.
+              </div>
+            </div>
+          </template>
+
+          <template x-if="viewSpecies?.special_vet_required">
+            <div class="info-alert" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(234, 179, 8, 0.08) 100%); border-color: rgba(234, 179, 8, 0.25);">
+              <i class="fa-solid fa-stethoscope"></i>
+              <div>
+                <strong>Specialist Veterinary Care:</strong> This pet requires a veterinarian with special expertise. Regular vets may not be familiar with their care.
+              </div>
+            </div>
+          </template>
+
+          <template x-if="viewSpecies?.abandonment_risk_level === 'High'">
+            <div class="warning-alert">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <div>
+                <strong>Adoption Reality Check:</strong> This type of pet is frequently returned or given up. It's important to be very sure before adopting.
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 
-      <!-- ETHICAL NOTES -->
+      <!-- ETHICAL & WELFARE NOTES -->
       <template x-if="viewSpecies?.ethical_notes && viewSpecies.ethical_notes.trim()">
         <div class="mb-6">
           <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-4 text-indigo-600"></i> Ethical Considerations
+            <i class="fa-solid fa-heart-handshake text-blue-600"></i> For Ethical Pet Owners
           </h3>
-          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-            <p class="text-sm text-indigo-900 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p class="text-sm text-blue-900 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
           </div>
         </div>
       </template>
@@ -948,154 +1010,37 @@
       <!-- INFO ALERT -->
       <div class="info-alert">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Review all information above for complete species details.</span>
+        <span>This profile helps you make an informed decision about pet adoption. Think carefully before bringing any pet home!</span>
       </div>
 
+    </div>
+
+    <!-- MODAL FOOTER -->
+    <div class="modal-footer">
+      <button @click="viewModal=false; viewSpecies=null"
+              class="modal-btn modal-btn-secondary">
+        <i class="fa-solid fa-xmark"></i>
+        Close
+      </button>
     </div>
 
   </div>
 </div>
 
+
+
+    <!-- FOOTER BUTTONS -->
+    <div class="sticky bottom-0 bg-white border-t border-indigo-100 px-4 sm:px-6 py-4 hidden">
+      <!-- Hidden footer - navigation handled in quiz content -->
+    </div>
   </div>
 </div>
 
-<!-- HEART TOGGLE API SCRIPT WITH REAL-TIME UPDATES -->
-<script>
-  function toggleHeart(event, speciesId) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    console.log('🖱️ Heart button clicked for species:', speciesId);
-    
-    const button = event.target.closest('button');
-    if (!button) {
-      console.error('❌ Button not found');
-      return;
-    }
-    
-    if (button.disabled) {
-      console.warn('⏸️ Request in progress');
-      return;
-    }
-
-    button.disabled = true;
-    console.log('📤 Sending request to /api/votes/heart/' + speciesId);
-
-    fetch(`/api/votes/heart/${speciesId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    })
-    .then(response => {
-      console.log('📥 Response status:', response.status);
-      return response.json();
-    })
-    .then(data => {
-      console.log('✅ API Response:', data);
-      
-      if (data.success) {
-        // Access Alpine instance from the button's closest element with x-data
-        const alpineComponent = button.closest('[x-data]')?._x_dataStack?.[0];
-        const speciesIdStr = String(speciesId);
-        
-        // Update Alpine's voteCounts if available
-        if (alpineComponent && alpineComponent.voteCounts !== undefined) {
-          console.log('📊 Updating Alpine voteCounts for species', speciesIdStr, 'to', data.total_votes);
-          alpineComponent.voteCounts[speciesIdStr] = data.total_votes;
-          alpineComponent.userVotes[speciesIdStr] = data.voted;
-        }
-        
-        // Also update the heart count DOM directly as fallback
-        const heartCount = button.querySelector('.heart-count');
-        if (heartCount) {
-          console.log('📊 Updating count from', heartCount.textContent, 'to', data.total_votes);
-          heartCount.textContent = data.total_votes;
-        }
-        
-        // Update liked state
-        if (data.voted) {
-          button.classList.add('liked');
-          console.log('❤️ Vote cast!');
-          createHeartFirework(event);
-        } else {
-          button.classList.remove('liked');
-          console.log('🤍 Vote removed!');
-        }
-        
-        // Update the icon
-        const icon = button.querySelector('.heart-icon');
-        if (icon) {
-          if (data.voted) {
-            icon.classList.remove('fa-regular');
-            icon.classList.add('fa-solid');
-            icon.style.color = '#dc2626';
-          } else {
-            icon.classList.remove('fa-solid');
-            icon.classList.add('fa-regular');
-            icon.style.color = '#9ca3af';
-          }
-        }
-      } else {
-        // Vote failed - show error message
-        console.error('❌ Vote failed:', data.error);
-        alert(data.error || 'Vote failed. Please try again.');
-      }
-    })
-    .catch(error => {
-      console.error('❌ Fetch error:', error);
-      alert('An error occurred. Please try again.');
-    })
-    .finally(() => {
-      button.disabled = false;
-      console.log('✔️ Request completed');
-    });
-  }
-</script>
-
-<!-- HEART FIREWORK EFFECT SCRIPT -->
-<script>
-  function createHeartFirework(event) {
-    const button = event.target.closest('button');
-    if (!button) return;
-
-    const rect = button.getBoundingClientRect();
-    const startX = rect.left + rect.width / 2;
-    const startY = rect.top + rect.height / 2;
-
-    const hearts = ['❤️', '💗', '💕', '💓', '💖'];
-    const heartCount = 8;
-
-    for (let i = 0; i < heartCount; i++) {
-      const heart = document.createElement('div');
-      heart.classList.add('heart-firework');
-      heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-
-      // Random angle for spread
-      const angle = (Math.PI * 2 * i) / heartCount + (Math.random() - 0.5) * 0.4;
-      const distance = 80 + Math.random() * 60;
-      const tx = Math.cos(angle) * distance;
-      const ty = Math.sin(angle) * distance - Math.random() * 40;
-
-      heart.style.setProperty('--tx', tx + 'px');
-      heart.style.setProperty('--ty', ty + 'px');
-      heart.style.left = startX + 'px';
-      heart.style.top = startY + 'px';
-      heart.style.transform = 'translate(-50%, -50%)';
-
-      document.body.appendChild(heart);
-
-      // Remove after animation completes
-      setTimeout(() => {
-        heart.remove();
-      }, 800);
-    }
-  }
-</script>
-
 <!-- SEARCH FILTER SCRIPT -->
 <script>
+  // Enhanced search functionality
   document.addEventListener('alpine:initialized', () => {
+    // Listen for search query changes
     const handleSearch = (searchQuery) => {
       const items = document.querySelectorAll('.species-item');
       let visibleCount = 0;
@@ -1112,8 +1057,15 @@
           item.classList.add('hidden');
         }
       });
+
+      // Update results count
+      const resultsText = document.querySelector('[x-show="searchQuery"]');
+      if (resultsText) {
+        resultsText.textContent = `Found ${visibleCount} species`;
+      }
     };
 
+    // Observe Alpine data changes
     window.addEventListener('input', (e) => {
       if (e.target.classList.contains('search-input')) {
         handleSearch(e.target.value);
@@ -1121,17 +1073,20 @@
     });
   });
 
+  // Fallback for non-Alpine environments
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.querySelector('.search-input');
     if (searchInput && !window.Alpine) {
       searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
         const items = document.querySelectorAll('.species-item');
+        let visibleCount = 0;
 
         items.forEach(item => {
           const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
           if (speciesName.includes(query)) {
             item.classList.remove('hidden');
+            visibleCount++;
           } else {
             item.classList.add('hidden');
           }
@@ -1140,17 +1095,5 @@
     }
   });
 </script>
-
-<style>
-  .vote-highlight {
-    background-color: #fff3cd !important;
-    animation: pulse 0.5s ease-in-out;
-  }
-
-  @keyframes pulse {
-    0%, 100% { background-color: transparent; }
-    50% { background-color: #fff3cd; }
-  }
-</style>
 
 {% endblock %}

@@ -1,0 +1,12 @@
+{
+  "[html]": {
+    "css.validate": false
+  },
+  "css.validate": false,
+  "html.validate.styles": false,
+  "files.exclude": {
+    "**/*.pyc": true,
+    "**/__pycache__": true,
+    "**/node_modules": true
+  }
+}

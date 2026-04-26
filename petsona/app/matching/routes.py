@@ -5,7 +5,11 @@ import uuid
 from app.extensions import db, csrf
 from app.models.breed import Breed
 from app.models.match_history import MatchHistory
-from app.utils.compatibility_engine import CompatibilityEngine
+from app.utils.compatibility_engine import (
+    CompatibilityEngine,
+    generate_suggestions,
+    generate_match_reasons
+)
 from app.utils.audit import log_event
 from . import bp
 import pytz
@@ -16,6 +20,54 @@ PH_TZ = pytz.timezone('Asia/Manila')
 def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
+
+
+def normalize_quiz_answers(answers: dict) -> dict:
+    """
+    Normalize quiz answers for compatibility engine processing.
+    
+    Handles:
+    - pet_preference vs pet_preffered naming mismatch
+    - Multi-select answers (comma-separated strings)
+    - other_pets_friendly multi-select (keep as comma-separated or single value)
+    
+    Args:
+        answers: Raw quiz answers dict from frontend
+    
+    Returns:
+        Normalized answers dict ready for CompatibilityEngine
+    """
+    if not answers or not isinstance(answers, dict):
+        return {}
+    
+    normalized = {}
+    
+    for key, value in answers.items():
+        if key == 'pet_preference':
+            # Handle multi-select pet preferences
+            if isinstance(value, str) and value:
+                # If comma-separated, take just the first preference for filtering
+                if ',' in value:
+                    # Store the first preference for filtering
+                    normalized[key] = value.split(',')[0].strip()
+                else:
+                    normalized[key] = value.strip()
+            else:
+                normalized[key] = value
+        
+        elif key == 'other_pets_friendly':
+            # Handle other_pets_friendly - can be single or multi-select
+            if isinstance(value, str) and value:
+                # Keep as-is (can be comma-separated or single value)
+                normalized[key] = value.strip()
+            else:
+                normalized[key] = value
+        
+        else:
+            # All other answers pass through as-is
+            normalized[key] = value
+    
+    return normalized
 
 
 # --------------------------
@@ -157,6 +209,10 @@ def breed_match(breed_id):
     # Calculate compatibility using exact same answers
     match_data = CompatibilityEngine.calculate_match_score(answers, breed)
     
+    # Generate suggestions and reasons
+    suggestions = generate_suggestions(answers, breed)
+    reasons = generate_match_reasons(answers, breed)
+    
     # Save to history if authenticated AND this is a breed-specific quiz (from breed page, not general quiz)
     # Only save if the route source is breed_page, not from general quiz redirects
     if current_user.is_authenticated and request.referrer and '/specific/' in request.referrer:
@@ -166,12 +222,12 @@ def breed_match(breed_id):
                 match_type='breed',
                 breed_id=breed_id,
                 quiz_answers=answers,
-                compatibility_score=match_data.get('score', 0),
+                compatibility_score=match_data.get('overall_score', 0),
                 compatibility_level=match_data.get('compatibility_level', 'Unknown'),
                 category_scores=match_data.get('category_scores', {}),
-                mismatches=match_data.get('mismatch_areas', []),
-                strength_areas=match_data.get('strength_areas', []),
-                improvement_suggestions=match_data.get('improvement_suggestions', []),
+                mismatches=match_data.get('mismatches', []),
+                strength_areas=match_data.get('strengths', []),
+                improvement_suggestions=suggestions,
                 device_type=request.user_agent.platform if request.user_agent else None,
                 source='breed_page'
             )
@@ -180,16 +236,27 @@ def breed_match(breed_id):
         except Exception as e:
             pass
     
+    # Prepare category scores for display (calculate percentages if needed)
+    category_display = {}
+    for category, data in match_data.get('category_scores', {}).items():
+        if isinstance(data, dict):
+            category_display[category] = {
+                'score': data.get('score', 0),
+                'percentage': data.get('percentage', 0)
+            }
+    
     return render_template(
         "matching/breed_results.html",
         breed=breed,
-        score=match_data.get('score', 0),
+        score=match_data.get('overall_score', 0),
         compatibility_level=match_data.get('compatibility_level', 'Unknown'),
-        category_scores=match_data.get('category_scores', {}),
-        strength_areas=match_data.get('strength_areas', []),
-        mismatch_areas=match_data.get('mismatch_areas', []),
-        suggestions=match_data.get('suggestions', []),
-        improvements=match_data.get('improvement_suggestions', [])
+        category_scores=category_display,
+        strength_areas=match_data.get('strengths', []),
+        question_scores=match_data.get('question_scores', []),
+        matched_reasons=reasons.get('matched_reasons', []),
+        mismatch_reasons=reasons.get('mismatch_reasons', []),
+        suggestions=suggestions,
+        total_questions=match_data.get('total_questions_answered', 0)
     )
 
 
@@ -297,40 +364,36 @@ def api_quiz_submit():
         if not isinstance(data, dict) or not data:
             return jsonify({'error': 'No quiz data provided', 'success': False}), 400
 
+        # Normalize quiz answers for compatibility engine
+        normalized_data = normalize_quiz_answers(data)
+
         # Find top 5 matches
-        matches = CompatibilityEngine.find_top_matches(data, limit=5) or []
+        matches = CompatibilityEngine.find_top_matches(normalized_data, limit=5) or []
 
         # Enhance matches with detailed information (store all details for each top match)
         enhanced_matches = []
         for match in matches:
             breed = match['breed']
-            match_data = match.get('details', {})
             enhanced_match = {
                 'breed': {
-                    'id': breed.id,
-                    'name': breed.name,
-                    'image_url': breed.image_url,
-                    'summary': breed.summary,
-                    'species_id': breed.species_id,
-                    'species': {
-                        'id': breed.species.id,
-                        'name': breed.species.name,
-                    }
+                    'id': breed['id'],
+                    'name': breed['name'],
+                    'image_url': breed.get('image_url', ''),
+                    'summary': breed.get('summary', ''),
+                    'species_id': breed.get('species_id', ''),
+                    'species': breed.get('species', {})
                 },
                 'score': match.get('score', 0),
                 'level': match.get('level', 'Unknown'),
                 'strengths': match.get('strengths', []),
                 'mismatches': match.get('mismatches', []),
                 'suggestions': match.get('suggestions', []),
-                'category_scores': match_data.get('category_scores', {}),
-                'strength_areas': match_data.get('strength_areas', []),
-                'mismatch_areas': match_data.get('mismatch_areas', []),
-                'improvement_suggestions': match_data.get('improvement_suggestions', []),
+                'category_scores': match.get('category_scores', {}),
             }
             enhanced_matches.append(enhanced_match)
 
-        # Store EXACT answers and matches in session for result page
-        session['last_answers'] = data
+        # Store EXACT normalized answers and matches in session for result page
+        session['last_answers'] = normalized_data
         session['last_matches'] = enhanced_matches
         session.modified = True
         
@@ -345,7 +408,7 @@ def api_quiz_submit():
                 match_record = MatchHistory(
                     user_id=current_user.id,
                     match_type='general',
-                    quiz_answers=data,
+                    quiz_answers=normalized_data,
                     compatibility_score=enhanced_matches[0]['score'],
                     compatibility_level=enhanced_matches[0]['level'],
                     top_matches=[{
@@ -357,14 +420,11 @@ def api_quiz_submit():
                         'mismatches': m.get('mismatches', []),
                         'image_url': m['breed'].get('image_url', ''),
                         'category_scores': m.get('category_scores', {}),
-                        'strength_areas': m.get('strength_areas', []),
-                        'mismatch_areas': m.get('mismatch_areas', []),
-                        'improvement_suggestions': m.get('improvement_suggestions', []),
                     } for m in enhanced_matches],
                     category_scores=enhanced_matches[0].get('category_scores', {}),
-                    mismatches=enhanced_matches[0].get('mismatch_areas', []),
-                    strength_areas=enhanced_matches[0].get('strength_areas', []),
-                    improvement_suggestions=enhanced_matches[0].get('improvement_suggestions', []),
+                    mismatches=enhanced_matches[0].get('mismatches', []),
+                    strength_areas=enhanced_matches[0].get('strengths', []),
+                    improvement_suggestions=[],
                     device_type=request.user_agent.platform if request.user_agent else None,
                     source='quiz_page'
                 )
@@ -421,14 +481,17 @@ def api_breed_match():
 
         breed = Breed.query.get_or_404(breed_id)
 
+        # Normalize quiz answers for compatibility engine
+        normalized_answers = normalize_quiz_answers(answers)
+
         # Calculate match score
         try:
-            match_data = CompatibilityEngine.calculate_match_score(answers, breed)
+            match_data = CompatibilityEngine.calculate_match_score(normalized_answers, breed)
         except Exception as calc_error:
             return jsonify({'error': f'Calculation error: {str(calc_error)}', 'success': False}), 500
         
-        # Store answers in session for breed_match route
-        session['last_answers'] = answers
+        # Store normalized answers in session for breed_match route
+        session['last_answers'] = normalized_answers
         session.modified = True
         
         # Only save to history if this is a breed-specific quiz (from /quiz/specific/ route)
@@ -442,13 +505,13 @@ def api_breed_match():
                     user_id=current_user.id,
                     match_type='breed',
                     breed_id=breed_id,
-                    quiz_answers=answers,
-                    compatibility_score=match_data.get('score', 0),
+                    quiz_answers=normalized_answers,
+                    compatibility_score=match_data.get('overall_score', 0),
                     compatibility_level=match_data.get('compatibility_level', 'Unknown'),
                     category_scores=match_data.get('category_scores', {}),
-                    mismatches=match_data.get('mismatch_areas', []),
-                    strength_areas=match_data.get('strength_areas', []),
-                    improvement_suggestions=match_data.get('improvement_suggestions', []),
+                    mismatches=match_data.get('mismatches', []),
+                    strength_areas=match_data.get('strengths', []),
+                    improvement_suggestions=[],
                     device_type=request.user_agent.platform if request.user_agent else None,
                     source='breed_page'
                 )
@@ -462,12 +525,12 @@ def api_breed_match():
             'success': True,
             'breed_id': breed.id,
             'breed_name': breed.name,
-            'score': match_data.get('score', 0),
+            'score': match_data.get('overall_score', 0),
             'level': match_data.get('compatibility_level', 'Unknown'),
-            'strength_areas': match_data.get('strength_areas', []),
-            'mismatch_areas': match_data.get('mismatch_areas', []),
+            'strength_areas': match_data.get('strengths', []),
+            'mismatch_areas': match_data.get('mismatches', []),
             'category_scores': match_data.get('category_scores', {}),
-            'suggestions': match_data.get('suggestions', [])
+            'suggestions': match_data.get('mismatches', [])
         }), 200
 
     except Exception as e:
@@ -502,7 +565,59 @@ def api_match_score(breed_id):
     })
 
 
-# ---------------------------
+# --------------------------
+# API: Question Scores (NEW)
+# --------------------------
+@bp.route("/api/question-scores/<int:breed_id>", methods=["POST"])
+@csrf.exempt
+@login_required
+def api_question_scores(breed_id):
+    """
+    Get detailed per-question scores for a specific breed.
+    Can use session answers or provided answers in request body.
+    
+    Returns:
+        - question_scores: List of dicts with score for each question
+        - breed_name: Name of breed being evaluated
+        - overall_score: Overall compatibility score
+    """
+    try:
+        breed = Breed.query.get_or_404(breed_id)
+        
+        # Try to get answers from request body first, then from session
+        data = request.get_json(silent=True) or {}
+        answers = data.get('answers') or session.get('last_answers')
+        
+        if not isinstance(answers, dict) or not answers:
+            return jsonify({'error': 'No quiz answers provided', 'success': False}), 400
+        
+        # Normalize answers before processing
+        normalized_answers = normalize_quiz_answers(answers)
+        
+        # Get per-question scores
+        question_scores = CompatibilityEngine.get_question_scores(normalized_answers, breed)
+        
+        # Get overall score
+        overall_result = CompatibilityEngine.calculate_match_score(normalized_answers, breed)
+        
+        return jsonify({
+            'success': True,
+            'breed_id': breed.id,
+            'breed_name': breed.name,
+            'overall_score': overall_result.get('overall_score', 0),
+            'compatibility_level': overall_result.get('compatibility_level', 'Unknown'),
+            'question_scores': question_scores,
+            'total_questions': len(question_scores),
+        }), 200
+    
+    except Exception as e:
+        print(f"Question scores error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+# --------------------------
 # API: Analytics
 # ---------------------------
 @bp.route("/api/analytics/stats")

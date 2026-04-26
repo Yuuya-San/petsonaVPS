@@ -1,6 +1,21 @@
 {% extends "admin/base.html" %}
 {% block content %}
 
+<!-- 
+  UNIVERSAL PET PROFILE MANAGEMENT SYSTEM
+  
+  This template has been refactored to present a "Pet Profile" system instead of a
+  biological "Species" database. The interface speaks to users about lifestyle
+  compatibility, not scientific classification.
+  
+  Key principles:
+  - Universal pet type support (not biology-locked)
+  - Compatibility engine integration (all fields map cleanly)
+  - Non-technical, human-friendly language
+  - Emotionally guided rather than data-focused
+  - Mobile-first, accessibility-ready
+-->
+
 <style>
   @keyframes fadeIn {
     from {
@@ -273,13 +288,14 @@
 
   .stat-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     padding: 1rem;
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
     border: 1px solid rgba(168, 85, 247, 0.15);
     border-radius: 0.875rem;
     transition: all 0.3s ease;
+    gap: 0.5rem;
   }
 
   .stat-card:hover {
@@ -296,6 +312,18 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: block;
+  }
+
+  @media (max-width: 480px) {
+    .stat-card {
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.3px;
+    }
   }
 
   .stat-value {
@@ -400,7 +428,7 @@
 
   .care-requirement-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     padding: 0.875rem;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(249, 250, 251, 0.8) 100%);
@@ -408,6 +436,7 @@
     border-radius: 0.75rem;
     margin-bottom: 0.75rem;
     transition: all 0.3s ease;
+    gap: 0.5rem;
   }
 
   .care-requirement-item:hover {
@@ -418,10 +447,22 @@
 
   .care-requirement-label {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
     font-weight: 500;
     color: #374151;
+  }
+
+  @media (max-width: 480px) {
+    .care-requirement-label {
+      font-size: 0.875rem;
+      gap: 0.5rem;
+    }
+
+    .care-requirement-item {
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
   }
 
   .status-badge {
@@ -448,6 +489,7 @@
     .modal-content-wrapper {
       max-width: 100%;
       border-radius: 1.5rem;
+      max-height: 95vh;
     }
 
     .modal-header {
@@ -456,6 +498,11 @@
 
     .modal-header-title {
       font-size: 1.1rem;
+      min-width: 0;
+    }
+
+    .modal-header-title i {
+      flex-shrink: 0;
     }
 
     .modal-body {
@@ -465,14 +512,26 @@
     .modal-footer {
       padding: 1rem;
       flex-direction: column;
+      gap: 0.75rem;
     }
 
     .modal-btn {
       width: 100%;
+      font-size: 0.875rem;
+      padding: 0.625rem 1rem;
     }
 
     .preview-section {
       grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    .preview-item {
+      padding: 0.75rem;
+    }
+
+    .section-divider {
+      margin: 1rem 0;
     }
   }
 </style>
@@ -490,6 +549,8 @@
   formSubmitting: false,
   speciesName: '',
   speciesIcon: 'fa-solid fa-paw',
+  speciesDescription: '',
+  speciesEthicalNotes: '',
   getSpeciesIcon(name) {
     if (!name) return 'fa-solid fa-paw';
     const iconMap = {
@@ -572,7 +633,10 @@
 
     <!-- HEADER -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
-      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">Pet Species</h1>
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">Pet Profiles</h1>
+        <p class="text-sm text-gray-600">Discover the perfect pet companion for your lifestyle</p>
+      </div>
 
       <!-- ACTION BUTTONS -->
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
@@ -585,13 +649,13 @@
           <span class="sm:hidden">Find Pet</span>
         </a>
 
-        <!-- ADD SPECIES BUTTON -->
+        <!-- ADD PET PROFILE BUTTON -->
         <button
-          @click="speciesModal = true; editingSpecies = null; imagePreview=null; formSubmitting=false; speciesName=''; speciesIcon='fa-solid fa-paw'"
+          @click="speciesModal = true; editingSpecies = null; imagePreview=null; formSubmitting=false; speciesName=''; speciesDescription=''; speciesEthicalNotes=''; speciesIcon='fa-solid fa-paw'"
           class="bg-indigo-800 hover:bg-indigo-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-semibold shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
         >
           <i class="fa-solid fa-circle-plus"></i>
-          <span class="hidden sm:inline">Add Species</span>
+          <span class="hidden sm:inline">Add Pet Profile</span>
           <span class="sm:hidden">Add</span>
         </button>
       </div>
@@ -605,7 +669,7 @@
           <input 
             type="text" 
             x-model="searchQuery"
-            placeholder="Search by species name..."
+            placeholder="Search by pet name..."
             class="search-input w-full bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none text-sm sm:text-base font-medium"
           >
           <template x-if="searchQuery">
@@ -620,7 +684,7 @@
         </div>
       </div>
       <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery">
-        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} species`"></span>
+        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} pet profiles`"></span>
       </div>
     </div>
 
@@ -658,6 +722,8 @@
             @click="editingSpecies = JSON.parse($el.getAttribute('data-species'));
                     imagePreview='{{ url_for('static', filename=species.image_url) }}';
                     speciesName = editingSpecies.name;
+                    speciesDescription = editingSpecies.description;
+                    speciesEthicalNotes = editingSpecies.ethical_notes || '';
                     speciesIcon = editingSpecies.icon || 'fa-solid fa-paw';
                     speciesModal = true;
                     formSubmitting=false;
@@ -738,7 +804,7 @@
             Learn More
           </button>
 
-          <!-- EXPLORE BREEDS -->
+          <!-- EXPLORE VARIANTS -->
           <a href="{{ url_for('pets.view_species', id=species.id) }}"
             class="flex-1 text-center
                     bg-white/20 backdrop-blur-md
@@ -756,7 +822,7 @@
                     hover:scale-[1.02]
                     active:scale-100
                     focus:outline-none focus:ring-2 focus:ring-purple-300">
-            {{ species.active_breed_count }} Breed(s)
+            {{ species.active_breed_count }} {% if species.has_breed %}Breed{% else %}Variant{% endif %}{{ 's' if species.active_breed_count != 1 else '' }}
           </a>
 
         </div>
@@ -769,7 +835,7 @@
   </div>
 </div>
 
-  <!-- 🔷 DELETE MODAL - MODERN CLEAN DESIGN -->
+  <!-- 🔷 DELETE CONFIRMATION MODAL -->
   <div x-show="confirm" x-transition.opacity
        class="modal-overlay"
        @click.self="confirm=false">
@@ -779,7 +845,7 @@
       <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
         <h3 class="modal-header-title">
           <i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i>
-          Confirm Delete
+          Remove Pet Profile?
         </h3>
         <button type="button" class="modal-close-btn" @click="confirm=false" title="Close">
           <i class="fa-solid fa-xmark"></i>
@@ -789,26 +855,26 @@
       <!-- MODAL BODY -->
       <div class="modal-body">
         <p class="text-sm text-gray-700 mb-4 font-medium">
-          You are about to delete this species:
+          You're about to remove this pet profile from the system:
         </p>
 
         <!-- PREVIEW ITEMS -->
         <div class="preview-section mb-4" style="grid-template-columns: 1fr;">
           <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
-            <span class="preview-label">Species Name</span>
+            <span class="preview-label">Pet Name</span>
             <span class="preview-value" x-text="deletingSpecies?.name || '-'"></span>
           </div>
           <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
-            <span class="preview-label">Active Breeds</span>
+            <span class="preview-label">Active Variants/Breeds</span>
             <span class="preview-value" x-text="deletingSpecies?.active_breed_count || '0'"></span>
           </div>
         </div>
 
-        <!-- WARNING ALERT -->
-        <div class="warning-alert">
+        <!-- INFO ALERT -->
+        <div class="info-alert">
           <i class="fa-solid fa-circle-info"></i>
           <div>
-            <strong>Soft Delete Notice:</strong> This record can be restored later from archived items.
+            <strong>Soft Delete:</strong> This profile can be restored from archived items later if needed.
           </div>
         </div>
       </div>
@@ -825,7 +891,7 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button type="submit" class="modal-btn modal-btn-delete">
             <i class="fa-regular fa-trash-can"></i>
-            Delete Species
+            Remove Profile
           </button>
         </form>
       </div>
@@ -848,9 +914,9 @@
           <template x-if="editingSpecies">
             <i class="fa-regular fa-pen-to-square"></i>
           </template>
-          <span x-text="editingSpecies ? 'Edit Species' : 'Add Species'"></span>
+          <span x-text="editingSpecies ? 'Edit Pet Profile' : 'Create Pet Profile'"></span>
         </h3>
-        <button type="button" class="modal-close-btn" @click="speciesModal=false; imagePreview=null" title="Close">
+        <button type="button" class="modal-close-btn" @click="speciesModal=false; imagePreview=null; speciesName=''; speciesDescription=''; speciesEthicalNotes=''" title="Close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -861,10 +927,10 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="species_id" :value="editingSpecies?.id || ''">
 
-          <!-- ========== SECTION 1: BASIC INFORMATION ========== -->
+          <!-- ========== SECTION 1: BASIC IDENTITY ========== -->
           <div class="bg-gradient-to-r from-indigo-50 to-indigo-50 rounded-2xl p-4 sm:p-5 border border-indigo-100 w-full">
             <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-circle-1 text-indigo-800"></i> Basic Information
+              <i class="fa-solid fa-paw text-indigo-800"></i> Pet Name & Type
             </h4>
             <div class="space-y-4 w-full">
 
@@ -872,18 +938,19 @@
               <div class="flex flex-col w-full">
                 <label class="font-semibold text-gray-700 mb-2 flex items-center justify-between">
                   <span class="flex items-center gap-2">
-                    <i :class="speciesIcon" class="text-indigo-800"></i> Species Name <span class="text-red-600">*</span>
+                    <i class="fa-solid fa-circle-1 text-indigo-600"></i> What do we call this pet? <span class="text-red-600">*</span>
                   </span>
-                  <span class="text-xs text-gray-500" x-text="(editingSpecies?.name || '').length + '/100'"></span>
+                  <span class="text-xs text-gray-500" x-text="speciesName.length + '/100'"></span>
                 </label>
-                <input type="text" name="name" x-bind:value="editingSpecies?.name || ''" @input="speciesName = $event.target.value" placeholder="e.g., Dog, Cat, Rabbit" maxlength="100"
+                <input type="text" name="name" x-bind:value="speciesName" @input="speciesName = $event.target.value" placeholder="e.g., Dog, Golden Retriever, Parrot" maxlength="100"
                       class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-800 focus:border-indigo-800 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required>
+                <p class="text-xs text-gray-500 mt-1">Can be a species name or specific breed</p>
               </div>
 
               <!-- Icon -->
               <div class="flex flex-col w-full">
                 <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-icons text-indigo-800"></i> Species Icon <span class="text-red-600">*</span>
+                  <i class="fa-solid fa-circle-2 text-indigo-600"></i> Pet Type <span class="text-red-600">*</span>
                 </label>
                 <select name="icon" x-bind:value="editingSpecies?.icon || 'fa-solid fa-paw'" @change="speciesIcon = $event.target.value"
                         class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-800 focus:border-indigo-800 bg-white transition shadow-sm hover:shadow-md w-full" required>
@@ -895,38 +962,45 @@
                   <option value="fa-solid fa-dragon">🐍 Reptile</option>
                   <option value="fa-solid fa-frog">🐸 Amphibian</option>
                 </select>
-                <p class="text-xs text-gray-500 mt-1">Choose the appropriate icon category for this species</p>
               </div>
+
+              <!-- Has Breed Toggle -->
+              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-indigo-50 transition">
+                <input type="checkbox" name="has_breed" value="1" :checked="editingSpecies?.has_breed" class="w-4 h-4 rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                <span class="text-gray-700 text-sm font-medium">
+                  This pet has multiple specific breeds or species (not just color variations)
+                </span>
+              </label>
 
               <!-- Description -->
               <div class="flex flex-col w-full">
                 <label class="font-semibold text-gray-700 mb-2 flex items-center justify-between">
                   <span class="flex items-center gap-2">
-                    <i class="fa-solid fa-align-left text-indigo-800"></i> Description <span class="text-red-600">*</span>
+                    <i class="fa-solid fa-circle-3 text-indigo-600"></i> Tell us about this pet <span class="text-red-600">*</span>
                   </span>
-                  <span class="text-xs text-gray-500" x-text="(editingSpecies?.description || '').length + '/500'"></span>
+                  <span class="text-xs text-gray-500" x-text="speciesDescription.length + '/500'"></span>
                 </label>
-                <textarea name="description" rows="3" x-bind:value="editingSpecies?.description || ''" maxlength="500"
-                          placeholder="Write a detailed description of this species..."
+                <textarea name="description" rows="3" x-bind:value="speciesDescription" @input="speciesDescription = $event.target.value" maxlength="500"
+                          placeholder="Write a friendly description... what makes this pet special? What should people know?"
                           class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-800 focus:border-indigo-800 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required></textarea>
-                <p class="text-xs text-gray-500 mt-1">Approx. 80-100 words recommended, max 500 characters</p>
+                <p class="text-xs text-gray-500 mt-1">Use friendly, conversational language (80-100 words recommended)</p>
               </div>
 
               <!-- Image Upload -->
               <div class="flex flex-col w-full">
                 <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-image text-indigo-800"></i> Species Image <span x-show="!editingSpecies" class="text-red-600">*</span>
+                  <i class="fa-solid fa-circle-4 text-indigo-600"></i> Pet Photo <span x-show="!editingSpecies" class="text-red-600">*</span>
                 </label>
                 <div @click="$refs.imageInput.click()" class="border-2 border-dashed border-indigo-800 rounded-2xl p-6 text-center cursor-pointer bg-indigo-50 hover:bg-indigo-100 transition flex flex-col items-center justify-center gap-2 w-full">
                   <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-800"></i>
-                  <span class="text-gray-700 text-sm font-medium">Click to upload image</span>
-                  <span class="text-xs text-gray-500">PNG, JPG or GIF (recommended size: 400x300)</span>
+                  <span class="text-gray-700 text-sm font-medium">Click to upload a photo</span>
+                  <span class="text-xs text-gray-500">PNG, JPG or GIF (400x300 recommended)</span>
                 </div>
                 <input type="file" name="image" x-ref="imageInput" @change="imagePreview = URL.createObjectURL($event.target.files[0])" hidden accept="image/*">
                 <template x-if="imagePreview">
                   <div class="mt-4 relative w-full">
                     <img :src="imagePreview" class="h-40 w-full object-cover rounded-xl border border-gray-200 shadow-md">
-                    <p class="text-xs text-gray-500 mt-2">Preview: New image will be used on save</p>
+                    <p class="text-xs text-gray-500 mt-2">Preview (will update on save)</p>
                   </div>
                 </template>
               </div>
@@ -934,84 +1008,89 @@
             </div>
           </div>
 
-          <!-- ========== SECTION 2: CARE REQUIREMENTS ========== -->
-          <div class="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl p-4 sm:p-5 border border-teal-100 w-full">
+          <!-- ========== SECTION 2: PERSONALITY & BEHAVIOR ========== -->
+          <div class="bg-gradient-to-r from-purple-50 to-purple-50 rounded-2xl p-4 sm:p-5 border border-purple-100 w-full">
             <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-circle-2 text-teal-600"></i> Care Requirements
+              <i class="fa-solid fa-heart text-purple-600"></i> Personality & Behavior
             </h4>
-            <p class="text-sm text-gray-600 mb-4">Select what care this species typically needs:</p>
+            <p class="text-sm text-gray-600 mb-4">What kind of personality does this pet have?</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-teal-50 transition">
-                <input type="checkbox" name="requires_exercise" value="1" :checked="editingSpecies?.requires_exercise" class="w-4 h-4 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500">
+              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
+                <input type="checkbox" name="requires_training" value="1" :checked="editingSpecies?.requires_training" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
                 <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-person-hiking text-teal-600 mr-2"></i>Requires Exercise
+                  <i class="fa-solid fa-graduation-cap text-purple-600 mr-2"></i>Needs Teaching & Guidance
                 </span>
               </label>
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-teal-50 transition">
-                <input type="checkbox" name="requires_training" value="1" :checked="editingSpecies?.requires_training" class="w-4 h-4 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500">
+              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
+                <input type="checkbox" name="beginner_friendly" value="1" :checked="editingSpecies?.beginner_friendly" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
                 <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-graduation-cap text-teal-600 mr-2"></i>Requires Training
-                </span>
-              </label>
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-teal-50 transition">
-                <input type="checkbox" name="requires_grooming" value="1" :checked="editingSpecies?.requires_grooming" class="w-4 h-4 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-scissors text-teal-600 mr-2"></i>Requires Grooming
-                </span>
-              </label>
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-teal-50 transition">
-                <input type="checkbox" name="requires_enclosure" value="1" :checked="editingSpecies?.requires_enclosure" class="w-4 h-4 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-house text-teal-600 mr-2"></i>Requires Enclosure
+                  <i class="fa-solid fa-star text-purple-600 mr-2"></i>Great for First-Time Owners
                 </span>
               </label>
             </div>
           </div>
 
-          <!-- ========== SECTION 3: SAFETY & ETHICS ========== -->
+          <!-- ========== SECTION 3: LIFESTYLE REQUIREMENTS ========== -->
+          <div class="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl p-4 sm:p-5 border border-teal-100 w-full">
+            <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-fire text-teal-600"></i> Energy & Activity Level
+            </h4>
+            <p class="text-sm text-gray-600 mb-4">What lifestyle does this pet thrive in?</p>
+            <div class="grid grid-cols-1 gap-3 w-full">
+              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-teal-50 transition">
+                <input type="checkbox" name="requires_exercise" value="1" :checked="editingSpecies?.requires_exercise" class="w-4 h-4 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500">
+                <span class="text-gray-700 text-sm font-medium">
+                  <i class="fa-solid fa-person-hiking text-teal-600 mr-2"></i>Needs Daily Activity & Play
+                </span>
+              </label>
+              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-teal-50 transition">
+                <input type="checkbox" name="requires_grooming" value="1" :checked="editingSpecies?.requires_grooming" class="w-4 h-4 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500">
+                <span class="text-gray-700 text-sm font-medium">
+                  <i class="fa-solid fa-scissors text-teal-600 mr-2"></i>Needs Regular Cleaning/Grooming
+                </span>
+              </label>
+              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-teal-50 transition">
+                <input type="checkbox" name="requires_enclosure" value="1" :checked="editingSpecies?.requires_enclosure" class="w-4 h-4 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500">
+                <span class="text-gray-700 text-sm font-medium">
+                  <i class="fa-solid fa-house text-teal-600 mr-2"></i>Needs Dedicated Space (Tank/Cage/Room)
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- ========== SECTION 4: IMPORTANT CONSIDERATIONS ========== -->
           <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-4 sm:p-5 border border-orange-100 w-full">
             <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-circle-3 text-orange-600"></i> Safety & Ethics
+              <i class="fa-solid fa-triangle-exclamation text-orange-600"></i> Important Things to Know
             </h4>
-            <p class="text-sm text-gray-600 mb-4">Important considerations for responsible ownership:</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <p class="text-sm text-gray-600 mb-4">Things potential owners should understand:</p>
+            <div class="grid grid-cols-1 gap-3 w-full">
               <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-orange-50 transition">
                 <input type="checkbox" name="predatory_species" value="1" :checked="editingSpecies?.predatory_species" class="w-4 h-4 rounded border-gray-300 text-orange-600 shadow-sm focus:ring-orange-500">
                 <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-shield text-orange-600 mr-2"></i>Predatory Species
+                  <i class="fa-solid fa-shield text-orange-600 mr-2"></i>Eats Prey (Carnivorous Diet)
                 </span>
               </label>
               <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-orange-50 transition">
                 <input type="checkbox" name="fragile_species" value="1" :checked="editingSpecies?.fragile_species" class="w-4 h-4 rounded border-gray-300 text-orange-600 shadow-sm focus:ring-orange-500">
                 <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-heart-crack text-orange-600 mr-2"></i>Fragile Species
-                </span>
-              </label>
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-orange-50 transition">
-                <input type="checkbox" name="requires_permit" value="1" :checked="editingSpecies?.requires_permit" class="w-4 h-4 rounded border-gray-300 text-orange-600 shadow-sm focus:ring-orange-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-file-contract text-orange-600 mr-2"></i>Requires Permit
+                  <i class="fa-solid fa-heart-crack text-orange-600 mr-2"></i>Needs Gentle, Careful Handling (Fragile)
                 </span>
               </label>
               <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-orange-50 transition">
                 <input type="checkbox" name="special_vet_required" value="1" :checked="editingSpecies?.special_vet_required" class="w-4 h-4 rounded border-gray-300 text-orange-600 shadow-sm focus:ring-orange-500">
                 <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-stethoscope text-orange-600 mr-2"></i>Special Vet Care
-                </span>
-              </label>
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-orange-50 transition sm:col-span-2">
-                <input type="checkbox" name="beginner_friendly" value="1" :checked="editingSpecies?.beginner_friendly" class="w-4 h-4 rounded border-gray-300 text-orange-600 shadow-sm focus:ring-orange-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-star text-orange-600 mr-2"></i>Beginner Friendly (Most breeds are easy to care for)
+                  <i class="fa-solid fa-stethoscope text-orange-600 mr-2"></i>Needs Specialist Veterinary Care
                 </span>
               </label>
             </div>
 
             <!-- Abandonment Risk -->
-            <div class="mt-4 pt-4 border-t border-orange-200">
+            <div class="mt-5 pt-5 border-t border-orange-200">
               <label class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-warning text-orange-600"></i> Abandonment Risk Level
+                <i class="fa-solid fa-chart-line text-orange-600"></i> How Often Do Owners Give Up This Pet?
               </label>
+              <p class="text-xs text-gray-600 mb-3">This helps predict whether this pet will remain happy in their home</p>
               <div class="grid grid-cols-3 gap-2 w-full">
                 <template x-for="level in ['Low','Medium','High']" :key="level">
                   <label :class="editingSpecies?.abandonment_risk_level === level ? 'bg-orange-600 text-white' : 'bg-white text-gray-700 border border-gray-200'" class="flex items-center justify-center p-3 rounded-xl cursor-pointer transition font-medium text-sm w-full">
@@ -1020,26 +1099,20 @@
                   </label>
                 </template>
               </div>
-              <p class="text-xs text-gray-500 mt-2">Based on common abandonment patterns for this species</p>
             </div>
           </div>
 
-          <!-- ========== SECTION 4: ADDITIONAL INFORMATION ========== -->
-          <div class="bg-gradient-to-r from-indigo-50 to-indigo-50 rounded-2xl p-4 sm:p-5 border border-indigo-100 w-full">
+          <!-- ========== SECTION 5: ETHICAL & WELLNESS NOTES ========== -->
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-5 border border-blue-100 w-full">
             <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-circle-4 text-blue-600"></i> Additional Information
+              <i class="fa-solid fa-heart-handshake text-blue-600"></i> Ethical & Welfare Notes
             </h4>
+            <p class="text-sm text-gray-600 mb-4">Any special concerns people should know about?</p>
             <div class="flex flex-col w-full">
-              <label class="font-semibold text-gray-700 mb-2 flex items-center justify-between">
-                <span class="flex items-center gap-2">
-                  <i class="fa-solid fa-note-sticky text-blue-600"></i> Ethical Notes & Welfare Concerns
-                </span>
-                <span class="text-xs text-gray-500" x-text="(editingSpecies?.ethical_notes || '').length + '/500'"></span>
-              </label>
-              <textarea name="ethical_notes" rows="3" x-bind:value="editingSpecies?.ethical_notes || ''" maxlength="500"
-                        placeholder="e.g., Conservation status, ethical breeding practices, known welfare issues..."
+              <textarea name="ethical_notes" rows="3" x-bind:value="speciesEthicalNotes" @input="speciesEthicalNotes = $event.target.value" maxlength="500"
+                        placeholder="e.g., conservation status, common misconceptions, welfare concerns, responsible breeding practices..."
                         class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full"></textarea>
-              <p class="text-xs text-gray-500 mt-1">Important information for responsible and ethical ownership, max 500 characters</p>
+              <p class="text-xs text-gray-500 mt-1">Use simple, empathetic language focused on animal welfare (max 500 chars)</p>
             </div>
           </div>
 
@@ -1048,7 +1121,7 @@
 
       <!-- MODAL FOOTER -->
       <div class="modal-footer">
-        <button type="button" @click="speciesModal=false; imagePreview=null" :disabled="formSubmitting" class="modal-btn modal-btn-secondary" :style="formSubmitting ? 'opacity: 0.5; cursor: not-allowed;' : ''">
+        <button type="button" @click="speciesModal=false; imagePreview=null; speciesName=''; speciesDescription=''; speciesEthicalNotes=''" :disabled="formSubmitting" class="modal-btn modal-btn-secondary" :style="formSubmitting ? 'opacity: 0.5; cursor: not-allowed;' : ''">
           <i class="fa-solid fa-ban"></i>
           <span>Cancel</span>
         </button>
@@ -1056,7 +1129,7 @@
           <template x-if="!formSubmitting">
               <span class="flex items-center gap-2">
                   <i class="fa-solid fa-check"></i>
-                  <span x-text="editingSpecies ? 'Save Changes' : 'Add Species'"></span>
+                  <span x-text="editingSpecies ? 'Save Profile' : 'Create Profile'"></span>
               </span>
           </template>
           <template x-if="formSubmitting">
@@ -1078,8 +1151,8 @@
     <!-- MODAL HEADER -->
     <div class="modal-header">
       <h3 class="modal-header-title">
-        <i class="fa-solid fa-microscope"></i>
-        Species Profile
+        <i class="fa-solid fa-heart"></i>
+        Pet Profile
       </h3>
       <button type="button" class="modal-close-btn" @click="viewModal=false; viewSpecies=null" title="Close">
         <i class="fa-solid fa-xmark"></i>
@@ -1092,123 +1165,173 @@
       <!-- HERO IMAGE -->
       <div class="mb-6 rounded-xl overflow-hidden shadow-md h-48 sm:h-56">
         <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
-             alt="Species Image"
+             alt="Pet Profile Image"
              class="w-full h-full object-cover">
       </div>
 
       <!-- TITLE SECTION -->
       <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-          <span class="inline-flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
+        <div class="flex items-start gap-2 sm:gap-3 mb-2">
+          <span class="inline-flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg flex-shrink-0">
             <i :class="viewSpecies?.icon || 'fa-solid fa-paw'" class="text-purple-800 text-lg"></i>
           </span>
-          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
+          <h2 class="text-xl sm:text-3xl font-bold text-gray-900" x-text="viewSpecies?.name"></h2>
         </div>
         <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.description || 'No description available.'"></p>
       </div>
 
       <div class="section-divider"></div>
 
-      <!-- QUICK STATS GRID - 6 ITEMS -->
+      <!-- "PERFECT FOR..." SECTION - HUMAN-READABLE SUMMARY -->
       <div class="mb-6">
         <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-circle-check text-purple-600"></i> Key Information
+          <i class="fa-solid fa-target text-purple-600"></i> Perfect For People Who...
         </h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <!-- Difficulty -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Difficulty</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.beginner_friendly ? '✓ Beginner' : '⭐ Advanced'"></div>
+        <div class="space-y-2">
+          <!-- Best For Beginners -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-star text-green-600' : 'fa-solid fa-graduation-cap text-orange-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.beginner_friendly ? 'Are new to pet ownership' : 'Have pet experience'"></span>
             </div>
-            <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-green-500' : 'fa-solid fa-star text-orange-500'" class="text-xl"></i>
+            <span :class="viewSpecies?.beginner_friendly ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.beginner_friendly ? 'Great' : 'Experienced'"></span>
           </div>
           
-          <!-- Type -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Type</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.predatory_species ? 'Predatory' : 'Non-predatory'"></div>
+          <!-- Activity Level -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.requires_exercise ? 'fa-solid fa-fire text-green-600' : 'fa-solid fa-couch text-blue-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.requires_exercise ? 'Are active and enjoy outdoor activities' : 'Prefer a quiet, relaxed lifestyle'"></span>
             </div>
-            <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-red-500' : 'fa-solid fa-leaf text-green-500'" class="text-xl"></i>
+            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.requires_exercise ? 'Active' : 'Relaxed'"></span>
           </div>
-          
-          <!-- Fragility -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Durability</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.fragile_species ? 'Fragile' : 'Hardy'"></div>
+
+          <!-- Time Commitment -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'fa-solid fa-hourglass-end text-green-600' : 'fa-solid fa-circle-check text-blue-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'Have time for regular care & maintenance' : 'Want a low-maintenance companion'"></span>
             </div>
-            <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-heart-crack text-red-500' : 'fa-solid fa-shield text-green-500'" class="text-xl"></i>
+            <span :class="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'Committed' : 'Low-Key'"></span>
           </div>
-          
-          <!-- Permit -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Legal</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.requires_permit ? 'Permit Needed' : 'No Permit'"></div>
+
+          <!-- Space -->
+          <div class="care-requirement-item">
+            <div class="care-requirement-label flex-1">
+              <i :class="viewSpecies?.requires_enclosure ? 'fa-solid fa-house text-green-600' : 'fa-solid fa-person text-blue-600'" class="flex-shrink-0"></i>
+              <span x-text="viewSpecies?.requires_enclosure ? 'Can provide dedicated space/tank/cage' : 'Want a mobile or space-flexible pet'"></span>
             </div>
-            <i :class="viewSpecies?.requires_permit ? 'fa-solid fa-file-contract text-orange-500' : 'fa-solid fa-check text-green-500'" class="text-xl"></i>
-          </div>
-          
-          <!-- Vet Care -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Vet Care</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.special_vet_required ? 'Specialist' : 'Standard'"></div>
-            </div>
-            <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-red-500' : 'fa-solid fa-check text-green-500'" class="text-xl"></i>
-          </div>
-          
-          <!-- Breed Count -->
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Breeds</div>
-              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="(viewSpecies?.active_breed_count || 0) + ' Available'"></div>
-            </div>
-            <i class="fa-solid fa-paw text-purple-500 text-xl"></i>
+            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+                  x-text="viewSpecies?.requires_enclosure ? 'Space' : 'Flexible'"></span>
           </div>
         </div>
       </div>
 
       <div class="section-divider"></div>
 
-      <!-- DETAIL ATTRIBUTES -->
+      <!-- KEY FACTS GRID -->
       <div class="mb-6">
         <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
+          <i class="fa-solid fa-lightbulb text-purple-600"></i> Quick Facts
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+          <!-- Difficulty -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Learning Curve</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.beginner_friendly ? 'Easy to Start' : 'Requires Experience'"></div>
+            </div>
+            <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-check text-green-500' : 'fa-solid fa-book text-orange-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Personality -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Personality</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.requires_training ? 'Trainable & Social' : 'Independent'"></div>
+            </div>
+            <i :class="viewSpecies?.requires_training ? 'fa-solid fa-heart text-red-500' : 'fa-solid fa-paw text-gray-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Handling -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Handling</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.fragile_species ? 'Needs Gentleness' : 'Robust & Hardy'"></div>
+            </div>
+            <i :class="viewSpecies?.fragile_species ? 'fa-solid fa-feather text-orange-500' : 'fa-solid fa-shield text-green-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Veterinary Care -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Vet Care</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.special_vet_required ? 'Specialist Needed' : 'Regular Vet OK'"></div>
+            </div>
+            <i :class="viewSpecies?.special_vet_required ? 'fa-solid fa-stethoscope text-orange-500' : 'fa-solid fa-check text-green-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Diet -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label">Diet Type</div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="viewSpecies?.predatory_species ? 'Carnivorous' : 'Omnivore/Herbivore'"></div>
+            </div>
+            <i :class="viewSpecies?.predatory_species ? 'fa-solid fa-paw text-red-500' : 'fa-solid fa-leaf text-green-500'" class="text-lg flex-shrink-0 ml-2"></i>
+          </div>
+          
+          <!-- Breed Options -->
+          <div class="stat-card">
+            <div class="min-w-0 flex-1">
+              <div class="stat-label" x-text="viewSpecies?.has_breed ? 'Breeds' : 'Variants'"></div>
+              <div class="text-xs font-semibold text-purple-700 mt-1" x-text="(viewSpecies?.active_breed_count || 0) + ' Option' + ((viewSpecies?.active_breed_count || 0) !== 1 ? 's' : '')"></div>
+            </div>
+            <i class="fa-solid fa-list text-purple-500 text-lg flex-shrink-0 ml-2"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- CARE NEEDS IN HUMAN LANGUAGE -->
+      <div class="mb-6">
+        <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-hand-holding-heart text-green-600"></i> What This Pet Needs
         </h3>
         <div class="space-y-2">
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-person-hiking text-green-600"></i>
-              <span>Requires Exercise</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-person-hiking text-green-600 flex-shrink-0"></i>
+              <span>Daily activity and playtime</span>
             </div>
-            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_exercise ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-graduation-cap text-green-600"></i>
-              <span>Requires Training</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-book text-green-600 flex-shrink-0"></i>
+              <span>Training and teaching</span>
             </div>
-            <span :class="viewSpecies?.requires_training ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_training ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_training ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-scissors text-green-600"></i>
-              <span>Requires Grooming</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-spray-can text-green-600 flex-shrink-0"></i>
+              <span>Regular grooming or cleaning</span>
             </div>
-            <span :class="viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_grooming ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
-            <div class="care-requirement-label">
-              <i class="fa-solid fa-house text-green-600"></i>
-              <span>Requires Enclosure</span>
+            <div class="care-requirement-label flex-1">
+              <i class="fa-solid fa-home text-green-600 flex-shrink-0"></i>
+              <span>Dedicated space (tank, cage, or habitat)</span>
             </div>
-            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge"
+            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
                   x-text="viewSpecies?.requires_enclosure ? 'Yes' : 'No'"></span>
           </div>
         </div>
@@ -1216,31 +1339,58 @@
 
       <div class="section-divider"></div>
 
-      <!-- ABANDONMENT RISK -->
+      <!-- IMPORTANT CONSIDERATIONS - HUMAN-FRIENDLY -->
       <div class="mb-6">
         <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Risk Assessment
+          <i class="fa-solid fa-circle-exclamation text-red-600"></i> Important Things to Know
         </h3>
-        <div class="preview-item">
-          <span class="preview-label">Abandonment Risk Level</span>
-          <div class="flex items-center gap-2">
-            <span :class="viewSpecies?.abandonment_risk_level === 'Low' ? 'bg-green-100 text-green-700' : 
-                          viewSpecies?.abandonment_risk_level === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 
-                          'bg-red-100 text-red-700'" 
-                  class="px-2 py-1 rounded-md text-sm font-bold"
-                  x-text="viewSpecies?.abandonment_risk_level || 'Unknown'"></span>
-          </div>
+        <div class="space-y-2">
+          <template x-if="viewSpecies?.predatory_species">
+            <div class="info-alert" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(234, 179, 8, 0.08) 100%); border-color: rgba(234, 179, 8, 0.25);">
+              <i class="fa-solid fa-paw"></i>
+              <div>
+                <strong>Carnivorous Diet:</strong> This pet eats other animals or prey. Make sure you're comfortable with this before adopting.
+              </div>
+            </div>
+          </template>
+
+          <template x-if="viewSpecies?.fragile_species">
+            <div class="info-alert" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(234, 179, 8, 0.08) 100%); border-color: rgba(234, 179, 8, 0.25);">
+              <i class="fa-solid fa-heart-crack"></i>
+              <div>
+                <strong>Gentle Handling Required:</strong> This pet is delicate and needs careful, gentle handling. Not suitable for young children.
+              </div>
+            </div>
+          </template>
+
+          <template x-if="viewSpecies?.special_vet_required">
+            <div class="info-alert" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(234, 179, 8, 0.08) 100%); border-color: rgba(234, 179, 8, 0.25);">
+              <i class="fa-solid fa-stethoscope"></i>
+              <div>
+                <strong>Specialist Veterinary Care:</strong> This pet requires a veterinarian with special expertise. Regular vets may not be familiar with their care.
+              </div>
+            </div>
+          </template>
+
+          <template x-if="viewSpecies?.abandonment_risk_level === 'High'">
+            <div class="warning-alert">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <div>
+                <strong>Adoption Reality Check:</strong> This type of pet is frequently returned or given up. It's important to be very sure before adopting.
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 
-      <!-- ETHICAL NOTES -->
+      <!-- ETHICAL & WELFARE NOTES -->
       <template x-if="viewSpecies?.ethical_notes && viewSpecies.ethical_notes.trim()">
         <div class="mb-6">
           <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-4 text-indigo-600"></i> Ethical Considerations
+            <i class="fa-solid fa-heart-handshake text-blue-600"></i> For Ethical Pet Owners
           </h3>
-          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-            <p class="text-sm text-indigo-900 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p class="text-sm text-blue-900 leading-relaxed whitespace-pre-line" x-text="viewSpecies?.ethical_notes"></p>
           </div>
         </div>
       </template>
@@ -1248,7 +1398,7 @@
       <!-- INFO ALERT -->
       <div class="info-alert">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Review all information above for complete species details.</span>
+        <span>This profile helps you make an informed decision about pet adoption. Think carefully before bringing any pet home!</span>
       </div>
 
     </div>
@@ -1259,11 +1409,6 @@
               class="modal-btn modal-btn-secondary">
         <i class="fa-solid fa-xmark"></i>
         Close
-      </button>
-      <button @click="editingSpecies = JSON.parse(JSON.stringify(viewSpecies)); imagePreview='/static/' + viewSpecies.image_url; speciesModal = true; viewModal = false"
-              class="modal-btn modal-btn-primary">
-        <i class="fa-regular fa-pen-to-square"></i>
-        Edit Species
       </button>
     </div>
 

@@ -249,6 +249,123 @@
     color: #a855f7;
   }
 
+  /* Glass Form Sections - Enhanced with backdrop effect */
+  .glass-form-section {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  .glass-form-section:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(168, 85, 247, 0.35);
+    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  /* Metric Cards */
+  .metric-card {
+    padding: 1rem;
+    border-radius: 0.875rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.15);
+  }
+
+  /* Compatibility Matrix Grid */
+  .compatibility-matrix {
+    position: relative;
+  }
+
+  .compatibility-matrix:after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 0.875rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .compatibility-matrix:hover:after {
+    opacity: 0.05;
+  }
+
+  /* Care Requirement Items */
+  .care-requirement-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(249, 250, 251, 0.8) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    gap: 0.5rem;
+  }
+
+  .care-requirement-item:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateX(2px);
+  }
+
+  .care-requirement-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+    flex: 1;
+    font-size: 0.9rem;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  .status-yes {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-no {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .glass-card {
+    background: rgba(243, 244, 246, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 30px 70px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translateY(-8px);
+  }
+
   /* Spinner Animation */
   @keyframes spin {
     to {
@@ -343,6 +460,115 @@
     border: 1px solid rgba(168, 85, 247, 0.1);
   }
 
+  /* Form Field Alignment Styles */
+  .form-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .form-label i {
+    flex-shrink: 0;
+    width: 1.25rem;
+    text-align: center;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    color: #1f2937;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: #a855f7;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+    background: #ffffff;
+  }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  .form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  .form-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .checkbox-item:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #a855f7;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox-item span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .checkbox-item span i {
+    font-size: 1rem;
+  }
+
   @media (max-width: 640px) {
     .modal-content-wrapper {
       max-width: 100%;
@@ -373,6 +599,14 @@
     .preview-section {
       grid-template-columns: 1fr;
       margin-bottom: 1rem;
+    }
+
+    .form-field-row {
+      grid-template-columns: 1fr;
+    }
+
+    .checkbox-group {
+      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -766,12 +1000,12 @@
           <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
         </div>
 
-        <!-- BREED NAME & BASIC INFO -->
-        <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-2xl p-4 sm:p-5 border border-indigo-200 mb-6">
+        <!-- BREED NAME & BASIC INFO - ENHANCED GLASS DESIGN -->
+        <div class="glass-card bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-4 sm:p-5 border border-indigo-200 mb-6">
           <div class="flex items-start justify-between gap-4 mb-3">
-            <div>
+            <div class="flex-1">
               <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="selectedBreed?.name"></h2>
-              <p class="text-sm text-gray-600 mt-1" x-text="selectedBreed?.temperament || 'N/A'"></p>
+              <p class="text-sm text-gray-600 mt-1 italic" x-text="selectedBreed?.temperament || 'N/A'"></p>
             </div>
           </div>
           <div class="border-t border-indigo-200 pt-3 mt-3">
@@ -779,298 +1013,338 @@
           </div>
         </div>
 
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300 mb-6"></div>
+        <!-- SECTION DIVIDER -->
+        <div class="section-divider mb-6"></div>
 
-        <!-- QUICK STATS SECTION -->
+        <!-- COMPATIBILITY SNAPSHOT (6 KEY METRICS FOR MATCHING ENGINE) -->
         <div class="mb-6">
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-1 text-indigo-600"></i> Quick Stats
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-chart-simple text-indigo-600"></i> Compatibility Snapshot
           </h3>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-green-700 uppercase">Lifespan</span>
-                <i class="fa-solid fa-hourglass-half text-green-600 text-sm"></i>
-              </div>
-              <p class="text-xs text-green-600 font-medium" x-text="selectedBreed?.lifespan || 'N/A'"></p>
+            <!-- Energy Level -->
+            <div class="compatibility-matrix metric-card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+              <div class="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1">Energy Level</div>
+              <div class="stat-value text-blue-600" x-text="selectedBreed?.energy_level || 'N/A'"></div>
+              <div class="text-xs text-blue-600 mt-1"><i class="fa-solid fa-bolt"></i></div>
             </div>
 
-            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-orange-700 uppercase">Care Cost</span>
-                <i class="fa-solid fa-peso-sign text-orange-600 text-sm"></i>
-              </div>
-              <p class="text-xs text-orange-600 font-medium" x-text="selectedBreed?.care_cost || 'N/A'"></p>
+            <!-- Time Commitment -->
+            <div class="compatibility-matrix metric-card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+              <div class="text-xs font-bold text-purple-700 uppercase tracking-wide mb-1">Time Needed</div>
+              <div class="stat-value text-purple-600" x-text="selectedBreed?.time_commitment || 'N/A'"></div>
+              <div class="text-xs text-purple-600 mt-1"><i class="fa-solid fa-hourglass-end"></i></div>
             </div>
 
-            <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-pink-700 uppercase">Difficulty</span>
-                <i class="fa-solid fa-star text-pink-600 text-sm"></i>
-              </div>
-              <p class="text-xs text-pink-600 font-medium" x-text="selectedBreed?.experience_required || 'N/A'"></p>
+            <!-- Space Needs -->
+            <div class="compatibility-matrix metric-card bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+              <div class="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Space Needs</div>
+              <div class="stat-value text-green-600" x-text="selectedBreed?.space_needs || 'N/A'"></div>
+              <div class="text-xs text-green-600 mt-1"><i class="fa-solid fa-ruler"></i></div>
             </div>
 
-            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 border border-yellow-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-yellow-700 uppercase">Noise Level</span>
-                <i class="fa-solid fa-volume-high text-yellow-600 text-sm"></i>
-              </div>
-              <p class="text-xs text-yellow-600 font-medium" x-text="selectedBreed?.noise_level || 'N/A'"></p>
+            <!-- Experience Required -->
+            <div class="compatibility-matrix metric-card bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+              <div class="text-xs font-bold text-orange-700 uppercase tracking-wide mb-1">Experience</div>
+              <div class="stat-value text-orange-600" x-text="selectedBreed?.experience_required || 'N/A'"></div>
+              <div class="text-xs text-orange-600 mt-1"><i class="fa-solid fa-graduation-cap"></i></div>
             </div>
 
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-blue-700 uppercase">Energy</span>
-                <i class="fa-solid fa-bolt text-blue-600 text-sm"></i>
-              </div>
-              <p class="text-xs text-blue-600 font-medium" x-text="selectedBreed?.energy_level || 'N/A'"></p>
+            <!-- Monthly Cost -->
+            <div class="compatibility-matrix metric-card bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
+              <div class="text-xs font-bold text-red-700 uppercase tracking-wide mb-1">Monthly Cost</div>
+              <div class="stat-value text-red-600" x-text="selectedBreed?.monthly_cost_level || 'N/A'"></div>
+              <div class="text-xs text-red-600 mt-1"><i class="fa-solid fa-wallet"></i></div>
             </div>
 
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200 hover:shadow-md transition">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-purple-700 uppercase">Time Needed</span>
-                <i class="fa-solid fa-clock text-purple-600 text-sm"></i>
-              </div>
-              <p class="text-xs text-purple-600 font-medium" x-text="selectedBreed?.time_commitment || 'N/A'"></p>
+            <!-- Lifespan -->
+            <div class="compatibility-matrix metric-card bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200">
+              <div class="text-xs font-bold text-pink-700 uppercase tracking-wide mb-1">Lifespan</div>
+              <div class="stat-value text-pink-600" x-text="selectedBreed?.lifespan || 'N/A'"></div>
+              <div class="text-xs text-pink-600 mt-1"><i class="fa-solid fa-hourglass-half"></i></div>
             </div>
           </div>
         </div>
 
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300 mb-6"></div>
+        <!-- SECTION DIVIDER -->
+        <div class="section-divider mb-6"></div>
 
-        <!-- CARE REQUIREMENTS -->
+        <!-- CARE REQUIREMENTS - METRIC CARDS -->
         <div class="mb-6">
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-heart-pulse text-green-600"></i> Care Requirements
           </h3>
-          <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+          <div class="space-y-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-bolt text-yellow-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Energy Level</span>
+                <span>Energy Level</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.energy_level || 'N/A'"></span>
+              <span class="status-badge bg-yellow-100 text-yellow-700" x-text="selectedBreed?.energy_level || 'N/A'"></span>
             </div>
             {% if species.requires_exercise %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-dumbbell text-green-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Exercise Needs</span>
+                <span>Exercise Needs</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.exercise_needs || 'N/A'"></span>
+              <span class="status-badge bg-green-100 text-green-700" x-text="selectedBreed?.exercise_needs || 'N/A'"></span>
             </div>
             {% endif %}
             {% if species.requires_grooming %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-scissors text-pink-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Grooming Needs</span>
+                <span>Grooming Needs</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.grooming_needs || 'N/A'"></span>
+              <span class="status-badge bg-pink-100 text-pink-700" x-text="selectedBreed?.grooming_needs || 'N/A'"></span>
             </div>
             {% endif %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-ruler-combined text-purple-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Space Needs</span>
+                <span>Space Needs</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.space_needs || 'N/A'"></span>
+              <span class="status-badge bg-purple-100 text-purple-700" x-text="selectedBreed?.space_needs || 'N/A'"></span>
             </div>
             {% if species.requires_training %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-brain text-indigo-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Trainability</span>
+                <span>Ease of Training</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.trainability || 'N/A'"></span>
+              <span class="status-badge bg-indigo-100 text-indigo-700" x-text="selectedBreed?.trainability || 'N/A'"></span>
             </div>
             {% endif %}
             {% if not species.fragile_species %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-handshake text-green-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Handling Tolerance</span>
+                <span>Comfort With Being Held</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.handling_tolerance || 'N/A'"></span>
+              <span class="status-badge bg-green-100 text-green-700" x-text="selectedBreed?.handling_tolerance || 'N/A'"></span>
             </div>
             {% endif %}
           </div>
         </div>
 
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300 mb-6"></div>
+        <!-- SECTION DIVIDER -->
+        <div class="section-divider mb-6"></div>
 
-        <!-- BEHAVIORAL & COMPATIBILITY -->
+        <!-- BEHAVIORAL & COMPATIBILITY - METRIC CARDS -->
         <div class="mb-6">
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-3 text-purple-600"></i> Behavioral & Compatibility
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-face-smile text-purple-600"></i> Personality & Living with Others
           </h3>
-          <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+          <div class="space-y-2 mb-4">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-volume-high text-orange-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Noise Level</span>
+                <span>Noise Level</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.noise_level || 'N/A'"></span>
+              <span class="status-badge bg-orange-100 text-orange-700" x-text="selectedBreed?.noise_level || 'N/A'"></span>
             </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-users text-indigo-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Social Needs</span>
+                <span>Social Needs</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.social_needs || 'N/A'"></span>
+              <span class="status-badge bg-indigo-100 text-indigo-700" x-text="selectedBreed?.social_needs || 'N/A'"></span>
             </div>
             {% if species.predatory_species %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-paw text-gray-600 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Prey Drive</span>
+                <span>Hunting Instinct</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.prey_drive || 'N/A'"></span>
+              <span class="status-badge bg-gray-100 text-gray-700" x-text="selectedBreed?.prey_drive || 'N/A'"></span>
             </div>
             {% endif %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-triangle-exclamation text-red-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Compatibility Risk</span>
+                <span>Safety With Other Pets</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.compatibility_risk || 'N/A'"></span>
+              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.compatibility_risk || 'N/A'"></span>
             </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-dog text-indigo-600 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Dog Friendly</span>
+          </div>
+
+          <!-- LIVING COMPATIBILITY - USER FRIENDLY FORMAT -->
+          <div class="bg-gradient-to-br from-indigo-50/60 to-purple-50/60 rounded-xl p-4 sm:p-5 border border-indigo-100 space-y-3">
+            <p class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-home text-indigo-600"></i>Living Situation Compatibility
+            </p>
+            <div class="space-y-2.5">
+              <!-- Other Dogs -->
+              <div class="flex items-center justify-between p-3 rounded-lg transition" :class="selectedBreed?.dog_friendly ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                <div class="flex items-center gap-3 flex-1">
+                  <i class="fa-solid fa-dog text-lg" :class="selectedBreed?.dog_friendly ? 'text-green-600' : 'text-red-500'"></i>
+                  <div>
+                    <div class="font-semibold text-gray-900 text-sm">Other Dogs</div>
+                    <div class="text-xs text-gray-600">Safe to live with other dog breeds</div>
+                  </div>
+                </div>
+                <span :class="selectedBreed?.dog_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge whitespace-nowrap ml-2">
+                  <i class="fa-solid" :class="selectedBreed?.dog_friendly ? 'fa-check' : 'fa-xmark'"></i>
+                  <span x-text="selectedBreed?.dog_friendly ? 'Good' : 'Not Recommended'"></span>
+                </span>
               </div>
-              <span :class="selectedBreed?.dog_friendly ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="selectedBreed?.dog_friendly ? 'Yes' : 'No'"></span>
+
+              <!-- Cats -->
+              <div class="flex items-center justify-between p-3 rounded-lg transition" :class="selectedBreed?.cat_friendly ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                <div class="flex items-center gap-3 flex-1">
+                  <i class="fa-solid fa-cat text-lg" :class="selectedBreed?.cat_friendly ? 'text-green-600' : 'text-red-500'"></i>
+                  <div>
+                    <div class="font-semibold text-gray-900 text-sm">Cats</div>
+                    <div class="text-xs text-gray-600">Can coexist peacefully with cats</div>
+                  </div>
+                </div>
+                <span :class="selectedBreed?.cat_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge whitespace-nowrap ml-2">
+                  <i class="fa-solid" :class="selectedBreed?.cat_friendly ? 'fa-check' : 'fa-xmark'"></i>
+                  <span x-text="selectedBreed?.cat_friendly ? 'Good' : 'Not Recommended'"></span>
+                </span>
+              </div>
+
+              <!-- Small Pets -->
+              <div class="flex items-center justify-between p-3 rounded-lg transition" :class="selectedBreed?.small_pet_friendly ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                <div class="flex items-center gap-3 flex-1">
+                  <i class="fa-solid fa-heart text-lg" :class="selectedBreed?.small_pet_friendly ? 'text-green-600' : 'text-red-500'"></i>
+                  <div>
+                    <div class="font-semibold text-gray-900 text-sm">Small Pets</div>
+                    <div class="text-xs text-gray-600">Safe with rabbits, guinea pigs, hamsters, etc.</div>
+                  </div>
+                </div>
+                <span :class="selectedBreed?.small_pet_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge whitespace-nowrap ml-2">
+                  <i class="fa-solid" :class="selectedBreed?.small_pet_friendly ? 'fa-check' : 'fa-xmark'"></i>
+                  <span x-text="selectedBreed?.small_pet_friendly ? 'Good' : 'Not Recommended'"></span>
+                </span>
+              </div>
+
+              <!-- Allergy Friendly -->
+              <div class="flex items-center justify-between p-3 rounded-lg transition" :class="selectedBreed?.allergy_friendly ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                <div class="flex items-center gap-3 flex-1">
+                  <i class="fa-solid fa-lungs text-lg" :class="selectedBreed?.allergy_friendly ? 'text-green-600' : 'text-red-500'"></i>
+                  <div>
+                    <div class="font-semibold text-gray-900 text-sm">Allergy Friendly</div>
+                    <div class="text-xs text-gray-600">Suitable for people with allergies</div>
+                  </div>
+                </div>
+                <span :class="selectedBreed?.allergy_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge whitespace-nowrap ml-2">
+                  <i class="fa-solid" :class="selectedBreed?.allergy_friendly ? 'fa-check' : 'fa-xmark'"></i>
+                  <span x-text="selectedBreed?.allergy_friendly ? 'Good' : 'Not Recommended'"></span>
+                </span>
+              </div>
+
+              <!-- Kids Friendly -->
+              <div class="flex items-center justify-between p-3 rounded-lg transition" :class="selectedBreed?.child_friendly ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                <div class="flex items-center gap-3 flex-1">
+                  <i class="fa-solid fa-child text-lg" :class="selectedBreed?.child_friendly ? 'text-green-600' : 'text-red-500'"></i>
+                  <div>
+                    <div class="font-semibold text-gray-900 text-sm">Children</div>
+                    <div class="text-xs text-gray-600">Safe and gentle with kids of all ages</div>
+                  </div>
+                </div>
+                <span :class="selectedBreed?.child_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge whitespace-nowrap ml-2">
+                  <i class="fa-solid" :class="selectedBreed?.child_friendly ? 'fa-check' : 'fa-xmark'"></i>
+                  <span x-text="selectedBreed?.child_friendly ? 'Good' : 'Not Recommended'"></span>
+                </span>
+              </div>
             </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-cat text-indigo-600 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Cat Friendly</span>
-              </div>
-              <span :class="selectedBreed?.cat_friendly ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="selectedBreed?.cat_friendly ? 'Yes' : 'No'"></span>
-            </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-hippo text-indigo-600 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Small Pet Friendly</span>
-              </div>
-              <span :class="selectedBreed?.small_pet_friendly ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="selectedBreed?.small_pet_friendly ? 'Yes' : 'No'"></span>
-            </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-allergies text-blue-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Allergy Friendly</span>
-              </div>
-              <span :class="selectedBreed?.allergy_friendly ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="selectedBreed?.allergy_friendly ? 'Yes' : 'No'"></span>
-            </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-child text-pink-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Child Friendly</span>
-              </div>
-              <span :class="selectedBreed?.child_friendly ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="selectedBreed?.child_friendly ? 'Yes' : 'No'"></span>
-            </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-person-cane text-orange-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Senior Friendly</span>
-              </div>
-              <span :class="selectedBreed?.senior_friendly ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-xs font-bold px-2 py-1 rounded-full" x-text="selectedBreed?.senior_friendly ? 'Yes' : 'No'"></span>
+
+            <!-- Helpful Info -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+              <p class="text-xs text-blue-700"><i class="fa-solid fa-circle-info mr-2"></i><span class="font-medium">Tip:</span> Even if marked "Not Recommended," individual compatibility depends on proper introduction and training.</p>
             </div>
           </div>
         </div>
 
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300 mb-6"></div>
+        <!-- SECTION DIVIDER -->
+        <div class="section-divider mb-6"></div>
 
-        <!-- EXPERIENCE & ENVIRONMENT -->
+        <!-- EXPERIENCE & ENVIRONMENT - METRIC CARDS -->
         <div class="mb-6">
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-4 text-blue-600"></i> Experience & Environment
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-lightbulb text-blue-600"></i> What You Need to Know
           </h3>
-          <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+          <div class="space-y-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-heart text-red-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Care Intensity</span>
+                <span>How Much Daily Care Needed</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.care_intensity || 'N/A'"></span>
+              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.care_intensity || 'N/A'"></span>
             </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-clock text-yellow-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Time Commitment</span>
+                <span>Time You Need to Spend Daily</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.time_commitment || 'N/A'"></span>
+              <span class="status-badge bg-yellow-100 text-yellow-700" x-text="selectedBreed?.time_commitment || 'N/A'"></span>
             </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-user-graduate text-indigo-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Experience Required</span>
+                <span>Experience Level Needed</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.experience_required || 'N/A'"></span>
+              <span class="status-badge bg-indigo-100 text-indigo-700" x-text="selectedBreed?.experience_required || 'N/A'"></span>
             </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-cubes text-purple-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Environment Complexity</span>
+                <span>Difficulty Setting Up Home</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.environment_complexity || 'N/A'"></span>
+              <span class="status-badge bg-purple-100 text-purple-700" x-text="selectedBreed?.environment_complexity || 'N/A'"></span>
             </div>
           </div>
         </div>
 
-        <!-- DIVIDER LINE -->
-        <div class="border-t-2 border-dashed border-gray-300 mb-6"></div>
+        <!-- SECTION DIVIDER -->
+        <div class="section-divider mb-6"></div>
 
-        <!-- HEALTH & WELLNESS -->
+        <!-- HEALTH & WELLNESS - METRIC CARDS -->
         <div class="mb-6">
-          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-5 text-red-600"></i> Health & Wellness
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-heart-pulse text-red-600"></i> Health & Wellness
           </h3>
-          <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200 overflow-hidden">
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+          <div class="space-y-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-heart-pulse text-red-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Preventive Care Level</span>
+                <span>Preventive Health Care Needed</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.preventive_care_level || 'N/A'"></span>
+              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.preventive_care_level || 'N/A'"></span>
             </div>
             {% if species.special_vet_required %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-ambulance text-orange-600 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Emergency Care Risk</span>
+                <span>Unexpected Emergency Bills</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.emergency_care_risk || 'N/A'"></span>
+              <span class="status-badge bg-orange-100 text-orange-700" x-text="selectedBreed?.emergency_care_risk || 'N/A'"></span>
             </div>
             {% endif %}
             {% if species.fragile_species %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-brain text-purple-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Stress Sensitivity</span>
+                <span>How Sensitive to Stress & Changes</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.stress_sensitivity || 'N/A'"></span>
+              <span class="status-badge bg-purple-100 text-purple-700" x-text="selectedBreed?.stress_sensitivity || 'N/A'"></span>
             </div>
             {% endif %}
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-wallet text-red-600 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Monthly Cost Level</span>
+                <span>Monthly Expense Level</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.monthly_cost_level || 'N/A'"></span>
+              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.monthly_cost_level || 'N/A'"></span>
             </div>
-            <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition">
-              <div class="flex items-center gap-2">
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
                 <i class="fa-solid fa-piggy-bank text-emerald-500 text-lg"></i>
-                <span class="text-sm font-medium text-gray-700">Lifetime Cost Level</span>
+                <span>Total Cost Over Lifetime</span>
               </div>
-              <span class="text-xs font-bold text-gray-700" x-text="selectedBreed?.lifetime_cost_level || 'N/A'"></span>
+              <span class="status-badge bg-emerald-100 text-emerald-700" x-text="selectedBreed?.lifetime_cost_level || 'N/A'"></span>
             </div>
           </div>
         </div>
@@ -1171,48 +1445,42 @@
               </div>
 
               <!-- Name -->
-              <div class="flex flex-col w-full">
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-paw text-indigo-600"></i> Breed Name <span class="text-red-600">*</span>
                 </label>
-                <input type="text" name="name" x-bind:value="editingBreed?.name || ''" placeholder="e.g., Golden Retriever, Siamese" maxlength="100"
-                      class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required>
+                <input type="text" name="name" x-bind:value="editingBreed?.name || ''" placeholder="e.g., Golden Retriever, Siamese" maxlength="100" class="form-input" required>
               </div>
 
               <!-- Summary -->
-              <div class="flex flex-col w-full">
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-align-left text-indigo-600"></i> Summary <span class="text-red-600">*</span>
                 </label>
-                <textarea name="summary" rows="3" x-bind:value="editingBreed?.summary || ''" maxlength="500"
-                          placeholder="Write a detailed summary of this breed..."
-                          class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required></textarea>
+                <textarea name="summary" rows="3" x-bind:value="editingBreed?.summary || ''" maxlength="500" placeholder="Write a detailed summary of this breed..." class="form-textarea" required></textarea>
               </div>
 
               <!-- Temperament -->
-              <div class="flex flex-col w-full">
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-face-smile text-indigo-600"></i> Temperament <span class="text-red-600">*</span>
                 </label>
-                <input type="text" name="temperament" x-bind:value="editingBreed?.temperament || ''" placeholder="e.g., Friendly, Playful, Independent" maxlength="100"
-                      class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full" required>
+                <input type="text" name="temperament" x-bind:value="editingBreed?.temperament || ''" placeholder="e.g., Friendly, Playful, Independent" maxlength="100" class="form-input" required>
               </div>
 
               <!-- Numeric Fields -->
-              <div class="grid grid-cols-2 gap-4 w-full">
-                <div class="flex flex-col">
-                  <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-row">
+                <div class="form-field-group">
+                  <label class="form-label">
                     <i class="fa-solid fa-hourglass-half text-indigo-600"></i> Lifespan <span class="text-red-600">*</span>
                   </label>
-                  <input type="text" name="lifespan" placeholder="e.g., 10-15 years" x-bind:value="editingBreed?.lifespan || ''" maxlength="50"
-                        class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md" required>
+                  <input type="text" name="lifespan" placeholder="e.g., 10-15 years" x-bind:value="editingBreed?.lifespan || ''" maxlength="50" class="form-input" required>
                 </div>
-                <div class="flex flex-col">
-                  <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <div class="form-field-group">
+                  <label class="form-label">
                     <i class="fa-solid fa-peso-sign text-indigo-600"></i> Care Cost <span class="text-red-600">*</span>
                   </label>
-                  <input type="text" name="care_cost" placeholder="e.g., 5,000-10,000 PHP" x-bind:value="editingBreed?.care_cost || ''" maxlength="50"
-                        class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md" required>
+                  <input type="text" name="care_cost" placeholder="e.g., 5,000-10,000 PHP" x-bind:value="editingBreed?.care_cost || ''" maxlength="50" class="form-input" required>
                 </div>
               </div>
 
@@ -1220,7 +1488,7 @@
               {% if species.requires_enclosure %}
               <div class="flex flex-col w-full">
                 <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-house text-indigo-600"></i> Minimum Enclosure Size
+                  <i class="fa-solid fa-house text-indigo-600"></i> Minimum Space Needed
                 </label>
                 <input type="text" name="min_enclosure_size" x-bind:value="editingBreed?.min_enclosure_size || ''" placeholder="Size in appropriate units (tank/cage)" maxlength="100"
                       class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full">
@@ -1234,13 +1502,13 @@
             <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <i class="fa-solid fa-circle-2 text-green-600"></i> Care Requirements
             </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <!-- Energy Level - Always shown -->
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-bolt text-green-600"></i> Energy Level
                 </label>
-                <select name="energy_level" x-bind:value="editingBreed?.energy_level || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="energy_level" x-bind:value="editingBreed?.energy_level || 'Medium'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
@@ -1249,11 +1517,11 @@
 
               <!-- Exercise Needs - Only if species requires exercise -->
               {% if species.requires_exercise %}
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-dumbbell text-green-600"></i> Exercise Needs
                 </label>
-                <select name="exercise_needs" x-bind:value="editingBreed?.exercise_needs || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="exercise_needs" x-bind:value="editingBreed?.exercise_needs || 'Medium'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
@@ -1263,11 +1531,11 @@
 
               <!-- Grooming Needs - Only if species requires grooming -->
               {% if species.requires_grooming %}
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-scissors text-green-600"></i> Grooming Needs
                 </label>
-                <select name="grooming_needs" x-bind:value="editingBreed?.grooming_needs || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="grooming_needs" x-bind:value="editingBreed?.grooming_needs || 'Medium'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
@@ -1276,11 +1544,11 @@
               {% endif %}
 
               <!-- Space Needs - Always shown -->
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-ruler-combined text-green-600"></i> Space Needs
                 </label>
-                <select name="space_needs" x-bind:value="editingBreed?.space_needs || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="space_needs" x-bind:value="editingBreed?.space_needs || 'Medium'" class="form-select">
                   <option value="Small">Small</option>
                   <option value="Medium">Medium</option>
                   <option value="Large">Large</option>
@@ -1289,11 +1557,11 @@
 
               <!-- Trainability - Only if species requires training -->
               {% if species.requires_training %}
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-brain text-green-600"></i> Trainability
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-brain text-green-600"></i> Ease of Training
                 </label>
-                <select name="trainability" x-bind:value="editingBreed?.trainability || 'Moderate'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="trainability" x-bind:value="editingBreed?.trainability || 'Moderate'" class="form-select">
                   <option value="Easy">Easy</option>
                   <option value="Moderate">Moderate</option>
                   <option value="Difficult">Difficult</option>
@@ -1303,11 +1571,11 @@
 
               <!-- Handling Tolerance - Only if NOT fragile species -->
               {% if not species.fragile_species %}
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-handshake text-green-600"></i> Handling Tolerance
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-handshake text-green-600"></i> Comfort With Being Held
                 </label>
-                <select name="handling_tolerance" x-bind:value="editingBreed?.handling_tolerance || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="handling_tolerance" x-bind:value="editingBreed?.handling_tolerance || 'Medium'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
@@ -1317,19 +1585,19 @@
             </div>
           </div>
 
-          <!-- ========== SECTION 3: BEHAVIORAL & COMPATIBILITY ========== -->
+          <!-- ========== SECTION 3: PERSONALITY & LIVING WITH OTHERS ========== -->
           <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 sm:p-5 border border-purple-100 w-full">
             <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-circle-3 text-purple-600"></i> Behavioral & Compatibility
+              <i class="fa-solid fa-circle-3 text-purple-600"></i> Personality & Living with Others
             </h4>
-            <p class="text-sm text-gray-600 mb-4">Behavior and household compatibility traits:</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mb-4">
+            <p class="text-sm text-gray-600 mb-4">Personality traits and how they interact with other pets and people:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
               <!-- Noise Level - Always shown -->
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-volume-high text-purple-600"></i> Noise Level
                 </label>
-                <select name="noise_level" x-bind:value="editingBreed?.noise_level || 'Low'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="noise_level" x-bind:value="editingBreed?.noise_level || 'Low'" class="form-select">
                   <option value="Silent">Silent</option>
                   <option value="Low">Low</option>
                   <option value="Moderate">Moderate</option>
@@ -1338,11 +1606,11 @@
               </div>
 
               <!-- Social Needs - Always shown -->
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-users text-purple-600"></i> Social Needs
                 </label>
-                <select name="social_needs" x-bind:value="editingBreed?.social_needs || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="social_needs" x-bind:value="editingBreed?.social_needs || 'Medium'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
@@ -1351,11 +1619,11 @@
 
               <!-- Prey Drive - Only if species is predatory -->
               {% if species.predatory_species %}
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-paw text-purple-600"></i> Prey Drive
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-paw text-purple-600"></i> Hunting Instinct
                 </label>
-                <select name="prey_drive" x-bind:value="editingBreed?.prey_drive || 'None'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="prey_drive" x-bind:value="editingBreed?.prey_drive || 'None'" class="form-select">
                   <option value="None">None</option>
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
@@ -1365,110 +1633,105 @@
               {% endif %}
 
               <!-- Compatibility Risk - Always shown -->
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-triangle-exclamation text-purple-600"></i> Compatibility Risk
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-triangle-exclamation text-purple-600"></i> Safety With Other Pets
                 </label>
-                <select name="compatibility_risk" x-bind:value="editingBreed?.compatibility_risk || 'Low'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="compatibility_risk" x-bind:value="editingBreed?.compatibility_risk || 'Low'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
                 </select>
               </div>
             </div>
-            <p class="text-sm text-gray-600 mb-3">Compatibility checkboxes:</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <p class="text-sm text-gray-600 mb-3">Can they live safely with these pets and people:</p>
+            <div class="checkbox-group">
               <!-- Dog Friendly - Always shown -->
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
-                <input type="checkbox" name="dog_friendly" value="1" :checked="editingBreed?.dog_friendly" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-dog text-purple-600 mr-2"></i>Dog Friendly
+              <label class="checkbox-item">
+                <input type="checkbox" name="dog_friendly" value="1" :checked="editingBreed?.dog_friendly">
+                <span>
+                  <i class="fa-solid fa-dog text-purple-600"></i>Dog Friendly
                 </span>
               </label>
 
               <!-- Cat Friendly - Always shown -->
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
-                <input type="checkbox" name="cat_friendly" value="1" :checked="editingBreed?.cat_friendly" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-cat text-purple-600 mr-2"></i>Cat Friendly
+              <label class="checkbox-item">
+                <input type="checkbox" name="cat_friendly" value="1" :checked="editingBreed?.cat_friendly">
+                <span>
+                  <i class="fa-solid fa-cat text-purple-600"></i>Cat Friendly
                 </span>
               </label>
 
               <!-- Small Pet Friendly - Always shown -->
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
-                <input type="checkbox" name="small_pet_friendly" value="1" :checked="editingBreed?.small_pet_friendly" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-hippo text-purple-600 mr-2"></i>Small Pet Friendly
+              <label class="checkbox-item">
+                <input type="checkbox" name="small_pet_friendly" value="1" :checked="editingBreed?.small_pet_friendly">
+                <span>
+                  <i class="fa-solid fa-hippo text-purple-600"></i>Small Pet Friendly
                 </span>
               </label>
 
               <!-- Allergy Friendly - Always shown -->
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
-                <input type="checkbox" name="allergy_friendly" value="1" :checked="editingBreed?.allergy_friendly" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-allergies text-purple-600 mr-2"></i>Allergy Friendly
+              <label class="checkbox-item">
+                <input type="checkbox" name="allergy_friendly" value="1" :checked="editingBreed?.allergy_friendly">
+                <span>
+                  <i class="fa-solid fa-allergies text-purple-600"></i>Allergy Friendly
                 </span>
               </label>
 
               <!-- Child Friendly - Always shown -->
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
-                <input type="checkbox" name="child_friendly" value="1" :checked="editingBreed?.child_friendly" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-child text-purple-600 mr-2"></i>Child Friendly
-                </span>
-              </label>
-
-              <!-- Senior Friendly - Always shown -->
-              <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-purple-50 transition">
-                <input type="checkbox" name="senior_friendly" value="1" :checked="editingBreed?.senior_friendly" class="w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
-                <span class="text-gray-700 text-sm font-medium">
-                  <i class="fa-solid fa-person-cane text-purple-600 mr-2"></i>Senior Friendly
+              <label class="checkbox-item">
+                <input type="checkbox" name="child_friendly" value="1" :checked="editingBreed?.child_friendly">
+                <span>
+                  <i class="fa-solid fa-child text-purple-600"></i>Child Friendly
                 </span>
               </label>
             </div>
           </div>
 
-          <!-- ========== SECTION 4: EXPERIENCE & ENVIRONMENT ========== -->
+          <!-- ========== SECTION 4: WHAT YOU NEED TO KNOW ========== -->
           <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-4 sm:p-5 border border-blue-100 w-full">
             <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-circle-4 text-blue-600"></i> Experience & Environment
+              <i class="fa-solid fa-circle-4 text-blue-600"></i> What You Need to Know
             </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-heart text-blue-600"></i> Care Intensity
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-heart text-blue-600"></i> How Much Daily Care Needed
                 </label>
-                <select name="care_intensity" x-bind:value="editingBreed?.care_intensity || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="care_intensity" x-bind:value="editingBreed?.care_intensity || 'Medium'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
                 </select>
               </div>
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-clock text-blue-600"></i> Time Commitment
+
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-clock text-blue-600"></i> Time You Need to Spend Daily
                 </label>
-                <select name="time_commitment" x-bind:value="editingBreed?.time_commitment || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="time_commitment" x-bind:value="editingBreed?.time_commitment || 'Medium'" class="form-select">
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
                 </select>
               </div>
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-user-graduate text-blue-600"></i> Experience Required
+
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-user-graduate text-blue-600"></i> Experience Level Needed
                 </label>
-                <select name="experience_required" x-bind:value="editingBreed?.experience_required || 'Beginner'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="experience_required" x-bind:value="editingBreed?.experience_required || 'Beginner'" class="form-select">
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
                 </select>
               </div>
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-cubes text-blue-600"></i> Environment Complexity
+
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-cubes text-blue-600"></i> Difficulty Setting Up Home
                 </label>
-                <select name="environment_complexity" x-bind:value="editingBreed?.environment_complexity || 'Simple'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                <select name="environment_complexity" x-bind:value="editingBreed?.environment_complexity || 'Simple'" class="form-select">
                   <option value="Simple">Simple</option>
                   <option value="Moderate">Moderate</option>
                   <option value="Complex">Complex</option>
@@ -1483,13 +1746,13 @@
               <i class="fa-solid fa-circle-5 text-red-600"></i> Health & Wellness
             </h4>
             <div class="space-y-4 w-full">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Preventive Care Level - Always shown -->
-                <div>
-                  <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-stethoscope text-red-600"></i> Preventive Care Level
+                <div class="form-field-group">
+                  <label class="form-label">
+                    <i class="fa-solid fa-stethoscope text-red-600"></i> Preventive Health Care Needed
                   </label>
-                  <select name="preventive_care_level" x-bind:value="editingBreed?.preventive_care_level || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                  <select name="preventive_care_level" x-bind:value="editingBreed?.preventive_care_level || 'Medium'" class="form-select">
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
                     <option value="High">High</option>
@@ -1498,11 +1761,11 @@
 
                 <!-- Emergency Care Risk - Only if special vet required -->
                 {% if species.special_vet_required %}
-                <div>
-                  <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Emergency Care Risk
+                <div class="form-field-group">
+                  <label class="form-label">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Unexpected Emergency Bills
                   </label>
-                  <select name="emergency_care_risk" x-bind:value="editingBreed?.emergency_care_risk || 'Low'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                  <select name="emergency_care_risk" x-bind:value="editingBreed?.emergency_care_risk || 'Low'" class="form-select">
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
                     <option value="High">High</option>
@@ -1512,11 +1775,11 @@
 
                 <!-- Stress Sensitivity - Only if fragile species -->
                 {% if species.fragile_species %}
-                <div>
-                  <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-heart-crack text-red-600"></i> Stress Sensitivity
+                <div class="form-field-group">
+                  <label class="form-label">
+                    <i class="fa-solid fa-heart-crack text-red-600"></i> How Sensitive to Stress & Changes
                   </label>
-                  <select name="stress_sensitivity" x-bind:value="editingBreed?.stress_sensitivity || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                  <select name="stress_sensitivity" x-bind:value="editingBreed?.stress_sensitivity || 'Medium'" class="form-select">
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
                     <option value="High">High</option>
@@ -1525,11 +1788,23 @@
                 {% endif %}
 
                 <!-- Monthly Cost Level - Always shown -->
-                <div>
-                  <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-wallet text-red-600"></i> Monthly Cost Level
+                <div class="form-field-group">
+                  <label class="form-label">
+                    <i class="fa-solid fa-wallet text-red-600"></i> Monthly Expense Level
                   </label>
-                  <select name="monthly_cost_level" x-bind:value="editingBreed?.monthly_cost_level || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
+                  <select name="monthly_cost_level" x-bind:value="editingBreed?.monthly_cost_level || 'Medium'" class="form-select">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+
+                <!-- Lifetime Cost Level - Always shown -->
+                <div class="form-field-group">
+                  <label class="form-label">
+                    <i class="fa-solid fa-coins text-red-600"></i> Total Cost Over Lifetime
+                  </label>
+                  <select name="lifetime_cost_level" x-bind:value="editingBreed?.lifetime_cost_level || 'Medium'" class="form-select">
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
                     <option value="High">High</option>
@@ -1537,27 +1812,13 @@
                 </div>
               </div>
 
-              <!-- Lifetime Cost Level - Always shown -->
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-coins text-red-600"></i> Lifetime Cost Level
-                </label>
-                <select name="lifetime_cost_level" x-bind:value="editingBreed?.lifetime_cost_level || 'Medium'" class="border border-gray-300 rounded-2xl px-4 py-3 w-full bg-white transition">
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-              </div>
-
               <!-- Common Health Issues - Only if special vet required -->
               {% if species.special_vet_required %}
-              <div>
-                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <div class="form-field-group">
+                <label class="form-label">
                   <i class="fa-solid fa-note-sticky text-red-600"></i> Common Health Issues
                 </label>
-                <textarea name="common_health_issues" rows="3" x-bind:value="editingBreed?.common_health_issues || ''" maxlength="500"
-                          placeholder="e.g., Hip dysplasia, ear infections, allergies..."
-                          class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-red-400 focus:border-red-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full"></textarea>
+                <textarea name="common_health_issues" rows="3" x-bind:value="editingBreed?.common_health_issues || ''" maxlength="500" placeholder="e.g., Hip dysplasia, ear infections, allergies..." class="form-textarea"></textarea>
               </div>
               {% endif %}
             </div>

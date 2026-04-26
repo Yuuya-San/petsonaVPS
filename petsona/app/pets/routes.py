@@ -72,6 +72,20 @@ def save_species():
     else:
         species = Species()
 
+    # Check for duplicate species name
+    species_name = request.form.get("name", "").strip()
+    
+    # Query for existing species with this name (excluding soft-deleted)
+    existing_species = Species.query.filter(
+        Species.name.ilike(species_name),
+        Species.deleted_at.is_(None)
+    ).first()
+    
+    # If there's an existing species and it's not the one we're updating
+    if existing_species and (not is_update or existing_species.id != species.id):
+        flash(f"A species with the name '{species_name}' already exists.", "warning")
+        return redirect(url_for('pets.species_index'))
+
     # Track changes for audit log
     changes = {}
 
@@ -97,7 +111,8 @@ def save_species():
         "fragile_species",
         "beginner_friendly",
         "requires_permit",
-        "special_vet_required"
+        "special_vet_required",
+        "has_breed"
     ]
 
     for field in boolean_fields:

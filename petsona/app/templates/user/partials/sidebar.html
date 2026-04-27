@@ -47,6 +47,13 @@
           </a>
         </li>
 
+        <li class="nav-item">
+          <a href="{{ url_for('matching.history') }}" class="nav-link {% if request.endpoint == 'user.nearby_services' %}active{% endif %}">
+            <i class="nav-icon fa-solid fa-folder"></i>
+            <p>Match History</p>
+          </a>
+        </li>
+
         <!-- My Bookings -->
         <li class="nav-item">
           <a href="{{ url_for('user.my_bookings') }}" class="nav-link {% if request.endpoint == 'user.my_bookings' %}active{% endif %}">

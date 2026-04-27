@@ -300,27 +300,106 @@ def history():
 @bp.route("/results/<int:result_id>", methods=["GET"])
 @login_required
 def view_result(result_id):
-    """View a specific past match result"""
+    """View a specific past match result from history"""
     match = MatchHistory.query.get_or_404(result_id)
 
     # Check authorization
     if match.user_id and match.user_id != current_user.id and not current_user.is_admin:
         return redirect(url_for('matching.history'))
 
-    # Support breed_idx for general quiz results (top 1-5 breeds)
-    breed_idx = request.args.get('breed_idx', type=int)
-    top_match = None
-    if match.match_type == 'general' and match.top_matches and breed_idx is not None:
-        top_matches = match.top_matches
-        if 0 <= breed_idx < len(top_matches):
-            top_match = top_matches[breed_idx]
-
-    return render_template(
-        "matching/result_detail.html",
-        result=match,
-        top_match=top_match,
-        breed_idx=breed_idx
-    )
+    # Handle based on match type
+    if match.match_type == 'general' and match.top_matches:
+        # For general matches, reconstruct matches array from top_matches
+        try:
+            matches = []
+            for match_data in match.top_matches:
+                # If match_data has breed_id, fetch breed from database
+                if isinstance(match_data, dict) and 'breed_id' in match_data:
+                    breed = Breed.query.get(match_data.get('breed_id'))
+                    if breed:
+                        matches.append({
+                            'breed': {
+                                'id': breed.id,
+                                'name': breed.name,
+                                'image_url': breed.image_url,
+                                'summary': breed.summary,
+                                'species_id': breed.species_id,
+                                'species': {'id': breed.species.id, 'name': breed.species.name}
+                            },
+                            'score': match_data.get('score', 0),
+                            'level': match_data.get('level', 'Unknown'),
+                            'strengths': [f"Matches your preferences"],
+                            'mismatches': [],
+                            'suggestions': []
+                        })
+            
+            if matches:
+                # Store in session for general_results template
+                session['last_matches'] = matches
+                session['last_answers'] = match.quiz_answers
+                session.modified = True
+                return redirect(url_for('matching.general_results'))
+        except Exception as e:
+            print(f"Error reconstructing general matches: {e}")
+            pass
+        
+        # Fallback if reconstruction fails
+        return redirect(url_for('matching.history'))
+    
+    elif match.match_type == 'breed' and match.breed:
+        # For breed matches, reconstruct data and render directly
+        try:
+            # Calculate compatibility using stored answers
+            answers = match.quiz_answers if match.quiz_answers else {}
+            match_data = CompatibilityEngine.calculate_match_score(answers, match.breed)
+            
+            # Use stored data if calculation fails
+            if not match_data.get('overall_score'):
+                match_data = {
+                    'overall_score': match.compatibility_score,
+                    'compatibility_level': match.compatibility_level,
+                    'category_scores': match.category_scores or {},
+                    'strengths': match.strength_areas or [],
+                    'mismatches': match.mismatches or []
+                }
+            
+            # Generate suggestions and reasons
+            suggestions = generate_suggestions(answers, match.breed) if answers else (match.improvement_suggestions or [])
+            reasons = generate_match_reasons(answers, match.breed) if answers else {
+                'matched_reasons': [],
+                'mismatch_reasons': []
+            }
+            
+            # Prepare category scores for display
+            category_display = {}
+            for category, data in match_data.get('category_scores', {}).items():
+                if isinstance(data, dict):
+                    category_display[category] = {
+                        'score': data.get('score', 0),
+                        'percentage': data.get('percentage', 0)
+                    }
+            
+            return render_template(
+                "matching/breed_results.html",
+                breed=match.breed,
+                score=match_data.get('overall_score', 0),
+                compatibility_level=match_data.get('compatibility_level', 'Unknown'),
+                category_scores=category_display,
+                strength_areas=match_data.get('strengths', []),
+                question_scores=match_data.get('question_scores', []),
+                matched_reasons=reasons.get('matched_reasons', []),
+                mismatch_reasons=reasons.get('mismatch_reasons', []),
+                suggestions=suggestions,
+                total_questions=1,
+                from_history=True
+            )
+        except Exception as e:
+            print(f"Error rendering breed results: {e}")
+            return redirect(url_for('matching.history'))
+    
+    else:
+        # No valid match data, redirect to history
+        return redirect(url_for('matching.history'))
 
 
 # --------------------------

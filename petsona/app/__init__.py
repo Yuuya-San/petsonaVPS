@@ -65,6 +65,36 @@ def create_app(config_class: type = Config):
     
     app.jinja_env.filters['operating_days'] = convert_operating_days
 
+    # Custom Jinja2 filter for formatting datetime to human-readable PH timezone
+    def format_ph_datetime(iso_datetime_str):
+        """Format ISO datetime string to human-readable PH timezone format."""
+        if not iso_datetime_str:
+            return 'N/A'
+        try:
+            from datetime import datetime
+            import pytz
+            
+            # Parse ISO format datetime string
+            if isinstance(iso_datetime_str, str):
+                # Handle ISO format with timezone (e.g., "2026-04-27T14:30:00+08:00")
+                dt = datetime.fromisoformat(iso_datetime_str.replace('Z', '+00:00'))
+            else:
+                # If it's already a datetime object
+                dt = iso_datetime_str
+            
+            # Ensure timezone-aware
+            if dt.tzinfo is None:
+                pht_tz = pytz.timezone('Asia/Manila')
+                dt = pht_tz.localize(dt)
+            
+            # Format: "Apr 27, 2026 2:30 PM"
+            return dt.strftime('%b %d, %Y %I:%M %p')
+        except Exception as e:
+            print(f"[ERROR] Failed to format datetime: {e}")
+            return str(iso_datetime_str)[:10] if iso_datetime_str else 'N/A'
+    
+    app.jinja_env.filters['format_ph_datetime'] = format_ph_datetime
+
     # Flask-Login user loader with error handling for database connection
     @login_manager.user_loader
     def load_user(user_id):

@@ -8,8 +8,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
+  * {
+    box-sizing: border-box;
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
   }
   
@@ -18,92 +27,110 @@
   }
 
   .stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 1.25rem;
+    padding: 2rem;
     display: flex;
     align-items: center;
-    gap: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    gap: 1.5rem;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.1);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.15);
   }
 
   .stat-icon {
     width: 50px;
     height: 50px;
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     color: white;
+    flex-shrink: 0;
   }
 
   .stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
   .stat-icon.average { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
   .stat-icon.best { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
-  .stat-icon.types { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
 
   .stat-content {
     flex: 1;
   }
 
   .stat-label {
-    font-size: 12px;
-    color: #666;
-    font-weight: 500;
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
   }
 
   .stat-number {
     font-size: 28px;
     font-weight: 700;
-    color: #333;
-    margin-top: 5px;
+    color: #111827;
+    margin-top: 6px;
   }
 
   .history-section {
     width: 100%;
     min-height: 100vh;
-    background-color: rgba(249, 250, 251, 0.5);
+    background: linear-gradient(135deg, rgba(249, 250, 251, 0.8) 0%, rgba(243, 244, 246, 0.6) 100%);
   }
 
   .history-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 32px 24px;
+    padding: 24px;
   }
 
   .page-header {
     margin-bottom: 32px;
+    animation: slideDown 0.5s ease-out;
   }
 
   .page-title {
-    font-size: 32px;
-    font-weight: bold;
+    font-size: 28px;
+    font-weight: 800;
     color: #111827;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
+  }
+
+  .page-title i {
+    font-size: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .page-subtitle {
     font-size: 14px;
-    color: #666;
+    color: #6b7280;
+    text-align: center;
   }
 
   .stats-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
     margin-bottom: 32px;
+  }
+
+  .stat-card {
+    width: 100%;
   }
 
   @media (max-width: 1024px) {
@@ -112,89 +139,201 @@
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     .stats-container {
       grid-template-columns: 1fr;
     }
     .stat-card {
-      padding: 15px;
+      padding: 16px;
     }
     .stat-icon {
-      width: 40px;
-      height: 40px;
-      font-size: 18px;
+      width: 45px;
+      height: 45px;
+      font-size: 20px;
     }
     .stat-number {
-      font-size: 22px;
+      font-size: 24px;
+    }
+    .page-title {
+      font-size: 24px;
     }
   }
 
+  /* ==========================================
+     TABLE CARD - GLASSMORPHISM
+     ========================================== */
   .history-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 12px 48px rgba(168, 85, 247, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    border-radius: 1.75rem;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-out 0.1s both;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  min-height: 600px;
   }
 
   .table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1.25rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    background: rgba(168, 85, 247, 0.05);
+    color: #667eea;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-1px);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .pagination-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+  }
+
+  .pagination-info {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0 1rem;
+  }
+
+  .table-row-hidden {
+    display: none !important;
   }
 
   .history-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
   }
 
   .history-table thead {
-    background-color: #f9fafb;
-    border-bottom: 2px solid #e5e7eb;
+    background: rgba(168, 85, 247, 0.08);
+    border-bottom: 2px solid rgba(168, 85, 247, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
-  .history-table thead th {
-    padding: 16px;
+  .history-table th {
+    padding: 1.25rem 1.25rem;
     text-align: left;
-    font-weight: 600;
-    color: #374151;
+    font-weight: 700;
+    color: #a855f7;
+    font-size: 0.9rem;
     text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    transition: all 0.2s ease;
   }
 
   .history-table tbody tr {
-    border-bottom: 1px solid #e5e7eb;
-    transition: background-color 0.2s;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 65px;
   }
 
   .history-table tbody tr:hover {
-    background-color: #f3f4f6;
+    background: rgba(168, 85, 247, 0.08);
+    box-shadow: inset 0 0 12px rgba(168, 85, 247, 0.1);
   }
 
-  .history-table tbody td {
-    padding: 16px;
+  .history-table td {
+    padding: 1rem 1.25rem;
+    color: #374151;
+    font-size: 0.95rem;
     vertical-align: middle;
+    transition: all 0.2s ease;
   }
 
-  .history-table th.th-type,
   .history-table th.th-score,
-  .history-table th.th-match,
   .history-table th.th-actions {
     text-align: center;
   }
 
-  .history-table td.td-type,
   .history-table td.td-score,
-  .history-table td.td-match,
   .history-table td.td-actions {
     text-align: center;
+  }
+
+  .action-group {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(102, 126, 234, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #667eea;
+    font-size: 0.85rem;
+    text-decoration: none;
+    font-weight: 600;
+    gap: 0.5rem;
+  }
+
+  .action-btn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
+  }
+
+  .action-btn i {
+    font-size: 1rem;
   }
 
   .match-type-badge {
     display: inline-block;
     padding: 6px 12px;
-    border-radius: 20px;
+    border-radius: 0.75rem;
     font-size: 12px;
     font-weight: 600;
+    transition: all 0.2s ease;
   }
 
   .match-type-badge.breed {
@@ -209,10 +348,13 @@
 
   .score-badge {
     display: inline-block;
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
     font-weight: 700;
     color: white;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .score-badge.high {
@@ -227,78 +369,46 @@
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   }
 
-  .action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 16px;
-  }
-
-  .action-btn.view {
-    background-color: #dbeafe;
-    color: #1e40af;
-    margin-right: 8px;
-  }
-
-  .action-btn.view:hover {
-    background-color: #bfdbfe;
-    transform: translateY(-2px);
-  }
-
-  .action-btn.download {
-    background-color: #dcfce7;
-    color: #166534;
-  }
-
-  .action-btn.download:hover {
-    background-color: #bbf7d0;
-    transform: translateY(-2px);
-  }
-
-  .strength-text, .consider-text {
-    font-size: 12px;
-    max-width: 200px;
+  .top-match-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #374151;
+    max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .top-match-text {
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
-  }
-
   .no-data-section {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 64px 32px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 1.75rem;
+    box-shadow: 0 12px 48px rgba(168, 85, 247, 0.1);
+    padding: 3.75rem 2rem;
     text-align: center;
+    animation: fadeIn 0.5s ease-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .no-data-icon {
     font-size: 64px;
-    color: #d1d5db;
+    color: #e5e7eb;
     margin-bottom: 16px;
   }
 
   .no-data-title {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 700;
     color: #6b7280;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .no-data-subtitle {
-    color: #666;
+    color: #9ca3af;
     margin-bottom: 24px;
+    font-size: 14px;
   }
 
   .no-data-btn {
@@ -308,21 +418,411 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 10px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s;
+    border: none;
+    cursor: pointer;
   }
 
   .no-data-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  /* Tablet Responsiveness - Apply Mobile Card Layout */
+  @media (max-width: 1024px) {
+    .history-table th {
+      display: none;
+    }
+
+    .history-table tbody tr {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(168, 85, 247, 0.15);
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      padding: 1.5rem;
+      border-radius: 12px;
+      gap: 1.25rem;
+      height: auto;
+    }
+
+    .history-table tbody tr:hover {
+      background: rgba(168, 85, 247, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
+    }
+
+    .history-table tbody td {
+      padding: 0;
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1.5rem;
+      border: none;
+      align-items: center;
+      font-size: 1rem;
+    }
+
+    .history-table tbody td::before {
+      content: attr(data-label);
+      font-weight: 700;
+      color: #a855f7;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .history-table td.td-score,
+    .history-table td.td-actions {
+      text-align: left;
+    }
+
+    .history-table td.td-score::before {
+      content: "Score";
+    }
+
+    .history-table td.td-actions::before {
+      content: "Actions";
+    }
+
+    .history-table td.td-actions {
+      grid-template-columns: 1fr;
+      align-items: flex-start;
+    }
+
+    .action-group {
+      width: 100%;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      justify-content: center;
+    }
+
+    .score-badge {
+      padding: 10px 16px;
+      font-size: 0.95rem;
+    }
+
+    .match-type-badge {
+      padding: 8px 14px;
+      font-size: 0.9rem;
+    }
+
+    .top-match-text {
+      font-size: 1rem;
+      max-width: none;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .history-container {
+      padding: 16px;
+    }
+
+    .page-title {
+      font-size: 22px;
+    }
+
+    .page-header {
+      text-align: center;
+    }
+
+    .no-data-section {
+      padding: 40px 24px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-card {
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+    }
+
+    .stat-number {
+      font-size: 24px;
+    }
+
+    .stats-container {
+      grid-template-columns: 1fr;
+    }
+
+    .history-card {
+      min-height: auto;
+    }
+
+    .table-container {
+      min-height: auto;
+    }
+
+    .history-table tbody td {
+      grid-template-columns: 130px 1fr;
+      gap: 1.25rem;
+      font-size: 0.95rem;
+    }
+
+    .action-btn {
+      padding: 10px 14px;
+      font-size: 0.9rem;
+    }
+
+    .score-badge {
+      padding: 8px 12px;
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .history-container {
+      padding: 12px;
+    }
+
+    .page-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .page-title {
+      font-size: 20px;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .page-title i {
+      font-size: 24px;
+    }
+
+    .page-subtitle {
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .stats-container {
+      gap: 12px;
+      margin-bottom: 20px;
+      grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+      padding: 14px;
+      gap: 12px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+    }
+
+    .stat-number {
+      font-size: 20px;
+      margin-top: 4px;
+    }
+
+    .history-card {
+      border-radius: 10px;
+      margin-bottom: 16px;
+      min-height: auto;
+    }
+
+    .table-container {
+      min-height: auto;
+    }
+
+    .history-table tbody td {
+      padding: 0;
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 1rem;
+      border: none;
+      font-size: 0.85rem;
+      align-items: center;
+    }
+
+    .history-table tbody td::before {
+      content: attr(data-label);
+      font-weight: 700;
+      color: #a855f7;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .history-table td.td-score::before {
+      content: "Score";
+    }
+
+    .history-table td.td-actions::before {
+      content: "Actions";
+    }
+
+    .history-table td.td-actions {
+      grid-template-columns: 1fr;
+      align-items: flex-start;
+    }
+
+    .action-group {
+      width: 100%;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 10px 10px;
+      font-size: 0.8rem;
+      border-radius: 0.5rem;
+      justify-content: center;
+    }
+
+    .action-btn i {
+      font-size: 0.75rem;
+    }
+
+    .score-badge {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    .match-type-badge {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+    }
+
+    .top-match-text {
+      font-size: 0.85rem;
+      max-width: none;
+      white-space: normal;
+      overflow: visible;
+    }
+
+    .no-data-section {
+      padding: 30px 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .no-data-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .no-data-title {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .no-data-subtitle {
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .no-data-btn {
+      padding: 10px 16px;
+      font-size: 12px;
+      display: inline-flex;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .history-container {
+      padding: 8px;
+    }
+
+    .page-title {
+      font-size: 18px;
+      justify-content: center;
+    }
+
+    .history-card {
+      min-height: auto;
+    }
+
+    .table-container {
+      min-height: auto;
+    }
+
+    .history-table tbody td {
+      padding: 0;
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 0.8rem;
+      border: none;
+      font-size: 0.8rem;
+      align-items: center;
+    }
+
+    .history-table td.td-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .action-group {
+      width: 100%;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 10px;
+      font-size: 0.8rem;
+    }
+
+    .stat-card {
+      padding: 12px;
+      border-radius: 10px;
+      gap: 10px;
+    }
+
+    .stat-icon {
+      width: 35px;
+      height: 35px;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .stat-number {
+      font-size: 18px;
+    }
+
+    .score-badge {
+      padding: 7px 10px;
+      font-size: 0.8rem;
+    }
+
+    .match-type-badge {
+      padding: 5px 8px;
+      font-size: 0.75rem;
+    }
   }
 
   .modal-content.view-modal {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(102, 126, 234, 0.15);
+    border-radius: 16px;
   }
 
   .modal-content.view-modal .modal-header {
@@ -333,6 +833,36 @@
   body.modal-open {
     overflow: hidden !important;
   }
+
+  @media (max-width: 640px) {
+    .history-card {
+      border-radius: 12px;
+    }
+
+    .no-data-section {
+      border-radius: 12px;
+    }
+
+    .pagination-container {
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 1rem;
+    }
+
+    .pagination-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 0.8rem;
+    }
+
+    .pagination-info {
+      font-size: 0.8rem;
+      margin: 0.5rem 0.5rem;
+      flex-basis: 100%;
+      text-align: center;
+    }
+  }
+
 </style>
 
 <section class="history-section">
@@ -378,16 +908,7 @@
           <p class="stat-number">{{ (matches|map(attribute='compatibility_score')|max)|round|int }}%</p>
         </div>
       </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon types">
-          <i class="fa-solid fa-tags"></i>
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Match Types</p>
-          <p class="stat-number">{{ matches|selectattr('match_type', 'equalto', 'general')|list|length }}G / {{ matches|selectattr('match_type', 'equalto', 'breed')|list|length }}B</p>
-        </div>
-      </div>
+
     </div>
     {% endif %}
 
@@ -398,12 +919,9 @@
         <table class="history-table">
           <thead>
             <tr>
-              <th class="th-type">Match Type</th>
-              <th>Name</th>
+              <th>Match Type</th>
               <th class="th-score">Score</th>
               <th>Top Match</th>
-              <th>Strength</th>
-              <th>Consider</th>
               <th>Date</th>
               <th class="th-actions">Actions</th>
             </tr>
@@ -411,81 +929,61 @@
           <tbody>
             {% for match in matches %}
             <tr>
-              <td class="td-type">
-                <span class="match-type-badge {% if match.match_type == 'breed' %}breed{% else %}general{% endif %}">
+              <td data-label="Match Type">
+                <span class="top-match-text" title="{% if match.match_type == 'breed' %}Breed Match{% else %}Top 5 Breed Matches{% endif %}">
                   {% if match.match_type == 'breed' %}
-                    <i class="fa-solid fa-paw"></i> Breed
+                    <span class="match-type-badge breed">Breed Match</span>
                   {% else %}
-                    <i class="fa-solid fa-list"></i> General
+                    <span class="match-type-badge general">General</span>
                   {% endif %}
                 </span>
               </td>
-              <td>
-                <span class="top-match-text" title="{% if match.match_type == 'breed' and match.breed %}{{ match.breed.name }}{% else %}Top 5 Breed Matches{% endif %}">
-                  {% if match.match_type == 'breed' and match.breed %}
-                    {{ match.breed.name }}
-                  {% else %}
-                    Top 5 Breed Matches
-                  {% endif %}
-                </span>
-              </td>
-              <td class="td-score">
+              <td class="td-score" data-label="Score">
                 <span class="score-badge {% if match.compatibility_score >= 75 %}high{% elif match.compatibility_score >= 50 %}medium{% else %}low{% endif %}">
                   {{ (match.compatibility_score|round|int) }}%
                 </span>
               </td>
-              <td>
-                {% if match.match_type == 'general' and match.top_matches %}
-                  <span class="top-match-text" title="{{ match.top_matches[0].breed_name }}">
+              <td data-label="Top Match">
+                <span class="top-match-text" title="{% if match.match_type == 'breed' and match.breed %}{{ match.breed.name }}{% elif match.match_type == 'general' and match.top_matches %}{{ match.top_matches[0].breed_name }}{% else %}N/A{% endif %}">
+                  {% if match.match_type == 'breed' and match.breed %}
+                    {{ match.breed.name }}
+                  {% elif match.match_type == 'general' and match.top_matches %}
                     {{ match.top_matches[0].breed_name }}
-                  </span>
-                {% else %}
-                  <span class="top-match-text" style="color: #999;">N/A</span>
-                {% endif %}
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </span>
               </td>
-              <td>
-                {% if match.strength_areas|length > 0 %}
-                  <span class="strength-text" title="{{ match.strength_areas[0] }}">
-                    <i class="fa-solid fa-check" style="color: #16a34a;"></i> {{ match.strength_areas[0][:40] }}
-                  </span>
-                {% else %}
-                  <span class="strength-text" style="color: #999;">-</span>
-                {% endif %}
+              <td class="text-nowrap" data-label="Date">
+                <span class="top-match-text" title="{{ match.created_at|format_ph_datetime }} PHT">
+                  {{ match.created_at|format_ph_datetime }}
+                </span>
               </td>
-              <td>
-                {% if match.mismatches|length > 0 %}
-                  <span class="consider-text" title="{{ match.mismatches[0] }}">
-                    <i class="fa-solid fa-warning" style="color: #d97706;"></i> {{ match.mismatches[0][:40] }}
-                  </span>
-                {% else %}
-                  <span class="consider-text" style="color: #999;">-</span>
-                {% endif %}
-              </td>
-              <td>
-                <span class="top-match-text">{{ match.created_at }}</span>
-              </td>
-              <td class="td-actions">
-                <button class="action-btn view" onclick="showMatchDetails(this)" 
-                  data-match-id="{{ match.id }}"
-                  data-match-type="{{ match.match_type }}"
-                  data-breed-name="{% if match.match_type == 'breed' and match.breed %}{{ match.breed.name }}{% else %}Top 5 Breed Matches{% endif %}"
-                  data-score="{{ match.compatibility_score|round|int }}"
-                  data-created-at="{{ match.created_at }}"
-                  data-strength-areas="{{ match.strength_areas|tojson|escape }}"
-                  data-mismatches="{{ match.mismatches|tojson|escape }}"
-                  data-top-matches="{{ match.top_matches|tojson|escape }}"
-                  title="View Details">
-                  <i class="fa-solid fa-eye"></i>
-                </button>
-                <a href="/matching/results/{{ match.id }}" download class="action-btn download" title="Download Result">
-                  <i class="fa-solid fa-download"></i>
-                </a>
+              <td class="td-actions" data-label="Actions">
+                <div class="action-group">
+                  {% if match.match_type == 'general' and match.top_matches %}
+                    <a href="{{ url_for('matching.view_result', result_id=match.id) }}" 
+                      class="action-btn">
+                      <i class="fa-solid fa-chart-bar"></i> View Results
+                    </a>
+                  {% elif match.match_type == 'breed' and match.breed %}
+                    <a href="{{ url_for('matching.view_result', result_id=match.id) }}" 
+                      class="action-btn">
+                      <i class="fa-solid fa-arrow-right"></i> View Details
+                    </a>
+                  {% else %}
+                    <span style="color: #d1d5db; font-size: 13px;">
+                      <i class="fa-solid fa-minus"></i> No data
+                    </span>
+                  {% endif %}
+                </div>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
+      <div class="pagination-container" id="paginationContainer"></div>
     </div>
 
     {% else %}
@@ -504,178 +1002,195 @@
   </div>
 </section>
 
-<!-- View Match Details Modal -->
-<div class="modal fade" id="viewMatchModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg" style="max-height: 85vh; display: flex; align-items: center;">
-    <div class="modal-content view-modal" style="border-radius: 1rem; box-shadow: 0 12px 48px rgba(102, 126, 234, 0.15); border: 1px solid rgba(102, 126, 234, 0.25); max-height: 85vh; display: flex; flex-direction: column;">
-      
-      <div class="modal-header" style="padding: 1.5rem; flex-shrink: 0;">
-        <h5 class="modal-title" style="color: #667eea; font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem; margin: 0;">
-          <i class="fa-solid fa-chart-pie"></i> <span id="modalMatchTitle">Match Details</span>
-        </h5>
-        <button type="button" class="modal-close" data-dismiss="modal" style="background: transparent; border: none; color: #6b7280; cursor: pointer; font-size: 1.25rem; padding: 0;">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="modal-body" style="padding: 1.5rem; max-height: calc(85vh - 120px); overflow-y: auto; flex: 1;">
-        
-        <!-- Match Info Section -->
-        <div style="background: rgba(102, 126, 234, 0.05); border: 1px solid rgba(102, 126, 234, 0.15); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div>
-              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Match Type</p>
-              <p id="modalMatchType" style="font-size: 1rem; font-weight: 600; color: #333;">-</p>
-            </div>
-            <div>
-              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Compatibility Score</p>
-              <p id="modalMatchScore" style="font-size: 1.5rem; font-weight: 700; color: #667eea;">-</p>
-            </div>
-            <div>
-              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Date Created</p>
-              <p id="modalMatchDate" style="font-size: 0.95rem; color: #333;">-</p>
-            </div>
-            <div>
-              <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;">Breed Name</p>
-              <p id="modalBreedName" style="font-size: 0.95rem; color: #333;">-</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Strength Areas -->
-        <div style="margin-bottom: 1.5rem;">
-          <h6 style="font-weight: 700; color: #333; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fa-solid fa-check" style="color: #16a34a;"></i> Strength Areas
-          </h6>
-          <div id="modalStrengthAreas" style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.15); border-radius: 0.75rem; padding: 1rem; color: #166534;">
-            <p style="font-size: 0.9rem; margin: 0;">No strengths recorded</p>
-          </div>
-        </div>
-
-        <!-- Mismatches/Considerations -->
-        <div style="margin-bottom: 1.5rem;">
-          <h6 style="font-weight: 700; color: #333; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fa-solid fa-triangle-exclamation" style="color: #d97706;"></i> Considerations
-          </h6>
-          <div id="modalMismatches" style="background: rgba(217, 119, 6, 0.05); border: 1px solid rgba(217, 119, 6, 0.15); border-radius: 0.75rem; padding: 1rem; color: #92400e;">
-            <p style="font-size: 0.9rem; margin: 0;">No considerations recorded</p>
-          </div>
-        </div>
-
-        <!-- Top Matches (for general) -->
-        <div id="topMatchesSection" style="display: none; margin-bottom: 1.5rem;">
-          <h6 style="font-weight: 700; color: #333; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fa-solid fa-star" style="color: #f59e0b;"></i> Top Breed Recommendations
-          </h6>
-          <div id="modalTopMatches" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 0.75rem; padding: 1rem;">
-            <p style="font-size: 0.9rem; margin: 0; color: #92400e;">No recommendations available</p>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="modal-footer" style="padding: 1.5rem; background: rgba(102, 126, 234, 0.02); display: flex; gap: 0.75rem; justify-content: flex-end; flex-shrink: 0; border-top: 1px solid rgba(102, 126, 234, 0.15);">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding: 10px 20px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; color: #333; font-weight: 600; cursor: pointer;">
-          Close
-        </button>
-        <a id="viewDetailsLink" href="#" class="btn btn-primary" style="padding: 10px 20px; border-radius: 6px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; text-decoration: none; cursor: pointer;">
-          <i class="fa-solid fa-external-link-alt"></i> View Full Details
-        </a>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block scripts %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function showMatchDetails(button) {
-    const matchId = button.getAttribute('data-match-id');
-    const matchType = button.getAttribute('data-match-type');
-    const breedName = button.getAttribute('data-breed-name');
-    const score = button.getAttribute('data-score');
-    const createdAt = button.getAttribute('data-created-at');
+  // Enhanced table responsiveness with Alpine.js style filtering (optional)
+  document.addEventListener('DOMContentLoaded', function() {
+    // Pagination setup
+    const ITEMS_PER_PAGE = 10;
+    const historyTable = document.querySelector('.history-table tbody');
+    const paginationContainer = document.getElementById('paginationContainer');
     
-    // Parse JSON data
-    let strengthAreas = [];
-    let mismatches = [];
-    let topMatches = [];
-    
-    try {
-      const strengthStr = button.getAttribute('data-strength-areas');
-      strengthAreas = strengthStr ? JSON.parse(strengthStr.replace(/&quot;/g, '"')) : [];
-    } catch (e) {
-      console.error('Error parsing strength areas:', e);
-      strengthAreas = [];
-    }
-    
-    try {
-      const mismatchStr = button.getAttribute('data-mismatches');
-      mismatches = mismatchStr ? JSON.parse(mismatchStr.replace(/&quot;/g, '"')) : [];
-    } catch (e) {
-      console.error('Error parsing mismatches:', e);
-      mismatches = [];
-    }
-    
-    try {
-      const topMatchesStr = button.getAttribute('data-top-matches');
-      topMatches = topMatchesStr ? JSON.parse(topMatchesStr.replace(/&quot;/g, '"')) : [];
-    } catch (e) {
-      console.error('Error parsing top matches:', e);
-      topMatches = [];
+    if (historyTable) {
+      const rows = Array.from(historyTable.querySelectorAll('tr'));
+      const totalPages = Math.ceil(rows.length / ITEMS_PER_PAGE);
+      let currentPage = 1;
+
+      function showPage(page) {
+        rows.forEach((row, index) => {
+          const pageNumber = Math.ceil((index + 1) / ITEMS_PER_PAGE);
+          row.classList.toggle('table-row-hidden', pageNumber !== page);
+        });
+        
+        // Update pagination buttons
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+          if (btn.dataset.page) {
+            btn.classList.toggle('active', parseInt(btn.dataset.page) === page);
+          }
+        });
+      }
+
+      function renderPagination() {
+        paginationContainer.innerHTML = '';
+        
+        if (totalPages <= 1) return;
+
+        // Previous button
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'pagination-btn';
+        prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage--;
+            showPage(currentPage);
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+        paginationContainer.appendChild(prevBtn);
+
+        // Page buttons
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        
+        if (endPage - startPage + 1 < maxVisible) {
+          startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        if (startPage > 1) {
+          const firstBtn = document.createElement('button');
+          firstBtn.className = 'pagination-btn';
+          firstBtn.dataset.page = '1';
+          firstBtn.textContent = '1';
+          firstBtn.addEventListener('click', () => {
+            currentPage = 1;
+            showPage(currentPage);
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+          paginationContainer.appendChild(firstBtn);
+
+          if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-info';
+            ellipsis.textContent = '...';
+            paginationContainer.appendChild(ellipsis);
+          }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          const btn = document.createElement('button');
+          btn.className = 'pagination-btn';
+          btn.dataset.page = i;
+          btn.textContent = i;
+          if (i === currentPage) btn.classList.add('active');
+          btn.addEventListener('click', () => {
+            currentPage = i;
+            showPage(currentPage);
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+          paginationContainer.appendChild(btn);
+        }
+
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-info';
+            ellipsis.textContent = '...';
+            paginationContainer.appendChild(ellipsis);
+          }
+
+          const lastBtn = document.createElement('button');
+          lastBtn.className = 'pagination-btn';
+          lastBtn.dataset.page = totalPages;
+          lastBtn.textContent = totalPages;
+          lastBtn.addEventListener('click', () => {
+            currentPage = totalPages;
+            showPage(currentPage);
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+          paginationContainer.appendChild(lastBtn);
+        }
+
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'pagination-btn';
+        nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', () => {
+          if (currentPage < totalPages) {
+            currentPage++;
+            showPage(currentPage);
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+        paginationContainer.appendChild(nextBtn);
+
+        // Page info
+        const info = document.createElement('span');
+        info.className = 'pagination-info';
+        info.textContent = `Page ${currentPage} of ${totalPages}`;
+        paginationContainer.appendChild(info);
+      }
+
+      showPage(1);
+      renderPagination();
     }
 
-    // Populate modal
-    document.getElementById('modalMatchTitle').textContent = breedName;
-    document.getElementById('modalMatchType').textContent = matchType === 'breed' ? 'Breed Match' : 'General';
-    document.getElementById('modalMatchScore').textContent = score + '%';
-    document.getElementById('modalMatchDate').textContent = createdAt;
-    document.getElementById('modalBreedName').textContent = breedName;
+    // Mobile table card enhancement
+    const historyCards = document.querySelectorAll('.history-card');
+    historyCards.forEach(card => {
+      if (window.innerWidth <= 768) {
+        card.style.boxShadow = '0 8px 24px rgba(168, 85, 247, 0.12)';
+      }
+    });
 
-    // Populate strength areas
-    const strengthDiv = document.getElementById('modalStrengthAreas');
-    if (strengthAreas.length > 0) {
-      strengthDiv.innerHTML = strengthAreas.map(area => 
-        `<div style="padding: 0.5rem 0; font-size: 0.9rem;">• ${area}</div>`
-      ).join('');
-    } else {
-      strengthDiv.innerHTML = '<p style="font-size: 0.9rem; margin: 0;">No strengths recorded</p>';
-    }
+    // Smooth scroll behavior
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href !== '#') {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      });
+    });
 
-    // Populate mismatches
-    const mismatchDiv = document.getElementById('modalMismatches');
-    if (mismatches.length > 0) {
-      mismatchDiv.innerHTML = mismatches.map(mismatch => 
-        `<div style="padding: 0.5rem 0; font-size: 0.9rem;">• ${mismatch}</div>`
-      ).join('');
-    } else {
-      mismatchDiv.innerHTML = '<p style="font-size: 0.9rem; margin: 0;">No considerations recorded</p>';
-    }
+    // Add loading state to buttons
+    document.querySelectorAll('.action-btn, .no-data-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const originalText = this.innerHTML;
+        this.disabled = true;
+        this.style.opacity = '0.7';
+        this.style.pointerEvents = 'none';
+        
+        // Re-enable after navigation (in case it fails)
+        setTimeout(() => {
+          this.disabled = false;
+          this.style.opacity = '1';
+          this.style.pointerEvents = 'auto';
+        }, 2000);
+      });
+    });
 
-    // Populate top matches for general type
-    const topMatchesSection = document.getElementById('topMatchesSection');
-    if (matchType === 'general' && topMatches.length > 0) {
-      topMatchesSection.style.display = 'block';
-      const topMatchesDiv = document.getElementById('modalTopMatches');
-      topMatchesDiv.innerHTML = topMatches.map(match => 
-        `<div style="padding: 0.75rem; background: white; border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 500; color: #333;">${match.breed_name || 'N/A'}</span>
-          <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">${Math.round(match.score || 0)}%</span>
-        </div>`
-      ).join('');
-    } else {
-      topMatchesSection.style.display = 'none';
-    }
-
-    // Set view details link
-    document.getElementById('viewDetailsLink').href = `/matching/results/${matchId}`;
-
-    // Show modal
-    $('#viewMatchModal').modal('show');
-  }
+    // Add fade-in animation on page load
+    window.addEventListener('load', function() {
+      document.querySelectorAll('.stat-card, .history-card, .no-data-section').forEach((el, index) => {
+        el.style.animation = `fadeIn 0.5s ease-out ${index * 0.1}s both`;
+      });
+    });
+  });
 </script>
 {% endblock %}

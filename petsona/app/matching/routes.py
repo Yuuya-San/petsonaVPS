@@ -13,6 +13,7 @@ from app.utils.compatibility_engine import (
 from app.utils.audit import log_event
 from . import bp
 import pytz
+from app.extensions import limiter
 
 # Philippine timezone helper
 PH_TZ = pytz.timezone('Asia/Manila')
@@ -264,6 +265,7 @@ def breed_match(breed_id):
 # MATCH HISTORY PAGE (NEW)
 # --------------------------
 @bp.route("/history", methods=["GET"])
+@limiter.exempt
 @login_required
 def history():
     """Display all match history for current user"""

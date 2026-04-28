@@ -51,12 +51,22 @@
             <p>Pet Database</p>
           </a>
         </li>
+
         <li class="nav-item">
-          <a href="{{ url_for('matching.history') }}" class="nav-link {% if request.endpoint == 'matching.history' %}active{% endif %}">
-            <i class="nav-icon fas fa-history"></i>
+          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint == 'matching.quiz' %}active{% endif %}">
+            <i class="nav-icon fas fa-heartbeat"></i>
+            <p>Match Pet</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('matching.history') }}"
+              class="nav-link {% if request.endpoint in ['matching.history', 'matching.general_results', 'matching.breed_match'] %}active{% endif %}">
+               <i class="nav-icon fas fa-history"></i>
             <p>Match History</p>
           </a>
         </li>
+
         <li class="nav-item">
           <a href="{{ url_for('pets.archived_items') }}" class="nav-link {% if request.endpoint == 'pets.archived_items' %}active{% endif %}">
             <i class="nav-icon fa-solid fa-folder-minus"></i>

@@ -4,8 +4,8 @@
 {% block content %}
 <div class="admin-center-wrapper">
   <div class="admin-card fade-in">
-    <h2 class="title">{{ page_title }}</h2>
     {% set button_text = button_text %}
+    {% set is_edit = True %}
     {% include "admin/_user_form.html" %}
   </div>
 </div>

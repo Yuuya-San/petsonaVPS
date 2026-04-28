@@ -26,15 +26,30 @@
         </li>
 
         <li class="nav-item">
-          <a href="{{ url_for('merchant.species_index') }}" class="nav-link {% if request.endpoint == 'merchant.species_index' %}active{% endif %}">
+          <a href="{{ url_for('merchant.species_index') }}" class="nav-link {% if request.endpoint in ['merchant.species_index', 'merchant.view_species'] %}active{% endif %}">
             <i class="nav-icon fa-solid fa-database"></i>
             <p>Pet Database</p>
           </a>
         </li>
 
+        <li class="nav-item">
+          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint == 'matching.quiz' %}active{% endif %}">
+            <i class="nav-icon fas fa-heartbeat"></i>
+            <p>Match Pet</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('matching.history') }}"
+              class="nav-link {% if request.endpoint in ['matching.history', 'matching.general_results', 'matching.breed_match'] %}active{% endif %}">
+               <i class="nav-icon fas fa-history"></i>
+            <p>Match History</p>
+          </a>
+        </li>
+
         <!-- Store -->
         <li class="nav-item">
-          <a href="{{ url_for('merchant.store') if True else '#' }}" class="nav-link {% if request.endpoint == 'merchant.store' %}active{% endif %}">
+          <a href="{{ url_for('merchant.store') if True else '#' }}" class="nav-link {% if request.endpoint in ['merchant.store', 'merchant.store_edit'] %}active{% endif %}">
             <i class="nav-icon fas fa-store"></i>
             <p>Store</p>
           </a>

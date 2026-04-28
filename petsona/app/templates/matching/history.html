@@ -22,11 +22,11 @@
     to { opacity: 1; transform: translateY(0); }
   }
   
-  .animate-fadeIn {
+  .petsona-mh-animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
 
-  .stat-card {
+  .petsona-mh-stat-card {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -40,12 +40,12 @@
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .stat-card:hover {
+  .petsona-mh-stat-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(168, 85, 247, 0.15);
   }
 
-  .stat-icon {
+  .petsona-mh-stat-icon {
     width: 50px;
     height: 50px;
     border-radius: 12px;
@@ -57,15 +57,15 @@
     flex-shrink: 0;
   }
 
-  .stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-  .stat-icon.average { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
-  .stat-icon.best { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+  .petsona-mh-stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+  .petsona-mh-stat-icon.average { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+  .petsona-mh-stat-icon.best { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
 
-  .stat-content {
+  .petsona-mh-stat-content {
     flex: 1;
   }
 
-  .stat-label {
+  .petsona-mh-stat-label {
     font-size: 11px;
     color: #9ca3af;
     font-weight: 600;
@@ -73,31 +73,31 @@
     letter-spacing: 0.8px;
   }
 
-  .stat-number {
+  .petsona-mh-stat-number {
     font-size: 28px;
     font-weight: 700;
     color: #111827;
     margin-top: 6px;
   }
 
-  .history-section {
+  .petsona-mh-history-section {
     width: 100%;
     min-height: 100vh;
     background: linear-gradient(135deg, rgba(249, 250, 251, 0.8) 0%, rgba(243, 244, 246, 0.6) 100%);
   }
 
-  .history-container {
+  .petsona-mh-history-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 24px;
   }
 
-  .page-header {
+  .petsona-mh-page-header {
     margin-bottom: 32px;
     animation: slideDown 0.5s ease-out;
   }
 
-  .page-title {
+  .petsona-mh-page-title {
     font-size: 28px;
     font-weight: 800;
     color: #111827;
@@ -108,7 +108,7 @@
     gap: 12px;
   }
 
-  .page-title i {
+  .petsona-mh-page-title i {
     font-size: 32px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
@@ -116,45 +116,45 @@
     background-clip: text;
   }
 
-  .page-subtitle {
+  .petsona-mh-page-subtitle {
     font-size: 14px;
     color: #6b7280;
     text-align: center;
   }
 
-  .stats-container {
+  .petsona-mh-stats-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     margin-bottom: 32px;
   }
 
-  .stat-card {
+  .petsona-mh-stat-card {
     width: 100%;
   }
 
   @media (max-width: 1024px) {
-    .stats-container {
+    .petsona-mh-stats-container {
       grid-template-columns: repeat(2, 1fr);
     }
   }
 
   @media (max-width: 640px) {
-    .stats-container {
+    .petsona-mh-stats-container {
       grid-template-columns: 1fr;
     }
-    .stat-card {
+    .petsona-mh-stat-card {
       padding: 16px;
     }
-    .stat-icon {
+    .petsona-mh-stat-icon {
       width: 45px;
       height: 45px;
       font-size: 20px;
     }
-    .stat-number {
+    .petsona-mh-stat-number {
       font-size: 24px;
     }
-    .page-title {
+    .petsona-mh-page-title {
       font-size: 24px;
     }
   }
@@ -162,7 +162,7 @@
   /* ==========================================
      TABLE CARD - GLASSMORPHISM
      ========================================== */
-  .history-card {
+  .petsona-mh-history-card {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -179,12 +179,12 @@
   min-height: 600px;
   }
 
-  .table-container {
+  .petsona-mh-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  .pagination-container {
+  .petsona-mh-pagination-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -193,7 +193,7 @@
     border-top: 1px solid rgba(168, 85, 247, 0.1);
   }
 
-  .pagination-btn {
+  .petsona-mh-pagination-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -209,40 +209,40 @@
     font-weight: 600;
   }
 
-  .pagination-btn:hover:not(:disabled) {
+  .petsona-mh-pagination-btn:hover:not(:disabled) {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-color: #667eea;
     transform: translateY(-1px);
   }
 
-  .pagination-btn:disabled {
+  .petsona-mh-pagination-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .pagination-btn.active {
+  .petsona-mh-pagination-btn.active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-color: #667eea;
   }
 
-  .pagination-info {
+  .petsona-mh-pagination-info {
     font-size: 0.9rem;
     color: #6b7280;
     margin: 0 1rem;
   }
 
-  .table-row-hidden {
+  .petsona-mh-table-row-hidden {
     display: none !important;
   }
 
-  .history-table {
+  .petsona-mh-history-table {
     width: 100%;
     border-collapse: collapse;
   }
 
-  .history-table thead {
+  .petsona-mh-history-table thead {
     background: rgba(168, 85, 247, 0.08);
     border-bottom: 2px solid rgba(168, 85, 247, 0.2);
     position: sticky;
@@ -250,7 +250,7 @@
     z-index: 10;
   }
 
-  .history-table th {
+  .petsona-mh-history-table th {
     padding: 1.25rem 1.25rem;
     text-align: left;
     font-weight: 700;
@@ -261,18 +261,18 @@
     transition: all 0.2s ease;
   }
 
-  .history-table tbody tr {
+  .petsona-mh-history-table tbody tr {
     border-bottom: 1px solid rgba(168, 85, 247, 0.08);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     height: 65px;
   }
 
-  .history-table tbody tr:hover {
+  .petsona-mh-history-table tbody tr:hover {
     background: rgba(168, 85, 247, 0.08);
     box-shadow: inset 0 0 12px rgba(168, 85, 247, 0.1);
   }
 
-  .history-table td {
+  .petsona-mh-history-table td {
     padding: 1rem 1.25rem;
     color: #374151;
     font-size: 0.95rem;
@@ -280,23 +280,23 @@
     transition: all 0.2s ease;
   }
 
-  .history-table th.th-score,
-  .history-table th.th-actions {
+  .petsona-mh-history-table th.petsona-mh-th-score,
+  .petsona-mh-history-table th.petsona-mh-th-actions {
     text-align: center;
   }
 
-  .history-table td.td-score,
-  .history-table td.td-actions {
+  .petsona-mh-history-table td.petsona-mh-td-score,
+  .petsona-mh-history-table td.petsona-mh-td-actions {
     text-align: center;
   }
 
-  .action-group {
+  .petsona-mh-action-group {
     display: flex;
     gap: 0.75rem;
     justify-content: center;
   }
 
-  .action-btn {
+  .petsona-mh-action-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -315,7 +315,7 @@
     gap: 0.5rem;
   }
 
-  .action-btn:hover {
+  .petsona-mh-action-btn:hover {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-color: #667eea;
@@ -323,11 +323,11 @@
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
   }
 
-  .action-btn i {
+  .petsona-mh-action-btn i {
     font-size: 1rem;
   }
 
-  .match-type-badge {
+  .petsona-mh-match-type-badge {
     display: inline-block;
     padding: 6px 12px;
     border-radius: 0.75rem;
@@ -336,17 +336,17 @@
     transition: all 0.2s ease;
   }
 
-  .match-type-badge.breed {
+  .petsona-mh-match-type-badge.breed {
     background-color: #dbeafe;
     color: #1e40af;
   }
 
-  .match-type-badge.general {
+  .petsona-mh-match-type-badge.general {
     background-color: #f3e8ff;
     color: #6b21a8;
   }
 
-  .score-badge {
+  .petsona-mh-score-badge {
     display: inline-block;
     padding: 0.5rem 1rem;
     border-radius: 0.75rem;
@@ -357,19 +357,19 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
-  .score-badge.high {
+  .petsona-mh-score-badge.high {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   }
 
-  .score-badge.medium {
+  .petsona-mh-score-badge.medium {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   }
 
-  .score-badge.low {
+  .petsona-mh-score-badge.low {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   }
 
-  .top-match-text {
+  .petsona-mh-top-match-text {
     font-size: 1rem;
     font-weight: 500;
     color: #374151;
@@ -379,7 +379,7 @@
     white-space: nowrap;
   }
 
-  .no-data-section {
+  .petsona-mh-no-data-section {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -392,26 +392,26 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .no-data-icon {
+  .petsona-mh-no-data-icon {
     font-size: 64px;
     color: #e5e7eb;
     margin-bottom: 16px;
   }
 
-  .no-data-title {
+  .petsona-mh-no-data-title {
     font-size: 20px;
     font-weight: 700;
     color: #6b7280;
     margin-bottom: 12px;
   }
 
-  .no-data-subtitle {
+  .petsona-mh-no-data-subtitle {
     color: #9ca3af;
     margin-bottom: 24px;
     font-size: 14px;
   }
 
-  .no-data-btn {
+  .petsona-mh-no-data-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -426,18 +426,18 @@
     cursor: pointer;
   }
 
-  .no-data-btn:hover {
+  .petsona-mh-no-data-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
   }
 
   /* Tablet Responsiveness - Apply Mobile Card Layout */
   @media (max-width: 1024px) {
-    .history-table th {
+    .petsona-mh-history-table th {
       display: none;
     }
 
-    .history-table tbody tr {
+    .petsona-mh-history-table tbody tr {
       display: flex;
       flex-direction: column;
       border: 1px solid rgba(168, 85, 247, 0.15);
@@ -450,13 +450,13 @@
       height: auto;
     }
 
-    .history-table tbody tr:hover {
+    .petsona-mh-history-table tbody tr:hover {
       background: rgba(168, 85, 247, 0.08);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
     }
 
-    .history-table tbody td {
+    .petsona-mh-history-table tbody td {
       padding: 0;
       display: grid;
       grid-template-columns: 140px 1fr;
@@ -466,7 +466,7 @@
       font-size: 1rem;
     }
 
-    .history-table tbody td::before {
+    .petsona-mh-history-table tbody td::before {
       content: attr(data-label);
       font-weight: 700;
       color: #a855f7;
@@ -476,12 +476,12 @@
       white-space: nowrap;
     }
 
-    .history-table td.td-score,
-    .history-table td.td-actions {
+    .petsona-mh-history-table td.petsona-mh-td-score,
+    .petsona-mh-history-table td.petsona-mh-td-actions {
       text-align: left;
     }
 
-    .history-table td.td-score::before {
+    .petsona-mh-history-table td.petsona-mh-td-score::before {
       content: "Score";
     }
 
@@ -494,30 +494,30 @@
       align-items: flex-start;
     }
 
-    .action-group {
+    .petsona-mh-action-group {
       width: 100%;
       flex-direction: column;
       gap: 0.75rem;
     }
 
-    .action-btn {
+    .petsona-mh-action-btn {
       width: 100%;
       padding: 12px 16px;
       font-size: 0.95rem;
       justify-content: center;
     }
 
-    .score-badge {
+    .petsona-mh-score-badge {
       padding: 10px 16px;
       font-size: 0.95rem;
     }
 
-    .match-type-badge {
+    .petsona-mh-match-type-badge {
       padding: 8px 14px;
       font-size: 0.9rem;
     }
 
-    .top-match-text {
+    .petsona-mh-top-match-text {
       font-size: 1rem;
       max-width: none;
       white-space: normal;
@@ -527,37 +527,37 @@
   }
 
   @media (max-width: 768px) {
-    .history-container {
+    .petsona-mh-history-container {
       padding: 16px;
     }
 
-    .page-title {
+    .petsona-mh-page-title {
       font-size: 22px;
     }
 
-    .page-header {
+    .petsona-mh-page-header {
       text-align: center;
     }
 
-    .no-data-section {
+    .petsona-mh-no-data-section {
       padding: 40px 24px;
       border-radius: 12px;
       text-align: center;
     }
 
-    .stat-card {
+    .petsona-mh-stat-card {
       padding: 16px;
     }
 
-    .stat-label {
+    .petsona-mh-stat-label {
       font-size: 0.8rem;
     }
 
-    .stat-number {
+    .petsona-mh-stat-number {
       font-size: 24px;
     }
 
-    .stats-container {
+    .petsona-mh-stats-container {
       grid-template-columns: 1fr;
     }
 
@@ -569,13 +569,13 @@
       min-height: auto;
     }
 
-    .history-table tbody td {
+    .petsona-mh-history-table tbody td {
       grid-template-columns: 130px 1fr;
       gap: 1.25rem;
       font-size: 0.95rem;
     }
 
-    .action-btn {
+    .petsona-mh-action-btn {
       padding: 10px 14px;
       font-size: 0.9rem;
     }
@@ -587,68 +587,68 @@
   }
 
   @media (max-width: 640px) {
-    .history-container {
+    .petsona-mh-history-container {
       padding: 12px;
     }
 
-    .page-header {
+    .petsona-mh-page-header {
       margin-bottom: 20px;
       text-align: center;
     }
 
-    .page-title {
+    .petsona-mh-page-title {
       font-size: 20px;
       gap: 8px;
       justify-content: center;
     }
 
-    .page-title i {
+    .petsona-mh-page-title i {
       font-size: 24px;
     }
 
-    .page-subtitle {
+    .petsona-mh-page-subtitle {
       font-size: 12px;
       text-align: center;
     }
 
-    .stats-container {
+    .petsona-mh-stats-container {
       gap: 12px;
       margin-bottom: 20px;
       grid-template-columns: 1fr;
     }
 
-    .stat-card {
+    .petsona-mh-stat-card {
       padding: 14px;
       gap: 12px;
     }
 
-    .stat-icon {
+    .petsona-mh-stat-icon {
       width: 40px;
       height: 40px;
       font-size: 18px;
       flex-shrink: 0;
     }
 
-    .stat-label {
+    .petsona-mh-stat-label {
       font-size: 0.75rem;
     }
 
-    .stat-number {
+    .petsona-mh-stat-number {
       font-size: 20px;
       margin-top: 4px;
     }
 
-    .history-card {
+    .petsona-mh-history-card {
       border-radius: 10px;
       margin-bottom: 16px;
       min-height: auto;
     }
 
-    .table-container {
+    .petsona-mh-table-container {
       min-height: auto;
     }
 
-    .history-table tbody td {
+    .petsona-mh-history-table tbody td {
       padding: 0;
       display: grid;
       grid-template-columns: 110px 1fr;
@@ -658,7 +658,7 @@
       align-items: center;
     }
 
-    .history-table tbody td::before {
+    .petsona-mh-history-table tbody td::before {
       content: attr(data-label);
       font-weight: 700;
       color: #a855f7;
@@ -668,26 +668,26 @@
       white-space: nowrap;
     }
 
-    .history-table td.td-score::before {
+    .petsona-mh-history-table td.petsona-mh-td-score::before {
       content: "Score";
     }
 
-    .history-table td.td-actions::before {
+    .petsona-mh-history-table td.petsona-mh-td-actions::before {
       content: "Actions";
     }
 
-    .history-table td.td-actions {
+    .petsona-mh-history-table td.petsona-mh-td-actions {
       grid-template-columns: 1fr;
       align-items: flex-start;
     }
 
-    .action-group {
+    .petsona-mh-action-group {
       width: 100%;
       flex-direction: column;
       gap: 0.6rem;
     }
 
-    .action-btn {
+    .petsona-mh-action-btn {
       width: 100%;
       padding: 10px 10px;
       font-size: 0.8rem;
@@ -695,49 +695,49 @@
       justify-content: center;
     }
 
-    .action-btn i {
+    .petsona-mh-action-btn i {
       font-size: 0.75rem;
     }
 
-    .score-badge {
+    .petsona-mh-score-badge {
       padding: 6px 10px;
       font-size: 0.8rem;
     }
 
-    .match-type-badge {
+    .petsona-mh-match-type-badge {
       padding: 5px 10px;
       font-size: 0.75rem;
     }
 
-    .top-match-text {
+    .petsona-mh-top-match-text {
       font-size: 0.85rem;
       max-width: none;
       white-space: normal;
       overflow: visible;
     }
 
-    .no-data-section {
+    .petsona-mh-no-data-section {
       padding: 30px 20px;
       border-radius: 10px;
       text-align: center;
     }
 
-    .no-data-icon {
+    .petsona-mh-no-data-icon {
       font-size: 48px;
       margin-bottom: 12px;
     }
 
-    .no-data-title {
+    .petsona-mh-no-data-title {
       font-size: 16px;
       margin-bottom: 8px;
     }
 
-    .no-data-subtitle {
+    .petsona-mh-no-data-subtitle {
       font-size: 12px;
       margin-bottom: 16px;
     }
 
-    .no-data-btn {
+    .petsona-mh-no-data-btn {
       padding: 10px 16px;
       font-size: 12px;
       display: inline-flex;
@@ -745,24 +745,24 @@
   }
 
   @media (max-width: 480px) {
-    .history-container {
+    .petsona-mh-history-container {
       padding: 8px;
     }
 
-    .page-title {
+    .petsona-mh-page-title {
       font-size: 18px;
       justify-content: center;
     }
 
-    .history-card {
+    .petsona-mh-history-card {
       min-height: auto;
     }
 
-    .table-container {
+    .petsona-mh-table-container {
       min-height: auto;
     }
 
-    .history-table tbody td {
+    .petsona-mh-history-table tbody td {
       padding: 0;
       display: grid;
       grid-template-columns: 100px 1fr;
@@ -772,52 +772,52 @@
       align-items: center;
     }
 
-    .history-table td.td-actions {
+    .petsona-mh-history-table td.petsona-mh-td-actions {
       grid-template-columns: 1fr;
     }
 
-    .action-group {
+    .petsona-mh-action-group {
       width: 100%;
       flex-direction: column;
       gap: 0.5rem;
     }
 
-    .action-btn {
+    .petsona-mh-action-btn {
       width: 100%;
       justify-content: center;
       padding: 10px;
       font-size: 0.8rem;
     }
 
-    .stat-card {
+    .petsona-mh-stat-card {
       padding: 12px;
       border-radius: 10px;
       gap: 10px;
     }
 
-    .stat-icon {
+    .petsona-mh-stat-icon {
       width: 35px;
       height: 35px;
       font-size: 16px;
       flex-shrink: 0;
     }
 
-    .stat-number {
+    .petsona-mh-stat-number {
       font-size: 18px;
     }
 
-    .score-badge {
+    .petsona-mh-score-badge {
       padding: 7px 10px;
       font-size: 0.8rem;
     }
 
-    .match-type-badge {
+    .petsona-mh-match-type-badge {
       padding: 5px 8px;
       font-size: 0.75rem;
     }
   }
 
-  .modal-content.view-modal {
+  .modal-content.petsona-mh-view-modal {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -825,7 +825,7 @@
     border-radius: 16px;
   }
 
-  .modal-content.view-modal .modal-header {
+  .modal-content.petsona-mh-view-modal .modal-header {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
     border-bottom: 1px solid rgba(102, 126, 234, 0.15);
   }
@@ -835,27 +835,27 @@
   }
 
   @media (max-width: 640px) {
-    .history-card {
+    .petsona-mh-history-card {
       border-radius: 12px;
     }
 
-    .no-data-section {
+    .petsona-mh-no-data-section {
       border-radius: 12px;
     }
 
-    .pagination-container {
+    .petsona-mh-pagination-container {
       flex-wrap: wrap;
       gap: 0.35rem;
       padding: 1rem;
     }
 
-    .pagination-btn {
+    .petsona-mh-pagination-btn {
       width: 32px;
       height: 32px;
       font-size: 0.8rem;
     }
 
-    .pagination-info {
+    .petsona-mh-pagination-info {
       font-size: 0.8rem;
       margin: 0.5rem 0.5rem;
       flex-basis: 100%;
@@ -863,49 +863,51 @@
     }
   }
 
+  
+
 </style>
 
-<section class="history-section">
-  <div class="history-container">
+<section class="petsona-mh-history-section">
+  <div class="petsona-mh-history-container">
     
     <!-- Page Header -->
-    <div class="page-header animate-fadeIn">
-      <h1 class="page-title">
+    <div class="petsona-mh-page-header petsona-mh-animate-fadeIn">
+      <h1 class="petsona-mh-page-title">
         <i class="fa-solid fa-history"></i> Matching History
       </h1>
-      <p class="page-subtitle">View all your past compatibility assessments and track your progress</p>
+      <p class="petsona-mh-page-subtitle">View all your past compatibility assessments and track your progress</p>
     </div>
 
     <!-- Statistics Cards -->
     {% if matches|length > 0 %}
-    <div class="stats-container">
-      <div class="stat-card">
-        <div class="stat-icon total">
+    <div class="petsona-mh-stats-container">
+      <div class="petsona-mh-stat-card">
+        <div class="petsona-mh-stat-icon total">
           <i class="fa-solid fa-chart-simple"></i>
         </div>
-        <div class="stat-content">
-          <p class="stat-label">Total Quizzes</p>
-          <p class="stat-number">{{ matches|length }}</p>
+        <div class="petsona-mh-stat-content">
+          <p class="petsona-mh-stat-label">Total Quizzes</p>
+          <p class="petsona-mh-stat-number">{{ matches|length }}</p>
         </div>
       </div>
       
-      <div class="stat-card">
-        <div class="stat-icon average">
+      <div class="petsona-mh-stat-card">
+        <div class="petsona-mh-stat-icon average">
           <i class="fa-solid fa-square-poll-vertical"></i>
         </div>
-        <div class="stat-content">
-          <p class="stat-label">Average Score</p>
-          <p class="stat-number">{{ (matches|map(attribute='compatibility_score')|sum / matches|length)|round|int }}%</p>
+        <div class="petsona-mh-stat-content">
+          <p class="petsona-mh-stat-label">Average Score</p>
+          <p class="petsona-mh-stat-number">{{ (matches|map(attribute='compatibility_score')|sum / matches|length)|round|int }}%</p>
         </div>
       </div>
       
-      <div class="stat-card">
-        <div class="stat-icon best">
+      <div class="petsona-mh-stat-card">
+        <div class="petsona-mh-stat-icon best">
           <i class="fa-solid fa-trophy"></i>
         </div>
-        <div class="stat-content">
-          <p class="stat-label">Best Match</p>
-          <p class="stat-number">{{ (matches|map(attribute='compatibility_score')|max)|round|int }}%</p>
+        <div class="petsona-mh-stat-content">
+          <p class="petsona-mh-stat-label">Best Match</p>
+          <p class="petsona-mh-stat-number">{{ (matches|map(attribute='compatibility_score')|max)|round|int }}%</p>
         </div>
       </div>
 
@@ -915,36 +917,36 @@
     <!-- Matches Table Card -->
     {% if matches|length > 0 %}
     <div class="history-card">
-      <div class="table-container">
-        <table class="history-table">
+      <div class="petsona-mh-table-container">
+        <table class="petsona-mh-history-table">
           <thead>
             <tr>
               <th>Match Type</th>
-              <th class="th-score">Score</th>
+              <th class="petsona-mh-th-score">Score</th>
               <th>Top Match</th>
               <th>Date</th>
-              <th class="th-actions">Actions</th>
+              <th class="petsona-mh-th-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for match in matches %}
             <tr>
               <td data-label="Match Type">
-                <span class="top-match-text" title="{% if match.match_type == 'breed' %}Breed Match{% else %}Top 5 Breed Matches{% endif %}">
+                <span class="petsona-mh-top-match-text" title="{% if match.match_type == 'breed' %}Breed Match{% else %}Top 5 Breed Matches{% endif %}">
                   {% if match.match_type == 'breed' %}
-                    <span class="match-type-badge breed">Breed Match</span>
+                    <span class="petsona-mh-match-type-badge breed">Breed Match</span>
                   {% else %}
-                    <span class="match-type-badge general">General</span>
+                    <span class="petsona-mh-match-type-badge general">General</span>
                   {% endif %}
                 </span>
               </td>
-              <td class="td-score" data-label="Score">
-                <span class="score-badge {% if match.compatibility_score >= 75 %}high{% elif match.compatibility_score >= 50 %}medium{% else %}low{% endif %}">
+              <td class="petsona-mh-td-score" data-label="Score">
+                <span class="petsona-mh-score-badge {% if match.compatibility_score >= 75 %}high{% elif match.compatibility_score >= 50 %}medium{% else %}low{% endif %}">
                   {{ (match.compatibility_score|round|int) }}%
                 </span>
               </td>
               <td data-label="Top Match">
-                <span class="top-match-text" title="{% if match.match_type == 'breed' and match.breed %}{{ match.breed.name }}{% elif match.match_type == 'general' and match.top_matches %}{{ match.top_matches[0].breed_name }}{% else %}N/A{% endif %}">
+                <span class="petsona-mh-top-match-text" title="{% if match.match_type == 'breed' and match.breed %}{{ match.breed.name }}{% elif match.match_type == 'general' and match.top_matches %}{{ match.top_matches[0].breed_name }}{% else %}N/A{% endif %}">
                   {% if match.match_type == 'breed' and match.breed %}
                     {{ match.breed.name }}
                   {% elif match.match_type == 'general' and match.top_matches %}
@@ -955,20 +957,20 @@
                 </span>
               </td>
               <td class="text-nowrap" data-label="Date">
-                <span class="top-match-text" title="{{ match.created_at|format_ph_datetime }} PHT">
+                <span class="petsona-mh-top-match-text" title="{{ match.created_at|format_ph_datetime }} PHT">
                   {{ match.created_at|format_ph_datetime }}
                 </span>
               </td>
-              <td class="td-actions" data-label="Actions">
-                <div class="action-group">
+              <td class="petsona-mh-td-actions" data-label="Actions">
+                <div class="petsona-mh-action-group">
                   {% if match.match_type == 'general' and match.top_matches %}
                     <a href="{{ url_for('matching.view_result', result_id=match.id) }}" 
-                      class="action-btn">
+                      class="petsona-mh-action-btn">
                       <i class="fa-solid fa-chart-bar"></i> View Results
                     </a>
                   {% elif match.match_type == 'breed' and match.breed %}
                     <a href="{{ url_for('matching.view_result', result_id=match.id) }}" 
-                      class="action-btn">
+                      class="petsona-mh-action-btn">
                       <i class="fa-solid fa-arrow-right"></i> View Details
                     </a>
                   {% else %}
@@ -983,17 +985,17 @@
           </tbody>
         </table>
       </div>
-      <div class="pagination-container" id="paginationContainer"></div>
+      <div class="petsona-mh-pagination-container" id="paginationContainer"></div>
     </div>
 
     {% else %}
-    <div class="no-data-section">
-      <div class="no-data-icon">
+    <div class="petsona-mh-no-data-section">
+      <div class="petsona-mh-no-data-icon">
         <i class="fa-solid fa-inbox"></i>
       </div>
-      <h3 class="no-data-title">No Matches Yet</h3>
-      <p class="no-data-subtitle">Complete a compatibility quiz to start building your match history</p>
-      <a href="{{ url_for('matching.quiz') }}" class="no-data-btn">
+      <h3 class="petsona-mh-no-data-title">No Matches Yet</h3>
+      <p class="petsona-mh-no-data-subtitle">Complete a compatibility quiz to start building your match history</p>
+      <a href="{{ url_for('matching.quiz') }}" class="petsona-mh-no-data-btn">
         <i class="fa-solid fa-play"></i> Start Quiz
       </a>
     </div>
@@ -1012,7 +1014,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     // Pagination setup
     const ITEMS_PER_PAGE = 10;
-    const historyTable = document.querySelector('.history-table tbody');
+    const historyTable = document.querySelector('.petsona-mh-history-table tbody');
     const paginationContainer = document.getElementById('paginationContainer');
     
     if (historyTable) {
@@ -1023,11 +1025,11 @@
       function showPage(page) {
         rows.forEach((row, index) => {
           const pageNumber = Math.ceil((index + 1) / ITEMS_PER_PAGE);
-          row.classList.toggle('table-row-hidden', pageNumber !== page);
+          row.classList.toggle('petsona-mh-table-row-hidden', pageNumber !== page);
         });
         
         // Update pagination buttons
-        document.querySelectorAll('.pagination-btn').forEach(btn => {
+        document.querySelectorAll('.petsona-mh-pagination-btn').forEach(btn => {
           if (btn.dataset.page) {
             btn.classList.toggle('active', parseInt(btn.dataset.page) === page);
           }
@@ -1041,7 +1043,7 @@
 
         // Previous button
         const prevBtn = document.createElement('button');
-        prevBtn.className = 'pagination-btn';
+        prevBtn.className = 'petsona-mh-pagination-btn';
         prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
         prevBtn.disabled = currentPage === 1;
         prevBtn.addEventListener('click', () => {
@@ -1065,7 +1067,7 @@
 
         if (startPage > 1) {
           const firstBtn = document.createElement('button');
-          firstBtn.className = 'pagination-btn';
+          firstBtn.className = 'petsona-mh-pagination-btn';
           firstBtn.dataset.page = '1';
           firstBtn.textContent = '1';
           firstBtn.addEventListener('click', () => {
@@ -1078,7 +1080,7 @@
 
           if (startPage > 2) {
             const ellipsis = document.createElement('span');
-            ellipsis.className = 'pagination-info';
+            ellipsis.className = 'petsona-mh-pagination-info';
             ellipsis.textContent = '...';
             paginationContainer.appendChild(ellipsis);
           }
@@ -1086,7 +1088,7 @@
 
         for (let i = startPage; i <= endPage; i++) {
           const btn = document.createElement('button');
-          btn.className = 'pagination-btn';
+          btn.className = 'petsona-mh-pagination-btn';
           btn.dataset.page = i;
           btn.textContent = i;
           if (i === currentPage) btn.classList.add('active');
@@ -1102,13 +1104,13 @@
         if (endPage < totalPages) {
           if (endPage < totalPages - 1) {
             const ellipsis = document.createElement('span');
-            ellipsis.className = 'pagination-info';
+            ellipsis.className = 'petsona-mh-pagination-info';
             ellipsis.textContent = '...';
             paginationContainer.appendChild(ellipsis);
           }
 
           const lastBtn = document.createElement('button');
-          lastBtn.className = 'pagination-btn';
+          lastBtn.className = 'petsona-mh-pagination-btn';
           lastBtn.dataset.page = totalPages;
           lastBtn.textContent = totalPages;
           lastBtn.addEventListener('click', () => {
@@ -1122,7 +1124,7 @@
 
         // Next button
         const nextBtn = document.createElement('button');
-        nextBtn.className = 'pagination-btn';
+        nextBtn.className = 'petsona-mh-pagination-btn';
         nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
         nextBtn.disabled = currentPage === totalPages;
         nextBtn.addEventListener('click', () => {
@@ -1137,7 +1139,7 @@
 
         // Page info
         const info = document.createElement('span');
-        info.className = 'pagination-info';
+        info.className = 'petsona-mh-pagination-info';
         info.textContent = `Page ${currentPage} of ${totalPages}`;
         paginationContainer.appendChild(info);
       }
@@ -1147,7 +1149,7 @@
     }
 
     // Mobile table card enhancement
-    const historyCards = document.querySelectorAll('.history-card');
+    const historyCards = document.querySelectorAll('.petsona-mh-history-card');
     historyCards.forEach(card => {
       if (window.innerWidth <= 768) {
         card.style.boxShadow = '0 8px 24px rgba(168, 85, 247, 0.12)';
@@ -1169,7 +1171,7 @@
     });
 
     // Add loading state to buttons
-    document.querySelectorAll('.action-btn, .no-data-btn').forEach(button => {
+    document.querySelectorAll('.petsona-mh-action-btn, .petsona-mh-no-data-btn').forEach(button => {
       button.addEventListener('click', function() {
         const originalText = this.innerHTML;
         this.disabled = true;
@@ -1187,7 +1189,7 @@
 
     // Add fade-in animation on page load
     window.addEventListener('load', function() {
-      document.querySelectorAll('.stat-card, .history-card, .no-data-section').forEach((el, index) => {
+      document.querySelectorAll('.petsona-mh-stat-card, .petsona-mh-history-card, .petsona-mh-no-data-section').forEach((el, index) => {
         el.style.animation = `fadeIn 0.5s ease-out ${index * 0.1}s both`;
       });
     });

@@ -775,7 +775,7 @@ body {
             </a>
           {% elif current_user.is_authenticated %}
             {% if current_user.role == "admin" and breed.species_id %}
-              <a href="{{ url_for('pets.species_view', id=breed.species_id) }}"
+              <a href="{{ url_for('pets.view_species', id=breed.species_id) }}"
                 class="flex items-center justify-center gap-2
                         h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
                         rounded-2xl

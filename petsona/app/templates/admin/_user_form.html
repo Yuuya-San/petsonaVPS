@@ -370,14 +370,25 @@
           <button type="submit"
                   class="glass-button-primary inline-flex items-center gap-2 text-sm"
                   :disabled="loading">
-            <template x-if="!loading">
-              <span><i class="fas fa-check"></i> Save</span>
-            </template>
-            <template x-if="loading">
-              <span class="inline-flex items-center gap-2">
-                <span class="spinner"></span> Saving...
-              </span>
-            </template>
+            {% if is_edit %}
+              <template x-if="!loading">
+                <span><i class="fas fa-check"></i> Update User</span>
+              </template>
+              <template x-if="loading">
+                <span class="inline-flex items-center gap-2">
+                  <span class="spinner"></span> Updating...
+                </span>
+              </template>
+            {% else %}
+              <template x-if="!loading">
+                <span><i class="fas fa-check"></i> Create User</span>
+              </template>
+              <template x-if="loading">
+                <span class="inline-flex items-center gap-2">
+                  <span class="spinner"></span> Creating...
+                </span>
+              </template>
+            {% endif %}
           </button>
         </div>
       </div>

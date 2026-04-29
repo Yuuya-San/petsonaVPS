@@ -17,8 +17,7 @@ class Config:
     # DATABASE (FIXED FOR RENDER)
     # =========================
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        "mysql+pymysql://root:12345@localhost/petsona"
+        "DATABASE_URL"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False

@@ -1,3 +1,5 @@
+import os
+
 from app import create_app, db
 from app.models import *
 
@@ -31,6 +33,10 @@ with app.app_context():
     else:
         print(f"Admin account already exists: {ADMIN_EMAIL}")
 
-if __name__ == '__main__':
-    # Dev server — in production, use Gunicorn/uWSGI behind Nginx with python-socketio
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+if __name__ == "__main__":
+    socketio.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", 5000)),  # IMPORTANT for Railway
+        debug=False
+    )

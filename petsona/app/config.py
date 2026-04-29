@@ -17,11 +17,12 @@ def build_database_uri():
     
     # Build from Railway environment variables
     host = os.getenv("MYSQLHOST")
-    port = os.getenv("MYSQLPORT", "3306")
+    port = os.getenv("MYSQLPORT", "21956")  # Default Railway MySQL port
     user = os.getenv("MYSQLUSER")
     password = os.getenv("MYSQLPASSWORD")
     database = os.getenv("MYSQLDATABASE")
-    
+
+    """
     # Ensure all required Railway variables are present
     if not all([host, user, password, database]):
         # Fallback for local development only
@@ -36,6 +37,7 @@ def build_database_uri():
                 "Missing Railway MySQL environment variables in production: "
                 "MYSQLHOST, MYSQLPORT, MYSQLUSER, MYSQLPASSWORD, MYSQLDATABASE"
             )
+    """
     
     # Build the URI with pymysql driver
     uri = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"

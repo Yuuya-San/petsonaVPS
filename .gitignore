@@ -1,0 +1,84 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+petsona.sql
+
+# Logs
+*.log
+logs/
+error.log
+access.log
+
+# Uploads (but keep directory structure)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node modules (if using npm/webpack)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Certificates and keys (NEVER commit!)
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.bak
+*.backup
+
+# IDE specific
+.editorconfig.local
+.pytest.ini

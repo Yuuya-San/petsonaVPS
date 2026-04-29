@@ -19,4 +19,8 @@ requests
 Flask-SocketIO
 authlib
 cryptography
+<<<<<<< HEAD
 gunicorn
+=======
+gunicorn
+>>>>>>> 9a79afc7aa847b983acaee15fc316fe05f142c49

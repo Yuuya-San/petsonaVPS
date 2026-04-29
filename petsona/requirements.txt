@@ -19,3 +19,4 @@ requests
 Flask-SocketIO
 authlib
 cryptography
+gunicorn

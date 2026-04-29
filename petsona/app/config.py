@@ -38,15 +38,15 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
 
-    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "your_email@gmail.com")
-    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "your_app_password")
-    MAIL_DEFAULT_SENDER = os.getenv("MAIL_USERNAME", "your_email@gmail.com")
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "jeysalas05@gmail.com")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "dvwj yvbl kqxu rbya")
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_USERNAME", "jeysalas05@gmail.com")
 
     # =========================
     # GOOGLE OAUTH
     # =========================
-    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+    GOOGLE_CLIENT_ID = os.getenv("465984026247-mcqjo45k0dqcrsn9rmf1o9dp0vaqjbbn.apps.googleusercontent.com")
+    GOOGLE_CLIENT_SECRET = os.getenv("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")
     AUTHLIB_INSECURE_TRANSPORT = True  # allow HTTP in dev
 
     # =========================

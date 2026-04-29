@@ -147,13 +147,13 @@ class ProductionConfig(Config):
         
         # Validate critical production environment variables
         required_vars = [
-            ("MYSQLHOST", "Railway MySQL Host"),
-            ("MYSQLUSER", "Railway MySQL User"),
-            ("MYSQLPASSWORD", "Railway MySQL Password"),
-            ("MYSQLDATABASE", "Railway MySQL Database"),
-            ("MAIL_USERNAME", "Email Username"),
-            ("MAIL_PASSWORD", "Email Password"),
-            ("SECRET_KEY", "Flask Secret Key"),
+            ("MYSQLHOST", "Rswitchback.proxy.rlwy.net"),
+            ("MYSQLUSER", "root"),
+            ("MYSQLPASSWORD", "ErJDnYkJhYRtjKqDYcwQPLKfvbpNlIYP"),
+            ("MYSQLDATABASE", "petsona"),
+            ("MAIL_USERNAME", "jeysalas05@gmail.com"),
+            ("MAIL_PASSWORD", "dvwj yvbl kqxu rbya"),
+            ("SECRET_KEY", "your-super-secret-key-change-this-in-production"),
         ]
         
         missing_vars = []

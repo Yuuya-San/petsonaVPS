@@ -4,9 +4,47 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def build_database_uri():
+    """
+    Build SQLAlchemy database URI from Railway environment variables.
+    Supports both Railway (via MYSQLHOST etc.) and direct DATABASE_URI override.
+    """
+    # Check for explicit DATABASE_URI override first
+    explicit_uri = os.getenv("DATABASE_URI")
+    if explicit_uri:
+        return explicit_uri
+    
+    # Build from Railway environment variables
+    host = os.getenv("MYSQLHOST")
+    port = os.getenv("MYSQLPORT", "3306")
+    user = os.getenv("MYSQLUSER")
+    password = os.getenv("MYSQLPASSWORD")
+    database = os.getenv("MYSQLDATABASE")
+    
+    # Ensure all required Railway variables are present
+    if not all([host, user, password, database]):
+        # Fallback for local development only
+        if os.getenv("FLASK_ENV") != "production":
+            host = host or "localhost"
+            port = port or "3306"
+            user = user or "root"
+            password = password or "12345"
+            database = database or "petsona"
+        else:
+            raise ValueError(
+                "Missing Railway MySQL environment variables in production: "
+                "MYSQLHOST, MYSQLPORT, MYSQLUSER, MYSQLPASSWORD, MYSQLDATABASE"
+            )
+    
+    # Build the URI with pymysql driver
+    uri = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+    return uri
+
+
 class Config:
     """Base config - safe defaults"""
-    SECRET_KEY = os.getenv("SECRET_KEY") or "fallback-very-strong-key"
+    SECRET_KEY = os.getenv("SECRET_KEY", "fallback-dev-secret-key-change-in-production")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
 
@@ -15,33 +53,26 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
 
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-    DB_HOST = "localhost"
-    DB_NAME = "petsona"
-    DB_USERNAME = "root"
-    DB_PASSWORD = "12345"
+    # Database Configuration (built dynamically from Railway env vars)
+    SQLALCHEMY_DATABASE_URI = build_database_uri()
 
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = False
-    
-    # Mail
-    MAIL_SERVER = "smtp.gmail.com"
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False  # TLS is enough
-    MAIL_USERNAME = "jeysalas05@gmail.com"
-    MAIL_PASSWORD = "dvwj yvbl kqxu rbya"  # your Gmail app password
-    MAIL_DEFAULT_SENDER = "jeysalas05@gmail.com"
+    # Mail Configuration (from environment variables)
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True").lower() == "true"
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False").lower() == "true"
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME)
 
     # =========================
-    # GOOGLE OAUTH CONFIG
+    # GOOGLE OAUTH CONFIG (from environment variables)
     # =========================
-    GOOGLE_CLIENT_ID = "465984026247-mcqjo45k0dqcrsn9rmf1o9dp0vaqjbbn.apps.googleusercontent.com"
-    GOOGLE_CLIENT_SECRET = "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"
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
     
     # OAuth Settings
-    AUTHLIB_INSECURE_TRANSPORT = True  # Allow HTTP for development
+    AUTHLIB_INSECURE_TRANSPORT = os.getenv("AUTHLIB_INSECURE_TRANSPORT", "False").lower() == "true"
 
     # File Upload Configuration
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'messages')
@@ -52,39 +83,37 @@ class Config:
         """Initialize extensions with the app"""
         from app.extensions import oauth
         
-        # Register Google OAuth
-        oauth.register(
-            name="google",
-            client_id=app.config.get("GOOGLE_CLIENT_ID"),
-            client_secret=app.config.get("GOOGLE_CLIENT_SECRET"),
-            server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-            client_kwargs={
-                "scope": "openid email profile"
-            }
-        )
+        # Register Google OAuth only if credentials are provided
+        if app.config.get("GOOGLE_CLIENT_ID") and app.config.get("GOOGLE_CLIENT_SECRET"):
+            oauth.register(
+                name="google",
+                client_id=app.config.get("GOOGLE_CLIENT_ID"),
+                client_secret=app.config.get("GOOGLE_CLIENT_SECRET"),
+                server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+                client_kwargs={
+                    "scope": "openid email profile"
+                }
+            )
 
     
 class DevelopmentConfig(Config):
     """Development config - allow insecure cookies on HTTP dev"""
     DEBUG = True
     SESSION_COOKIE_SECURE = False  # safe for localhost dev
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
+    AUTHLIB_INSECURE_TRANSPORT = True  # Allow HTTP for development
 
     # Password reset token expiry (seconds)
     RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))
 
 
 class ProductionConfig(Config):
-    """Production config - secure defaults"""
+    """Production config - secure defaults, Railway-optimized"""
     DEBUG = False
     SESSION_COOKIE_SECURE = True  # must use HTTPS
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
-
-    # Session & cookies
-    SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     REMEMBER_COOKIE_DURATION = timedelta(days=7)
+    AUTHLIB_INSECURE_TRANSPORT = False  # Enforce HTTPS in production
 
     # Password reset token expiry (seconds)
     RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))
@@ -108,3 +137,30 @@ class ProductionConfig(Config):
 
     # Optional frontend base used for reset links (if you want frontend separate)
     FRONTEND_URL = os.getenv("FRONTEND_URL", None)
+
+    @staticmethod
+    def init_app(app):
+        """Initialize and validate production config"""
+        Config.init_app(app)
+        
+        # Validate critical production environment variables
+        required_vars = [
+            ("MYSQLHOST", "Railway MySQL Host"),
+            ("MYSQLUSER", "Railway MySQL User"),
+            ("MYSQLPASSWORD", "Railway MySQL Password"),
+            ("MYSQLDATABASE", "Railway MySQL Database"),
+            ("MAIL_USERNAME", "Email Username"),
+            ("MAIL_PASSWORD", "Email Password"),
+            ("SECRET_KEY", "Flask Secret Key"),
+        ]
+        
+        missing_vars = []
+        for var, description in required_vars:
+            if not os.getenv(var):
+                missing_vars.append(f"{var} ({description})")
+        
+        if missing_vars:
+            raise ValueError(
+                f"Missing required production environment variables:\n" +
+                "\n".join(f"  - {var}" for var in missing_vars)
+            )

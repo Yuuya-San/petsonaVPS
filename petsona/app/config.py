@@ -16,12 +16,14 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
 
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-    DB_HOST = "localhost"
-    DB_NAME = "petsona"
+    DB_HOST = "switchyard.proxy.rlwy.net"
+    DB_NAME = "railway"
     DB_USERNAME = "root"
-    DB_PASSWORD = "12345"
+    DB_PASSWORD = "XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv"
+    DB_PORT = 31309
 
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    #SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/petsona"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     

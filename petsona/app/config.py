@@ -23,7 +23,7 @@ class Config:
     DB_PORT = 31309
 
     #SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/petsona"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     

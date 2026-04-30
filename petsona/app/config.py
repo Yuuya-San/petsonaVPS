@@ -70,7 +70,9 @@ class DevelopmentConfig(Config):
     """Development config - allow insecure cookies on HTTP dev"""
     DEBUG = True
     SESSION_COOKIE_SECURE = False  # safe for localhost dev
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
+    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway")
+
 
     # Password reset token expiry (seconds)
     RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))
@@ -80,7 +82,7 @@ class ProductionConfig(Config):
     """Production config - secure defaults"""
     DEBUG = False
     SESSION_COOKIE_SECURE = True  # must use HTTPS
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway")
 
     # Session & cookies
     SESSION_COOKIE_SECURE = True

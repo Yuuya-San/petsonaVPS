@@ -39,8 +39,8 @@ class Config:
     # =========================
     # GOOGLE OAUTH CONFIG
     # =========================
-    GOOGLE_CLIENT_ID = "465984026247-mcqjo45k0dqcrsn9rmf1o9dp0vaqjbbn.apps.googleusercontent.com"
-    GOOGLE_CLIENT_SECRET = "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"
+    GOOGLE_CLIENT_ID = "246292318836-fh4abergpjnerh6nj55plpr0lusrqu0q.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET = "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"
     
     # OAuth Settings
     AUTHLIB_INSECURE_TRANSPORT = True  # Allow HTTP for development

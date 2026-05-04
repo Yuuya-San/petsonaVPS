@@ -199,14 +199,17 @@
                   <p class="text-gray-600 text-xs font-semibold uppercase mb-1 flex items-center gap-2">
                     <i class="fas fa-star text-purple-600"></i> Rating
                   </p>
-                  <div class="flex items-center gap-1">
-                    {% if store_rating > 0 %}
-                      <span class="text-gray-900 font-semibold text-sm">{{ store_rating }}</span>
-                      <span class="text-xs text-gray-500">({{ total_reviews }} review{{ 's' if total_reviews != 1 else '' }})</span>
-                    {% else %}
-                      <span class="text-gray-500 text-sm italic">No ratings yet</span>
-                    {% endif %}
-                  </div>
+                  {% if store_rating > 0 %}
+                    <div class="flex flex-col gap-2">
+                      <div class="flex items-center gap-2">
+                        <div class="text-yellow-500 text-sm tracking-wide">{{ merchant.get_rating_stars_html() | safe }}</div>
+                        <span class="text-gray-900 font-semibold text-sm">{{ store_rating }}</span>
+                      </div>
+                      <span class="text-xs text-gray-500">{{ total_reviews }} review{{ 's' if total_reviews != 1 else '' }}</span>
+                    </div>
+                  {% else %}
+                    <span class="text-gray-500 text-sm italic">No ratings yet</span>
+                  {% endif %}
                 </div>
               </div>
 

@@ -1,203 +1,590 @@
 {% extends "admin/base.html" %}
+
 {% block content %}
+<style>
+  /* --- Copied from users.html for design and responsiveness --- */
+  .users-section {
+    background: linear-gradient(135deg, #f8f7ff 0%, #fafbfc 100%);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .users-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+  }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .header-left h1.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+  .header-left .page-subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0.25rem 0 0 0;
+  }
+  .users-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 12px 48px rgba(168, 85, 247, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .table-container {
+    overflow-x: auto;
+  }
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .users-table thead {
+    background: rgba(168, 85, 247, 0.08);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+  .users-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #a855f7;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .users-table tbody tr {
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    transition: background 0.3s ease;
+  }
+  .users-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+  }
+  .users-table td {
+    padding: 1rem;
+    color: #374151;
+    font-size: 0.9rem;
+  }
+  .role-badge,
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .role-badge.admin {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+  .role-badge.merchant {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+  .role-badge.user {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+  }
+  .status-badge.species {
+    background: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+  .status-badge.breed {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  .status-badge.beginner {
+    background: rgba(34, 197, 94, 0.15);
+    color: #166534;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  .status-badge.intermediate {
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+  .status-badge.advanced {
+    background: rgba(220, 38, 38, 0.15);
+    color: #b91c1c;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+  }
+  .btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .btn-cancel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    color: #4b5563;
+  }
+  .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(168, 85, 247, 0.3);
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  }
+  .btn-success:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
+  }
+  .btn-success:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 
-<div class="w-full min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-12 space-y-10 relative">
+  /* Search Filter Card - White Theme with Glassmorphism */
+  .search-filter-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow:
+      0 12px 48px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    transition: all 0.3s ease;
+  }
 
-  <!-- FLOATING BACK BUTTON -->
-  <a href="{{ url_for('pets.species_index') }}"
-     class="fixed bottom-6 right-6 z-50 flex items-center gap-2
-            bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-full shadow-lg
-            text-sm sm:text-base font-medium transition">
-    <i class="fa-solid fa-arrow-left"></i>
-    Back to Active Species
-  </a>
+  .search-filter-card:hover {
+    box-shadow:
+      0 16px 56px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 0 1px rgba(168, 85, 247, 0.15);
+  }
 
-  <!-- PAGE HEADER -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">Archived Species & Breeds</h1>
+  .search-filter-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: flex-end;
+  }
+
+  .search-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-label i {
+    font-size: 1rem;
+    color: #a855f7;
+    filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.875rem 2.75rem 0.875rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1f2937;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(168, 85, 247, 0.08);
+  }
+
+  .search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+  }
+
+  .search-input:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 6px 16px rgba(168, 85, 247, 0.12);
+  }
+
+  .search-input:focus {
+    outline: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.98) 100%);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(168, 85, 247, 0.15);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem !important;
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+
+  .empty-content {
+    color: #a855f7;
+  }
+  .empty-content i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  @media (max-width: 768px) {
+    .search-filter-card {
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-filter-content {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .search-box-wrapper {
+      gap: 0.65rem;
+    }
+
+    .search-label {
+      font-size: 0.8125rem;
+      color: #a855f7;
+    }
+
+    .search-input {
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      font-size: 0.9375rem;
+    }
+
+    .search-input::placeholder {
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .header-left h1.page-title {
+      font-size: 1.5rem;
+    }
+    .users-table {
+      font-size: 0.8rem;
+    }
+    .users-table th,
+    .users-table td {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+</style>
+
+<section class="users-section">
+  <div class="users-container" x-data="archiveManager()" x-init="initItems()" x-cloak>
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Archived Species & Breeds</h1>
+        <p class="page-subtitle">Browse and restore archived species and breeds</p>
+      </div>
+      <a href="{{ url_for('pets.species_index') }}" class="btn btn-success">
+        <i class="fas fa-arrow-left"></i>
+        Back to Active Species
+      </a>
+    </div>
+
+    <div class="search-filter-card">
+      <div class="search-filter-content">
+        <div class="search-box-wrapper">
+          <label class="search-label">
+            <i class="fas fa-search"></i>
+            Search Archived Items
+          </label>
+          <input type="text"
+                 x-model="searchTerm"
+                 @input="filterItems()"
+                 class="search-input"
+                 placeholder="Search by species, breed, description, or care level...">
+        </div>
+      </div>
+    </div>
+
+    <div class="users-card">
+      <div class="table-container">
+        <table class="users-table items-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Species</th>
+              <th>Deleted At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if archived_species|length + archived_breeds|length > 0 %}
+              {% for species in archived_species %}
+              <tr class="item-row"
+                  data-name="{{ species.name }}"
+                  data-type="species"
+                  data-details="{{ species.description or '' }}"
+                  data-species="Species">
+                <td data-label="Name">
+                  <div class="user-info" style="display:flex; align-items:center; gap:0.75rem;">
+                    <span>{{ species.name }}</span>
+                  </div>
+                </td>
+                <td data-label="Type">
+                  <span class="status-badge species">Species</span>
+                </td>
+                <td data-label="Species">—</td>
+                <td data-label="Deleted At">
+                  {% if species.deleted_at %}
+                    {{ species.deleted_at|format_ph_datetime }}
+                  {% else %}-{% endif %}
+                </td>
+                <td data-label="Actions">
+                  <div class="action-group">
+                    <button type="button"
+                            class="action-btn btn-success"
+                            title="Restore"
+                            data-toggle="modal"
+                            data-target="#restoreItemModal"
+                            data-item-id="{{ species.id }}"
+                            data-item-name="{{ species.name }}"
+                            data-item-type="Species"
+                            data-item-info="{{ species.description or 'No description available.' }}"
+                            data-item-deleted="{{ species.deleted_at|format_ph_datetime if species.deleted_at else '-' }}"
+                            data-item-action-url="{{ url_for('pets.restore_species', id=species.id) }}">
+                      <i class="fas fa-undo"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+
+              {% for breed in archived_breeds %}
+              <tr class="item-row"
+                  data-name="{{ breed.name }}"
+                  data-type="breed"
+                  data-details="{{ breed.summary or '' }}"
+                  data-species="{{ breed.species.name if breed.species else '—' }}"
+                  data-care-level="{{ breed.care_level or '' }}">
+                <td data-label="Name">
+                  {{ breed.name or '—' }}
+                </td>
+                <td data-label="Type">
+                  <span class="status-badge species">Breed</span>
+                </td>
+                <td data-label="Species">
+                  {{ breed.species.name if breed.species else '—' }}
+                </td>
+                <td data-label="Deleted At">
+                  {% if breed.deleted_at %}
+                    {{ breed.deleted_at|format_ph_datetime }}
+                  {% else %}-{% endif %}
+                </td>
+                <td data-label="Actions">
+                  <div class="action-group">
+                    <button type="button"
+                            class="action-btn btn-success"
+                            title="Restore"
+                            data-toggle="modal"
+                            data-target="#restoreItemModal"
+                            data-item-id="{{ breed.id }}"
+                            data-item-name="{{ breed.name }}"
+                            data-item-type="Breed"
+                            data-item-info="{{ breed.summary or 'No summary available.' }}"
+                            data-item-deleted="{{ breed.deleted_at|format_ph_datetime if breed.deleted_at else '-' }}"
+                            data-item-action-url="{{ url_for('pets.restore_breed', id=breed.id) }}">
+                      <i class="fas fa-undo"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+            <tr class="empty-state">
+              <td colspan="5">
+                <div class="empty-content">
+                  <i class="fas fa-leaf"></i>
+                  <p>No archived species or breeds found.</p>
+                </div>
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+</section>
 
-  <!-- ARCHIVED SPECIES -->
-  <section>
-    <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">Archived Species</h2>
-
-    {% if archived_species %}
-    <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
-      {% for species in archived_species %}
-      <div x-data="{ restoreConfirm: false }"
-           class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition flex flex-col overflow-hidden">
-
-        <!-- IMAGE -->
-        <img src="{{ url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') }}"
-             alt="{{ species.name }}"
-             class="h-52 w-full object-cover rounded-t-3xl">
-
-        <!-- CONTENT -->
-        <div class="p-5 flex flex-col flex-1">
-
-          <!-- Title + Icon -->
-          <div class="flex items-center gap-3 mb-2">
-            <span class="bg-lavender/30 rounded-full p-3 shrink-0">
-              <i class="{{ species.icon }} text-indigo-600 text-lg"></i>
-            </span>
-            <h3 class="font-semibold text-lg text-gray-900">{{ species.name }}</h3>
-          </div>
-
-          <!-- Meta badges -->
-          <div class="flex gap-2 flex-wrap text-sm mb-4">
-            <span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full">
-              {{ species.active_breeds_count or 0 }} Breeds
-            </span>
-          </div>
-
-          <!-- RESTORE BUTTON -->
-          <button @click="restoreConfirm = true"
-                  class="mt-auto bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-arrow-rotate-left"></i> Restore
-          </button>
-
-        </div>
-
-        <!-- RESTORE MODAL -->
-        <div x-show="restoreConfirm" x-transition
-             class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div class="bg-white rounded-3xl shadow-xl w-full max-w-md">
-
-            <!-- HEADER -->
-            <div class="px-6 py-4 border-b flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
-              <h3 class="font-semibold text-lg">Confirm Restore</h3>
-              <button @click="restoreConfirm=false" class="ml-auto text-gray-500 text-xl font-bold">&times;</button>
-            </div>
-
-            <!-- BODY -->
-            <div class="px-6 py-4 text-sm text-gray-600 max-h-64 overflow-y-auto space-y-3">
-              <p>You are about to restore this species:</p>
-              <div class="bg-gray-50 rounded-2xl p-4 space-y-1">
-                <div><strong>Name:</strong> {{ species.name }}</div>
-                <div><strong>Description:</strong> {{ species.description }}</div>
-              </div>
-              <div class="bg-blue-50 text-blue-800 rounded-xl p-3 text-xs flex items-center gap-1">
-                <i class="fas fa-info-circle"></i>
-                This species will be active again.
-              </div>
-            </div>
-
-            <!-- FOOTER -->
-            <div class="px-6 py-4 flex justify-end gap-3 border-t">
-              <button @click="restoreConfirm=false"
-                      class="px-4 py-2 rounded-xl border text-sm">Cancel</button>
-              <form method="POST" action="{{ url_for('pets.restore_species', id=species.id) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm">Restore</button>
-              </form>
-            </div>
-
-          </div>
-        </div>
-
+<!-- RESTORE ITEM MODAL -->
+<div class="modal fade" id="restoreItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content delete-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-undo me-2"></i>
+          Restore Item
+        </h5>
+        <button type="button" class="modal-close" data-dismiss="modal">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      {% endfor %}
+      <div class="modal-body">
+        <p class="modal-description">
+          You are about to restore this item:
+        </p>
+        <div class="user-preview">
+          <div class="preview-item">
+            <span class="preview-label">ID</span>
+            <span id="restoreItemId" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Name</span>
+            <span id="restoreItemName" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Type</span>
+            <span id="restoreItemType" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Deleted At</span>
+            <span id="restoreItemDeleted" class="preview-value"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Details</span>
+            <span id="restoreItemDetails" class="preview-value"></span>
+          </div>
+        </div>
+        <div class="alert-warning">
+          <i class="fas fa-info-circle me-1"></i>
+          <span>The item will become active again.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <form id="restoreItemForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success"><i class="fas fa-check me-1"></i> Restore</button>
+        </form>
+      </div>
     </div>
-    {% else %}
-      <div class="bg-gray-50 rounded-2xl p-10 text-center text-gray-600">
-        No archived species found.
-      </div>
-    {% endif %}
-  </section>
-
-  <!-- ARCHIVED BREEDS -->
-  <section class="mt-12">
-    <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">Archived Breeds</h2>
-
-    {% if archived_breeds %}
-    <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
-
-      {% for breed in archived_breeds %}
-      <div x-data="{ restoreConfirm: false }"
-           class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition flex flex-col overflow-hidden">
-
-        <!-- IMAGE -->
-        <img src="{{ url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') }}"
-             alt="{{ breed.name }}"
-             class="h-52 w-full object-cover rounded-t-3xl">
-
-        <!-- CONTENT -->
-        <div class="p-5 flex flex-col flex-1">
-
-          <div class="flex flex-wrap gap-2 text-sm mb-4">
-            <!-- Breed Name (always black) -->
-            <span class="px-3 py-1.5 rounded-full bg-gray-100 text-gray-900 font-medium">
-              {{ breed.name or '—' }}
-            </span>
-
-            <!-- Care Level (colored based on value) -->
-            <span class="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-800"
-                  :class="{
-                    'bg-green-100/70': '{{ breed.care_level }}' == 'Beginner',
-                    'bg-yellow-200/70': '{{ breed.care_level }}' == 'Intermediate',
-                    'bg-red-200/70': '{{ breed.care_level }}' == 'Advanced'
-                  }">
-              {{ breed.care_level or '—' }}
-            </span>
-          </div>
-
-          <!-- RESTORE BUTTON -->
-          <button @click="restoreConfirm = true"
-                  class="mt-auto bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-arrow-rotate-left"></i> Restore
-          </button>
-
-        </div>
-
-        <!-- RESTORE MODAL -->
-        <div x-show="restoreConfirm" x-transition
-             class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div class="bg-white rounded-3xl shadow-xl w-full max-w-md">
-
-            <!-- HEADER -->
-            <div class="px-6 py-4 border-b flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
-              <h3 class="font-semibold text-lg">Confirm Restore</h3>
-              <button @click="restoreConfirm=false" class="ml-auto text-gray-500 text-xl font-bold">&times;</button>
-            </div>
-
-            <!-- BODY -->
-            <div class="px-6 py-4 text-sm text-gray-600 max-h-64 overflow-y-auto space-y-3">
-              <p>You are about to restore this breed:</p>
-              <div class="bg-gray-50 rounded-2xl p-4 space-y-1">
-                <div><strong>Name:</strong> {{ breed.name }}</div>
-                <div><strong>Summary:</strong> {{ breed.summary }}</div>
-              </div>
-              <div class="bg-blue-50 text-blue-800 rounded-xl p-3 text-xs flex items-center gap-1">
-                <i class="fas fa-info-circle"></i>
-                This breed will be active again.
-              </div>
-            </div>
-
-            <!-- FOOTER -->
-            <div class="px-6 py-4 flex justify-end gap-3 border-t">
-              <button @click="restoreConfirm=false"
-                      class="px-4 py-2 rounded-xl border text-sm">Cancel</button>
-              <form method="POST" action="{{ url_for('pets.restore_breed', id=breed.id) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm">Restore</button>
-              </form>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-      <div class="bg-gray-50 rounded-2xl p-10 text-center text-gray-600">
-        No archived breeds found.
-      </div>
-    {% endif %}
-  </section>
-
+  </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
+<script>
+  function archiveManager() {
+    return {
+      searchTerm: '',
+
+      initItems() {
+        console.log('Archived species manager initialized');
+      },
+
+      filterItems() {
+        const searchLower = this.searchTerm.toLowerCase();
+        const tables = document.querySelectorAll('.items-table');
+
+        tables.forEach(table => {
+          let visibleCount = 0;
+          table.querySelectorAll('tbody tr.item-row').forEach(row => {
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const type = (row.getAttribute('data-type') || '').toLowerCase();
+            const details = (row.getAttribute('data-details') || '').toLowerCase();
+            const species = (row.getAttribute('data-species') || '').toLowerCase();
+            const careLevel = (row.getAttribute('data-care-level') || '').toLowerCase();
+
+            const matchesSearch = !this.searchTerm ||
+              name.includes(searchLower) ||
+              type.includes(searchLower) ||
+              details.includes(searchLower) ||
+              species.includes(searchLower) ||
+              careLevel.includes(searchLower);
+
+            if (matchesSearch) {
+              row.style.display = '';
+              visibleCount++;
+            } else {
+              row.style.display = 'none';
+            }
+          });
+
+          const emptyRow = table.querySelector('tbody tr.empty-state');
+          if (emptyRow) {
+            emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+          }
+        });
+      }
+    };
+  }
+</script>
+
+<script>
+  $('#restoreItemModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    const id = button.data('item-id');
+    const name = button.data('item-name');
+    const type = button.data('item-type');
+    const deleted = button.data('item-deleted');
+    const details = button.data('item-info');
+    const actionUrl = button.data('item-action-url');
+
+    $('#restoreItemId').text('ITEM-' + id);
+    $('#restoreItemName').text(name);
+    $('#restoreItemType').text(type);
+    $('#restoreItemDeleted').text(deleted);
+    $('#restoreItemDetails').text(details);
+    $('#restoreItemForm').attr('action', actionUrl);
+  });
+</script>
 {% endblock %}

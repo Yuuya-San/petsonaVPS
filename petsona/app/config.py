@@ -22,8 +22,8 @@ class Config:
     DB_PASSWORD = "XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv"
     DB_PORT = 31309
 
-    #SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway"
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    #SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     
@@ -70,8 +70,8 @@ class DevelopmentConfig(Config):
     """Development config - allow insecure cookies on HTTP dev"""
     DEBUG = True
     SESSION_COOKIE_SECURE = False  # safe for localhost dev
-    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:12345@localhost/petsona")
+    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway")
 
 
     # Password reset token expiry (seconds)

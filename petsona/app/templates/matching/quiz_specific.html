@@ -175,7 +175,7 @@
       </div>
 
       <!-- Navigation Buttons -->
-      <div x-show="!quizComplete" class="flex w-full gap-3 sm:gap-4">
+      <div x-show="!quizComplete" class="flex w-full gap-3 sm:gap-4 justify-end">
 
         <!-- Back Button -->
         <button
@@ -191,11 +191,10 @@
           <span class="hidden sm:inline text-sm">Back</span>
         </button>
 
-
         <!-- Next / Submit Button -->
         <button
           @click="currentIndex === (quizQuestions.length - 1) ? submitQuiz() : nextQuestion()"
-          :disabled="!answers[quizQuestions[currentIndex]?.name] || isLoading"
+          :disabled="!isQuestionAnswered(currentIndex) || isLoading"
           class="flex-1 h-12 sm:flex-none sm:h-auto sm:px-6 sm:py-3
                 flex items-center justify-center gap-2
                 font-semibold rounded-xl transition
@@ -204,7 +203,6 @@
             ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
             : 'bg-indigo-800 hover:bg-indigo-900 text-white'"
         >
-
           <!-- Mobile (icons only) -->
           <template x-if="currentIndex < (quizQuestions.length - 1)">
             <i class="fa-solid fa-chevron-right text-lg sm:hidden"></i>
@@ -221,10 +219,10 @@
           <!-- Desktop -->
           <span class="hidden sm:inline text-sm" x-show="currentIndex < (quizQuestions.length - 1)">Next</span>
           <span class="hidden sm:inline text-sm" x-show="currentIndex === (quizQuestions.length - 1) && !isLoading">
-            <i class="fa-solid fa-check mr-2"></i>Get Results
+            See My Matches
           </span>
           <span class="hidden sm:inline text-sm" x-show="currentIndex === (quizQuestions.length - 1) && isLoading">
-            <i class="fa-solid fa-spinner animate-spin mr-2"></i>Analyzing...
+            <i class="fa-solid fa-spinner animate-spin mr-2"></i>Finding...
           </span>
 
         </button>
@@ -328,6 +326,17 @@
         }
         
         this.updateProgress();
+      },
+
+      isQuestionAnswered(index) {
+        const question = this.quizQuestions[index];
+        if (!question) return false;
+        const answer = this.answers[question.name];
+        if (question.isMultiSelect) {
+          return Array.isArray(answer) && answer.length > 0;
+        } else {
+          return answer !== null && answer !== '';
+        }
       },
 
       updateProgress() {

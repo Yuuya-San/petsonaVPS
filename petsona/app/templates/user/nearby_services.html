@@ -461,7 +461,16 @@
               </div>
               <div class="bg-gradient-to-br from-amber-50 to-white rounded-2xl p-2 lg:p-2.5 text-center border border-amber-200">
                 <i class="fas fa-star text-amber-600 text-xs mb-0.5 block"></i>
-                <p class="font-bold text-amber-700 text-xs" x-text="merchant.rating.toFixed(1) + '★'"></p>
+                <template x-if="merchant.reviews > 0">
+                  <div class="space-y-1">
+                    <div class="text-amber-700 text-xs font-bold">
+                      <span x-text="merchant.rating.toFixed(1)"></span>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="merchant.reviews === 0">
+                  <p class="text-gray-500 text-xs italic">No ratings yet</p>
+                </template>
               </div>
             </div>
 

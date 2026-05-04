@@ -2541,10 +2541,14 @@
                     <i class="fas fa-exclamation-circle"></i>
                   </button>
                   {% endif %}
-                  {% if booking.status == 'completed' %}
+                  {% if booking.status == 'completed' and not booking.review %}
                   <button class="action-btn review" title="Write a Review"
                           data-booking-id="{{ booking.id }}">
                     <i class="fas fa-star"></i>
+                  </button>
+                  {% elif booking.status == 'completed' and booking.review %}
+                  <button class="action-btn view" title="Review Submitted" disabled style="cursor: default; opacity: 0.65;">
+                    <i class="fas fa-check"></i>
                   </button>
                   {% endif %}
                 </div>
@@ -2967,11 +2971,199 @@
   </div>
 </div>
 
+<!-- Review Modal (Shopee-Inspired) -->
+<div id="reviewModal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fas fa-star"></i> Share Your Experience
+      </h2>
+      <button type="button" class="modal-close" onclick="closeReviewModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="reviewForm" class="modal-body">
+      <input type="hidden" id="reviewBookingId" value="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      <!-- Overall Rating Section -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="margin-bottom: 1rem; display: block;">Overall Experience Rating <span style="color: #ef4444;">*</span></label>
+        <div class="star-rating-display" style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem;">
+          <div class="star-inputs" style="display: flex; gap: 0.75rem; font-size: 2rem;">
+            <span class="star-btn" data-rating="1" onclick="setRating(1)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="2" onclick="setRating(2)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="3" onclick="setRating(3)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="4" onclick="setRating(4)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="5" onclick="setRating(5)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+          </div>
+          <span id="ratingText" style="color: var(--primary); font-weight: 600;">Click to rate</span>
+        </div>
+        <input type="hidden" id="overallRating" name="overall_rating" value="0">
+      </div>
+
+      <!-- Aspect Ratings (Row) -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="margin-bottom: 1rem; display: block;">Rate These Aspects</label>
+        <div class="aspect-ratings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <!-- Service Quality -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Service Quality</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="service_quality" data-value="1" onclick="setAspectRating('service_quality', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="2" onclick="setAspectRating('service_quality', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="3" onclick="setAspectRating('service_quality', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="4" onclick="setAspectRating('service_quality', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="5" onclick="setAspectRating('service_quality', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="serviceQualityRating" name="service_quality_rating" value="5">
+          </div>
+
+          <!-- Cleanliness -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Cleanliness</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="cleanliness" data-value="1" onclick="setAspectRating('cleanliness', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="2" onclick="setAspectRating('cleanliness', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="3" onclick="setAspectRating('cleanliness', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="4" onclick="setAspectRating('cleanliness', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="5" onclick="setAspectRating('cleanliness', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="cleanlinessRating" name="cleanliness_rating" value="5">
+          </div>
+
+          <!-- Staff Friendliness -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Staff Friendliness</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="1" onclick="setAspectRating('staff_friendliness', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="2" onclick="setAspectRating('staff_friendliness', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="3" onclick="setAspectRating('staff_friendliness', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="4" onclick="setAspectRating('staff_friendliness', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="5" onclick="setAspectRating('staff_friendliness', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="staffFriendlinessRating" name="staff_friendliness_rating" value="5">
+          </div>
+
+          <!-- Value for Money -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Value for Money</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="value_for_money" data-value="1" onclick="setAspectRating('value_for_money', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="2" onclick="setAspectRating('value_for_money', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="3" onclick="setAspectRating('value_for_money', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="4" onclick="setAspectRating('value_for_money', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="5" onclick="setAspectRating('value_for_money', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="valueForMoneyRating" name="value_for_money_rating" value="5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Highlights/Positive Aspects -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="margin-bottom: 0.75rem; display: block;">Highlights (What you liked) <span style="font-size: 0.8rem; color: var(--text-gray);">- Optional, max 5</span></label>
+        <div id="highlightsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <button type="button" class="highlight-tag" data-highlight="Great Service" onclick="toggleHighlight(this, 'Great Service')">
+            <i class="fas fa-check"></i> Great Service
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Clean & Hygienic" onclick="toggleHighlight(this, 'Clean & Hygienic')">
+            <i class="fas fa-check"></i> Clean & Hygienic
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Friendly Staff" onclick="toggleHighlight(this, 'Friendly Staff')">
+            <i class="fas fa-check"></i> Friendly Staff
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Good Value" onclick="toggleHighlight(this, 'Good Value')">
+            <i class="fas fa-check"></i> Good Value
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Professional" onclick="toggleHighlight(this, 'Professional')">
+            <i class="fas fa-check"></i> Professional
+          </button>
+        </div>
+        <input type="hidden" id="highlightsInput" name="highlights" value="[]">
+      </div>
+
+      <!-- Review Title -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="reviewTitle">Review Title <span style="color: #ef4444;">*</span></label>
+        <input type="text" id="reviewTitle" name="title" placeholder="Summarize your experience (5-200 characters)" 
+               style="width: 100%; padding: 0.75rem; border: 1px solid rgba(168, 85, 247, 0.2); border-radius: var(--radius-sm); font-size: 0.95rem;" 
+               minlength="5" maxlength="200" required>
+        <small style="display: block; color: var(--text-gray); margin-top: 0.25rem;" id="titleCharCount">0/200 characters</small>
+      </div>
+
+      <!-- Review Comment -->
+      <div class="form-group">
+        <label for="reviewComment">Your Review <span style="font-size: 0.8rem; color: var(--text-gray);">- Optional</span></label>
+        <textarea id="reviewComment" name="comment" placeholder="Share more details about your experience (up to 5000 characters)" 
+                  style="width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid rgba(168, 85, 247, 0.2); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.95rem; resize: vertical;"
+                  maxlength="5000"></textarea>
+        <small style="display: block; color: var(--text-gray); margin-top: 0.25rem;" id="commentCharCount">0/5000 characters</small>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeReviewModal()">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);" onclick="submitReview()">
+        <i class="fas fa-paper-plane"></i>
+        Submit Review
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- HTML2Canvas Library - for converting receipt to image -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <!-- jsPDF Library - for PDF generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  /* Review Modal Styles */
+  .highlight-tag {
+    padding: 0.5rem 1rem;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 20px;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    border: none;
+  }
+
+  .highlight-tag:hover {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.3);
+  }
+
+  .highlight-tag.selected {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .highlight-tag i {
+    display: none;
+  }
+
+  .highlight-tag.selected i {
+    display: inline;
+  }
+
+  .aspect-ratings input {
+    margin-top: 0.5rem;
+  }
+</style>
+
 
 <script>
   let currentBookingId = null;
@@ -3703,6 +3895,294 @@
       });
     }
   });
+
+  // ========== REVIEW FUNCTIONS ==========
+  let selectedHighlights = [];
+
+  function showReviewModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    document.getElementById('reviewBookingId').value = currentBookingId;
+    
+    // Reset form
+    document.getElementById('reviewForm').reset();
+    resetReviewForm();
+    
+    document.getElementById('reviewModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeReviewModal() {
+    document.getElementById('reviewModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+    resetReviewForm();
+  }
+
+  function resetReviewForm() {
+    // Reset ratings
+    document.getElementById('overallRating').value = '0';
+    document.getElementById('ratingText').textContent = 'Click to rate';
+    document.querySelectorAll('.star-btn').forEach(star => {
+      star.style.color = '#ccc';
+    });
+    
+    // Reset aspect ratings
+    document.getElementById('serviceQualityRating').value = '5';
+    document.getElementById('cleanlinessRating').value = '5';
+    document.getElementById('staffFriendlinessRating').value = '5';
+    document.getElementById('valueForMoneyRating').value = '5';
+    updateAspectStarColors();
+    
+    // Reset highlights
+    selectedHighlights = [];
+    document.querySelectorAll('.highlight-tag').forEach(tag => {
+      tag.classList.remove('selected');
+    });
+    document.getElementById('highlightsInput').value = '[]';
+    
+    // Reset text inputs
+    document.getElementById('reviewTitle').value = '';
+    document.getElementById('reviewComment').value = '';
+    document.getElementById('titleCharCount').textContent = '0/200 characters';
+    document.getElementById('commentCharCount').textContent = '0/5000 characters';
+  }
+
+  function setRating(rating) {
+    document.getElementById('overallRating').value = rating;
+    
+    // Update star colors
+    document.querySelectorAll('.star-btn').forEach((star, index) => {
+      if (index < rating) {
+        star.style.color = '#fbbf24';
+      } else {
+        star.style.color = '#ccc';
+      }
+    });
+    
+    // Update text
+    const texts = {
+      1: '😞 Poor',
+      2: '😕 Fair',
+      3: '😐 Average',
+      4: '😊 Good',
+      5: '😍 Excellent'
+    };
+    document.getElementById('ratingText').textContent = texts[rating] || 'Click to rate';
+    document.getElementById('ratingText').style.color = rating >= 4 ? '#10b981' : (rating >= 3 ? '#f59e0b' : '#ef4444');
+  }
+
+  function setAspectRating(aspect, rating) {
+    const fieldMap = {
+      'service_quality': 'serviceQualityRating',
+      'cleanliness': 'cleanlinessRating',
+      'staff_friendliness': 'staffFriendlinessRating',
+      'value_for_money': 'valueForMoneyRating'
+    };
+    
+    document.getElementById(fieldMap[aspect]).value = rating;
+    updateAspectStarColors();
+  }
+
+  function updateAspectStarColors() {
+    const aspects = [
+      { aspect: 'service_quality', field: 'serviceQualityRating' },
+      { aspect: 'cleanliness', field: 'cleanlinessRating' },
+      { aspect: 'staff_friendliness', field: 'staffFriendlinessRating' },
+      { aspect: 'value_for_money', field: 'valueForMoneyRating' }
+    ];
+    
+    aspects.forEach(({ aspect, field }) => {
+      const rating = parseInt(document.getElementById(field).value);
+      document.querySelectorAll(`.aspect-star[data-aspect="${aspect}"]`).forEach((star, index) => {
+        if (index < rating) {
+          star.style.color = '#fbbf24';
+        } else {
+          star.style.color = '#ccc';
+        }
+      });
+    });
+  }
+
+  function toggleHighlight(button, highlight) {
+    button.classList.toggle('selected');
+    
+    if (button.classList.contains('selected')) {
+      if (!selectedHighlights.includes(highlight)) {
+        selectedHighlights.push(highlight);
+      }
+    } else {
+      selectedHighlights = selectedHighlights.filter(h => h !== highlight);
+    }
+    
+    document.getElementById('highlightsInput').value = JSON.stringify(selectedHighlights);
+  }
+
+  // Track character count for title
+  document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('reviewTitle');
+    if (titleInput) {
+      titleInput.addEventListener('input', function() {
+        document.getElementById('titleCharCount').textContent = this.value.length + '/200 characters';
+      });
+    }
+    
+    const commentInput = document.getElementById('reviewComment');
+    if (commentInput) {
+      commentInput.addEventListener('input', function() {
+        document.getElementById('commentCharCount').textContent = this.value.length + '/5000 characters';
+      });
+    }
+  });
+
+  function showFlashMessage(message, category = 'success') {
+    const categoryClass = category === 'error' ? 'danger' : category;
+    let container = document.querySelector('.flash-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'flash-container';
+      const contentWrapper = document.querySelector('.container-fluid') || document.body;
+      contentWrapper.prepend(container);
+    }
+
+    const iconClass = category === 'success'
+      ? 'fa-check-circle'
+      : category === 'warning'
+      ? 'fa-exclamation-triangle'
+      : 'fa-times-circle';
+
+    const flash = document.createElement('div');
+    flash.className = `flash flash-${categoryClass}`;
+    flash.innerHTML = `
+      <div class="flash-icon"><i class="fas ${iconClass}"></i></div>
+      <div class="flash-content">${message}</div>
+      <button type="button" class="flash-close" aria-label="Close notification">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+
+    const closeBtn = flash.querySelector('.flash-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => flash.remove());
+    }
+
+    container.appendChild(flash);
+    setTimeout(() => {
+      if (flash.parentNode) flash.parentNode.removeChild(flash);
+    }, 6400);
+  }
+
+  function submitReview() {
+    const bookingId = document.getElementById('reviewBookingId').value;
+    const overallRating = parseFloat(document.getElementById('overallRating').value);
+    const serviceQualityRating = parseInt(document.getElementById('serviceQualityRating').value);
+    const cleanlinessRating = parseInt(document.getElementById('cleanlinessRating').value);
+    const staffFriendlinessRating = parseInt(document.getElementById('staffFriendlinessRating').value);
+    const valueForMoneyRating = parseInt(document.getElementById('valueForMoneyRating').value);
+    const title = document.getElementById('reviewTitle').value.trim();
+    const comment = document.getElementById('reviewComment').value.trim();
+    const highlights = selectedHighlights;
+    
+    // Validation
+    if (overallRating < 1 || overallRating > 5) {
+      showFlashMessage('Please select an overall rating', 'warning');
+      return;
+    }
+    
+    if (!title || title.length < 5) {
+      showFlashMessage('Review title must be at least 5 characters', 'warning');
+      return;
+    }
+    
+    if (title.length > 200) {
+      showFlashMessage('Review title must not exceed 200 characters', 'warning');
+      return;
+    }
+    
+    if (comment && comment.length > 5000) {
+      showFlashMessage('Review comment must not exceed 5000 characters', 'warning');
+      return;
+    }
+    
+    const submitBtn = document.querySelector('#reviewModal .btn-primary');
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+      submitBtn.disabled = true;
+    }
+    
+    // Submit review
+    fetch('/user/booking/' + bookingId + '/review', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+      },
+      body: JSON.stringify({
+        overall_rating: overallRating,
+        service_quality_rating: serviceQualityRating,
+        cleanliness_rating: cleanlinessRating,
+        staff_friendliness_rating: staffFriendlinessRating,
+        value_for_money_rating: valueForMoneyRating,
+        title: title,
+        comment: comment || null,
+        highlights: highlights
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showFlashMessage('Review submitted successfully! Thank you for your feedback.', 'success');
+        closeReviewModal();
+        location.reload();
+      } else {
+        showFlashMessage('Error submitting review: ' + (data.error || 'Unknown error'), 'error');
+        const buttonToRestore = document.querySelector('#reviewModal .btn-primary') || document.querySelector('#reviewModal .modal-footer button:last-child');
+        if (buttonToRestore) {
+          buttonToRestore.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+          buttonToRestore.disabled = false;
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showFlashMessage('Error submitting review. Please try again.', 'error');
+      const buttonToRestore = document.querySelector('#reviewModal .btn-primary') || document.querySelector('#reviewModal .modal-footer button:last-child');
+      if (buttonToRestore) {
+        buttonToRestore.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+        buttonToRestore.disabled = false;
+      }
+    });
+  }
+
+  // Add click handler for review button
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.action-btn.review')) {
+        const button = e.target.closest('.action-btn.review');
+        showReviewModal(button);
+      }
+    });
+    
+    // Close review modal on escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const reviewModal = document.getElementById('reviewModal');
+        if (reviewModal && !reviewModal.classList.contains('hidden')) {
+          closeReviewModal();
+        }
+      }
+    });
+    
+    // Close review modal on background click
+    const reviewModal = document.getElementById('reviewModal');
+    if (reviewModal) {
+      reviewModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeReviewModal();
+        }
+      });
+    }
+  });
 </script>
 
 {% endblock %}
+

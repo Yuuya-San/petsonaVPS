@@ -71,6 +71,23 @@ class Merchant(db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     is_open = db.Column(db.Boolean, default=True)  # Store open/closed status
 
+    # ========== SECTION 11: RATINGS & REVIEWS (Shopee-inspired) ==========
+    average_rating = db.Column(db.Float, default=0.0, nullable=False)  # 0-5 stars
+    total_reviews = db.Column(db.Integer, default=0, nullable=False)  # Total review count
+    
+    # Star breakdown for rating distribution
+    five_star_count = db.Column(db.Integer, default=0, nullable=False)  # 5-star reviews
+    four_star_count = db.Column(db.Integer, default=0, nullable=False)  # 4-star reviews
+    three_star_count = db.Column(db.Integer, default=0, nullable=False)  # 3-star reviews
+    two_star_count = db.Column(db.Integer, default=0, nullable=False)  # 2-star reviews
+    one_star_count = db.Column(db.Integer, default=0, nullable=False)  # 1-star reviews
+    
+    # Aspect ratings (averaged from all reviews)
+    avg_service_quality = db.Column(db.Float, default=0.0, nullable=False)
+    avg_cleanliness = db.Column(db.Float, default=0.0, nullable=False)
+    avg_staff_friendliness = db.Column(db.Float, default=0.0, nullable=False)
+    avg_value_for_money = db.Column(db.Float, default=0.0, nullable=False)
+
     def __repr__(self):
         return f'<Merchant {self.business_name}>'
 
@@ -249,4 +266,116 @@ class Merchant(db.Model):
             'is_verified': self.is_verified,
             'is_approved': self.is_approved,
         }
+
+    def update_ratings_from_reviews(self):
+        """
+        Recalculate merchant ratings based on all associated reviews.
+        Called after a new review is added or updated.
+        """
+        from app.models.review import Review
+        
+        # Get all approved reviews for this merchant
+        reviews = Review.query.filter_by(
+            merchant_id=self.id,
+            is_approved=True,
+            deleted_at=None
+        ).all()
+        
+        if not reviews:
+            # No reviews, reset ratings
+            self.average_rating = 0.0
+            self.total_reviews = 0
+            self.five_star_count = 0
+            self.four_star_count = 0
+            self.three_star_count = 0
+            self.two_star_count = 0
+            self.one_star_count = 0
+            self.avg_service_quality = 0.0
+            self.avg_cleanliness = 0.0
+            self.avg_staff_friendliness = 0.0
+            self.avg_value_for_money = 0.0
+            return
+        
+        # Calculate statistics
+        self.total_reviews = len(reviews)
+        
+        # Reset star counts
+        self.five_star_count = 0
+        self.four_star_count = 0
+        self.three_star_count = 0
+        self.two_star_count = 0
+        self.one_star_count = 0
+        
+        # Running totals for aspect ratings
+        service_quality_sum = 0
+        cleanliness_sum = 0
+        staff_friendliness_sum = 0
+        value_for_money_sum = 0
+        overall_sum = 0
+        
+        # Process each review
+        for review in reviews:
+            # Count stars
+            stars = int(review.overall_rating)
+            if stars == 5:
+                self.five_star_count += 1
+            elif stars == 4:
+                self.four_star_count += 1
+            elif stars == 3:
+                self.three_star_count += 1
+            elif stars == 2:
+                self.two_star_count += 1
+            elif stars <= 1:
+                self.one_star_count += 1
+            
+            # Sum aspect ratings
+            service_quality_sum += review.service_quality_rating
+            cleanliness_sum += review.cleanliness_rating
+            staff_friendliness_sum += review.staff_friendliness_rating
+            value_for_money_sum += review.value_for_money_rating
+            overall_sum += review.overall_rating
+        
+        # Calculate averages
+        review_count = len(reviews)
+        self.average_rating = round(overall_sum / review_count, 2) if review_count > 0 else 0.0
+        self.avg_service_quality = round(service_quality_sum / review_count, 2) if review_count > 0 else 0.0
+        self.avg_cleanliness = round(cleanliness_sum / review_count, 2) if review_count > 0 else 0.0
+        self.avg_staff_friendliness = round(staff_friendliness_sum / review_count, 2) if review_count > 0 else 0.0
+        self.avg_value_for_money = round(value_for_money_sum / review_count, 2) if review_count > 0 else 0.0
+
+    def get_rating_display(self):
+        """Return formatted rating for display (e.g., '4.5★ (128 reviews)')"""
+        if self.total_reviews == 0:
+            return "No ratings yet"
+        return f"{self.average_rating}★ ({self.total_reviews} reviews)"
+
+    def get_rating_stars_html(self):
+        """Return HTML representation of star rating"""
+        full_stars = int(self.average_rating)
+        has_half_star = (self.average_rating % 1) >= 0.5
+        empty_stars = 5 - full_stars - (1 if has_half_star else 0)
+        
+        html = '<span class="rating-stars">'
+        html += '★' * full_stars
+        if has_half_star:
+            html += '<span class="half-star">⯨</span>'
+        html += '☆' * empty_stars
+        html += '</span>'
+        return html
+
+    def get_star_distribution_percentage(self, star_rating):
+        """Get percentage of reviews with given star rating"""
+        if self.total_reviews == 0:
+            return 0
+        
+        count_map = {
+            5: self.five_star_count,
+            4: self.four_star_count,
+            3: self.three_star_count,
+            2: self.two_star_count,
+            1: self.one_star_count,
+        }
+        
+        count = count_map.get(star_rating, 0)
+        return round((count / self.total_reviews) * 100, 1)
 

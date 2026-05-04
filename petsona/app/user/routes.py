@@ -306,10 +306,24 @@ def get_nearby_merchants():
                     except (ValueError, TypeError):
                         is_open = False
             
-            # Default rating if no reviews
-            avg_rating = 4.5
-            review_count = 0
-            
+            # Use actual approved review data for merchant ratings
+            from app.models.review import Review
+
+            rating_stats = db.session.query(
+                func.count(Review.id),
+                func.avg(Review.overall_rating)
+            ).filter(
+                Review.merchant_id == merchant.id,
+                Review.is_approved == True,
+                Review.deleted_at == None
+            ).first()
+
+            review_count = int(rating_stats[0] or 0)
+            avg_rating = round(float(rating_stats[1]), 1) if rating_stats[1] else 0.0
+            merchant.average_rating = avg_rating
+            merchant.total_reviews = review_count
+            rating_html = merchant.get_rating_stars_html() if review_count > 0 else ''
+
             # Extract min and max prices from service_pricing JSON
             min_price = 999999
             max_price = 0
@@ -349,8 +363,9 @@ def get_nearby_merchants():
                 'closing_time': merchant.closing_time or '18:00',
                 'is_open': is_open,
                 'distance': round(distance, 1),
-                'rating': round(avg_rating, 1),
+                'rating': avg_rating,
                 'reviews': review_count,
+                'rating_html': rating_html,
                 'response_time': '2h',
                 'completion_rate': 90,
                 'latitude': float(merchant.latitude),
@@ -493,6 +508,7 @@ def my_bookings():
         qr_url = qr_generator.generate_booking_qr(
             booking_id=booking.id,
             booking_number=booking.booking_number,
+            booking_status=booking.status,
             confirmation_code=booking.confirmation_code,
             merchant_name=booking.merchant.business_name if booking.merchant else 'Unknown',
             appointment_date=booking.appointment_date.strftime('%b %d, %Y'),
@@ -541,6 +557,7 @@ def booking_receipt(booking_id):
     qr_url = qr_generator.generate_booking_qr(
         booking_id=booking.id,
         booking_number=booking.booking_number,
+        booking_status=booking.status,
         confirmation_code=booking.confirmation_code,
         merchant_name=booking.merchant.business_name if booking.merchant else 'Unknown',
         appointment_date=booking.appointment_date.strftime('%b %d, %Y'),
@@ -848,4 +865,283 @@ Thank you for choosing Petsona!
         logger.error(f'Error downloading receipt for booking {booking_id}: {str(e)}')
         flash('Error downloading receipt. Please try again.', 'danger')
         return redirect(url_for('user.my_bookings'))
+
+
+# ========== REVIEW ROUTES ==========
+@bp.route('/booking/<int:booking_id>/review', methods=['GET'])
+@login_required
+@user_required
+def get_review_form(booking_id):
+    """Get review form for a completed booking"""
+    from app.models.booking import Booking
+    
+    try:
+        booking = Booking.query.filter_by(
+            id=booking_id,
+            user_id=current_user.id,
+            deleted_at=None
+        ).first()
+        
+        if not booking:
+            return jsonify({'success': False, 'error': 'Booking not found'}), 404
+        
+        if booking.status != 'completed':
+            return jsonify({'success': False, 'error': 'Only completed bookings can be reviewed'}), 400
+        
+        # Check if review already exists
+        from app.models.review import Review
+        existing_review = Review.query.filter_by(booking_id=booking_id, deleted_at=None).first()
+        if existing_review:
+            return jsonify({'success': False, 'error': 'Review already exists for this booking'}), 400
+        
+        return jsonify({
+            'success': True,
+            'booking': {
+                'id': booking.id,
+                'booking_number': booking.booking_number,
+                'merchant_name': booking.merchant.business_name,
+                'appointment_date': booking.appointment_date.strftime('%B %d, %Y'),
+                'service_type': booking.service_type,
+                'total_amount': f"{booking.total_amount:.2f}"
+            }
+        })
+    except Exception as e:
+        logger.error(f'Error fetching review form: {str(e)}')
+        return jsonify({'success': False, 'error': 'Error fetching review form'}), 500
+
+
+@bp.route('/booking/<int:booking_id>/review', methods=['POST'])
+@login_required
+@user_required
+def submit_review(booking_id):
+    """Submit a review for a completed booking"""
+    from app.models.booking import Booking
+    from app.models.review import Review
+    
+    try:
+        booking = Booking.query.filter_by(
+            id=booking_id,
+            user_id=current_user.id,
+            deleted_at=None
+        ).first()
+        
+        if not booking:
+            return jsonify({'success': False, 'error': 'Booking not found'}), 404
+        
+        if booking.status != 'completed':
+            return jsonify({'success': False, 'error': 'Only completed bookings can be reviewed'}), 400
+        
+        # Check if review already exists
+        existing_review = Review.query.filter_by(booking_id=booking_id, deleted_at=None).first()
+        if existing_review:
+            return jsonify({'success': False, 'error': 'Review already exists for this booking'}), 400
+        
+        data = request.get_json()
+        
+        # Validate input
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        # Validate ratings
+        overall_rating = float(data.get('overall_rating', 0))
+        if not (1 <= overall_rating <= 5):
+            return jsonify({'success': False, 'error': 'Overall rating must be between 1 and 5'}), 400
+        
+        service_quality = int(data.get('service_quality_rating', 5))
+        cleanliness = int(data.get('cleanliness_rating', 5))
+        staff_friendliness = int(data.get('staff_friendliness_rating', 5))
+        value_for_money = int(data.get('value_for_money_rating', 5))
+        
+        for rating in [service_quality, cleanliness, staff_friendliness, value_for_money]:
+            if not (1 <= rating <= 5):
+                return jsonify({'success': False, 'error': 'All aspect ratings must be between 1 and 5'}), 400
+        
+        title = data.get('title', '').strip()
+        if not title or len(title) < 5:
+            return jsonify({'success': False, 'error': 'Review title must be at least 5 characters'}), 400
+        
+        if len(title) > 200:
+            return jsonify({'success': False, 'error': 'Review title must not exceed 200 characters'}), 400
+        
+        comment = data.get('comment', '').strip()
+        if comment and len(comment) > 5000:
+            return jsonify({'success': False, 'error': 'Review comment must not exceed 5000 characters'}), 400
+        
+        highlights = data.get('highlights', [])
+        if not isinstance(highlights, list):
+            highlights = []
+        highlights = highlights[:5]  # Max 5 highlights
+        
+        # Create review
+        review = Review(
+            booking_id=booking_id,
+            user_id=current_user.id,
+            merchant_id=booking.merchant_id,
+            overall_rating=overall_rating,
+            service_quality_rating=service_quality,
+            cleanliness_rating=cleanliness,
+            staff_friendliness_rating=staff_friendliness,
+            value_for_money_rating=value_for_money,
+            title=title,
+            comment=comment or None,
+            highlights=highlights,
+            is_verified_purchase=True,
+            is_approved=True
+        )
+        
+        db.session.add(review)
+        db.session.flush()  # Flush to get the review ID
+        
+        # Update merchant ratings
+        booking.merchant.update_ratings_from_reviews()
+        
+        db.session.commit()
+        
+        # Log the review submission
+        from app.models.audit_log import AuditLog
+        audit_log = AuditLog(
+            event='review_submitted',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
+        )
+        audit_log.set_details({
+            'review_id': review.id,
+            'booking_id': booking_id,
+            'merchant_id': booking.merchant_id,
+            'rating': overall_rating
+        })
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        flash('Review submitted successfully! Thank you for your feedback.', 'success')
+        
+        return jsonify({
+            'success': True,
+            'message': 'Review submitted successfully',
+            'review_id': review.id,
+            'merchant_rating': booking.merchant.get_rating_display()
+        })
+    
+    except ValueError as e:
+        logger.error(f'Validation error submitting review: {str(e)}')
+        return jsonify({'success': False, 'error': 'Invalid input data'}), 400
+    except Exception as e:
+        logger.error(f'Error submitting review for booking {booking_id}: {str(e)}')
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Error submitting review. Please try again.'}), 500
+
+
+@bp.route('/booking/<int:booking_id>/review', methods=['DELETE'])
+@login_required
+@user_required
+def delete_review(booking_id):
+    """Delete a review (soft delete)"""
+    from app.models.booking import Booking
+    from app.models.review import Review
+    
+    try:
+        booking = Booking.query.filter_by(
+            id=booking_id,
+            user_id=current_user.id,
+            deleted_at=None
+        ).first()
+        
+        if not booking:
+            return jsonify({'success': False, 'error': 'Booking not found'}), 404
+        
+        review = Review.query.filter_by(
+            booking_id=booking_id,
+            user_id=current_user.id,
+            deleted_at=None
+        ).first()
+        
+        if not review:
+            return jsonify({'success': False, 'error': 'Review not found'}), 404
+        
+        # Soft delete
+        review.deleted_at = get_ph_datetime()
+        
+        # Update merchant ratings
+        booking.merchant.update_ratings_from_reviews()
+        
+        db.session.commit()
+        
+        flash('Review deleted successfully.', 'success')
+        
+        return jsonify({
+            'success': True,
+            'message': 'Review deleted successfully',
+            'merchant_rating': booking.merchant.get_rating_display()
+        })
+    
+    except Exception as e:
+        logger.error(f'Error deleting review for booking {booking_id}: {str(e)}')
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Error deleting review. Please try again.'}), 500
+
+
+@bp.route('/merchant/<int:merchant_id>/reviews', methods=['GET'])
+@login_required
+@user_required
+def get_merchant_reviews(merchant_id):
+    """Get all reviews for a merchant"""
+    from app.models.merchant import Merchant
+    from app.models.review import Review
+    
+    try:
+        merchant = Merchant.query.filter_by(id=merchant_id, deleted_at=None).first()
+        
+        if not merchant:
+            return jsonify({'success': False, 'error': 'Merchant not found'}), 404
+        
+        # Get pagination params
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Get reviews
+        reviews_query = Review.query.filter_by(
+            merchant_id=merchant_id,
+            is_approved=True,
+            deleted_at=None
+        ).order_by(Review.created_at.desc())
+        
+        reviews_paginated = reviews_query.paginate(page=page, per_page=per_page)
+        
+        reviews_data = [review.to_dict() for review in reviews_paginated.items]
+        
+        return jsonify({
+            'success': True,
+            'merchant': {
+                'id': merchant.id,
+                'business_name': merchant.business_name,
+                'average_rating': merchant.average_rating,
+                'total_reviews': merchant.total_reviews,
+                'rating_display': merchant.get_rating_display(),
+                'five_star_count': merchant.five_star_count,
+                'four_star_count': merchant.four_star_count,
+                'three_star_count': merchant.three_star_count,
+                'two_star_count': merchant.two_star_count,
+                'one_star_count': merchant.one_star_count,
+                'avg_service_quality': merchant.avg_service_quality,
+                'avg_cleanliness': merchant.avg_cleanliness,
+                'avg_staff_friendliness': merchant.avg_staff_friendliness,
+                'avg_value_for_money': merchant.avg_value_for_money,
+            },
+            'reviews': reviews_data,
+            'pagination': {
+                'page': reviews_paginated.page,
+                'per_page': reviews_paginated.per_page,
+                'total': reviews_paginated.total,
+                'pages': reviews_paginated.pages,
+                'has_prev': reviews_paginated.has_prev,
+                'has_next': reviews_paginated.has_next
+            }
+        })
+    
+    except Exception as e:
+        logger.error(f'Error fetching merchant reviews: {str(e)}')
+        return jsonify({'success': False, 'error': 'Error fetching reviews'}), 500
 

@@ -35,7 +35,7 @@ class QRCodeGenerator:
         # Create directory if it doesn't exist
         os.makedirs(self.upload_dir, exist_ok=True)
     
-    def generate_booking_qr(self, booking_id: int, booking_number: str, 
+    def generate_booking_qr(self, booking_id: int, booking_number: str, booking_status: str,
                            confirmation_code: str, merchant_name: str,
                            appointment_date: str, appointment_time: str) -> Optional[str]:
         """
@@ -44,6 +44,7 @@ class QRCodeGenerator:
         Args:
             booking_id: Booking database ID
             booking_number: Booking reference number
+            booking_status: Status of the booking
             confirmation_code: Confirmation code
             merchant_name: Merchant business name
             appointment_date: Appointment date
@@ -57,6 +58,7 @@ class QRCodeGenerator:
             qr_data = {
                 'booking_number': booking_number,
                 'booking_id': booking_id,
+                'booking_status' : booking_status,
                 'confirmation_code': confirmation_code,
                 'merchant': merchant_name,
                 'date': appointment_date,

@@ -4,6 +4,16 @@
   },
   "css.validate": false,
   "html.validate.styles": false,
+
+  // ✅ Tailwind suppression
+  "tailwindCSS.lint.cssConflict": "ignore",
+
+  // ✅ Pylance suppression
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingModuleSource": "none"
+  },
+
   "files.exclude": {
     "**/*.pyc": true,
     "**/__pycache__": true,

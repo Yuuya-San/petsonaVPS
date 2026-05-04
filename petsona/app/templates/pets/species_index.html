@@ -551,82 +551,8 @@
   speciesIcon: 'fa-solid fa-paw',
   speciesDescription: '',
   speciesEthicalNotes: '',
-  getSpeciesIcon(name) {
-    if (!name) return 'fa-solid fa-paw';
-    const iconMap = {
-      'dog': 'fa-solid fa-dog',
-      'cat': 'fa-solid fa-cat',
-      'lovebird': 'fa-solid fa-dove',
-      'cockatiel': 'fa-solid fa-dove',
-      'budgerigar': 'fa-solid fa-dove',
-      'budgie': 'fa-solid fa-dove',
-      'african grey': 'fa-solid fa-dove',
-      'macaw': 'fa-solid fa-dove',
-      'cockatoo': 'fa-solid fa-dove',
-      'conure': 'fa-solid fa-dove',
-      'eclectus': 'fa-solid fa-dove',
-      'canary': 'fa-solid fa-dove',
-      'finch': 'fa-solid fa-dove',
-      'pigeon': 'fa-solid fa-dove',
-      'dove': 'fa-solid fa-dove',
-      'myna': 'fa-solid fa-dove',
-      'quaker parrot': 'fa-solid fa-dove',
-      'lorikeet': 'fa-solid fa-dove',
-      'betta': 'fa-solid fa-fish',
-      'goldfish': 'fa-solid fa-fish',
-      'koi': 'fa-solid fa-fish',
-      'guppy': 'fa-solid fa-fish',
-      'molly': 'fa-solid fa-fish',
-      'platy': 'fa-solid fa-fish',
-      'swordtail': 'fa-solid fa-fish',
-      'tetra': 'fa-solid fa-fish',
-      'angelfish': 'fa-solid fa-fish',
-      'discus': 'fa-solid fa-fish',
-      'arowana': 'fa-solid fa-fish',
-      'flowerhorn': 'fa-solid fa-fish',
-      'oscar': 'fa-solid fa-fish',
-      'pleco': 'fa-solid fa-fish',
-      'plecostomus': 'fa-solid fa-fish',
-      'danio': 'fa-solid fa-fish',
-      'zebra danio': 'fa-solid fa-fish',
-      'tiger barb': 'fa-solid fa-fish',
-      'hamster': 'fa-solid fa-otter',
-      'guinea pig': 'fa-solid fa-otter',
-      'rabbit': 'fa-solid fa-otter',
-      'mouse': 'fa-solid fa-otter',
-      'rat': 'fa-solid fa-otter',
-      'chinchilla': 'fa-solid fa-otter',
-      'ferret': 'fa-solid fa-otter',
-      'hedgehog': 'fa-solid fa-otter',
-      'sugar glider': 'fa-solid fa-otter',
-      'ball python': 'fa-solid fa-dragon',
-      'corn snake': 'fa-solid fa-dragon',
-      'king snake': 'fa-solid fa-dragon',
-      'leopard gecko': 'fa-solid fa-dragon',
-      'crested gecko': 'fa-solid fa-dragon',
-      'bearded dragon': 'fa-solid fa-dragon',
-      'iguana': 'fa-solid fa-dragon',
-      'red-eared slider': 'fa-solid fa-dragon',
-      'russian tortoise': 'fa-solid fa-dragon',
-      'sulcata': 'fa-solid fa-dragon',
-      'pacman frog': 'fa-solid fa-frog',
-      'tree frog': 'fa-solid fa-frog',
-      'african clawed frog': 'fa-solid fa-frog',
-      'axolotl': 'fa-solid fa-frog',
-      'fire-bellied toad': 'fa-solid fa-frog',
-      'tarantula': 'fa-solid fa-spider',
-      'scorpion': 'fa-solid fa-spider',
-      'mantis': 'fa-solid fa-spider',
-      'stick insect': 'fa-solid fa-spider',
-      'beetle': 'fa-solid fa-spider',
-      'giant african land snail': 'fa-solid fa-spider'
-    };
-    const key = name.toLowerCase().trim();
-    if (key in iconMap) return iconMap[key];
-    for (const [species, icon] of Object.entries(iconMap)) {
-      if (key.includes(species)) return icon;
-    }
-    return 'fa-solid fa-paw';
+  get visibleCount() {
+    return document.querySelectorAll('.species-item:not(.hidden)').length;
   }
 }" class="w-full bg-gray-50/50 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-8 lg:py-8 space-y-6 sm:space-y-8">
@@ -683,8 +609,8 @@
           </template>
         </div>
       </div>
-      <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery">
-        <span x-text="`Found ${document.querySelectorAll('.species-item:not(.hidden)').length} pet profiles`"></span>
+      <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery" x-cloak>
+        <span class="search-count">Found {{ species_list|length }} pet profiles</span>
       </div>
     </div>
 
@@ -696,7 +622,8 @@
         {% set image_url = url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') %}
 
         <div x-data="{ menu: false }"
-            class="w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
+            data-species-name="{{ species.name.lower() }}"
+            class="species-item w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
             style="height: 350px; min-height: 350px; max-height: 350px;
                     background-image: url('{{ image_url }}');
                     background-size: cover;
@@ -1426,59 +1353,54 @@
 
 <!-- SEARCH FILTER SCRIPT -->
 <script>
-  // Enhanced search functionality
-  document.addEventListener('alpine:initialized', () => {
-    // Listen for search query changes
-    const handleSearch = (searchQuery) => {
-      const items = document.querySelectorAll('.species-item');
-      let visibleCount = 0;
+  function performSearch(query) {
+    const items = document.querySelectorAll('.species-item');
+    let visibleCount = 0;
+    const query_lower = (query || '').toLowerCase().trim();
 
-      items.forEach(item => {
-        const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
-        const matches = speciesName.includes((searchQuery || '').toLowerCase());
-        
-        if (matches || !searchQuery) {
-          item.classList.remove('hidden');
-          item.style.animation = 'fadeIn 0.3s ease-out';
-          visibleCount++;
-        } else {
-          item.classList.add('hidden');
-        }
-      });
-
-      // Update results count
-      const resultsText = document.querySelector('[x-show="searchQuery"]');
-      if (resultsText) {
-        resultsText.textContent = `Found ${visibleCount} species`;
-      }
-    };
-
-    // Observe Alpine data changes
-    window.addEventListener('input', (e) => {
-      if (e.target.classList.contains('search-input')) {
-        handleSearch(e.target.value);
+    items.forEach(item => {
+      const speciesName = item.getAttribute('data-species-name') || '';
+      const matches = speciesName.includes(query_lower) || !query_lower;
+      
+      if (matches) {
+        item.classList.remove('hidden');
+        item.style.display = '';
+        visibleCount++;
+      } else {
+        item.classList.add('hidden');
+        item.style.display = 'none';
       }
     });
-  });
 
-  // Fallback for non-Alpine environments
+    const countEl = document.querySelector('.search-count');
+    if (countEl) {
+      countEl.textContent = `Found ${visibleCount} pet profile${visibleCount !== 1 ? 's' : ''}`;
+    }
+
+    return visibleCount;
+  }
+
+  // Initialize search on page load
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.querySelector('.search-input');
-    if (searchInput && !window.Alpine) {
+    
+    if (searchInput) {
+      // Perform search on input change
       searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const items = document.querySelectorAll('.species-item');
-        let visibleCount = 0;
+        const query = e.target.value;
+        performSearch(query);
+      });
 
-        items.forEach(item => {
-          const speciesName = item.querySelector('h3')?.textContent.toLowerCase() || '';
-          if (speciesName.includes(query)) {
-            item.classList.remove('hidden');
-            visibleCount++;
-          } else {
-            item.classList.add('hidden');
+      // Also watch for Alpine updates
+      window.addEventListener('alpine:init', () => {
+        // Re-run search when Alpine updates
+        setInterval(() => {
+          const alpine = document.querySelector('[x-data*="searchQuery"]');
+          if (alpine && window.__lastSearchQuery !== searchInput.value) {
+            window.__lastSearchQuery = searchInput.value;
+            performSearch(searchInput.value);
           }
-        });
+        }, 100);
       });
     }
   });

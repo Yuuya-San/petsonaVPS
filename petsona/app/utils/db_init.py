@@ -1,5 +1,5 @@
 import pymysql # pyright: ignore[reportMissingModuleSource]
-from flask import current_app
+from flask import current_app # pyright: ignore[reportMissingImports]
 from sqlalchemy import create_engine # pyright: ignore[reportMissingImports]
 
 def ensure_database_exists():
@@ -45,7 +45,7 @@ def add_missing_columns(engine):
     """
     Adds missing columns to existing tables
     """
-    from sqlalchemy import text
+    from sqlalchemy import text # pyright: ignore[reportMissingImports]
     
     with engine.begin() as connection:
         # Add is_open column to merchants table if it doesn't exist

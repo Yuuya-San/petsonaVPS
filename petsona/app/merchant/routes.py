@@ -15,6 +15,7 @@ from app.models.merchant import Merchant
 from app.models.booking import Booking
 from app.models.notification import Notification
 from app.models.user import User
+from app.models.review import Review
 from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
 from app.models.audit_log import AuditLog
@@ -30,6 +31,28 @@ PH_TZ = pytz.timezone('Asia/Manila')
 def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
+
+
+def get_merchant_review_stats(merchant):
+    """Return live review-driven merchant rating and count."""
+    rating_data = db.session.query(
+        func.count(Review.id),
+        func.avg(Review.overall_rating)
+    ).filter(
+        Review.merchant_id == merchant.id,
+        Review.is_approved == True,
+        Review.deleted_at.is_(None)
+    ).first()
+
+    total_reviews = int(rating_data[0] or 0)
+    average_rating = round(float(rating_data[1]), 2) if rating_data[1] else 0.0
+
+    if total_reviews > 0:
+        merchant.update_ratings_from_reviews()
+        average_rating = merchant.average_rating
+        total_reviews = merchant.total_reviews
+
+    return average_rating, total_reviews
 
 
 def _normalize_province_for_region(region_name):
@@ -153,11 +176,8 @@ def store():
         Booking.deleted_at.is_(None)
     ).scalar() or 0
     
-    # 6. Store Rating (Not yet implemented in simplified booking system)
-    store_rating = 4.0
-    
-    # 7. Total Reviews Count (Not yet implemented in simplified booking system)
-    total_reviews = 0
+    # 6. Store Rating based on approved reviews
+    store_rating, total_reviews = get_merchant_review_stats(merchant)
     
     # Calculate completion rate as percentage
     completion_rate = 0
@@ -778,9 +798,7 @@ def store_public(merchant_id):
         flash('Store not found.', 'danger')
         return redirect(url_for('user.nearby_services'))
     
-    # Placeholder for ratings/reviews (not yet implemented)
-    store_rating = 0
-    total_reviews = 0
+    store_rating, total_reviews = get_merchant_review_stats(merchant)
     
     # Determine if store is currently open based on operating hours
     is_open = False
@@ -1496,9 +1514,7 @@ def booking(merchant_id):
         flash('Store not found.', 'danger')
         return redirect(url_for('user.nearby_services'))
     
-    # Placeholder for ratings/reviews (not yet implemented)
-    store_rating = 0
-    total_reviews = 0
+    store_rating, total_reviews = get_merchant_review_stats(merchant)
     
     return render_template('merchant/booking.html', 
                          merchant=merchant,

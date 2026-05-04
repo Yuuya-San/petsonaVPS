@@ -1,6 +1,6 @@
 """Application factory. Initializes extensions, registers blueprints."""
-from flask import Flask, redirect, url_for, request, flash
-from werkzeug.exceptions import RequestEntityTooLarge
+from flask import Flask, redirect, url_for, request, flash # pyright: ignore[reportMissingImports]
+from werkzeug.exceptions import RequestEntityTooLarge # pyright: ignore[reportMissingImports]
 from .config import Config
 from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman, socketio, oauth
 from app.utils.db_init import ensure_database_exists, create_tables
@@ -87,7 +87,7 @@ def create_app(config_class: type = Config):
                 pht_tz = pytz.timezone('Asia/Manila')
                 dt = pht_tz.localize(dt)
             
-            # Format: "Apr 27, 2026 2:30 PM"
+            # Format: "Apr 27, 2026 2:30 PM PHT"
             return dt.strftime('%b %d, %Y %I:%M %p')
         except Exception as e:
             print(f"[ERROR] Failed to format datetime: {e}")
@@ -170,7 +170,7 @@ def create_app(config_class: type = Config):
     @app.context_processor
     def inject_navbar_data():
         """Inject notifications and recent conversations into all templates."""
-        from flask_login import current_user
+        from flask_login import current_user # pyright: ignore[reportMissingImports]
         from app.utils.messaging import get_user_inbox, get_unread_count
         
         notifications = []

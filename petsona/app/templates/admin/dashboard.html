@@ -1,8 +1,15 @@
 {% extends "admin/base.html" %}
 
-{% block title %}Admin Dashboard | PetSona{% endblock %}
+{% block head %}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
 
 {% block content %}
+
+<!-- Include Chart.js for analytics visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
 <style>
 /* ================================
@@ -10,7 +17,7 @@
 ================================ */
 .admin-dashboard {
   padding: 2.5rem 1.5rem;
-  background: #f5f5f7;
+  background: linear-gradient(135deg, #f5f5f7 0%, #e8e8f0 100%);
   min-height: 100vh;
 }
 
@@ -41,6 +48,26 @@
 }
 
 /* ================================
+   KEY METRICS SECTION
+================================ */
+.key-metrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.metric-period-badge {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* ================================
    METRICS GRID
 ================================ */
 .metrics-grid {
@@ -54,6 +81,10 @@
   grid-template-columns: repeat(2, 1fr);
 }
 
+.metrics-grid.analytics {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .metric-card {
   background: white;
   padding: 2rem;
@@ -64,11 +95,29 @@
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8b5cf6, #a855f7);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .metric-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+}
+
+.metric-card:hover::before {
+  opacity: 1;
 }
 
 .metric-icon {
@@ -117,6 +166,21 @@
   color: #a855f7;
 }
 
+.metric-icon.online {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.metric-icon.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.metric-icon.engagement {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
 .metric-content {
   flex: 1;
 }
@@ -145,8 +209,23 @@
   color: #22c55e;
 }
 
+.metric-change.negative {
+  color: #ef4444;
+}
+
+.metric-badge {
+  display: inline-block;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
 /* ================================
-   SECTION TITLE
+   ANALYTICS SECTION TITLE
 ================================ */
 .section-title {
   font-size: 1.4rem;
@@ -173,6 +252,237 @@
   margin-bottom: 2.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* ================================
+   ANALYTICS CHARTS
+================================ */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.chart-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.chart-title i {
+  color: #8b5cf6;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 300px;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 12px;
+}
+
+.chart-wrapper canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  min-width: 320px;
+  border-radius: 12px;
+  touch-action: pan-x;
+}
+
+/* ================================
+   CHART RESPONSIVENESS
+================================ */
+
+/* Ensure charts are properly responsive */
+@media (max-width: 1200px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .chart-container {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Tablet and Mobile Chart Optimizations */
+@media (max-width: 768px) {
+  .chart-container {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-title {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .chart-title i {
+    font-size: 1.1rem;
+  }
+
+  .chart-wrapper {
+    height: 250px;
+    border-radius: 8px;
+  }
+
+  .chart-wrapper canvas {
+    border-radius: 8px;
+  }
+}
+
+/* Mobile Chart Optimizations */
+@media (max-width: 640px) {
+  .chart-container {
+    padding: 1.2rem;
+    border-radius: 12px;
+  }
+
+  .chart-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .chart-wrapper {
+    height: 220px;
+  }
+}
+
+/* Small Mobile Chart Optimizations */
+@media (max-width: 480px) {
+  .chart-container {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .chart-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .chart-wrapper {
+    height: 200px;
+    border-radius: 6px;
+  }
+
+  .chart-wrapper canvas {
+    border-radius: 6px;
+  }
+}
+
+/* Extra Small Mobile Chart Optimizations */
+@media (max-width: 360px) {
+  .chart-container {
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .chart-title {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .chart-wrapper {
+    height: 180px;
+    border-radius: 4px;
+  }
+
+  .chart-wrapper canvas {
+    border-radius: 4px;
+  }
+}
+
+/* ================================
+   CHART TOUCH OPTIMIZATIONS
+================================ */
+
+/* Touch-friendly chart interactions */
+@media (hover: none) and (pointer: coarse) {
+  .chart-container {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .chart-wrapper {
+    touch-action: manipulation;
+  }
+
+  .chart-wrapper canvas {
+    touch-action: manipulation;
+  }
+}
+
+/* Prevent chart overflow on small screens */
+@media (max-width: 768px) {
+  .chart-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .chart-wrapper canvas {
+    min-width: 100%;
+    max-width: none;
+  }
+}
+
+/* ================================
+   CHART ACCESSIBILITY
+================================ */
+
+/* High contrast chart support */
+@media (prefers-contrast: high) {
+  .chart-container {
+    border: 2px solid currentColor;
+  }
+
+  .chart-wrapper {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion for charts */
+@media (prefers-reduced-motion: reduce) {
+  .chart-wrapper canvas {
+    transition: none;
+  }
+}
+
+/* ================================
+   CHART PRINT STYLES
+================================ */
+
+@media print {
+  .chart-container {
+    break-inside: avoid;
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+
+  .chart-wrapper {
+    height: 200px !important;
+  }
+
+  .chart-title {
+    color: #000;
+  }
 }
 
 /* ================================
@@ -287,18 +597,13 @@
 ================================ */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
   margin-bottom: 2.5rem;
 }
 
 .stats-sidebar {
-  background: white;
-  border-radius: 18px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  height: fit-content;
+  display: none;
 }
 
 .stats-sidebar h4 {
@@ -335,105 +640,203 @@
    NEW DATA ITEMS CONTAINER
 ================================ */
 .new-data-items-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  display: none;
 }
 
 /* ================================
    NEW DATA ITEMS (WEEKLY STATS)
 ================================ */
 .new-data-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  padding: 1.2rem;
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.5), rgba(237, 233, 254, 0.2));
-  border-radius: 12px;
-  border: 1px solid rgba(203, 213, 225, 0.3);
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.new-data-item:hover {
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8), rgba(237, 233, 254, 0.4));
-  transform: translateY(-2px);
-  border-color: rgba(139, 92, 246, 0.4);
-}
-
-.new-data-item:last-child {
-  margin-bottom: 0;
-}
-
-.new-data-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.new-data-icon.users-new {
-  background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
-}
-
-.new-data-icon.merchants-new {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-}
-
-.new-data-icon.bookings-new {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-}
-
-.new-data-icon.matches-new {
-  background: rgba(236, 72, 153, 0.15);
-  color: #ec4899;
-}
-
-.new-data-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.new-data-label {
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-weight: 600;
-  display: block;
-}
-
-.new-data-value {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #1f2937;
+  display: none;
 }
 
 /* ================================
-   RESPONSIVE
+   ENGAGEMENT & ACTIVITY METRICS
 ================================ */
+.engagement-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.engagement-card {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.engagement-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #8b5cf6;
+  margin-bottom: 0.5rem;
+}
+
+.engagement-label {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 0.8rem;
+}
+
+.engagement-description {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+================================ */
+
+/* Ultra-wide screens (1920px+) */
+@media (min-width: 1920px) {
+  .admin-dashboard {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 3rem 3rem;
+  }
+
+  .engagement-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+
+  .role-layout {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+
+  .section-container {
+    padding: 3rem;
+  }
+
+  .metric-card {
+    padding: 2.5rem;
+  }
+
+  .chart-wrapper {
+    height: 350px;
+  }
+}
+
+/* 4K and larger screens (2560px+) */
+@media (min-width: 2560px) {
+  .admin-dashboard {
+    max-width: 2200px;
+    padding: 4rem 4rem;
+  }
+
+  .engagement-metrics-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+
+  .section-container {
+    padding: 4rem;
+  }
+
+  .metric-card {
+    padding: 3rem;
+  }
+
+  .chart-wrapper {
+    height: 400px;
+  }
+
+  .dashboard-title {
+    font-size: 3rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+}
+
+/* Desktop (1200px - 1439px) */
+@media (max-width: 1439px) and (min-width: 1201px) {
+  .engagement-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Large Tablet/Desktop (1025px - 1200px) */
+@media (max-width: 1200px) {
+  .admin-dashboard {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .engagement-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+/* Tablet (769px - 1024px) */
 @media (max-width: 1024px) {
+  .engagement-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
 
   .metrics-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: 1fr; /* Single column for better display */
+  }
+
+  .metrics-grid.analytics {
+    grid-template-columns: 1fr; /* Single column for weekly analytics */
   }
 
   .role-layout {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: 1fr; /* Single column for role cards */
+  }
+
+  .metrics-grid.system-records {
+    grid-template-columns: 1fr; /* Single column for system records */
+  }
+
+  .section-container {
+    padding: 1.8rem;
+  }
+
+  .metric-card {
+    padding: 1.8rem;
   }
 }
 
+/* Small Tablet (641px - 768px) */
 @media (max-width: 768px) {
   .admin-dashboard {
     padding: 1.5rem 0.75rem;
@@ -448,18 +851,24 @@
   }
 
   .metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Single column for all metric grids */
     gap: 1rem;
   }
 
   .metrics-grid.system-records {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr; /* Force single column instead of 2 */
+    gap: 1rem;
+  }
+
+  .metrics-grid.analytics {
+    grid-template-columns: 1fr; /* Single column for weekly analytics */
     gap: 1rem;
   }
 
   .metric-card {
     flex-direction: column;
     text-align: center;
+    padding: 1.5rem;
   }
 
   .metric-icon {
@@ -493,30 +902,6 @@
     margin-top: 2rem;
   }
 
-  .new-data-items-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.8rem;
-  }
-
-  .new-data-item {
-    padding: 1rem;
-    gap: 0.6rem;
-  }
-
-  .new-data-icon {
-    width: 45px;
-    height: 45px;
-    font-size: 1.3rem;
-  }
-
-  .new-data-label {
-    font-size: 0.8rem;
-  }
-
-  .new-data-value {
-    font-size: 1.4rem;
-  }
-
   .stats-sidebar h4 {
     font-size: 1rem;
     margin-bottom: 1.2rem;
@@ -525,8 +910,51 @@
   .stats-sidebar p {
     font-size: 0.8rem !important;
   }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .engagement-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
+/* Large Mobile (481px - 640px) */
+@media (max-width: 640px) {
+  .engagement-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-grid.system-records {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-card {
+    padding: 1.2rem;
+    gap: 1rem;
+  }
+
+  .metric-icon {
+    width: 55px;
+    height: 55px;
+    font-size: 1.8rem;
+  }
+
+  .metric-value {
+    font-size: 2rem;
+  }
+
+  .role-card {
+    padding: 1.5rem;
+  }
+
+  .activity-card li {
+    padding: 0.9rem;
+  }
+}
+
+/* Mobile (361px - 480px) */
 @media (max-width: 480px) {
   .admin-dashboard {
     padding: 1rem 0.5rem;
@@ -634,34 +1062,275 @@
     margin-bottom: 1rem !important;
   }
 
-  .new-data-items-grid {
+  .analytics-grid {
     grid-template-columns: 1fr;
-    gap: 0.8rem;
   }
 
-  .new-data-item {
-    padding: 0.9rem;
-    gap: 0.6rem;
+  .engagement-metrics-grid {
+    grid-template-columns: 1fr;
   }
 
-  .new-data-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-    border-radius: 8px;
+  .engagement-card {
+    padding: 1.5rem;
   }
 
-  .new-data-label {
-    font-size: 0.75rem;
-    margin-bottom: 0.2rem;
+  .engagement-value {
+    font-size: 2rem;
+  }
+}
+
+/* Small Mobile (up to 360px) */
+@media (max-width: 360px) {
+  .admin-dashboard {
+    padding: 0.75rem 0.25rem;
   }
 
-  .new-data-value {
+  .section-container {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-title {
     font-size: 1.3rem;
   }
 
-  .new-data-content {
-    gap: 0.2rem;
+  .dashboard-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr; /* Single column for all metric grids */
+    gap: 0.8rem;
+  }
+
+  .metrics-grid.system-records {
+    grid-template-columns: 1fr; /* Single column for system records */
+    gap: 0.8rem;
+  }
+
+  .metrics-grid.analytics {
+    grid-template-columns: 1fr; /* Single column for weekly analytics */
+    gap: 0.8rem;
+  }
+
+  .metric-card {
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+
+  .metric-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+  }
+
+  .role-card {
+    padding: 1rem;
+  }
+
+  .role-card h4 {
+    font-size: 0.9rem;
+  }
+
+  .role-card p {
+    font-size: 0.8rem;
+  }
+
+  .activity-card li {
+    padding: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .activity-message {
+    font-size: 0.85rem;
+  }
+
+  .activity-meta {
+    font-size: 0.7rem;
+  }
+
+  .engagement-card {
+    padding: 1.2rem;
+  }
+
+  .engagement-value {
+    font-size: 1.8rem;
+  }
+
+  .engagement-label {
+    font-size: 0.9rem;
+  }
+
+  .engagement-description {
+    font-size: 0.8rem;
+  }
+
+/* ================================
+   MOBILE OPTIMIZATIONS & ACCESSIBILITY
+================================ */
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .metric-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .role-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .activity-card li:hover {
+    transform: none;
+  }
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+  .metric-card,
+  .role-card,
+  .activity-card li,
+  .engagement-card {
+    min-height: 44px; /* iOS Human Interface Guidelines */
+    cursor: pointer;
+  }
+
+  .metric-card {
+    -webkit-tap-highlight-color: rgba(139, 92, 246, 0.1);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .metric-card,
+  .role-card,
+  .engagement-card {
+    border: 2px solid currentColor;
+  }
+
+  .section-container {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .metric-card,
+  .role-card,
+  .activity-card li {
+    transition: none;
+  }
+
+  .metric-card::before {
+    display: none;
+  }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  /* Add dark mode styles here if implementing dark theme */
+}
+
+/* Print styles */
+@media print {
+  .admin-dashboard {
+    padding: 0;
+  }
+
+  .section-container {
+    box-shadow: none;
+    border: 1px solid #000;
+    break-inside: avoid;
+  }
+
+  .metric-card,
+  .role-card,
+  .engagement-card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .chart-container {
+    display: none; /* Hide charts in print */
+  }
+}
+
+/* ================================
+   FLEXIBLE GRID SYSTEM
+================================ */
+
+/* Ensure grids are flexible and don't break */
+.metrics-grid,
+.engagement-metrics-grid,
+.role-layout,
+.analytics-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* Prevent grid items from becoming too small */
+.metrics-grid > *,
+.engagement-metrics-grid > *,
+.role-layout > *,
+.analytics-grid > * {
+  min-width: 0; /* Allow flex shrinking */
+}
+
+/* ================================
+   TEXT SCALING & READABILITY
+================================ */
+
+/* Improve text readability on small screens */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .metric-value {
+    line-height: 1.2;
+  }
+
+  .engagement-value {
+    line-height: 1.2;
+  }
+}
+
+/* ================================
+   HIGH-DPI DISPLAYS (RETINA)
+================================ */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .metric-card,
+  .role-card,
+  .engagement-card,
+  .section-container {
+    border-width: 0.5px;
+  }
+
+  .metric-card::before {
+    height: 1.5px;
+  }
+}
+
+/* ================================
+   SAFARI SPECIFIC FIXES
+================================ */
+
+@supports (-webkit-appearance: none) {
+  .metric-card,
+  .role-card,
+  .engagement-card {
+    -webkit-transform: translateZ(0); /* Force hardware acceleration */
   }
 }
 </style>
@@ -672,14 +1341,19 @@
     <!-- Header -->
     <div class="dashboard-header">
       <h1 class="dashboard-title">Admin Dashboard</h1>
-      <p class="dashboard-subtitle">System overview and management at a glance.</p>
+      <p class="dashboard-subtitle">Real-time system overview, analytics, and management at a glance.</p>
     </div>
 
-    <!-- User Accounts Metrics -->
+    <!-- Key Metrics: User Accounts -->
     <div class="section-container">
-      <div class="section-title">
-        <i class="fas fa-users"></i>
-        User Accounts
+      <div class="key-metrics-header">
+        <div class="section-title">
+          <i class="fas fa-users"></i>
+          User Accounts
+        </div>
+        <span class="metric-period-badge">
+          <i class="fas fa-clock"></i> Real-time
+        </span>
       </div>
 
       <div class="metrics-grid">
@@ -689,7 +1363,7 @@
           </div>
           <div class="metric-content">
             <span class="metric-label">Administrators</span>
-            <span class="metric-value">{{ stats.admins | default(5, true) }}</span>
+            <span class="metric-value">{{ stats.admins | default(0, true) }}</span>
           </div>
         </div>
 
@@ -699,7 +1373,7 @@
           </div>
           <div class="metric-content">
             <span class="metric-label">Pet Owners</span>
-            <span class="metric-value">{{ stats.owners | default(2840, true) }}</span>
+            <span class="metric-value">{{ stats.owners | default(0, true) }}</span>
           </div>
         </div>
 
@@ -709,7 +1383,7 @@
           </div>
           <div class="metric-content">
             <span class="metric-label">Service Providers</span>
-            <span class="metric-value">{{ stats.providers | default(186, true) }}</span>
+            <span class="metric-value">{{ stats.providers | default(0, true) }}</span>
           </div>
         </div>
       </div>
@@ -717,9 +1391,14 @@
 
     <!-- System Records Metrics -->
     <div class="section-container">
-      <div class="section-title">
-        <i class="fas fa-database"></i>
-        System Records
+      <div class="key-metrics-header">
+        <div class="section-title">
+          <i class="fas fa-database"></i>
+          System Records
+        </div>
+        <span class="metric-period-badge">
+          <i class="fas fa-chart-bar"></i> Total Data
+        </span>
       </div>
 
       <div class="metrics-grid system-records">
@@ -765,6 +1444,176 @@
       </div>
     </div>
 
+    <!-- WEEKLY ANALYTICS -->
+    <div class="section-container">
+      <div class="key-metrics-header">
+        <div class="section-title">
+          <i class="fas fa-chart-line"></i>
+          Weekly Analytics
+        </div>
+        <span class="metric-period-badge">
+          <i class="fas fa-calendar-week"></i> {{ stats.date_range }}
+        </span>
+      </div>
+
+      <div class="metrics-grid analytics">
+        <div class="metric-card">
+          <div class="metric-icon users">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">New Users Registered</span>
+            <span class="metric-value">{{ stats.new_users | default(0, true) }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon owners">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">New Pet Owners</span>
+            <span class="metric-value">{{ stats.new_owners | default(0, true) }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon providers">
+            <i class="fas fa-store"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">New Service Providers</span>
+            <span class="metric-value">{{ stats.new_merchants | default(0, true) }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon bookings">
+            <i class="fas fa-calendar-plus"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">New Bookings</span>
+            <span class="metric-value">{{ stats.new_bookings | default(0, true) }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon matches">
+            <i class="fas fa-heart"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">New Pet Matches</span>
+            <span class="metric-value">{{ stats.new_matches | default(0, true) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER ENGAGEMENT METRICS -->
+    <div class="section-container">
+      <div class="key-metrics-header">
+        <div class="section-title">
+          <i class="fas fa-activity"></i>
+          User Engagement & Activity Metrics
+        </div>
+        <span class="metric-period-badge">
+          <i class="fas fa-bolt"></i> Live Activity
+        </span>
+      </div>
+
+      <div class="engagement-metrics-grid">
+        <div class="engagement-card">
+          <div class="engagement-value">
+            <i class="fas fa-circle" style="color: #22c55e; font-size: 0.6em;"></i>
+            {{ stats.online_users | default(0, true) }}
+          </div>
+          <div class="engagement-label">Users Online Now</div>
+          <div class="engagement-description">Currently active users in the last 5 minutes</div>
+        </div>
+
+        <div class="engagement-card">
+          <div class="engagement-value">{{ stats.monthly_active_users | default(0, true) }}</div>
+          <div class="engagement-label">Monthly Active Users</div>
+          <div class="engagement-description">Active users in the last 30 days</div>
+        </div>
+
+        <div class="engagement-card">
+          <div class="engagement-value" id="activeUsersValue">{{ stats.active_users | default(0, true) }}</div>
+          <div class="engagement-label">Recent Active Users</div>
+          <div class="engagement-description">Users active in the last 7 days</div>
+        </div>
+
+        <div class="engagement-card">
+          <div class="engagement-value">{{ stats.inactive_users | default(0, true) }}</div>
+          <div class="engagement-label">Inactive Users</div>
+          <div class="engagement-description">Users not seen in the last 7 days</div>
+        </div>
+
+        <div class="engagement-card">
+          <div class="engagement-value">{{ stats.engagement_rate }}</div>
+          <div class="engagement-label">Engagement Rate</div>
+          <div class="engagement-description">Percentage of active users</div>
+        </div>
+
+        <div class="engagement-card">
+          <div class="engagement-value">{{ stats.avg_session_duration }}</div>
+          <div class="engagement-label">Avg. Session Duration</div>
+          <div class="engagement-description">Average time per user session</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS CHARTS -->
+    <div class="analytics-grid">
+      <!-- Daily New Users Chart -->
+      <div class="chart-container">
+        <div class="chart-title">
+          <i class="fas fa-chart-bar"></i>
+          New Users Per Day (Last 7 Days)
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="dailyUsersChart"></canvas>
+        </div>
+      </div>
+
+      <!-- User Growth Trend Chart -->
+      <div class="chart-container">
+        <div class="chart-title">
+          <i class="fas fa-arrow-trending-up"></i>
+          Cumulative User Growth Trend
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="growthTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Peak Activity Analysis -->
+    <div class="section-container">
+      <div class="key-metrics-header">
+        <div class="section-title">
+          <i class="fas fa-clock"></i>
+          Peak Activity Analysis
+        </div>
+        <span class="metric-period-badge">
+          <i class="fas fa-calendar-day"></i> Today
+        </span>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon engagement">
+            <i class="fas fa-hourglass-end"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Peak Activity Hour</span>
+            <span class="metric-value" style="font-size: 1.8rem;">{{ stats.peak_activity_hour }}</span>
+            <span class="metric-badge"><i class="fas fa-star"></i> Busiest Time</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Role Overview -->
     <div class="section-container">
       <div class="section-title">
@@ -804,7 +1653,7 @@
       <div class="section-container">
         <div class="section-title">
           <i class="fas fa-history"></i>
-          Recent Activities
+          Recent System Activities
         </div>
 
         <div class="activity-card">
@@ -825,58 +1674,10 @@
             {% else %}
               <div class="empty-activity">
                 <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                <p>No recent activity</p>
+                <p>No recent system activity</p>
               </div>
             {% endif %}
           </ul>
-        </div>
-      </div>
-
-      <!-- New Data Recorded Sidebar -->
-      <div class="stats-sidebar">
-        <h4><i class="fas fa-sparkles" style="color: #f59e0b; margin-right: 0.6rem;"></i>New Data Recorded</h4>
-        <p style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 1.5rem; margin-top: -0.5rem;">This week</p>
-        
-        <div class="new-data-items-grid">
-          <div class="new-data-item">
-            <div class="new-data-icon users-new">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="new-data-content">
-              <span class="new-data-label">New Users</span>
-              <span class="new-data-value">{{ stats.new_users | default(0, true) }}</span>
-            </div>
-          </div>
-
-          <div class="new-data-item">
-            <div class="new-data-icon merchants-new">
-              <i class="fas fa-store"></i>
-            </div>
-            <div class="new-data-content">
-              <span class="new-data-label">New Merchants</span>
-              <span class="new-data-value">{{ stats.new_merchants | default(0, true) }}</span>
-            </div>
-          </div>
-
-          <div class="new-data-item">
-            <div class="new-data-icon bookings-new">
-              <i class="fas fa-calendar-plus"></i>
-            </div>
-            <div class="new-data-content">
-              <span class="new-data-label">New Bookings</span>
-              <span class="new-data-value">{{ stats.new_bookings | default(0, true) }}</span>
-            </div>
-          </div>
-
-          <div class="new-data-item">
-            <div class="new-data-icon matches-new">
-              <i class="fas fa-heart"></i>
-            </div>
-            <div class="new-data-content">
-              <span class="new-data-label">New Matches</span>
-              <span class="new-data-value">{{ stats.new_matches | default(0, true) }}</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -884,41 +1685,33 @@
   </div>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Animate metric cards on load
-    document.querySelectorAll('.metric-card').forEach((card, index) => {
-      card.style.opacity = '0';
-      card.style.transform = 'translateY(20px)';
-      setTimeout(() => {
-        card.style.transition = 'all 0.5s ease';
-        card.style.opacity = '1';
-        card.style.transform = 'translateY(0)';
-      }, index * 100);
-    });
+<script type="application/json" id="dashboard-stats-data">
+{
+  "daily_users": {{ stats.daily_users | tojson | safe }},
+  "user_growth_trend": {{ stats.user_growth_trend | tojson | safe }},
+  "active_users": {{ stats.active_users | default(0, true) }}
+}
+</script>
 
-    // Animate activity items
-    document.querySelectorAll('.activity-card li:not(.empty-activity)').forEach((item, index) => {
-      item.style.opacity = '0';
-      item.style.transform = 'translateX(-20px)';
-      setTimeout(() => {
-        item.style.transition = 'all 0.4s ease';
-        item.style.opacity = '1';
-        item.style.transform = 'translateX(0)';
-      }, index * 80);
-    });
+<!-- External dashboard analytics script -->
+<script src="{{ url_for('static', filename='js/dashboard-analytics.js') }}" type="text/javascript"></script>
 
-    // Animate new data items
-    document.querySelectorAll('.new-data-item').forEach((item, index) => {
-      item.style.opacity = '0';
-      item.style.transform = 'translateX(20px)';
-      setTimeout(() => {
-        item.style.transition = 'all 0.4s ease';
-        item.style.opacity = '1';
-        item.style.transform = 'translateX(0)';
-      }, 500 + index * 100);
-    });
-  });
+<script type="text/javascript">
+  // Extract data from JSON script and make it available to dashboard-analytics.js
+  var dataElement = document.getElementById('dashboard-stats-data');
+  if (dataElement) {
+    try {
+      console.log('Raw JSON data:', dataElement.textContent);
+      window.dashboardStats = JSON.parse(dataElement.textContent);
+      console.log('Parsed dashboard stats:', window.dashboardStats);
+    } catch (error) {
+      console.error('Failed to parse dashboard stats:', error);
+      window.dashboardStats = {};
+    }
+  } else {
+    console.error('Dashboard stats data element not found');
+    window.dashboardStats = {};
+  }
 </script>
 
 {% endblock %}

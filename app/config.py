@@ -42,7 +42,7 @@ class Config:
     # GOOGLE OAUTH CONFIG
     # =========================
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "246292318836-fh4abergpjnerh6nj55plpr0lusrqu0q.apps.googleusercontent.com")
-    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "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")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "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")
     
     # OAuth Settings
     AUTHLIB_INSECURE_TRANSPORT = os.getenv("AUTHLIB_INSECURE_TRANSPORT", "False").lower() in ("true", "1", "yes")

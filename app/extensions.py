@@ -43,7 +43,7 @@ csrf = CSRFProtect()
 # Uses eventlet for high-performance async I/O and greenlet concurrency
 socketio = SocketIO(
     # Performance optimizations
-    async_mode='gevent',  # High-performance async mode
+    async_mode='eventlet',  # High-performance async mode (matches production guide)
     cors_allowed_origins="*",
     
     # Connection parameters

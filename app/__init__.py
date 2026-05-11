@@ -15,11 +15,8 @@ def create_app(config_class: type = Config):
 
     from werkzeug.middleware.proxy_fix import ProxyFix
 
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-
-    app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    # CRITICAL: Include x_for=1 to properly handle X-Forwarded-For header
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1)
 
     # Always load base config first
     app.config.from_object(config_class)
@@ -30,6 +27,11 @@ def create_app(config_class: type = Config):
         app.config.from_object(ProductionConfig)
     else:
         app.config.from_object(DevelopmentConfig)
+
+    # Session cookie settings - set AFTER config loading to ensure they take effect
+    app.config['SESSION_COOKIE_SECURE'] = True if env == "production" else False
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
     # Initialize extensions
 

@@ -111,11 +111,7 @@ class ProductionConfig(Config):
         "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
     )
 
-    # Session & cookies
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    REMEMBER_COOKIE_DURATION = timedelta(days=7)
+    # REMEMBER_COOKIE_DURATION = timedelta(days=7)  # Uncomment if using remember me
 
     # Password reset token expiry (seconds)
     RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))

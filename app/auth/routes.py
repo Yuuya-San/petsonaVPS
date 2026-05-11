@@ -21,6 +21,7 @@ import secrets
 import pytz
 import hashlib
 
+
 # Philippine timezone helper
 PH_TZ = pytz.timezone('Asia/Manila')
 
@@ -427,6 +428,21 @@ def login():
     return render_template('auth/login.html', form=form)
 
         
+@bp.route('/debug/session')
+def debug_session():
+    """Debug route to check session state - REMOVE IN PRODUCTION"""
+    from flask import jsonify
+    return jsonify({
+        'current_user_authenticated': current_user.is_authenticated,
+        'current_user_id': current_user.id if current_user.is_authenticated else None,
+        'current_user_email': current_user.email if current_user.is_authenticated else None,
+        'session_keys': list(session.keys()),
+        'session_permanent': session.permanent,
+        'session_modified': session.modified,
+        'cookies': dict(request.cookies),
+        'headers': dict(request.headers)
+    })
+
 @bp.route('/admin-login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def admin_login():
@@ -444,8 +460,8 @@ def admin_login():
                 flash('You are already logged in as another user. Please log out first to switch accounts.', 'warning')
                 return redirect(url_for('auth.login'))
 
-        # Clear session to ensure no old user data remains
-        session.clear()
+        # DON'T clear session here - it can interfere with login process
+        # Only clear if you need to remove specific keys, not the entire session
 
         base_meta = {'email': email}
 
@@ -481,7 +497,19 @@ def admin_login():
             user.lockout_until = None
             db.session.commit()
 
-            login_user(user)
+            # Perform login and verify it worked
+            login_success = login_user(user)
+            if not login_success:
+                current_app.logger.error(f"login_user() failed for user {user.id}")
+                flash('Login failed. Please try again.', 'danger')
+                return redirect(url_for('auth.admin_login'))
+
+            # DEBUG: Add logging to verify session state
+            current_app.logger.info(f"User {user.id} logged in successfully. current_user.is_authenticated: {current_user.is_authenticated}")
+            current_app.logger.info(f"Session keys after login: {list(session.keys())}")
+            current_app.logger.info(f"Session cookie name: {current_app.config.get('SESSION_COOKIE_NAME', 'session')}")
+            current_app.logger.info(f"Session permanent: {session.permanent}")
+
             log_event(
                 'admin.login_success',
                 details={'user': user_snapshot(user), 'ip': request.remote_addr}

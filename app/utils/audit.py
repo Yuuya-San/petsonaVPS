@@ -13,21 +13,36 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
-def log_event(event: str, details: dict = None):
-    log = AuditLog(
-        event=event,
-        actor_id=current_user.id if current_user.is_authenticated else None,
-        actor_email=current_user.email if current_user.is_authenticated else None,
-        ip_address=request.remote_addr,
-        user_agent=request.headers.get('User-Agent'),
-        timestamp=get_ph_datetime()
-    )
+def log_event(event: str, details: dict = None, commit: bool = False):
+    """
+    Log an audit event to the database.
+    
+    Args:
+        event: The event type/name
+        details: Optional dict of event details
+        commit: Whether to commit immediately (default: False to prevent slowness)
+    """
+    try:
+        log = AuditLog(
+            event=event,
+            actor_id=current_user.id if current_user.is_authenticated else None,
+            actor_email=current_user.email if current_user.is_authenticated else None,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
+        )
 
-    if details:
-        log.set_details(details)
+        if details:
+            log.set_details(details)
 
-    db.session.add(log)
-    db.session.commit()
+        db.session.add(log)
+        
+        if commit:
+            db.session.commit()
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to log event '{event}': {str(e)}")
+        db.session.rollback()
 
 def user_snapshot(user):
     """Return all User fields as a dict for audit logging."""

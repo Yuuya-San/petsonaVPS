@@ -23,6 +23,19 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
+    
+    # Connection pooling - CRITICAL for preventing connection exhaustion
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 20,
+        'pool_recycle': 3600,
+        'pool_pre_ping': True,
+        'max_overflow': 40,
+        'connect_args': {
+            'connect_timeout': 10,
+            'read_timeout': 30,
+            'write_timeout': 30,
+        }
+    }
 
     RATELIMIT_STORAGE_URI = "redis://localhost:6379/2"
     

@@ -14,27 +14,21 @@ import random
 from datetime import datetime, timedelta
 from ..extensions import limiter
 from .emails import send_password_reset_email, send_backup_codes_email, send_registration_otp_email, send_email
-from app.utils.audit import log_event, user_snapshot
+from app.utils.audit import log_event, user_snapshot, get_ph_datetime
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 import pyotp # pyright: ignore[reportMissingImports]
 import secrets
-import pytz
 import hashlib
 
-# Philippine timezone helper
-PH_TZ = pytz.timezone('Asia/Manila')
-
-def get_ph_datetime():
-    """Get current datetime in Philippine timezone"""
-    return datetime.now(PH_TZ)
-import pytz
-
-# Philippine timezone helper
-PH_TZ = pytz.timezone('Asia/Manila')
-
-def get_ph_datetime():
-    """Get current datetime in Philippine timezone"""
-    return datetime.now(PH_TZ)
+# Safe database query helper to prevent connection pool exhaustion
+def safe_query(query_func, *args, **kwargs):
+    """Wrapper to safely execute database queries with error handling"""
+    try:
+        return query_func(*args, **kwargs)
+    except Exception as e:
+        current_app.logger.error(f"Database query error: {e}")
+        db.session.rollback()  # Ensure session is rolled back on error
+        return None
 
 
 DEFAULT_AVATARS = [
@@ -343,10 +337,8 @@ def google_callback():
 def login():
     form = LoginForm()
 
-
     if form.validate_on_submit():
         email = form.email.data.lower()
-        user = User.query.filter_by(email=email).first()
         base_meta = {'email': email}
 
         # Always log out any existing user before a new login attempt
@@ -356,25 +348,32 @@ def login():
 
         # Clear session to ensure no old user data remains
         session.clear()
+        
+        # Query user AFTER session is cleared to avoid connection conflicts
+        try:
+            user = User.query.filter_by(email=email).first()
+        except Exception as e:
+            current_app.logger.error(f"Database error during login: {e}")
+            flash('Database error. Please try again.', 'danger')
+            return redirect(url_for('auth.login'))
 
-        import secrets
         # Generate a new session token for this login
         session_token = secrets.token_urlsafe(32)
 
-        if not user:
-            log_event('user.login_failed', details={**base_meta, 'reason': 'no_user'})
+        if user is None:
+            log_event('user.login_failed', details={**base_meta, 'reason': 'no_user'}, commit=False)
             flash('Invalid email or password.', 'danger')
             return redirect(url_for('auth.login'))
         
         # Check if user registered via Google - they must use Google login
         if user.registration_method == 'google':
-            log_event('user.login_failed', details={**base_meta, 'reason': 'google_account_must_use_google_login'})
+            log_event('user.login_failed', details={**base_meta, 'reason': 'google_account_must_use_google_login'}, commit=False)
             flash('This account was created using Google Sign-In. Please use the Google login button instead.', 'danger')
             return redirect(url_for('auth.login'))
 
         # Lockout check
         if user.lockout_until and user.lockout_until > get_ph_datetime():
-            log_event('user.login_locked', details={'locked_until': user.lockout_until.isoformat()})
+            log_event('user.login_locked', details={'locked_until': user.lockout_until.isoformat()}, commit=False)
             flash('Account temporarily locked due to too many failed login attempts. Try again later.', 'danger')
             return redirect(url_for('auth.login'))
 
@@ -384,20 +383,19 @@ def login():
                 # Store user info in session for 2FA verification
                 session['pending_2fa_user_id'] = user.id
                 session['pending_2fa_login_type'] = 'user'
-                log_event('user.login_pending_2fa', details={'email': email})
+                db.session.commit()  # Commit session update before redirect
+                log_event('user.login_pending_2fa', details={'email': email}, commit=False)
                 return redirect(url_for('auth.verify_2fa'))
 
-            # Success: reset counters
+            # Success: reset counters and update session token in one commit
             user.failed_login_attempts = 0
             user.lockout_until = None
-            db.session.commit()
-
-            # Save session token to user and session
             user.session_token = session_token
-            db.session.commit()
+            db.session.commit()  # Single commit for all user updates
+            
             session['session_token'] = session_token
             login_user(user)
-            log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr})
+            log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr}, commit=False)
 
             # Redirect based on role
             if user.role == 'user':
@@ -417,12 +415,12 @@ def login():
 
             if user.failed_login_attempts >= max_attempts:
                 user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
-                db.session.commit()
-                log_event('user.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts})
+                db.session.commit()  # Single commit for lockout
+                log_event('user.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
                 flash('Account locked due to many failed attempts. Please try again later.', 'danger')
             else:
-                db.session.commit()
-                log_event('user.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts})
+                db.session.commit()  # Single commit for failed attempt
+                log_event('user.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
                 flash('Invalid email or password.', 'danger')
 
             return redirect(url_for('auth.login'))
@@ -444,61 +442,68 @@ def admin_login():
 
     if form.validate_on_submit():
         email = form.email.data.lower()
-        user = User.query.filter_by(email=email, role='admin').first()
-
+        base_meta = {'email': email}
+        
         # Enforce single-login-per-session: if already logged in as another user, prevent login
         if current_user.is_authenticated:
-            if current_user.id != (user.id if user else None):
+            # Query admin user first to compare ID
+            try:
+                temp_user = User.query.filter_by(email=email, role='admin').first()
+            except Exception as e:
+                current_app.logger.error(f"Database error during admin login check: {e}")
+                flash('Database error. Please try again.', 'danger')
+                return redirect(url_for('auth.admin_login'))
+                
+            if current_user.id != (temp_user.id if temp_user else None):
                 flash('You are already logged in as another user. Please log out first to switch accounts.', 'warning')
                 return redirect(url_for('auth.login'))
 
         # Clear session to ensure no old user data remains
         session.clear()
-
-        base_meta = {'email': email}
+        
+        # Query admin user AFTER session is cleared
+        try:
+            user = User.query.filter_by(email=email, role='admin').first()
+        except Exception as e:
+            current_app.logger.error(f"Database error during admin login: {e}")
+            flash('Database error. Please try again.', 'danger')
+            return redirect(url_for('auth.admin_login'))
 
         # No admin found
-        if not user:
-            log_event(
-                'admin.login_failed', details={**base_meta, 'reason': 'no_admin'})
+        if user is None:
+            log_event('admin.login_failed', details={**base_meta, 'reason': 'no_admin'}, commit=False)
             flash('Invalid admin credentials.', 'danger')
             return redirect(url_for('auth.admin_login'))
 
         # Account locked
         if user.lockout_until and user.lockout_until > get_ph_datetime():
-            log_event(
-                'admin.login_locked',
-                details={'locked_until': user.lockout_until.isoformat()}
-            )
+            log_event('admin.login_locked', details={'locked_until': user.lockout_until.isoformat()}, commit=False)
             flash('Account temporarily locked. Try again later.', 'danger')
             return redirect(url_for('auth.admin_login'))
 
         # Password correct
         if user.check_password(form.password.data):
-
             # 2FA check
             if user.is_2fa_enabled:
                 # Store user info in session for 2FA verification
                 session['pending_2fa_user_id'] = user.id
                 session['pending_2fa_login_type'] = 'admin'
-                log_event('admin.login_pending_2fa', details={'email': email})
+                db.session.commit()  # Commit session update before redirect
+                log_event('admin.login_pending_2fa', details={'email': email}, commit=False)
                 return redirect(url_for('auth.verify_2fa'))
 
-            # Successful login
+            # Successful login - single commit
             user.failed_login_attempts = 0
             user.lockout_until = None
             db.session.commit()
 
             login_user(user)
-            log_event(
-                'admin.login_success',
-                details={'user': user_snapshot(user), 'ip': request.remote_addr}
-            )
+            log_event('admin.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr}, commit=False)
 
             flash('Admin login successful.', 'success')
             return redirect(url_for('admin.dashboard'))
 
-        # Wrong password
+        # Wrong password - single commit with audit log
         user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
 
         # Safe config access
@@ -508,21 +513,11 @@ def admin_login():
         if user.failed_login_attempts >= max_attempts:
             user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
             db.session.commit()
-
-            log_event(
-                'admin.account_locked',
-                details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}
-            )
-            flash(
-                'Account locked due to many failed attempts. Please try again later.',
-                'danger'
-            )
+            log_event('admin.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
+            flash('Account locked due to many failed attempts. Please try again later.', 'danger')
         else:
             db.session.commit()
-            log_event(
-                'admin.login_failed',
-                details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}
-            )
+            log_event('admin.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
             flash('Invalid admin credentials.', 'danger')
 
         return redirect(url_for('auth.admin_login'))

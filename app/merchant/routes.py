@@ -15,6 +15,7 @@ from app.models.merchant import Merchant
 from app.models.booking import Booking
 from app.models.notification import Notification
 from app.models.user import User
+from app.models.vote import Vote
 from app.models.review import Review
 from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
@@ -105,6 +106,15 @@ def dashboard():
     
     # Calculate completion rate as percentage of completed vs total bookings
     completion_rate = round((total_completed / total_bookings * 100) if total_bookings > 0 else 0)
+
+    # Calculate estimated monthly revenue from completed bookings in the current month
+    now = datetime.now()
+    monthly_revenue = db.session.query(func.sum(Booking.total_amount)).filter(
+        Booking.merchant_id == merchant.id,
+        Booking.status == 'completed',
+        func.extract('year', Booking.appointment_date) == now.year,
+        func.extract('month', Booking.appointment_date) == now.month
+    ).scalar() or 0.0
     
     # Retrieve top 3 active pet species by popularity
     top_species = Species.query.filter(
@@ -122,6 +132,7 @@ def dashboard():
         completed_count=total_completed,
         no_show_count=total_no_show,
         completion_rate=completion_rate,
+        monthly_revenue=monthly_revenue,
         recent_bookings=recent_bookings
     )
 
@@ -339,7 +350,7 @@ def upload_logo():
         file_size = file.tell()
         file.seek(0)
         
-        if file_size > MAX_FILE_SIZE:
+        if file_size > MAX_FILE_SIZE: # pyright: ignore[reportUndefinedVariable]
             return jsonify({'success': False, 'message': 'File too large. Max 5MB'}), 400
         
         # Create upload directory using user ID (grouped by user, not merchant)
@@ -469,7 +480,7 @@ def store_edit():
                     file_size = logo_file.tell()
                     logo_file.seek(0)
                     
-                    if file_size <= MAX_FILE_SIZE:
+                    if file_size <= MAX_FILE_SIZE: # pyright: ignore[reportUndefinedVariable]
                         # Create merchant upload directory
                         upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
                         os.makedirs(upload_dir, exist_ok=True)
@@ -859,9 +870,19 @@ def species_index():
 
     species_list = pagination.items
 
+    species_ids = [species.id for species in species_list]
+    voted_species_ids = set()
+    if species_ids:
+        user_votes = Vote.query.filter(
+            Vote.user_id == current_user.id,
+            Vote.species_id.in_(species_ids)
+        ).all()
+        voted_species_ids = {vote.species_id for vote in user_votes}
+
     return render_template(
         'merchant/species_index.html',
         species_list=species_list,
+        voted_species_ids=voted_species_ids,
         pagination=pagination,
         page_title="Pet Species"
     )
@@ -879,10 +900,20 @@ def view_species(id):
         is_active=True   
     ).order_by(Breed.name.asc()).all()
 
+    breed_ids = [breed.id for breed in breeds]
+    voted_breed_ids = set()
+    if breed_ids:
+        user_votes = Vote.query.filter(
+            Vote.user_id == current_user.id,
+            Vote.breed_id.in_(breed_ids)
+        ).all()
+        voted_breed_ids = {vote.breed_id for vote in user_votes}
+
     return render_template(
         'merchant/view_species.html',
         species=species,
         breeds=breeds,
+        voted_breed_ids=voted_breed_ids,
         page_title=f"{species.name} Breeds"
     )
 

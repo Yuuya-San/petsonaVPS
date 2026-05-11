@@ -534,7 +534,7 @@ def get_merchants():
                     'latitude': float(merchant.latitude) if merchant.latitude else None,
                     'longitude': float(merchant.longitude) if merchant.longitude else None,
                     'full_address': merchant.full_address or 'N/A',
-                    'services_offered': merchant.services_offered or [],
+                    'services_offered': merchant.get_services_list() or [],
                     'pets_accepted': merchant.pets_accepted or [],
                     'service_pricing': merchant.service_pricing or {},
                     'cancellation_policy': merchant.cancellation_policy or '',

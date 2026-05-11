@@ -1,3 +1,6 @@
+import eventlet # pyright: ignore[reportMissingImports]
+eventlet.monkey_patch()
+
 from app import create_app, db
 from app.models import *
 import os
@@ -58,29 +61,13 @@ if __name__ == '__main__':
             allow_unsafe_werkzeug=True
         )
     else:
-        # Production server with eventlet (high-performance greenlet-based async)
-        print(f"🚀 Starting production server with eventlet (async mode)")
-        print(f"🔗 Visit http://{host}:{port}")
-        print("⚠️  For production, deploy behind Nginx/Apache with proper TLS/SSL")
+        # Production server with eventlet (more efficient for WebSockets)
+        print("🚀 Starting production server with eventlet")
         
-        try:
-            import eventlet # pyright: ignore[reportMissingImports]
-            eventlet.monkey_patch()
-            socketio.run(
-                app,
-                host=host,
-                port=port,
-                debug=False,
-                allow_unsafe_werkzeug=False
-            )
-        except ImportError:
-            print("⚠️  Eventlet not installed. Falling back to Flask-SocketIO default async server.")
-            print("    Install it: pip install eventlet")
-            socketio.run(
-                app,
-                host=host,
-                port=port,
-                debug=False,
-                allow_unsafe_werkzeug=False
-            )
+        socketio.run(
+            app,
+            host=host,
+            port=port,
+            debug=False
+        )
 

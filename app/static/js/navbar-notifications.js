@@ -111,9 +111,9 @@ function initializeNotificationSocket() {
         setTimeout(initializeNotificationSocket, 500);
         return;
     }
-    
+
     console.log('📡 Socket.IO available, initializing notification socket...');
-    
+
     notificationSocket = io({
         transports: ['websocket'],
         upgrade: false,
@@ -340,57 +340,68 @@ function requestNotificationPermission() {
     }
 }
 
-// === FETCH NOTIFICATIONS ON DROPDOWN CLICK ===
+// ===== FETCH NOTIFICATIONS ON DROPDOWN CLICK ====
 document.addEventListener('DOMContentLoaded', function() {
-    // Inject aggressive CSS to force new design
-    injectNotificationCSS();
-    
-    // Initialize Socket.IO when page loads
-    initializeNotificationSocket();
-    
-    // Find the notifications dropdown trigger
-    const notificationsDropdown = document.querySelector('[data-toggle="dropdown"][href="#"]');
-    
-    if (notificationsDropdown) {
-        notificationsDropdown.addEventListener('click', function() {
-            // Emit request to get notifications
-            if (isSocketConnected && notificationSocket) {
-                notificationSocket.emit('get_notifications');
-            }
-        });
-    }
-    
-    // Setup notification modal navigation buttons
-    const prevBtn = document.getElementById('notifPrevBtn');
-    const nextBtn = document.getElementById('notifNextBtn');
-    
-    if (prevBtn) {
-        prevBtn.addEventListener('click', function() {
-            if (currentNotificationIndex > 0) {
-                currentNotificationIndex--;
-                displayNotificationModal(allNotifications[currentNotificationIndex]);
-            }
-        });
-    }
-    
-    if (nextBtn) {
-        nextBtn.addEventListener('click', function() {
-            if (currentNotificationIndex < allNotifications.length - 1) {
-                currentNotificationIndex++;
-                displayNotificationModal(allNotifications[currentNotificationIndex]);
-            }
-        });
-    }
-    
-    // Request notification permission
-    requestNotificationPermission();
-    
-    // Refresh notifications every 30 seconds
-    setInterval(function() {
-        if (isSocketConnected && notificationSocket) {
-            notificationSocket.emit('get_unread_count');
+    // Wait for jQuery to be loaded
+    function waitForJQuery(callback) {
+        if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
+            callback();
+        } else {
+            setTimeout(() => waitForJQuery(callback), 100);
         }
-    }, 30000);
+    }
+
+    waitForJQuery(() => {
+        // Inject aggressive CSS to force new design
+        injectNotificationCSS();
+        
+        // Initialize Socket.IO when page loads
+        initializeNotificationSocket();
+        
+        // Find the notifications dropdown trigger
+        const notificationsDropdown = document.querySelector('[data-toggle="dropdown"][href="#"]');
+        
+        if (notificationsDropdown) {
+            notificationsDropdown.addEventListener('click', function() {
+                // Emit request to get notifications
+                if (isSocketConnected && notificationSocket) {
+                    notificationSocket.emit('get_notifications');
+                }
+            });
+        }
+        
+        // Setup notification modal navigation buttons
+        const prevBtn = document.getElementById('notifPrevBtn');
+        const nextBtn = document.getElementById('notifNextBtn');
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function() {
+                if (currentNotificationIndex > 0) {
+                    currentNotificationIndex--;
+                    displayNotificationModal(allNotifications[currentNotificationIndex]);
+                }
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                if (currentNotificationIndex < allNotifications.length - 1) {
+                    currentNotificationIndex++;
+                    displayNotificationModal(allNotifications[currentNotificationIndex]);
+                }
+            });
+        }
+        
+        // Request notification permission
+        requestNotificationPermission();
+        
+        // Refresh notifications every 30 seconds
+        setInterval(function() {
+            if (isSocketConnected && notificationSocket) {
+                notificationSocket.emit('get_unread_count');
+            }
+        }, 30000);
+    });
 });
 
 // === MARK NOTIFICATION AS READ ===

@@ -252,7 +252,7 @@ def init_redis_for_socketio(app, socketio):
     
     if not use_redis:
         logger.info("Redis support disabled for Socket.IO")
-        socketio.init_app(app)
+        socketio.init_app(app, async_mode='eventlet')
         return None
     
     try:
@@ -264,20 +264,21 @@ def init_redis_for_socketio(app, socketio):
             try:
                 socketio.init_app(
                     app,
+                    async_mode='eventlet',
                     message_queue=redis_url or 'redis://localhost:6379/1'
                 )
                 logger.info("✅ Socket.IO configured with Redis message queue")
             except Exception as e:
                 logger.warning(f"Could not configure Socket.IO Redis queue: {e}")
-                socketio.init_app(app)
+                socketio.init_app(app, async_mode='eventlet')
         else:
-            socketio.init_app(app)
+            socketio.init_app(app, async_mode='eventlet')
         
         return redis_manager
     
     except Exception as e:
         logger.error(f"Error initializing Redis: {e}")
-        socketio.init_app(app)
+        socketio.init_app(app, async_mode='eventlet')
         return None
 
 

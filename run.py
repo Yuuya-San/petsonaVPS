@@ -65,17 +65,18 @@ if __name__ == '__main__':
         print(f"🔗 Visit http://{host}:{port}")
         print("⚠️  For production, deploy behind Nginx/Apache with proper TLS/SSL")
         
-        # Import eventlet for production
         try:
             import eventlet # pyright: ignore[reportMissingImports]
-            eventlet.wsgi.server(
-                eventlet.listen((host, port)),
+            eventlet.monkey_patch()
+            socketio.run(
                 app,
-                log=logging.getLogger('eventlet'),
-                debug=False
+                host=host,
+                port=port,
+                debug=False,
+                allow_unsafe_werkzeug=False
             )
         except ImportError:
-            print("⚠️  Eventlet not installed. Falling back to threading mode.")
+            print("⚠️  Eventlet not installed. Falling back to Flask-SocketIO default async server.")
             print("    Install it: pip install eventlet")
             socketio.run(
                 app,

@@ -4,8 +4,7 @@ from werkzeug.exceptions import RequestEntityTooLarge # pyright: ignore[reportMi
 from .config import Config
 from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman, socketio, oauth
 from app.utils.db_init import ensure_database_exists, create_tables
-
-# Import User model for login manager
+from app.redis_manager import init_redis_for_socketio
 from app.models import *
 from .config import DevelopmentConfig, ProductionConfig
 import os
@@ -35,7 +34,7 @@ def create_app(config_class: type = Config):
     talisman.init_app(app, content_security_policy=app.config.get("CSP", {}))
     from app.extensions import csrf
     csrf.init_app(app)
-    socketio.init_app(app)
+    init_redis_for_socketio(app, socketio)
     oauth.init_app(app)
     
     # Initialize QR Code generator
@@ -165,6 +164,11 @@ def create_app(config_class: type = Config):
 
     # SOCKET.IO EVENTS
     from . import socket_events
+
+    # SOCKET.IO MONITORING
+    from app.socket_monitoring import create_monitoring_blueprint
+    monitoring_bp = create_monitoring_blueprint(app)
+    app.register_blueprint(monitoring_bp)
 
     # TEMPLATE CONTEXT PROCESSORS
     @app.context_processor

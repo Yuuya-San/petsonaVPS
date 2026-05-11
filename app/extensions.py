@@ -66,9 +66,6 @@ socketio = SocketIO(
     
     # Connection state management
     manage_acks=True,  # Track message acknowledgments
-    
-    # Namespace settings
-    namespace='/socket.io',
 )
 
 # OAuth for social login

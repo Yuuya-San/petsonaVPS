@@ -15,28 +15,35 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
 
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:@localhost:3307/petsona")
-    #SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway"
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URI",
+        "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     
     # Mail
-    MAIL_SERVER = "smtp.gmail.com"
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False  # TLS is enough
-    MAIL_USERNAME = "jeysalas05@gmail.com"
-    MAIL_PASSWORD = "dvwj yvbl kqxu rbya"  # your Gmail app password
-    MAIL_DEFAULT_SENDER = "jeysalas05@gmail.com"
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True").lower() in ("true", "1", "yes")
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False").lower() in ("true", "1", "yes")
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "jeysalas05@gmail.com")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "dvwj yvbl kqxu rbya")
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME)
+    
+    # Redis / Socket.IO queue
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    SOCKETIO_USE_REDIS = os.getenv("SOCKETIO_USE_REDIS", "False").lower() in ("true", "1", "yes")
+    SOCKETIO_REDIS_URL = os.getenv("SOCKETIO_REDIS_URL", os.getenv("REDIS_URL", "redis://localhost:6379/1"))
 
     # =========================
     # GOOGLE OAUTH CONFIG
     # =========================
-    GOOGLE_CLIENT_ID = "246292318836-fh4abergpjnerh6nj55plpr0lusrqu0q.apps.googleusercontent.com"
-    GOOGLE_CLIENT_SECRET = "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"
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "246292318836-fh4abergpjnerh6nj55plpr0lusrqu0q.apps.googleusercontent.com")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "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")
     
     # OAuth Settings
-    AUTHLIB_INSECURE_TRANSPORT = True  # Allow HTTP for development
+    AUTHLIB_INSECURE_TRANSPORT = os.getenv("AUTHLIB_INSECURE_TRANSPORT", "False").lower() in ("true", "1", "yes")
 
     # File Upload Configuration
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'messages')
@@ -63,9 +70,11 @@ class DevelopmentConfig(Config):
     """Development config - allow insecure cookies on HTTP dev"""
     DEBUG = True
     SESSION_COOKIE_SECURE = False  # safe for localhost dev
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:@localhost:3307/petsona")
-    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway")
-
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URI",
+        "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
+    )
+    AUTHLIB_INSECURE_TRANSPORT = True
 
     # Password reset token expiry (seconds)
     RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))
@@ -75,7 +84,10 @@ class ProductionConfig(Config):
     """Production config - secure defaults"""
     DEBUG = False
     SESSION_COOKIE_SECURE = True  # must use HTTPS
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI", "mysql+pymysql://root:XlRpAtwFOLztqnYRWAISFMXeuqFoPrqv@switchyard.proxy.rlwy.net:31309/railway")
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URI",
+        "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
+    )
 
     # Session & cookies
     SESSION_COOKIE_SECURE = True

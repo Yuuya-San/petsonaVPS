@@ -27,6 +27,8 @@ class NavbarSocketManager {
         this.socket = window.navbarSocket;
       } else {
         this.socket = io({
+          transports: ['websocket'],
+          upgrade: false,
           reconnection: true,
           reconnectionDelay: 1000,
           reconnectionDelayMax: 5000,

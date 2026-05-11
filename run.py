@@ -1,6 +1,3 @@
-import eventlet # pyright: ignore[reportMissingImports]
-eventlet.monkey_patch()
-
 from app import create_app, db
 from app.models import *
 import os
@@ -43,31 +40,13 @@ with app.app_context():
         print(f"Admin account already exists: {ADMIN_EMAIL}")
 
 if __name__ == '__main__':
-    # Get environment settings
-    flask_env = os.getenv("FLASK_ENV", "development")
-    debug_mode = flask_env == "development"
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "5000"))
-    
-    if debug_mode:
-        # Development server with threading (less efficient but easier to debug)
-        print(f"🚀 Starting development server (threading mode)")
-        print(f"🔗 Visit http://{host}:{port}")
-        socketio.run(
-            app,
-            host=host,
-            port=port,
-            debug=True,
-            allow_unsafe_werkzeug=True
-        )
-    else:
-        # Production server with eventlet (more efficient for WebSockets)
-        print("🚀 Starting production server with eventlet")
-        
-        socketio.run(
-            app,
-            host=host,
-            port=port,
-            debug=False
-        )
+
+    socketio.run(
+        app,
+        host=host,
+        port=port,
+        debug=True
+    )
 

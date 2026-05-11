@@ -21,6 +21,8 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
+
+    RATELIMIT_STORAGE_URI = "redis://localhost:6379/2"
     
     # Mail
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")

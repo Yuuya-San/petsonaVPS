@@ -57,7 +57,7 @@
                     {% if other_user.photo_url %}
                       <img src="{{ url_for('static', filename=other_user.photo_url) }}" alt="{{ other_user.first_name }}" class="img-circle mr-2" style="width: 36px; height: 36px; object-fit: cover; flex-shrink: 0;">
                     {% else %}
-                      <div class="img-circle mr-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: #c8a2ff; color: white; font-weight: bold; flex-shrink: 0;">{{ other_user.first_name[0] }}</div>
+                      <div class="img-circle mr-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: #ffffff; color: #c8a2ff; font-weight: bold; flex-shrink: 0;">{{ other_user.first_name[0] }}</div>
                     {% endif %}
                     <div style="min-width: 0; flex: 1;">
                       <p class="mb-0 text-dark font-weight-bold message-user-name">{{ other_user.first_name }} {{ other_user.last_name }}</p>

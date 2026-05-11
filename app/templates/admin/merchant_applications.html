@@ -1,0 +1,2513 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Partner Applications - Admin{% endblock %}
+
+{% block content %}
+<div x-data="merchantApplications()" @mount="init()" x-cloak class="min-h-screen py-8 px-3 sm:px-5 lg:px-6 relative overflow-hidden">
+    <div class="mx-auto relative z-10" style="max-width: 1600px;">
+        <!-- Header Section -->
+        <div class="mb-12">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="p-3 bg-gradient-to-br from-purple-100 to-purple-50 backdrop-blur-xl rounded-2xl shadow-lg border border-purple-200">
+                    <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="page-title">Partner Applications</h1>
+                    <p class="page-subtitle">Review and manage merchant partnership applications</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon total">
+                <lord-icon
+                    src="https://cdn.lordicon.com/noncoqhc.json"
+                    trigger="hover"
+                    state="hover-squeeze"
+                    style="width:50px;height:50px">
+                </lord-icon>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Total Applications</p>
+                    <p class="stat-number" x-text="totalStats.total">0</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <lord-icon
+                        src="https://cdn.lordicon.com/twpfmtiv.json"
+                        trigger="hover"
+                        state="hover-oscillate"
+                        style="width:50px;height:50px">
+                    </lord-icon>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Pending</p>
+                    <p class="stat-number" x-text="totalStats.pending">0</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon approved">
+                    <lord-icon
+                        src="https://cdn.lordicon.com/wbwvtzuo.json"
+                        trigger="hover"
+                        state="hover-loading"
+                        style="width:50px;height:50px">
+                    </lord-icon>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Approved</p>
+                    <p class="stat-number" x-text="totalStats.approved">0</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon rejected">
+                    <lord-icon
+                        src="https://cdn.lordicon.com/uziyiqqa.json"
+                        trigger="hover"
+                        style="width:50px;height:50px">
+                    </lord-icon>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Rejected</p>
+                    <p class="stat-number" x-text="totalStats.rejected">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-card">
+            <div class="search-filter-content">
+                <!-- Search Box with Icon -->
+                <div class="search-box-wrapper">
+                    <label class="search-label">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>Search Applications</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        x-model="searchTerm"
+                        placeholder="Search by business name, owner, ID, location..."
+                        class="search-input"
+                    >
+                </div>
+                
+                <!-- Filter Dropdown -->
+                <div class="filter-box-wrapper">
+                    <label class="filter-label">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Status</span>
+                    </label>
+                    <select 
+                        x-model="statusFilter"
+                        class="filter-select"
+                    >
+                        <option value="all">All Applications</option>
+                        <option value="pending">Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div x-show="!isLoading" class="applications-card">
+            <div class="table-container">
+                <table class="applications-table">
+                    <thead>
+                        <tr>
+                            <th class="th-business">Business Name</th>
+                            <th class="th-status">Status</th>
+                            <th class="th-location">Location</th>
+                            <th class="th-submitted">Submitted</th>
+                            <th class="th-actions">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(app, index) in getPaginatedApplications()" :key="app.id">
+                            <tr>
+                                <td class="td-business" data-label="Business Name">
+                                    <div class="merchant-info">
+                                        <div class="merchant-logo">
+                                            <template x-if="app.logo_url">
+                                                <img :src="app.logo_url" alt="Logo" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                                <svg class="w-5 h-5 text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m5.581 0a2 2 0 100-4 2 2 0 000 4m0 0a2 2 0 100-4 2 2 0 000 4m-6 0a2 2 0 100-4 2 2 0 000 4m0 0H4m9.581 0H9"/>
+                                                </svg>
+                                            </template>
+                                            <template x-if="!app.logo_url">
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m5.581 0a2 2 0 100-4 2 2 0 000 4m0 0a2 2 0 100-4 2 2 0 000 4m-6 0a2 2 0 100-4 2 2 0 000 4m0 0H4m9.581 0H9"/>
+                                                </svg>
+                                            </template>
+                                        </div>
+                                        <span class="merchant-name" x-text="app.business_name"></span>
+                                    </div>
+                                </td>
+                                <td class="td-status" data-label="Status">
+                                    <span class="status-badge"
+                                        :class="{
+                                            'pending': app.status === 'pending',
+                                            'approved': app.status === 'approved',
+                                            'rejected': app.status === 'rejected'
+                                        }">
+                                        <span x-text="app.status.charAt(0).toUpperCase() + app.status.slice(1)"></span>
+                                    </span>
+                                </td>
+                                <td class="td-location" data-label="Location">
+                                    <span x-text="(app.city || 'N/A') + ', ' + (app.province || 'N/A')"></span>
+                                </td>
+                                <td class="td-submitted" data-label="Submitted">
+                                    <span x-text="new Date(app.submitted_at).toLocaleDateString()"></span>
+                                </td>
+                                <td class="td-actions" data-label="Action">
+                                    <div class="action-group">
+                                        <button 
+                                            @click="viewApplication(app)"
+                                            class="action-btn view"
+                                            title="View Details"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Footer -->
+            <div class="pagination-footer" x-show="getFilteredApplications().length > 0 && !isLoading">
+                <div class="pagination-info">
+                    <span>Page <strong x-text="currentPage"></strong> of <strong x-text="getTotalPages()"></strong></span>
+                </div>
+                
+                <div class="pagination-controls">
+                    <button 
+                        @click="prevPage()"
+                        :disabled="currentPage === 1"
+                        class="pagination-btn"
+                        title="Previous page">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <button 
+                        @click="nextPage()" 
+                        :disabled="currentPage === getTotalPages()"
+                        class="pagination-btn"
+                        title="Next page">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div x-show="getFilteredApplications().length === 0 && !isLoading" class="empty-state">
+                <div class="empty-content">
+                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <p class="font-semibold text-gray-900 mb-2" x-text="applications.length === 0 ? 'No Applications Found' : 'No Matching Applications'"></p>
+                    <p class="text-sm text-gray-600" x-text="applications.length === 0 ? 'There are no merchant applications yet. Merchants will appear here when they submit their applications.' : 'Try adjusting your search or filter criteria to see more results.'"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <template x-if="isLoading">
+            <div class="bg-white backdrop-blur-xl rounded-2xl shadow-lg border border-purple-100 p-16 text-center">
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto mb-4"></div>
+                    <p class="text-gray-900 font-medium">Loading applications...</p>
+                    <p class="text-gray-600 text-sm mt-2">Please wait while we fetch the merchant applications from the database.</p>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Premium Detail Modal with Modern Design -->
+    <template x-if="selectedApp">
+        <div class="modal-overlay" @click.self="selectedApp = null">
+            <div class="modal-content-wrapper" style="max-width: 42rem;" @click.stop>
+                
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h3 class="modal-header-title">
+                        <i class="fa-solid fa-building"></i>
+                        <span x-text="selectedApp.business_name"></span>
+                    </h3>
+                    <button type="button" class="modal-close-btn" @click="selectedApp = null" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <!-- Modal Body - Scrollable Content -->
+                <div class="modal-body">
+                    <div class="space-y-3 sm:space-y-4">
+                        
+                        <!-- Quick Status Bar -->
+                        <div class="bg-gradient-to-r from-purple-50 to-purple-100/50 backdrop-blur-lg border border-purple-200 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                                <div>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Status</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5 flex items-center gap-1">
+                                        <span :class="{'bg-amber-100 text-amber-700': selectedApp.status === 'pending', 'bg-green-100 text-green-700': selectedApp.status === 'approved', 'bg-red-100 text-red-700': selectedApp.status === 'rejected'}" class="px-2.5 py-0.5 rounded-full text-xs font-bold" x-text="selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)"></span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Category</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5 break-words" x-text="selectedApp.business_category || selectedApp.business_type || 'N/A'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Year</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5" x-text="selectedApp.year"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 text-xs font-semibold uppercase tracking-wide">Verified</p>
+                                    <p class="text-gray-900 font-bold text-sm mt-1.5">
+                                        <span x-show="selectedApp.is_verified" class="text-green-600">✓ Yes</span>
+                                        <span x-show="!selectedApp.is_verified" class="text-gray-500">✗ No</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Information Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2 pb-2 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m5.581 0a2 2 0 100-4 2 2 0 000 4m0 0a2 2 0 100-4 2 2 0 000 4m-6 0a2 2 0 100-4 2 2 0 000 4m0 0H4m9.581 0H9"/>
+                                </svg>
+                                Business Information
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Owner/Manager Name</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.owner_name || 'N/A'"></p>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Business Description</p>
+                                    <p class="text-gray-900 font-medium mt-1 break-words" x-text="selectedApp.business_description || 'Not provided'"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                Contact Information
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Contact Email</p>
+                                    <p class="text-blue-600 font-medium mt-1 break-all" x-text="selectedApp.contact_email"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">User Email</p>
+                                    <p class="text-blue-600 font-medium mt-1 break-all" x-text="selectedApp.user_email"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Phone Number</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.phone"></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">User Name</p>
+                                    <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.user_name"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Information Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                </svg>
+                                Location Information
+                            </h4>
+                            <div class="space-y-3 text-sm">
+                                <div>
+                                    <p class="text-gray-600 font-semibold uppercase text-xs">Full Address</p>
+                                    <p class="text-gray-900 font-medium mt-1 break-words" x-text="selectedApp.full_address"></p>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">City</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.city"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Province</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.province"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Barangay</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.barangay"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Postal Code</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.postal_code"></p>
+                                    </div>
+                                </div>
+                                <template x-if="selectedApp.latitude && selectedApp.longitude">
+                                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-purple-200">
+                                        <div>
+                                            <p class="text-gray-600 font-semibold uppercase text-xs">Latitude</p>
+                                            <p class="text-gray-900 font-medium mt-1 font-mono text-xs" x-text="selectedApp.latitude.toFixed(6)"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-600 font-semibold uppercase text-xs">Longitude</p>
+                                            <p class="text-gray-900 font-medium mt-1 font-mono text-xs" x-text="selectedApp.longitude.toFixed(6)"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="selectedApp.google_maps_link">
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Google Maps</p>
+                                        <a :href="selectedApp.google_maps_link" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium mt-1 break-all text-xs">View on Google Maps →</a>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Pets Accepted Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                </svg>
+                                Pets Accepted
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="pet in (selectedApp.pets_accepted || [])" :key="pet">
+                                    <span class="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-xs font-semibold" x-text="pet"></span>
+                                </template>
+                                <template x-if="(!selectedApp.pets_accepted || selectedApp.pets_accepted.length === 0)">
+                                    <span class="text-gray-500 text-sm">Not specified</span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Operating Hours & Days Section (Show for ALL categories) -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                                </svg>
+                                <span>Operating Hours & Schedule</span>
+                            </h4>
+                            <div class="space-y-4 text-sm">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold mb-1">Opening Time</p>
+                                        <p class="font-semibold text-gray-900" x-text="selectedApp.is_24h ? '24/7 Available' : formatTime12Hr(selectedApp.opening_time)"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 text-xs font-semibold mb-1">Closing Time</p>
+                                        <p class="font-semibold text-gray-900" x-text="selectedApp.is_24h ? '24/7 Available' : formatTime12Hr(selectedApp.closing_time)"></p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <p class="text-gray-600 text-xs font-semibold mb-2">Operating Days</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-if="selectedApp.is_24h">
+                                            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">24/7 Every Day</span>
+                                        </template>
+                                        <template x-if="!selectedApp.is_24h">
+                                            <template x-for="day in selectedApp.operating_days" :key="day">
+                                                <span class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold" x-text="day"></span>
+                                            </template>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing Information Section -->
+                        <template x-if="Object.keys(selectedApp.service_pricing).length > 0">
+                            <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                                <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Service Pricing
+                                </h4>
+                                <div class="space-y-6">
+                                    <!-- Pet Hotel -->
+                                    <template x-if="selectedApp.service_pricing['Pet Hotel']">
+                                        <div class="border-l-4 border-blue-500 pl-4">
+                                            <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                                <span class="text-blue-600">🏨</span> Pet Hotel
+                                            </h5>
+                                            <div class="space-y-3">
+                                                <!-- Per Hour -->
+                                                <template x-if="selectedApp.service_pricing['Pet Hotel']['hour']">
+                                                    <div class="p-3 bg-blue-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-blue-700 mb-2">Per Hour</p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Hotel']['hour']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <!-- Per Night -->
+                                                <template x-if="selectedApp.service_pricing['Pet Hotel']['night']">
+                                                    <div class="p-3 bg-blue-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-blue-700 mb-2">Per Night</p>
+                                                        <template x-if="selectedApp.service_pricing.night_checkin_time && selectedApp.service_pricing.night_checkout_time">
+                                                            <p class="text-xs text-blue-600 mb-2">Check-in: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkin_time)"></span> | Check-out: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkout_time)"></span></p>
+                                                        </template>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Hotel']['night']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Pet Boarding -->
+                                    <template x-if="selectedApp.service_pricing['Pet Boarding']">
+                                        <div class="border-l-4 border-indigo-500 pl-4">
+                                            <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                                <span class="text-indigo-600">🚪</span> Pet Boarding
+                                            </h5>
+                                            <div class="space-y-3">
+                                                <!-- Per Hour -->
+                                                <template x-if="selectedApp.service_pricing['Pet Boarding']['hour']">
+                                                    <div class="p-3 bg-indigo-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-indigo-700 mb-2">Per Hour</p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Boarding']['hour']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <!-- Per Night -->
+                                                <template x-if="selectedApp.service_pricing['Pet Boarding']['night']">
+                                                    <div class="p-3 bg-indigo-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-indigo-700 mb-2">Per Night</p>
+                                                        <template x-if="selectedApp.service_pricing.night_checkin_time && selectedApp.service_pricing.night_checkout_time">
+                                                            <p class="text-xs text-indigo-600 mb-2">Check-in: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkin_time)"></span> | Check-out: <span x-text="formatTime12Hr(selectedApp.service_pricing.night_checkout_time)"></span></p>
+                                                        </template>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Boarding']['night']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Pet Daycare -->
+                                    <template x-if="selectedApp.service_pricing['Pet Daycare']">
+                                        <div class="border-l-4 border-amber-500 pl-4">
+                                            <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                                <span class="text-amber-600">☀️</span> Pet Daycare
+                                            </h5>
+                                            <div class="space-y-3">
+                                                <!-- Full Day -->
+                                                <template x-if="selectedApp.service_pricing['Pet Daycare']['fullday']">
+                                                    <div class="p-3 bg-amber-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-amber-700 mb-2">Full Day <template x-if="selectedApp.service_pricing.fullday_hours"><span class="text-amber-600">(<span x-text="selectedApp.service_pricing.fullday_hours"></span> hrs)</span></template></p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Daycare']['fullday']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <!-- Half Day -->
+                                                <template x-if="selectedApp.service_pricing['Pet Daycare']['halfday']">
+                                                    <div class="p-3 bg-amber-50/40 rounded-lg">
+                                                        <p class="text-xs font-semibold text-amber-700 mb-2">Half Day <template x-if="selectedApp.service_pricing.halfday_hours"><span class="text-amber-600">(<span x-text="selectedApp.service_pricing.halfday_hours"></span> hrs)</span></template></p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <template x-for="(price, size) in selectedApp.service_pricing['Pet Daycare']['halfday']">
+                                                                <span class="text-gray-700">
+                                                                    <span class="font-medium" x-text="capitalizeFirst(size)"></span>: ₱<span x-text="Number(price).toLocaleString('en-PH')"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Cancellation Policy -->
+                        <template x-if="selectedApp.cancellation_policy">
+                            <div class="bg-amber-50/60 backdrop-blur-lg border border-amber-200 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
+                                <h4 class="font-bold text-amber-900 text-base mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2M12 3a9 9 0 110 18 9 9 0 010-18z"/>
+                                    </svg>
+                                    Cancellation Policy
+                                </h4>
+                                <p class="text-amber-900 text-sm leading-relaxed break-words" x-text="selectedApp.cancellation_policy"></p>
+                            </div>
+                        </template>
+
+                        <!-- Documents Section -->
+                        <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                            <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Documents & Files
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
+                                <div class="bg-blue-50 border border-blue-200 p-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs mb-2">Government ID</p>
+                                    <template x-if="selectedApp.government_id_path">
+                                        <a :href="'/static/uploads/' + selectedApp.government_id_path" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium text-xs break-all flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-6h.01M16 20H4"/>
+                                            </svg>
+                                            View Document
+                                        </a>
+                                    </template>
+                                    <template x-if="!selectedApp.government_id_path">
+                                        <span class="text-gray-400 text-xs">Not provided</span>
+                                    </template>
+                                </div>
+
+                                <div class="bg-green-50 border border-green-200 p-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs mb-1">Business Permit</p>
+                                    <template x-if="selectedApp.business_permit_path">
+                                        <a :href="'/static/uploads/' + selectedApp.business_permit_path" target="_blank" class="text-green-600 hover:text-green-800 font-medium text-xs break-all flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-6h.01M16 20H4"/>
+                                            </svg>
+                                            View Document
+                                        </a>
+                                    </template>
+                                    <template x-if="!selectedApp.business_permit_path">
+                                        <span class="text-gray-400 text-xs">Not provided</span>
+                                    </template>
+                                </div>
+
+                                <div class="bg-purple-50 border border-purple-200 p-2">
+                                    <p class="text-gray-600 font-semibold uppercase text-xs mb-1">Facility Photos</p>
+                                    <template x-if="selectedApp.facility_photos_paths && selectedApp.facility_photos_paths.length > 0">
+                                        <button @click="openPhotosGallery()" class="text-purple-600 hover:text-purple-800 font-medium text-xs flex items-center gap-1 hover:underline">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span x-text="selectedApp.facility_photos_paths.length + ' Photo(s)'"></span>
+                                        </button>
+                                    </template>
+                                    <template x-if="!selectedApp.facility_photos_paths || selectedApp.facility_photos_paths.length === 0">
+                                        <span class="text-gray-400 text-xs">Not provided</span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rejection Reason (if applicable) -->
+                        <template x-if="selectedApp.status === 'rejected' && selectedApp.rejection_reason">
+                            <div class="bg-red-50/60 backdrop-blur-lg border border-red-200 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm">
+                                <h4 class="font-bold text-red-900 text-base mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                                    </svg>
+                                    Rejection Reason
+                                </h4>
+                                <p class="text-red-800 text-sm leading-relaxed break-words" x-text="selectedApp.rejection_reason"></p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Modal Footer with Actions -->
+                <div class="modal-footer">
+                    
+                    <template x-if="selectedApp.status === 'pending'">
+                        <div class="flex gap-2 w-full">
+                            <button 
+                                @click="confirmReject(selectedApp.id)"
+                                class="flex-1 modal-btn modal-btn-delete"
+                            >
+                                <i class="fa-solid fa-ban"></i>
+                                Reject
+                            </button>
+                            <button 
+                                @click="confirmApprove(selectedApp.id)"
+                                class="flex-1 modal-btn modal-btn-primary"
+                            >
+                                <i class="fa-solid fa-check"></i>
+                                Approve
+                            </button>
+                        </div>
+                    </template>
+                    
+                    <template x-if="selectedApp.status !== 'pending'">
+                        <div class="w-full flex items-center justify-center">
+                            <span 
+                            class="text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full"
+                            :class="{
+                                'text-green-700 bg-green-100/60': selectedApp.status === 'approved',
+                                'text-red-700 bg-red-100/60': selectedApp.status === 'rejected'
+                            }"
+                            >
+                                <span x-show="selectedApp.status === 'approved'"><i class="fa-solid fa-check"></i> Approved</span>
+                                <span x-show="selectedApp.status === 'rejected'"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                            </span>
+                        </div>
+                    </template>
+                </div>
+
+            </div>
+        </div>
+    </template>
+
+    <!-- Confirmation Modal - Modern Clean Design -->
+    <template x-if="showConfirmModal">
+        <div class="modal-overlay" @click.self="cancelConfirm()">
+            <div class="modal-content-wrapper" style="max-width: 28rem;" @click.stop>
+                
+                <!-- Modal Header -->
+                <div class="modal-header" :style="confirmAction === 'reject' ? 'border-bottom-color: rgba(239, 68, 68, 0.2);' : 'border-bottom-color: rgba(34, 197, 94, 0.2);'">
+                    <h3 class="modal-header-title">
+                        <i class="fa-solid fa-question-circle" :style="confirmAction === 'reject' ? 'color: #ef4444;' : 'color: #22c55e;'"></i>
+                        <span x-text="confirmTitle"></span>
+                    </h3>
+                    <button type="button" class="modal-close-btn" @click="cancelConfirm()" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <p class="text-sm text-gray-700 mb-4 font-medium" x-text="confirmMessage"></p>
+                    
+                    <!-- Rejection Reason Input -->
+                    <template x-if="confirmAction === 'reject'">
+                        <div class="bg-gradient-to-r from-red-50 to-red-50 rounded-2xl p-4 border border-red-100">
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-pen"></i>
+                                Reason for Rejection
+                            </label>
+                            <textarea 
+                                x-model="rejectionReason"
+                                placeholder="Provide a detailed reason for rejection..."
+                                class="w-full px-3 sm:px-4 py-2 sm:py-3 
+                                    bg-white/70 backdrop-blur 
+                                    border border-red-200/60 
+                                    rounded-lg sm:rounded-xl 
+                                    focus:ring-2 focus:ring-red-500 focus:border-red-500 
+                                    transition-all resize-none text-xs sm:text-sm"
+                                rows="4"
+                            ></textarea>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    
+                    <button 
+                        @click="cancelConfirm()"
+                        class="modal-btn modal-btn-secondary"
+                    >
+                        <i class="fa-solid fa-ban"></i>
+                        Cancel
+                    </button>
+
+                    <button 
+                        @click="executeConfirmedAction()"
+                        :disabled="confirmAction === 'reject' && !rejectionReason.trim()"
+                        :class="{
+                            'modal-btn-primary': confirmAction === 'approve',
+                            'modal-btn-delete': confirmAction === 'reject',
+                            'opacity-50 cursor-not-allowed': confirmAction === 'reject' && !rejectionReason.trim()
+                        }"
+                        class="modal-btn flex items-center justify-center gap-2"
+                    >
+                        <i 
+                            :class="confirmAction === 'approve' 
+                                ? 'fa-solid fa-check' 
+                                : 'fa-solid fa-xmark'">
+                        </i>
+
+                        <span 
+                            x-text="confirmAction === 'approve' 
+                                ? 'Approve' 
+                                : 'Reject'">
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+
+    <!-- Photos Gallery Modal - Modern Clean Design -->
+    <template x-if="showPhotosModal && currentPhotoIndex !== null">
+        <div class="modal-overlay" @click.self="showPhotosModal = false">
+            <div class="modal-content-wrapper" @click.stop>
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h3 class="modal-header-title">
+                        <i class="fa-solid fa-images"></i>
+                        <span x-text="'Photo ' + (currentPhotoIndex + 1) + ' of ' + selectedApp.facility_photos_paths.length"></span>
+                    </h3>
+                    <button type="button" class="modal-close-btn" @click="showPhotosModal = false" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="bg-gray-100/80 backdrop-blur aspect-video flex items-center justify-center overflow-hidden mb-4 rounded-2xl">
+                        <img 
+                            :src="'/static/uploads/' + selectedApp.facility_photos_paths[currentPhotoIndex]"
+                            alt="Facility Photo"
+                            class="w-full h-full object-contain rounded-xl"
+                        >
+                    </div>
+                </div>
+
+                <!-- Modal Footer with Navigation -->
+                <div class="modal-footer items-center justify-between">
+
+                    <button 
+                        @click="currentPhotoIndex = currentPhotoIndex === 0 ? selectedApp.facility_photos_paths.length - 1 : currentPhotoIndex - 1"
+                        class="modal-btn modal-btn-secondary"
+                    >
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Previous
+                    </button>
+
+                    <div class="flex gap-2">
+                        <template x-for="(photo, idx) in selectedApp.facility_photos_paths" :key="idx">
+                            <button 
+                                @click="currentPhotoIndex = idx"
+                                :class="{
+                                    'bg-purple-600 w-3 h-3': currentPhotoIndex === idx,
+                                    'bg-gray-300 w-2 h-2': currentPhotoIndex !== idx
+                                }"
+                                class="rounded-full transition-all hover:scale-125"
+                            ></button>
+                        </template>
+                    </div>
+
+                    <button 
+                        @click="currentPhotoIndex = currentPhotoIndex === selectedApp.facility_photos_paths.length - 1 ? 0 : currentPhotoIndex + 1"
+                        class="modal-btn modal-btn-secondary"
+                    >
+                        Next
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </template>
+
+</div>
+
+<script src="https://cdn.lordicon.com/lordicon.js"></script>
+<script>
+// Get CSRF token from Flask
+function getCSRFToken() {
+    // Try to get from meta tag first (if available)
+    const token = document.querySelector('meta[name="csrf-token"]');
+    if (token) return token.getAttribute('content');
+    
+    // Fallback: try to get from cookie
+    const name = 'csrf_token';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function merchantApplications() {
+    return {
+        // Initialize all reactive properties with safe defaults
+        applications: [],
+        filteredApplications: [],
+        selectedApp: null,
+        searchTerm: '',
+        statusFilter: 'all',
+        isLoading: true,
+        showConfirmModal: false,
+        confirmAction: null,
+        confirmTitle: '',
+        confirmMessage: '',
+        confirmMerchantId: null,
+        rejectionReason: '',
+        showPhotosModal: false,
+        currentPhotoIndex: null,
+        currentPage: 1,
+        itemsPerPage: 10,
+        totalStats: {
+            total: 0,
+            pending: 0,
+            approved: 0,
+            rejected: 0
+        },
+
+        init() {
+            try {
+                
+                // Initialize data
+                this.applications = [];
+                this.filteredApplications = [];
+                this.totalStats = {
+                    total: 0,
+                    pending: 0,
+                    approved: 0,
+                    rejected: 0
+                };
+                
+                // Watch for search/filter changes
+                this.$watch('searchTerm', () => {
+                    this.filterApplications();
+                });
+                this.$watch('statusFilter', () => {
+                    this.filterApplications();
+                });
+                
+                this.loadApplications();
+            } catch (error) {
+            }
+        },
+
+        confirmApprove(merchantId) {
+            this.showConfirmModal = true;
+            this.confirmAction = 'approve';
+            this.confirmTitle = 'Approve Application?';
+            this.confirmMessage = 'Are you sure you want to approve this merchant application? This action cannot be undone.';
+            this.confirmMerchantId = merchantId;
+        },
+
+        confirmReject(merchantId) {
+            this.showConfirmModal = true;
+            this.confirmAction = 'reject';
+            this.confirmTitle = 'Reject Application?';
+            this.confirmMessage = 'Are you sure you want to reject this merchant application?';
+            this.confirmMerchantId = merchantId;
+        },
+
+        async executeConfirmedAction() {
+            if (this.confirmAction === 'approve') {
+                await this.approveApplication(this.confirmMerchantId);
+            } else if (this.confirmAction === 'reject') {
+                await this.rejectApplication(this.confirmMerchantId, this.rejectionReason);
+            }
+            this.showConfirmModal = false;
+            this.confirmAction = null;
+            this.confirmMerchantId = null;
+        },
+
+        cancelConfirm() {
+            this.showConfirmModal = false;
+            this.confirmAction = null;
+            this.confirmMerchantId = null;
+            this.rejectionReason = '';
+        },
+
+        async loadApplications() {
+            this.isLoading = true;
+            try {
+                const response = await fetch('/admin/api/merchants?status=all');
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert('Error loading applications: ' + data.error);
+                    this.applications = [];
+                    this.updateStats();
+                    this.isLoading = false;
+                    return;
+                }
+                
+                const merchants = data.merchants || [];
+                
+                if (merchants.length === 0) {
+                    this.applications = [];
+                    this.updateStats();
+                    this.filterApplications();
+                    this.isLoading = false;
+                    return;
+                }
+                
+                // Normalize field names to match template expectations
+                this.applications = merchants.map((m, idx) => {
+                    
+                    return {
+                        id: m.id,
+                        year: m.created_at ? m.created_at.split('T')[0].split('-')[0] : 'N/A',
+                        business_name: m.business_name || 'N/A',
+                        business_category: m.business_category || 'N/A',
+                        business_type: m.business_category || 'N/A',
+                        owner_name: m.owner_manager_name || 'N/A',
+                        contact_email: m.contact_email || 'N/A',
+                        user_email: m.user_email || 'N/A',
+                        user_name: m.user_name || 'N/A',
+                        phone: m.contact_phone || 'N/A',
+                        city: m.city || 'N/A',
+                        province: m.province || 'N/A',
+                        barangay: m.barangay || 'N/A',
+                        postal_code: m.postal_code || 'N/A',
+                        full_address: m.full_address || 'N/A',
+                        services: Array.isArray(m.services_offered) ? m.services_offered : (m.services_offered ? [m.services_offered] : []),
+                        pets_accepted: Array.isArray(m.pets_accepted) ? m.pets_accepted : (m.pets_accepted ? [m.pets_accepted] : []),
+                        service_pricing: m.service_pricing || {},
+                        cancellation_policy: m.cancellation_policy || '',
+                        government_id_path: m.government_id_path || '',
+                        business_permit_path: m.business_permit_path || '',
+                        facility_photos_paths: Array.isArray(m.facility_photos_paths) ? m.facility_photos_paths : (m.facility_photos_paths ? [m.facility_photos_paths] : []),
+                        submitted_at: m.submitted_at ? new Date(m.submitted_at).toISOString() : new Date().toISOString(),
+                        rejection_reason: m.rejection_reason || '',
+                        status: m.application_status || 'pending',
+                        business_description: m.business_description || '',
+                        opening_time: m.opening_time || 'N/A',
+                        closing_time: m.closing_time || 'N/A',
+                        operating_days: Array.isArray(m.operating_days) ? m.operating_days : (m.operating_days ? [m.operating_days] : []),
+                        google_maps_link: m.google_maps_link || '',
+                        logo_url: m.logo_path ? '/static/uploads/' + m.logo_path : '',
+                        logo_path: m.logo_path || '',
+                        latitude: m.latitude || null,
+                        longitude: m.longitude || null,
+                        is_verified: m.is_verified || false,
+                        reviewed_at: m.reviewed_at || null,
+                        created_at: m.created_at || new Date().toISOString(),
+                        updated_at: m.updated_at || new Date().toISOString()
+                    };
+                });
+                
+                this.updateStats();
+                this.filterApplications();
+            } catch (error) {
+                alert('Failed to load applications. Please check the console for errors. Error: ' + error.message);
+                this.applications = [];
+                this.updateStats();
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        updateStats() {
+            this.totalStats = {
+                total: this.applications.length,
+                pending: this.applications.filter(a => a.status === 'pending').length,
+                approved: this.applications.filter(a => a.status === 'approved').length,
+                rejected: this.applications.filter(a => a.status === 'rejected').length
+            };
+            
+        },
+
+        filterApplications() {
+            
+            this.filteredApplications = this.applications.filter(app => {
+                const matchesStatus = this.statusFilter === 'all' || app.status === this.statusFilter;
+                const searchLower = this.searchTerm.toLowerCase();
+                const matchesSearch = !this.searchTerm || 
+                    (app.business_name && app.business_name.toLowerCase().includes(searchLower)) ||
+                    (app.owner_name && app.owner_name.toLowerCase().includes(searchLower)) ||
+                    (app.user_name && app.user_name.toLowerCase().includes(searchLower)) ||
+                    (app.contact_email && app.contact_email.toLowerCase().includes(searchLower)) ||
+                    (app.user_email && app.user_email.toLowerCase().includes(searchLower)) ||
+                    (app.phone && app.phone.toLowerCase().includes(searchLower)) ||
+                    (app.city && app.city.toLowerCase().includes(searchLower)) ||
+                    (app.province && app.province.toLowerCase().includes(searchLower)) ||
+                    (app.barangay && app.barangay.toLowerCase().includes(searchLower)) ||
+                    app.id.toString().includes(searchLower);
+                
+                return matchesStatus && matchesSearch;
+            });
+            
+            this.currentPage = 1;
+            
+        },
+
+        getFilteredApplications() {
+            this.filterApplications();
+            return this.filteredApplications;
+        },
+
+        getPaginatedApplications() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.filteredApplications.slice(start, end);
+        },
+
+        getTotalPages() {
+            return Math.ceil(this.filteredApplications.length / this.itemsPerPage);
+        },
+
+        goToPage(page) {
+            const totalPages = this.getTotalPages();
+            if (page >= 1 && page <= totalPages) {
+                this.currentPage = page;
+            }
+        },
+
+        nextPage() {
+            const totalPages = this.getTotalPages();
+            if (this.currentPage < totalPages) {
+                this.currentPage++;
+            }
+        },
+
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+            }
+        },
+
+        viewApplication(app) {
+            this.selectedApp = app;
+            this.rejectionReason = '';
+        },
+
+        formatTime12Hr(time24hr) {
+            if (!time24hr || time24hr === 'N/A') return 'N/A';
+            try {
+                const [hours, minutes] = time24hr.split(':');
+                const hour = parseInt(hours);
+                const minute = minutes || '00';
+                const period = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                return `${hour12}:${minute} ${period}`;
+            } catch (e) {
+                return time24hr;
+            }
+        },
+
+        capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        },
+
+        formatPriceDisplay(priceData) {
+            // Handle number
+            if (typeof priceData === 'number') {
+                return '₱ ' + priceData.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            }
+            
+            // Handle string
+            if (typeof priceData === 'string') {
+                return '₱ ' + priceData;
+            }
+            
+            // Handle object
+            if (typeof priceData === 'object' && priceData !== null) {
+                // Check for min_price and max_price
+                if (priceData.min_price && priceData.max_price) {
+                    const minPrice = parseFloat(priceData.min_price).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    const maxPrice = parseFloat(priceData.max_price).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    return `₱ ${minPrice} - ₱ ${maxPrice}`;
+                }
+                
+                // Check for single price property
+                if (priceData.price) {
+                    return '₱ ' + parseFloat(priceData.price).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                }
+                
+                // Check for amount property
+                if (priceData.amount) {
+                    return '₱ ' + parseFloat(priceData.amount).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                }
+                
+                // Fallback: show as "Price range" if has multiple numeric fields
+                const numericValues = Object.values(priceData).filter(v => typeof v === 'number' || !isNaN(parseFloat(v)));
+                if (numericValues.length > 0) {
+                    return '₱ ' + numericValues.map(v => parseFloat(v).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 })).join(' / ₱ ');
+                }
+            }
+            
+            return '₱ -';
+        },
+
+        openPhotosGallery() {
+            this.showPhotosModal = true;
+            this.currentPhotoIndex = 0;
+        },
+
+        async approveApplication(merchantId) {
+            try {
+                
+                const response = await fetch(`/admin/api/merchants/${merchantId}/approve`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                });
+
+                
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    
+                    alert('Server error: Invalid response format. Please check your permissions.');
+                    return;
+                }
+
+                const data = await response.json();
+                
+
+                if (response.ok && data.success) {
+                    
+                    this.selectedApp = null;
+                    // Redirect to show flash message
+                    setTimeout(() => {
+                        window.location.href = '/admin/merchants/applications';
+                    }, 500);
+                } else {
+                    
+                    alert(`Error: ${data.message || 'Failed to approve application'}`);
+                }
+            } catch (error) {
+                
+                alert('An error occurred while approving the application: ' + error.message);
+            }
+        },
+
+        async rejectApplication(merchantId, reason) {
+            if (!reason.trim()) {
+                alert('Please provide a reason for rejection.');
+                return;
+            }
+
+            try {
+                
+                const response = await fetch(`/admin/api/merchants/${merchantId}/reject`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({ reason: reason.trim() })
+                });
+
+                
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    
+                    alert('Server error: Invalid response format. Please check your permissions.');
+                    return;
+                }
+
+                const data = await response.json();
+                
+
+                if (response.ok && data.success) {
+                    
+                    this.selectedApp = null;
+                    this.rejectionReason = '';
+                    // Redirect to show flash message
+                    setTimeout(() => {
+                        window.location.href = '/admin/merchants/applications';
+                    }, 500);
+                } else {
+                    
+                    alert(`Error: ${data.message || 'Failed to reject application'}`);
+                }
+            } catch (error) {
+                
+                alert('An error occurred while rejecting the application: ' + error.message);
+            }
+        }
+    };
+}
+</script>
+
+
+<style>
+/* ==========================================
+   MERCHANT APPLICATIONS PAGE - CLEAN DESIGN
+   ========================================== */
+
+/* Root Variables */
+:root {
+  --primary: #a855f7;
+  --primary-dark: #9333ea;
+  --primary-light: #c084fc;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  
+  --text-dark: #111827;
+  --text-gray: #6b7280;
+  
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+}
+
+/* Modern Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-content-wrapper {
+  background: white;
+  border-radius: 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
+  width: 95vw !important;
+  max-width: 95vw !important;
+  min-width: 95vw !important;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  background: linear-gradient(135deg, #fafbfc 0%, #f3f4f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.modal-header-title i {
+  color: #a855f7;
+  font-size: 1.5rem;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  color: #6b7280;
+  transition: all 0.3s ease;
+  font-size: 1.25rem;
+}
+
+.modal-close-btn:hover {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(168, 85, 247, 0.15);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 0.8) 100%);
+  flex-wrap: wrap;
+}
+
+.modal-footer .modal-btn {
+  flex: 1 1 0;
+  min-width: 140px;
+}
+
+.modal-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.875rem;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.modal-btn-primary {
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+}
+
+.modal-btn-primary:hover {
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35);
+}
+
+.modal-btn-primary:active {
+  transform: translateY(0);
+}
+
+.modal-btn-secondary {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.modal-btn-secondary:hover {
+  background: linear-gradient(135deg, #d1d5db 0%, #bfdbfe 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.modal-btn-secondary:active {
+  transform: translateY(0);
+}
+
+.modal-btn-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.modal-btn-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+}
+
+.modal-btn-delete:active {
+  transform: translateY(0);
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.4s ease-out;
+}
+
+/* Responsive Modal Adjustments */
+@media (max-width: 640px) {
+  .modal-content-wrapper {
+    max-width: 100%;
+    border-radius: 1.5rem;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-header-title {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 1rem;
+    flex-direction: column;
+  }
+
+  .modal-btn {
+    width: 100%;
+  }
+}
+
+[x-cloak] { 
+  display: none !important; 
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.875rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.stat-icon i {
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.total { background: #f5f5f5; }
+.stat-icon.pending { background: #f5f5f5; }
+.stat-icon.approved { background: #f5f5f5; }
+.stat-icon.rejected { background: #f5f5f5; }
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 5px 0 0;
+}
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1.25rem;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .stat-number {
+    font-size: 22px;
+  }
+}
+
+.role-select {
+  width: 100%;
+  padding: 0.75rem 2.75rem 0.75rem 1.1rem;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(168, 85, 247, 0.25);
+  border-radius: var(--radius-lg);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  appearance: none;
+  box-shadow: 
+    0 8px 24px rgba(168, 85, 247, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 0 0 rgba(168, 85, 247, 0);
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+.role-select:hover {
+  background-color: rgba(255, 255, 255, 0.88);
+  border-color: rgba(168, 85, 247, 0.35);
+  box-shadow: 
+    0 12px 32px rgba(168, 85, 247, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 1px rgba(168, 85, 247, 0.1);
+}
+
+.role-select:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 
+    0 16px 40px rgba(168, 85, 247, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(168, 85, 247, 0.15);
+}
+
+/* Search Filter Card - White Theme with Glassmorphism */
+.search-filter-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 12px 48px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 1px rgba(168, 85, 247, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-filter-card:hover {
+  box-shadow: 
+    0 16px 56px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 1px rgba(168, 85, 247, 0.15);
+}
+
+.search-filter-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: flex-end;
+}
+
+/* Search Box Wrapper */
+.search-box-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #a855f7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-label i {
+  font-size: 1rem;
+  color: #a855f7;
+  filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 2.75rem 0.875rem 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.2);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(168, 85, 247, 0.08);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.search-input:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 6px 16px rgba(168, 85, 247, 0.12);
+}
+
+.search-input:focus {
+  outline: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(168, 85, 247, 0.15);
+}
+
+/* Filter Box Wrapper */
+.filter-box-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 240px;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #a855f7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-label i {
+  font-size: 1rem;
+  color: #a855f7;
+  filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.875rem 2.5rem 0.875rem 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.2);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  background-size: 1rem 1rem;
+  padding-right: 2.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(168, 85, 247, 0.08);
+}
+
+.filter-select option {
+  color: var(--text-dark);
+  background: white;
+  padding: 0.5rem;
+}
+
+.filter-select:hover {
+  background-color: rgba(255, 255, 255, 1);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 6px 16px rgba(168, 85, 247, 0.12);
+}
+
+.filter-select:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 1);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(168, 85, 247, 0.15);
+}
+
+
+
+/* Applications Card - Glassmorphism */
+.applications-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 12px 48px rgba(168, 85, 247, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 1px rgba(168, 85, 247, 0.1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Table Container */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Applications Table */
+.applications-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+/* Table Header */
+.applications-table thead {
+  background: rgba(168, 85, 247, 0.08);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+}
+
+.applications-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+  white-space: nowrap;
+  border: none;
+}
+
+.th-business {
+  width: 30%;
+  min-width: 200px;
+}
+
+.th-status {
+  width: 15%;
+  min-width: 120px;
+  text-align: center;
+}
+
+.th-location {
+  width: 25%;
+  min-width: 200px;
+}
+
+.th-submitted {
+  width: 15%;
+  min-width: 130px;
+}
+
+.th-actions {
+  width: 15%;
+  min-width: 100px;
+  text-align: center;
+}
+
+/* Table Body */
+.applications-table tbody tr {
+  border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+  transition: all 0.2s ease;
+}
+
+.applications-table tbody tr:hover {
+  background: rgba(168, 85, 247, 0.04);
+}
+
+.applications-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.applications-table td {
+  padding: 1rem;
+  vertical-align: middle;
+  color: var(--text-dark);
+  border: none;
+}
+
+/* Business Info Cell */
+.td-business {
+  width: 35%;
+  font-weight: 600;
+}
+
+/* Status Cell */
+.td-status {
+  width: 15%;
+  text-align: left;
+}
+
+/* Location Cell */
+.td-location {
+  width: 25%;
+  text-align: left;
+}
+
+/* Submitted Cell */
+.td-submitted {
+  width: 15%;
+  text-align: left;
+}
+
+/* Actions Cell */
+.td-actions {
+  width: 10%;
+  text-align: center;
+}
+
+.merchant-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.merchant-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.merchant-name {
+  color: var(--text-dark);
+  font-weight: 600;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.status-badge.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.status-badge.approved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Actions Cell */
+.td-actions {
+  text-align: center;
+}
+
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  background: rgba(168, 85, 247, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+  font-weight: 600;
+  padding: 0;
+}
+
+.action-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.action-btn.view {
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.action-btn.view:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Pagination Footer */
+.pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(168, 85, 247, 0.15);
+  background: rgba(168, 85, 247, 0.02);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+.pagination-info strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: rgba(168, 85, 247, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--primary);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-btn i {
+  font-size: 0.75rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-content {
+  color: var(--text-gray);
+}
+
+.empty-content svg {
+  opacity: 0.5;
+  color: var(--primary);
+}
+
+.empty-content p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .search-filter-card {
+    padding: 1.75rem;
+  }
+
+  .search-filter-content {
+    gap: 1.5rem;
+  }
+
+  .applications-table th {
+    padding: 0.875rem;
+    font-size: 0.7rem;
+  }
+
+  .applications-table td {
+    padding: 0.875rem;
+    font-size: 0.85rem;
+  }
+
+  .filter-box-wrapper {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .stat-number {
+    font-size: 22px;
+  }
+
+  .search-filter-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-filter-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+
+  .search-box-wrapper {
+    gap: 0.65rem;
+  }
+
+  .filter-box-wrapper {
+    min-width: auto;
+    gap: 0.65rem;
+  }
+
+  .search-label,
+  .filter-label {
+    font-size: 0.8125rem;
+    color: #a855f7;
+  }
+
+  .search-input {
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .filter-select {
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .search-input::placeholder {
+    font-size: 0.85rem;
+  }
+
+  .applications-card {
+    border-radius: var(--radius);
+  }
+
+  /* Mobile Table - Card Layout */
+  .table-container {
+    overflow-x: visible;
+  }
+
+  .applications-table thead {
+    display: none;
+  }
+
+  .applications-table,
+  .applications-table tbody,
+  .applications-table tr,
+  .applications-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .applications-table tbody tr {
+    margin-bottom: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.08);
+    transition: all 0.2s ease;
+  }
+
+  .applications-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.12);
+  }
+
+  .applications-table td {
+    padding: 0.875rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--text-dark);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+  }
+
+  .applications-table td:last-child {
+    border-bottom: none;
+  }
+
+  .applications-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    flex-shrink: 0;
+    min-width: 80px;
+  }
+
+  .td-business,
+  .td-status,
+  .td-location,
+  .td-submitted,
+  .td-actions {
+    width: 100%;
+    text-align: right;
+  }
+
+  .merchant-info {
+    flex: 1;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .merchant-name {
+    white-space: normal;
+    text-align: right;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .action-group {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .status-badge {
+    margin-left: auto;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .search-filter-card {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-filter-content {
+    gap: 1rem;
+  }
+
+  .search-box-wrapper {
+    gap: 0.5rem;
+  }
+
+  .filter-box-wrapper {
+    gap: 0.5rem;
+  }
+
+  .search-label,
+  .filter-label {
+    font-size: 0.75rem;
+    color: #a855f7;
+  }
+
+  .search-label i,
+  .filter-label i {
+    font-size: 0.875rem;
+  }
+
+  .search-input {
+    padding: 0.65rem 2rem 0.65rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .filter-select {
+    padding: 0.65rem 2rem 0.65rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .applications-table tbody tr {
+    padding: 1rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .applications-table td {
+    padding: 0.625rem 0;
+    font-size: 0.8125rem;
+  }
+
+  .applications-table td::before {
+    font-size: 0.6875rem;
+    min-width: 70px;
+  }
+
+  .merchant-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .action-btn svg {
+    width: 0.9375rem;
+    height: 0.9375rem;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.6875rem;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[x-show] {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+.backdrop-blur-xl {
+  backdrop-filter: blur(20px);
+}
+
+/* Text Wrapping Utility */
+.break-words {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Modal Text Wrapping */
+.text-gray-900,
+.text-white,
+.text-gray-600,
+.text-gray-700 {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Ensure long URLs and email addresses wrap properly */
+a {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+/* Table cell text wrapping */
+.applications-table tr {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Modal info sections */
+.bg-white\/40,
+.bg-amber-100\/40,
+.bg-red-100\/40 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petsona - Two-Factor Authentication Enabled</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        .email-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .email-container {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 13px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background: #ffffff;
+            padding: 32px 40px;
+            text-align: center;
+            border-bottom: 3px solid #7c3aed;
+        }
+        .logo-container {
+            margin-bottom: 16px;
+        }
+        .logo-container img {
+            width: 48px;
+            height: 48px;
+            display: inline-block;
+        }
+        .header h1 {
+            margin: 12px 0 0 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #7c3aed;
+            letter-spacing: -0.5px;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        .message {
+            font-size: 15px;
+            color: #4b5563;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+        .success-badge {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 24px 0;
+            text-align: center;
+            color: #047857;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            margin: 24px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #92400e;
+        }
+        .warning-box strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        .codes-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 32px 0 16px 0;
+        }
+        .codes-container {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0 24px 0;
+        }
+        .code-item {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-align: center;
+            color: #7c3aed;
+            word-spacing: 4px;
+        }
+        .code-item:hover {
+            background: #f3f4f6;
+            border-color: #7c3aed;
+        }
+        .instructions {
+            background: #f0f4ff;
+            border-left: 4px solid #7c3aed;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 24px 0;
+        }
+        .instructions-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .instructions ul {
+            margin: 0;
+            padding-left: 20px;
+            list-style-position: inside;
+        }
+        .instructions li {
+            margin: 8px 0;
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .info-box {
+            background: #f3f4f6;
+            border-left: 4px solid #7c3aed;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 24px 0;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        .info-box strong {
+            color: #1f2937;
+        }
+        .copy-instruction {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 32px 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer-logo {
+            margin-bottom: 12px;
+        }
+        .footer-logo img {
+            width: 40px;
+            height: 40px;
+            display: inline-block;
+        }
+        .footer-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .footer-text strong {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 16px 0;
+        }
+        .footer-links {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 16px;
+        }
+        @media (max-width: 600px) {
+            .content {
+                padding: 28px 20px;
+            }
+            .header {
+                padding: 28px 20px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .greeting {
+                font-size: 16px;
+            }
+            .codes-section-title {
+                margin-top: 24px;
+            }
+            .footer {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo-container">
+                    <img src="cid:petsona_logo" alt="Petsona">
+                </div>
+                <h1>Petsona</h1>
+                <div class="header-subtitle">Account Security</div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <p class="greeting">Hello {{ user.first_name or 'Petsona Member' }},</p>
+
+                <p class="message">
+                    Congratulations! Two-factor authentication (2FA) has been successfully enabled on your Petsona account. This adds an extra layer of security to protect your account from unauthorized access.
+                </p>
+
+                <div class="success-badge">
+                    ✓ Two-Factor Authentication Activated
+                </div>
+
+                <div class="warning-box">
+                    <strong>⚠️ Important: Save Your Backup Codes</strong>
+                    These 10 backup codes are your lifeline if you lose access to your authenticator app. Store them in a secure location immediately. Do not share them with anyone.
+                </div>
+
+                <div class="codes-section-title">Your Backup Codes</div>
+                <div class="codes-container">
+                    {% for code in backup_codes %}
+                    <div class="code-item">{{ code }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="instructions">
+                    <div class="instructions-title">📋 How to Use Your Backup Codes</div>
+                    <ul>
+                        <li><strong>Store Securely:</strong> Keep these codes in a password manager, safe deposit box, or encrypted storage</li>
+                        <li><strong>Lost Your App?</strong> Use one backup code when prompted for your 2FA code to regain access</li>
+                        <li><strong>One-Time Use:</strong> Each code can only be used once, then it's marked as consumed</li>
+                        <li><strong>Regenerate Anytime:</strong> Log in to your account settings to generate new codes after use</li>
+                    </ul>
+                </div>
+
+                <div class="info-box">
+                    <strong>What's Next?</strong> Your authenticator app is now linked to your Petsona account. You'll need to enter a code from it each time you sign in. Keep your phone secure and don't lose access to your authenticator app.
+                </div>
+
+                <p class="copy-instruction">
+                    <strong>💡 Tip:</strong> Consider backing up your authenticator app settings as well, in case you need to restore it. Check your authenticator app's backup options.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <div class="footer-logo">
+                    <img src="cid:petsona_logo" alt="Petsona">
+                </div>
+                <p class="footer-text">
+                    <strong>Petsona</strong><br>
+                    Connecting pet lovers and creating meaningful matches
+                </p>
+                <div class="divider"></div>
+                <p class="footer-links">
+                    This is an automated security email. Please do not reply.<br>
+                    If you didn't enable 2FA, please contact support immediately.<br>
+                    © 2026 Petsona. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

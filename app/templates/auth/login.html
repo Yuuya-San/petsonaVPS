@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<style>
+/* ===============================
+   FULLSCREEN BACKGROUND
+================================ */
+.auth-bg {
+  position: relative;
+  height: calc(100vh - 80px);
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(2rem, 6vh, 3.2rem) 1rem;
+  overflow-x: hidden;
+}
+
+/* Background image */
+.auth-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("{{ url_for('static', filename='images/bg/bg-image.png') }}")
+              center / cover no-repeat;
+  z-index: 1;
+}
+
+/* Dark overlay */
+.auth-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(99, 102, 241, 0.08) 50%,
+    rgba(140, 0, 255, 0.05) 100%
+  );
+  z-index: 2;
+}
+
+/* ===============================
+   GLASS AUTH CARD
+================================ */
+.auth-card {
+  position: relative;
+  z-index: 3;
+  width: clamp(280px, 85vw, 400px);
+  padding: 1.4rem 1.5rem;
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(99, 102, 241, 0.08) 100%
+  );
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+
+  border: 1px solid rgba(140, 0, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(140, 0, 255, 0.08) inset;
+  
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .auth-card {
+    width: clamp(250px, 90vw, 350px);
+    padding: 1.3rem 1.4rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .auth-card {
+    width: clamp(220px, 95vw, 320px);
+    padding: 1.2rem 1.2rem;
+  }
+}
+
+/* Short height / landscape */
+@media (max-height: 620px) {
+  .auth-bg {
+    padding-top: 1rem;
+  }
+
+  .auth-card {
+    padding: 1rem 1.2rem;
+    width: clamp(200px, 90vw, 320px);
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .subtitle {
+    font-size: 0.7rem;
+  }
+
+  .auth-form {
+    gap: 0.8rem;
+  }
+
+  .btn-primary {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ===============================
+   HEADINGS
+================================ */
+.title {
+  text-align: center;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  margin-bottom: 0.15rem;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6366f1;
+  margin-bottom: 0.9rem;
+}
+
+/* ===============================
+   FORM
+================================ */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Underline input group */
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(210, 205, 235, 0.45);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.input-group:focus-within {
+  border-bottom-color: #6366f1;
+  box-shadow: 0 2px 0 rgba(99, 102, 241, 0.35);
+}
+
+/* Icons */
+.icon i {
+  color: #6366f1;
+}
+
+/* Input */
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.35rem 0;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+}
+
+.input-field::placeholder {
+  color: rgba(26, 26, 26, 0.5);
+}
+
+/* Toggle password */
+.toggle-password {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.toggle-password i {
+  color: #6366f1;
+}
+
+.toggle-password:hover i {
+  color: #4f46e5;
+}
+
+/* Show Password Checkbox */
+.show-password-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #1a1a1a;
+}
+
+.checkbox-input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #6366f1;
+}
+
+.show-password-checkbox label {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.show-password-checkbox label:hover {
+  color: #6366f1;
+}
+
+/* ===============================
+   BUTTON
+================================ */
+.btn-primary {
+  margin-top: 0.6rem;
+  padding: 0.7rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 34px;
+
+  background: linear-gradient(135deg, #6366f1, #8C00FF);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #a5a5d8, #b39ddb);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); 
+  }
+}
+
+/* ===============================
+   LINKS
+================================ */
+.links {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #1a1a1a;
+  text-align: center;
+  flex-wrap: wrap;
+}
+
+.links a {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.links a:hover {
+  color: #6366f1;
+  border-bottom-color: #6366f1;
+}
+
+.links .divider {
+  opacity: 0.6;
+}
+
+/* ===============================
+   SOCIAL LOGIN (ICON ONLY)
+================================ */
+
+.social-login {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.social-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
+
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.social-btn.google-wide {
+  width: 100%;
+  height: auto;
+  padding: 0.8rem;
+}
+
+.social-btn.google-wide span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.social-btn i {
+  font-size: 1.05rem;
+  color: #1a1a1a;
+}
+
+/* Hover */
+.social-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+}
+
+/* Active */
+.social-btn:active {
+  transform: translateY(0);
+}
+
+/* Brand hints (subtle, not loud) */
+.social-btn.google i {
+  background: linear-gradient(135deg, #6366f1, #8C00FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.2rem;
+}
+
+.social-btn.facebook i {
+  color: #e4e0ff;
+}
+
+/* ===============================
+   AUTH SEPARATOR
+================================ */
+
+.auth-separator {
+  margin: 0.7rem 0 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-size: 0.75rem;
+  color: #1a1a1a;
+  text-transform: lowercase;
+  letter-spacing: 0.4px;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(99, 102, 241, 0.2),
+    transparent
+  );
+}
+
+.auth-separator span {
+  white-space: nowrap;
+  padding: 0 0.4rem;
+}
+
+/* ===============================
+   SMART FORM COMPRESSION (SMALL DEVICES)
+================================ */
+
+/* Phones & small tablets */
+@media (max-width: 480px) {
+
+  .auth-card {
+    padding: 1rem 1rem;
+    border-radius: 14px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .subtitle {
+    font-size: 0.7rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .auth-form {
+    gap: 0.85rem;
+  }
+
+  .input-group {
+    padding-bottom: 0.2rem;
+  }
+
+  .input-field {
+    font-size: 0.85rem;
+    padding: 0.3rem 0;
+  }
+
+  .btn-primary {
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    font-size: 0.8rem;
+    min-height: 30px;
+  }
+
+  .auth-separator {
+    margin: 0.45rem 0 0.45rem;
+    font-size: 0.65rem;
+  }
+
+  .social-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .social-btn.google-wide {
+    padding: 0.7rem;
+  }
+
+  .social-btn i {
+    font-size: 0.95rem;
+  }
+
+  .links {
+    margin-top: 0.55rem;
+    font-size: 0.75rem;
+  }
+}
+
+
+</style>
+
+<div class="auth-bg">
+  <div class="auth-card">
+
+    <h2 class="title">Welcome Back</h2>
+    <p class="subtitle">Login to continue</p>
+
+    <form method="post" novalidate class="auth-form">
+      {{ form.hidden_tag() }}
+
+      <div class="input-group">
+        <span class="icon"><i class="fas fa-envelope"></i></span>
+        {{ form.email(class_='input-field', placeholder="Email Address", required=true) }}
+      </div>
+
+      <div class="input-group">
+        <span class="icon"><i class="fas fa-lock"></i></span>
+        {{ form.password(class_='input-field', placeholder="Password", required=true) }}
+      </div>
+
+      <div class="show-password-checkbox">
+        <input type="checkbox" id="showPassword" class="checkbox-input">
+        <label for="showPassword">Show password</label>
+      </div>
+
+      <button class="btn-primary" type="submit" disabled>
+        <span class="btn-text">Login</span>
+      </button>
+ 
+    </form>
+
+    <!-- Separator -->
+    <div class="auth-separator">
+      <span>or sign in as</span>
+    </div>
+
+    <!-- Social login -->
+    <div class="social-login">
+      <a href="{{ url_for('auth.login_google') }}" class="social-btn google google-wide" aria-label="Continue with Google" title="Continue with Google">
+        <i class="fab fa-google"></i>
+        <span>Continue with Google</span>
+      </a>
+    </div>
+
+    <div class="links">
+      <a href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
+      <span>
+        <a href="{{ url_for('auth.register') }}">Register here</a>
+      </span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const submitBtn = document.querySelector('.btn-primary');
+  const showPasswordCheckbox = document.getElementById('showPassword');
+  let passwordInput = document.querySelector('input[name="password"]');
+  if (!passwordInput) {
+    passwordInput = document.querySelector('input[type="password"]');
+  }
+  
+  let emailInput = document.querySelector('input[name="email"]');
+  if (!emailInput) {
+    emailInput = document.querySelector('input[type="email"]');
+  }
+
+  function validateForm() {
+    const emailValid = emailInput && emailInput.value.trim().length > 0;
+    const passwordValid = passwordInput && passwordInput.value.trim().length > 0;
+    return emailValid && passwordValid;
+  }
+
+  function updateSubmitButton() {
+    const isValid = validateForm();
+    if (submitBtn) {
+      submitBtn.disabled = !isValid;
+    }
+  }
+
+  if (emailInput) {
+    emailInput.addEventListener('input', updateSubmitButton);
+    emailInput.addEventListener('change', updateSubmitButton);
+  }
+  if (passwordInput) {
+    passwordInput.addEventListener('input', updateSubmitButton);
+    passwordInput.addEventListener('change', updateSubmitButton);
+  }
+
+  if (showPasswordCheckbox && passwordInput) {
+    showPasswordCheckbox.addEventListener('change', function() {
+      passwordInput.type = this.checked ? 'text' : 'password';
+    });
+  }
+
+  updateSubmitButton();
+});
+</script>
+
+{% endblock %}

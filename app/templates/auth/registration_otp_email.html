@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petsona - Verify Your Email</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        .email-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .email-container {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 13px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background: #ffffff;
+            padding: 32px 40px;
+            text-align: center;
+            border-bottom: 3px solid #7c3aed;
+        }
+        .logo-container {
+            margin-bottom: 16px;
+        }
+        .logo-container img {
+            width: 48px;
+            height: 48px;
+            display: inline-block;
+        }
+        .header h1 {
+            margin: 12px 0 0 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #7c3aed;
+            letter-spacing: -0.5px;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        .message {
+            font-size: 15px;
+            color: #4b5563;
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+        .otp-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .otp-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .otp-code {
+            display: inline-block;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: #ffffff;
+            padding: 24px 40px;
+            border-radius: 12px;
+            font-size: 32px;
+            font-weight: 700;
+            font-family: 'Monaco', 'Courier New', monospace;
+            letter-spacing: 8px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            word-spacing: 8px;
+        }
+        .expiry-box {
+            background: #f0f4ff;
+            border: 1px solid #e0e7ff;
+            border-left: 4px solid #7c3aed;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 32px 0;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        .expiry-box strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .expiry-box .time-remaining {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+        .instructions {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 24px 0;
+            font-size: 14px;
+            color: #92400e;
+            line-height: 1.6;
+        }
+        .instructions strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        .instructions ul {
+            margin: 8px 0 0 20px;
+            padding: 0;
+        }
+        .instructions li {
+            margin: 6px 0;
+        }
+        .copy-section {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 24px 0;
+            text-align: center;
+        }
+        .copy-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .copy-code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: #7c3aed;
+            letter-spacing: 2px;
+            word-spacing: 2px;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 32px 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer-logo {
+            margin-bottom: 12px;
+        }
+        .footer-logo img {
+            width: 40px;
+            height: 40px;
+            display: inline-block;
+        }
+        .footer-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .footer-text strong {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 16px 0;
+        }
+        .footer-links {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 16px;
+        }
+        @media (max-width: 600px) {
+            .content {
+                padding: 28px 20px;
+            }
+            .header {
+                padding: 28px 20px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .greeting {
+                font-size: 16px;
+            }
+            .otp-code {
+                font-size: 28px;
+                padding: 20px 32px;
+                letter-spacing: 6px;
+            }
+            .footer {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo-container">
+                    <img src="cid:petsona_logo" alt="Petsona">
+                </div>
+                <h1>Petsona</h1>
+                <div class="header-subtitle">Verify Your Email Address</div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <p class="greeting">Welcome to Petsona!</p>
+
+                <p class="message">
+                    Thank you for signing up! To complete your registration and secure your account, please verify your email address using the one-time code below.
+                </p>
+
+                <div class="otp-section">
+                    <span class="otp-label">Your Verification Code</span>
+                    <div class="otp-code">{{ otp }}</div>
+                </div>
+
+                <div class="expiry-box">
+                    <strong>⏰ Time Limit</strong>
+                    This code will expire in <span class="time-remaining">10 minutes</span>. If you don't verify your email within this timeframe, you'll need to request a new code.
+                </div>
+
+                <div class="instructions">
+                    <strong>🔒 Security Reminder</strong>
+                    <ul>
+                        <li>Never share this code with anyone</li>
+                        <li>Petsona staff will never ask for your verification code</li>
+                        <li>If you didn't create a Petsona account, you can safely ignore this email</li>
+                    </ul>
+                </div>
+
+                <div class="copy-section">
+                    <span class="copy-label">Or copy and paste this code:</span>
+                    <div class="copy-code">{{ otp }}</div>
+                </div>
+
+                <p class="message" style="font-size: 14px; color: #6b7280; margin-top: 32px;">
+                    <strong>Didn't request this?</strong> If you didn't sign up for a Petsona account, please disregard this email. Your email address may have been entered by mistake.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <div class="footer-logo">
+                    <img src="cid:petsona_logo" alt="Petsona">
+                </div>
+                <p class="footer-text">
+                    <strong>Petsona</strong><br>
+                    Connecting pet lovers and creating meaningful matches
+                </p>
+                <div class="divider"></div>
+                <p class="footer-links">
+                    This is an automated verification email. Please do not reply.<br>
+                    © 2026 Petsona. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

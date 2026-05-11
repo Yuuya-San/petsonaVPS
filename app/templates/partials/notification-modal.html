@@ -1,0 +1,229 @@
+<!-- Notification Detail Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+        <div class="modal-content" style="border: none; border-radius: 16px; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15); background: #ffffff; overflow: hidden;">
+            
+            <!-- Modal Header with Icon and Close -->
+            <div style="padding: 30px 30px 20px 30px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.03) 100%); border-bottom: 1px solid rgba(102, 126, 234, 0.1); display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                    <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; font-size: 1.3rem;">
+                        <i id="notifModalIcon" class="fas fa-bell"></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <h5 id="notificationModalLabel" style="margin: 0; font-size: 1rem; font-weight: 700; color: #1a202c; line-height: 1.4;">Notification Details</h5>
+                        <span id="notifModalType" style="display: inline-block; margin-top: 2px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap;">notification</span>
+                    </div>
+                </div>
+                <button type="button" class="modal-close close-notif-modal" aria-label="Close" style="background: rgba(102, 126, 234, 0.15); border: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #667eea; cursor: pointer; padding: 0; transition: all 0.3s ease; flex-shrink: 0;">
+                    <i class="fas fa-times" style="font-size: 1rem;"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body - Professional Layout -->
+            <div class="modal-body" style="padding: 30px; background: #ffffff;">
+                
+                <!-- Main Title -->
+                <div style="margin-bottom: 16px;">
+                    <p id="notifModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1a202c; line-height: 1.5;">Notification Title</p>
+                </div>
+
+                <!-- Message with Better Typography -->
+                <div style="margin-bottom: 24px; padding: 16px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.02) 100%); border-left: 4px solid #667eea; border-radius: 8px;">
+                    <p id="notifModalMessage" style="margin: 0; color: #4a5568; font-size: 0.95rem; line-height: 1.7; white-space: normal; word-wrap: break-word;">Notification message goes here...</p>
+                </div>
+
+                <!-- Metadata Section -->
+                <div style="padding: 16px; background: #f7fafc; border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.08); margin-bottom: 24px;">
+                    
+                    <!-- Timestamp -->
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(102, 126, 234, 0.1);">
+                        <i class="fas fa-clock" style="color: #667eea; font-size: 0.9rem; width: 16px;"></i>
+                        <div>
+                            <span style="font-size: 0.8rem; color: #718096; display: block;">Received</span>
+                            <span id="notifModalDateFull" style="font-size: 0.9rem; font-weight: 600; color: #2d3748;">February 25, 2026 at 10:30 AM</span>
+                        </div>
+                    </div>
+
+                    <!-- Related Resource Info (hidden by default) -->
+                    <div id="notifRelatedBlock" style="display: none; margin-bottom: 0;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-link" style="color: #667eea; font-size: 0.9rem; width: 16px;"></i>
+                            <div>
+                                <span style="font-size: 0.8rem; color: #718096; display: block;">Related</span>
+                                <span style="font-size: 0.9rem; font-weight: 600; color: #2d3748;"><span id="notifRelatedType"></span> #<span id="notifRelatedId"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Read At Info (hidden by default) -->
+                <div id="notifReadAtBlock" style="display: none; margin-bottom: 24px; padding: 12px 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%); border-left: 4px solid #10b981; border-radius: 8px;">
+                    <p style="margin: 0; font-size: 0.85rem; color: #059669; font-weight: 500;">
+                        <i class="fas fa-check-circle" style="margin-right: 6px;"></i>
+                        Read on <span id="notifModalReadAt">-</span>
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer - Centered & Aligned Buttons -->
+            <div style="padding: 24px 30px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.01) 100%); border-top: 1px solid rgba(102, 126, 234, 0.1); display: flex; gap: 12px; justify-content: center; align-items: center;">
+                <button type="button" id="notifCloseBtn" class="btn" style="min-width: 120px; padding: 12px 24px; background: #f0f4ff; color: #667eea; border: 1.5px solid #e0e7ff; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" id="notificationMarkReadBtn" class="btn" style="min-width: 140px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+/* Professional Modal Styling */
+#notificationModal .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+}
+
+#notificationModal .modal-dialog {
+    animation: notifSlideIn 0.4s cubic-bezier(0.23, 1, 0.320, 1) forwards;
+}
+
+@keyframes notifSlideIn {
+    from {
+        transform: translateY(-50px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Close Button - Enhanced Hover */
+#notificationModal .close-notif-modal {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#notificationModal .close-notif-modal:hover {
+    background: rgba(102, 126, 234, 0.25) !important;
+    border-color: rgba(102, 126, 234, 0.3) !important;
+    transform: rotate(90deg) scale(1.1) !important;
+}
+
+#notificationModal .close-notif-modal:active {
+    transform: rotate(90deg) scale(0.95) !important;
+}
+
+/* Close Button Hover */
+#notifCloseBtn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#notifCloseBtn:hover {
+    background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%) !important;
+    color: #667eea !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15) !important;
+}
+
+#notifCloseBtn:active {
+    transform: translateY(0) !important;
+}
+
+/* View Button Hover */
+#notificationMarkReadBtn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#notificationMarkReadBtn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+#notificationMarkReadBtn:active:not(:disabled) {
+    transform: translateY(0) !important;
+}
+
+#notificationMarkReadBtn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+    #notificationModal .modal-dialog {
+        margin: 15px !important;
+        max-width: calc(100% - 30px) !important;
+    }
+    
+    #notificationModal .modal-content {
+        border-radius: 14px !important;
+    }
+    
+    #notificationModal .modal-header {
+        padding: 24px 20px 16px 20px !important;
+    }
+    
+    #notificationModal .modal-body {
+        padding: 20px !important;
+    }
+    
+    #notificationModal .modal-footer {
+        padding: 20px !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    #notifCloseBtn,
+    #notificationMarkReadBtn {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 400px) {
+    #notificationModal .modal-dialog {
+        max-width: 100% !important;
+        margin: 10px !important;
+    }
+    
+    #notificationModal .modal-content {
+        border-radius: 12px !important;
+    }
+}
+</style>
+
+<script>
+// DEBUG: Log when modal is shown
+document.getElementById('notificationModal')?.addEventListener('show.bs.modal', function() {
+    setTimeout(() => {
+        const avatarImg = document.getElementById('notifSenderAvatarImg');
+        const senderName = document.getElementById('notifSenderName');        
+    }, 100);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== MAIN NOTIFICATION MODAL CLOSE =====
+    const closeNotifButtons = document.querySelectorAll('#notificationModal .close-notif-modal, #notificationModal #notifCloseBtn');
+    const notificationModal = document.getElementById('notificationModal');
+
+    if (notificationModal) {
+        closeNotifButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                $(notificationModal).modal('hide');
+            });
+        });
+        // Close on ESC key
+        notificationModal.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                $(notificationModal).modal('hide');
+            }
+        });
+    }
+});
+</script>

@@ -1,0 +1,4241 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<style>
+  /* ========================================================================
+     MODERN BOOKINGS PAGE - GLASSMORPHISM + WHITE/PURPLE THEME
+     ======================================================================== */
+
+  :root {
+    --primary: #a855f7;
+    --primary-dark: #9333ea;
+    --primary-light: #c084fc;
+    
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    --text-dark: #111827;
+    --text-gray: #6b7280;
+    --text-light: #9ca3af;
+    
+    --border: #e5e7eb;
+    --border-light: #f3f4f6;
+    
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 12px 48px rgba(168, 85, 247, 0.1);
+  }
+
+  .bookings-section {
+    background: transparent;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .bookings-container {
+    width: 95vw;
+    max-width: 95vw;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 768px) {
+    .bookings-container {
+      width: 90vw;
+      max-width: 90vw;
+    }
+  }
+
+
+  /* ===== HEADER ===== */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .page-title {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .page-subtitle {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .header-right {
+    flex-shrink: 0;
+  }
+
+  /* ===== SEARCH FILTER CARD - GLASSMORPHISM ===== */
+  .search-filter-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 
+      0 12px 48px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .search-filter-card:hover {
+    box-shadow: 
+      0 16px 56px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 0 1px rgba(168, 85, 247, 0.15);
+  }
+
+  .search-filter-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: flex-end;
+  }
+
+  /* Search Box Wrapper */
+  .search-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-label i {
+    font-size: 1rem;
+    color: #a855f7;
+    filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.875rem 2.75rem 0.875rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(168, 85, 247, 0.08);
+  }
+
+  .search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+  }
+
+  .search-input:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 6px 16px rgba(168, 85, 247, 0.12);
+  }
+
+  .search-input:focus {
+    outline: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.98) 100%);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(168, 85, 247, 0.15);
+  }
+
+  /* Filter Box Wrapper */
+  .filter-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 240px;
+  }
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .filter-label i {
+    font-size: 1rem;
+    color: #a855f7;
+    filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 0.875rem 2.5rem 0.875rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+    background-size: 1rem 1rem;
+    padding-right: 2.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(168, 85, 247, 0.08);
+  }
+
+  .filter-select option {
+    color: var(--text-dark);
+    background: white;
+    padding: 0.5rem;
+  }
+
+  .filter-select:hover {
+    background-color: rgba(255, 255, 255, 1);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 6px 16px rgba(168, 85, 247, 0.12);
+  }
+
+  .filter-select:focus {
+    outline: none;
+    background-color: rgba(255, 255, 255, 1);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(168, 85, 247, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    .search-filter-card {
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-filter-content {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .search-box-wrapper {
+      gap: 0.65rem;
+    }
+
+    .filter-box-wrapper {
+      min-width: auto;
+      gap: 0.65rem;
+    }
+
+    .search-label,
+    .filter-label {
+      font-size: 0.8125rem;
+      color: #a855f7;
+    }
+
+    .search-input {
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      font-size: 0.9375rem;
+    }
+
+    .filter-select {
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      font-size: 0.9375rem;
+    }
+
+    .search-input::placeholder {
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .search-filter-card {
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-filter-content {
+      gap: 1rem;
+    }
+
+    .search-box-wrapper {
+      gap: 0.5rem;
+    }
+
+    .filter-box-wrapper {
+      gap: 0.5rem;
+    }
+
+    .search-label,
+    .filter-label {
+      font-size: 0.75rem;
+      color: #a855f7;
+    }
+
+    .search-label i,
+    .filter-label i {
+      font-size: 0.875rem;
+    }
+
+    .search-input {
+      padding: 0.65rem 2rem 0.65rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+
+    .filter-select {
+      padding: 0.65rem 2rem 0.65rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+  }
+
+  /* ===== FILTER DROPDOWN ===== */
+  .filter-form {
+    display: flex;
+    align-items: center;
+  }
+
+  .status-select {
+    min-width: 180px;
+    padding: 0.625rem 2.5rem 0.625rem 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  .status-select:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(168, 85, 247, 0.3);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .status-select:focus {
+    outline: none;
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* ===== BOOKINGS CARD - GLASSMORPHISM ===== */
+  .bookings-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 12px 48px rgba(168, 85, 247, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 1px rgba(168, 85, 247, 0.1);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  /* ===== TABLE ===== */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bookings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .bookings-table thead {
+    background: rgba(168, 85, 247, 0.08);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .bookings-table th {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    white-space: nowrap;
+    border: none;
+  }
+
+  .th-booking { width: 20%; min-width: 150px; }
+  .th-merchant { width: 25%; min-width: 180px; }
+  .th-date { width: 20%; min-width: 140px; }
+  .th-status { width: 18%; min-width: 120px; text-align: center; }
+  .th-actions { width: 17%; min-width: 140px; text-align: center; }
+
+  .bookings-table tbody tr {
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    transition: all 0.2s ease;
+  }
+
+  .bookings-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+  }
+
+  .bookings-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .bookings-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: var(--text-dark);
+    border: none;
+    text-align: center;
+  }
+
+  .td-booking {
+    font-weight: 600;
+  }
+
+  .booking-number {
+    display: block;
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .booking-date-text {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-top: 0.25rem;
+  }
+
+  .td-merchant {
+    font-weight: 600;
+  }
+
+  .merchant-name {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .merchant-category {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    font-weight: 400;
+  }
+
+  .td-date {
+    font-weight: 500;
+  }
+
+  .appointment-date {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .appointment-time {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+  }
+
+  .td-status {
+    text-align: center;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .status-badge.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+
+  .status-badge.confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .status-badge.completed {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .status-badge.cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .status-badge.rejected {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+    border: 1px solid rgba(236, 72, 153, 0.2);
+  }
+
+  .status-badge.no-show {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+  }
+
+  .td-actions {
+    text-align: center;
+  }
+
+  .action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+
+  .action-btn i {
+    font-size: 0.875rem;
+  }
+
+  .action-btn.view {
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .action-btn.view:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .action-btn.delete {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.15);
+    background: rgba(239, 68, 68, 0.08);
+  }
+
+  .action-btn.delete:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  .action-btn.cancel {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.15);
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  .action-btn.cancel:hover {
+    background: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  .action-btn.download {
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.08);
+  }
+
+  .action-btn.download:hover {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .action-btn.review {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.15);
+    background: rgba(251, 191, 36, 0.08);
+  }
+
+  .action-btn.review:hover {
+    background: #fbbf24;
+    color: white;
+    border-color: #fbbf24;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  }
+
+  .action-btn.book-again {
+    color: #8b5cf6;
+    border-color: rgba(139, 92, 246, 0.15);
+    background: rgba(139, 92, 246, 0.08);
+  }
+
+  .action-btn.book-again:hover {
+    background: #8b5cf6;
+    color: white;
+    border-color: #8b5cf6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+
+  .action-btn.receipt {
+    color: #ec4899;
+    border-color: rgba(236, 72, 153, 0.15);
+    background: rgba(236, 72, 153, 0.08);
+  }
+
+  .action-btn.receipt:hover {
+    background: #ec4899;
+    color: white;
+    border-color: #ec4899;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  }
+
+  .action-btn.receipt.saved {
+    background: #ec4899;
+    color: white;
+    border-color: #ec4899;
+  }
+
+  .action-btn.receipt:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  .action-btn.receipt:disabled:hover {
+    background: #ec4899;
+    color: white;
+    border-color: #ec4899;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .action-btn.message {
+    color: #06b6d4;
+    border-color: rgba(6, 182, 212, 0.15);
+    background: rgba(6, 182, 212, 0.08);
+  }
+
+  .action-btn.message:hover {
+    background: #06b6d4;
+    color: white;
+    border-color: #06b6d4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  }
+
+  .action-btn.appeal {
+    color: #f97316;
+    border-color: rgba(249, 115, 22, 0.15);
+    background: rgba(249, 115, 22, 0.08);
+  }
+
+  .action-btn.appeal:hover {
+    background: #f97316;
+    color: white;
+    border-color: #f97316;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+  }
+
+  /* ===== PAGINATION ===== */
+  .pagination-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.02);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination-info {
+    font-size: 0.875rem;
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .pagination-info strong {
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pagination-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background: rgba(168, 85, 247, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--primary);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .pagination-btn i {
+    font-size: 0.75rem;
+  }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .empty-content {
+    color: var(--text-gray);
+  }
+
+  .empty-content i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    color: var(--primary);
+  }
+
+  .empty-content h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .empty-content p {
+    margin: 0 0 1.5rem;
+    color: var(--text-gray);
+    font-size: 0.95rem;
+  }
+
+  .empty-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+  }
+
+  .empty-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+  }
+
+  /* ===== MODALS - GLASSMORPHISM ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.hidden {
+    display: none;
+  }
+
+  .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 60px rgba(168, 85, 247, 0.15);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    max-width: 480px;
+    width: 95vw;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(147, 51, 234, 0.08));
+    color: var(--text-dark);
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    color: var(--primary);
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 50%;
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+
+  .modal-close:hover {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  .modal-close i {
+    font-size: 1rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+  }
+
+  .booking-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .booking-detail:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+  }
+
+  .detail-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    text-align: right;
+  }
+
+  .modal-footer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.1);
+    background: rgba(249, 250, 251, 0.5);
+    justify-content: flex-end;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .modal-footer .btn {
+    flex: 0 1 auto;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .modal-footer {
+      gap: 0.75rem;
+      padding: 1rem;
+    }
+
+    .modal-footer .btn {
+      flex: 0 1 auto;
+      min-width: 100px;
+      font-size: 0.8125rem;
+      padding: 0.65rem 1rem;
+    }
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .btn-cancel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    color: var(--text-gray);
+  }
+
+  .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+
+  .btn-delete:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+  }
+
+  .btn-delete:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .btn-delete i {
+    font-size: 0.875rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.875rem;
+    resize: vertical;
+    min-height: 80px;
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+  }
+
+  .form-group textarea:focus {
+    outline: none;
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  }
+
+  /* ===== RECEIPT MODAL STYLES ===== */
+  .receipt-modal {
+    max-width: 520px;
+    width: 100%;
+    max-height: 85vh;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f9f7ff 100%);
+    box-shadow: 0 25px 60px rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .receipt-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 85vh;
+    background: white;
+  }
+
+  .receipt-header {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 1.25rem 1.25rem;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    border-bottom: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .receipt-logo {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.15rem;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .receipt-title {
+    margin: 0 0 0.2rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.1;
+    word-wrap: break-word;
+  }
+
+  .receipt-subtitle {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+  }
+
+  .receipt-content {
+    padding: 1.5rem 1.25rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: white;
+    line-height: 1.5;
+  }
+
+  .qr-section {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .qr-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(147, 51, 234, 0.05));
+    border: 2px solid rgba(168, 85, 247, 0.3);
+    border-radius: var(--radius);
+    margin-bottom: 0.875rem;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+    min-height: 150px;
+    min-width: 150px;
+  }
+
+  .qr-text {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    word-wrap: break-word;
+  }
+
+  .receipt-divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(168, 85, 247, 0.25), transparent);
+    margin: 1rem 0;
+  }
+
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .receipt-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .receipt-row-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 140px;
+    word-break: break-word;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .receipt-row-item.receipt-align-right {
+    align-items: flex-end;
+    text-align: right;
+    justify-content: flex-start;
+  }
+
+  .receipt-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+    line-height: 1;
+  }
+
+  .receipt-value {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    line-height: 1.5;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .receipt-booking-number {
+    color: var(--primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .receipt-status {
+    padding: 0.425rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--primary);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    box-shadow: 0 2px 6px rgba(168, 85, 247, 0.1);
+    margin: 0.2rem 0 0 0;
+    white-space: nowrap;
+    height: 1.5rem;
+  }
+
+  .receipt-status.status-pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(100, 86, 62, 0.25);
+  }
+
+  .receipt-status.status-confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .receipt-status.status-completed {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+
+  .receipt-status.status-cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  .receipt-status.status-rejected {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+    border-color: rgba(236, 72, 153, 0.25);
+  }
+
+  .receipt-status.status-no-show {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border-color: rgba(107, 114, 128, 0.25);
+  }
+
+  .receipt-section {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.04), rgba(147, 51, 234, 0.04));
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: var(--radius-sm);
+  }
+
+  .receipt-section-title {
+    margin: 0 0 0.875rem 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    word-break: break-word;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .receipt-section-title i {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    width: 18px;
+    text-align: center;
+  }
+
+  .receipt-merchant-name {
+    margin: 0 0 0.35rem;
+    padding: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+  }
+
+  .receipt-merchant-category {
+    margin: 0 0 0.75rem;
+    padding: 0;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    font-weight: 500;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+
+  .receipt-merchant-contact {
+    margin: 0.5rem 0;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    word-break: break-all;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    line-height: 1.4;
+  }
+
+  .receipt-merchant-contact i {
+    color: var(--primary);
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    font-size: 0.85rem;
+  }
+
+  .receipt-amount-row {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(147, 51, 234, 0.12));
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    border: 1.5px solid rgba(168, 85, 247, 0.35);
+    margin-bottom: 0;
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.15);
+    word-break: break-word;
+    text-align: center;
+  }
+
+  .receipt-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+    word-break: break-word;
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .receipt-footer {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 1.125rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(147, 51, 234, 0.1));
+    border-top: 2px solid rgba(168, 85, 247, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .receipt-footer-text {
+    margin: 0.45rem 0;
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    line-height: 1.4;
+    font-weight: 600;
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .receipt-footer-text i {
+    margin-right: 0.5rem;
+    color: var(--primary);
+    font-size: 0.9rem;
+  }
+
+  .receipt-footer-small {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-top: 0.5rem;
+    word-wrap: break-word;
+  }
+
+  .receipt-actions {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 0.625rem;
+    padding: 1rem;
+    border-top: 2px solid rgba(168, 85, 247, 0.2);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(168, 85, 247, 0.03));
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(147, 51, 234, 0.15));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: var(--primary);
+    flex: 1;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  .btn-secondary:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(147, 51, 234, 0.25));
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .btn-download-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    font-weight: 600;
+    flex: 1;
+    min-width: 120px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-download-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .btn-download-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .download-options {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* ===== DIGITAL RECEIPT FOR DOWNLOAD ===== */
+  .digital-receipt-wrapper {
+    width: 520px;
+    background: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  .digital-receipt-header {
+    text-align: center;
+    padding: 1.25rem 1.25rem;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .digital-receipt-logo {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.15rem;
+    background: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: none;
+    border: none;
+  }
+
+  .digital-receipt-title {
+    margin: 0 0 0.2rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.1;
+  }
+
+  .digital-receipt-subtitle {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+  }
+
+  .digital-receipt-content {
+    padding: 1.5rem 1.25rem;
+    background: white;
+  }
+
+  .digital-qr-section {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .digital-qr-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(147, 51, 234, 0.05));
+    border: 2px solid rgba(168, 85, 247, 0.3);
+    border-radius: 12px;
+    margin-bottom: 0.875rem;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+    min-height: 150px;
+    min-width: 150px;
+  }
+
+  .digital-qr-code img {
+    width: 140px;
+    height: 140px;
+    border-radius: 8px;
+  }
+
+  .digital-qr-text {
+    margin: 0;
+    font-size: 0.7rem;
+    color: #a855f7;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .digital-divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(168, 85, 247, 0.25), transparent);
+    margin: 1rem 0;
+  }
+
+  .digital-section {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.04), rgba(147, 51, 234, 0.04));
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+  }
+
+  .digital-section-title {
+    margin: 0 0 0.875rem 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #a855f7;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .digital-section-title i {
+    font-size: 0.9rem;
+    width: 18px;
+    text-align: center;
+  }
+
+  .digital-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .digital-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .digital-row-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .digital-row-right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .digital-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #a855f7;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+  }
+
+  .digital-value {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.5;
+  }
+
+  .digital-booking-number {
+    color: #a855f7;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .digital-status {
+    padding: 0.425rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #a855f7;
+    border: none;
+    box-shadow: none;
+    margin: 0.2rem 0 0 0;
+    white-space: nowrap;
+    height: 1.5rem;
+  }
+
+  .digital-status.status-confirmed {
+    background: transparent;
+    color: #10b981;
+    border-color: transparent;
+  }
+
+  .digital-status.status-completed {
+    background: transparent;
+    color: #3b82f6;
+    border-color: transparent;
+  }
+
+  .digital-status.status-pending {
+    background: transparent;
+    color: #f59e0b;
+    border-color: transparent;
+  }
+
+  .digital-merchant-name {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.3;
+  }
+
+  .digital-merchant-category {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .digital-merchant-contact {
+    margin: 0.5rem 0;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    line-height: 1.4;
+  }
+
+  .digital-merchant-contact i {
+    color: #a855f7;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    font-size: 0.85rem;
+  }
+
+  .digital-amount-highlight {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(147, 51, 234, 0.12));
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1.5px solid rgba(168, 85, 247, 0.35);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.15);
+    text-align: center;
+  }
+
+  .digital-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #a855f7;
+    letter-spacing: -0.02em;
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .digital-notes-section {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(147, 51, 234, 0.08));
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-left: 4px solid #a855f7;
+    padding: 0.875rem 1rem;
+  }
+
+  .digital-notes-title {
+    margin: 0 0 0.625rem;
+    font-size: 0.8rem;
+    color: #a855f7;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: none;
+    padding-bottom: 0;
+  }
+
+  .digital-note-item {
+    margin: 0.5rem 0;
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .digital-receipt-footer {
+    text-align: center;
+    padding: 1.125rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(147, 51, 234, 0.1));
+    border-top: 2px solid rgba(168, 85, 247, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .digital-footer-text {
+    margin: 0.45rem 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.4;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .digital-footer-text i {
+    margin-right: 0.5rem;
+    color: #a855f7;
+    font-size: 0.9rem;
+  }
+
+  .digital-footer-small {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 0.5rem;
+  }
+
+  /* ===== RESPONSIVE DESIGN ===== */
+  @media (max-width: 1024px) {
+    .bookings-container {
+      max-width: 100%;
+    }
+    
+    .th-booking,
+    .th-merchant,
+    .th-date,
+    .th-status,
+    .th-actions {
+      min-width: auto;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .bookings-section {
+      padding: 1rem;
+    }
+    
+    .modal-overlay {
+      padding: 1rem;
+      align-items: center;
+    }
+
+    .modal-content {
+      max-width: calc(100vw - 2rem);
+    }
+
+    .receipt-modal {
+      max-height: 85vh;
+      height: auto;
+      margin-top: 2rem;
+    }
+
+    .receipt-container {
+      max-height: 85vh;
+    }
+
+    .receipt-header {
+      padding: 1rem 1rem;
+    }
+
+    .receipt-logo {
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .receipt-title {
+      font-size: 1.1rem;
+    }
+
+    .receipt-subtitle {
+      font-size: 0.7rem;
+    }
+
+    .receipt-content {
+      padding: 1.25rem 1rem;
+    }
+
+    .receipt-footer {
+      padding: 1rem;
+    }
+
+    .receipt-footer-text {
+      font-size: 0.8rem;
+      margin: 0.35rem 0;
+    }
+
+    .receipt-footer-small {
+      font-size: 0.7rem;
+      margin-top: 0.5rem;
+    }
+
+    .receipt-actions {
+      padding: 1rem 0.875rem;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1.125rem;
+      font-size: 0.8rem;
+    }
+
+    .btn i {
+      font-size: 0.75rem;
+    }
+
+    .btn-secondary {
+      flex: 1;
+    }
+
+    /* Mobile Table */
+    .table-container {
+      overflow-x: visible;
+    }
+    
+    .bookings-table thead {
+      display: none;
+    }
+    
+    .bookings-table,
+    .bookings-table tbody,
+    .bookings-table tr,
+    .bookings-table td {
+      display: block;
+      width: 100%;
+    }
+    
+    .bookings-table tbody tr {
+      margin-bottom: 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 0;
+      background: white;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(168, 85, 247, 0.15);
+    }
+    
+    .bookings-table tbody tr:hover {
+      background: white;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .bookings-table td {
+      padding: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-light);
+      word-break: break-word;
+    }
+    
+    .bookings-table td:last-child {
+      border-bottom: none;
+    }
+    
+    .bookings-table td::before {
+      content: attr(data-label);
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      flex-shrink: 0;
+      min-width: 70px;
+    }
+    
+    .td-booking,
+    .td-merchant,
+    .td-date,
+    .td-status,
+    .td-actions {
+      width: 100%;
+      text-align: right;
+    }
+
+    .booking-number {
+      display: inline;
+      margin-bottom: 0;
+    }
+
+    .booking-date-text {
+      display: inline;
+      margin-top: 0;
+    }
+
+    .merchant-name {
+      display: inline;
+      margin-bottom: 0;
+    }
+
+    .merchant-category {
+      display: inline;
+      margin-left: 0.25rem;
+    }
+
+    .appointment-date,
+    .appointment-time {
+      display: inline;
+    }
+
+    .appointment-time::before {
+      content: " • ";
+      margin: 0 0.25rem;
+    }
+
+    .td-status {
+      text-align: right;
+    }
+    
+    .action-group {
+      flex: 1;
+      justify-content: flex-end;
+    }
+    
+    .pagination-footer {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .pagination-info {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .pagination-controls {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .header-left {
+      min-width: auto;
+    }
+    
+    .page-title {
+      font-size: 1.5rem;
+    }
+    
+    .header-right {
+      width: 100%;
+    }
+    
+    .status-select {
+      width: 100%;
+      min-width: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .bookings-section {
+      padding: 0.75rem;
+    }
+    
+    .page-title {
+      font-size: 1.25rem;
+    }
+    
+    .page-subtitle {
+      font-size: 0.8rem;
+    }
+    
+    .bookings-card {
+      border-radius: var(--radius);
+    }
+    
+    .bookings-table tbody tr {
+      padding: 0.75rem;
+    }
+    
+    .bookings-table td {
+      padding: 0.625rem;
+      font-size: 0.8rem;
+    }
+    
+    .bookings-table td::before {
+      font-size: 0.65rem;
+      min-width: 60px;
+    }
+    
+    .action-btn {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .action-btn i {
+      font-size: 0.75rem;
+    }
+    
+    .pagination-btn {
+      width: 32px;
+      height: 32px;
+    }
+
+    .modal-overlay {
+      padding: 0.5rem;
+    }
+
+    .modal-content {
+      max-width: calc(100vw - 1rem);
+    }
+
+    .receipt-modal {
+      max-height: 80vh;
+      height: auto;
+      margin-top: 1.5rem;
+    }
+
+    .receipt-container {
+      max-height: 80vh;
+    }
+
+    .receipt-header {
+      padding: 0.75rem 0.75rem;
+    }
+
+    .receipt-logo {
+      width: 38px;
+      height: 38px;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .receipt-title {
+      font-size: 0.9rem;
+    }
+
+    .receipt-subtitle {
+      font-size: 0.55rem;
+    }
+
+    .receipt-content {
+      padding: 0.875rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .receipt-section {
+      margin-bottom: 0.875rem;
+    }
+
+    .receipt-section-title {
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .receipt-row {
+      margin-bottom: 0.875rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .receipt-label {
+      font-size: 0.65rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .receipt-value {
+      font-size: 0.85rem;
+    }
+
+    .receipt-booking-number {
+      font-size: 1.1rem;
+    }
+
+    .receipt-merchant-name {
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .receipt-merchant-category {
+      font-size: 0.8rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .receipt-merchant-contact {
+      font-size: 0.8rem;
+      margin: 0.4rem 0;
+    }
+
+    .receipt-amount {
+      font-size: 1.4rem;
+    }
+
+    .receipt-amount-row {
+      padding: 1rem;
+      margin-bottom: 0;
+    }
+
+    .footer-status {
+      padding: 0.75rem;
+    }
+
+    .receipt-footer {
+      padding: 0.625rem;
+    }
+
+    .receipt-footer-text {
+      font-size: 0.65rem;
+      margin: 0.2rem 0;
+    }
+
+    .receipt-footer-small {
+      font-size: 0.6rem;
+      margin-top: 0.3rem;
+    }
+
+    .receipt-actions {
+      padding: 0.75rem;
+      gap: 0.4rem;
+      flex-direction: column;
+    }
+
+    .btn {
+      padding: 0.55rem 1rem;
+      font-size: 0.75rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn i {
+      font-size: 0.7rem;
+    }
+
+    .btn-secondary {
+      width: 100%;
+    }
+
+    .qr-code {
+      padding: 0.75rem;
+      min-height: 120px;
+      min-width: 120px;
+    }
+
+    .qr-text {
+      font-size: 0.65rem;
+    }
+
+    .qr-section {
+      margin-bottom: 1.25rem;
+      padding-bottom: 1.25rem;
+    }
+
+    .receipt-divider {
+      margin: 1rem 0;
+    }
+
+    .modal-body {
+      max-height: 55vh;
+    }
+
+    /* Fix for modal content not scrolling properly */
+    .receipt-content {
+      max-height: calc(80vh - 160px);
+    }
+  }
+
+  /* Extra small devices (360px and below) */
+  @media (max-width: 360px) {
+    .bookings-section {
+      padding: 0.5rem;
+    }
+
+    .page-title {
+      font-size: 1.1rem;
+    }
+
+    .modal-overlay {
+      padding: 0.25rem;
+    }
+
+    .receipt-modal {
+      max-height: 80vh;
+      height: auto;
+      margin-top: 1rem;
+    }
+
+    .receipt-header {
+      padding: 0.7rem 0.625rem;
+    }
+
+    .receipt-logo {
+      width: 36px;
+      height: 36px;
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .receipt-title {
+      font-size: 0.88rem;
+    }
+
+    .receipt-content {
+      padding: 0.875rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .receipt-subtitle {
+      font-size: 0.55rem;
+    }
+
+    .receipt-section {
+      margin-bottom: 0.75rem;
+    }
+
+    .receipt-row {
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.625rem;
+    }
+
+    .receipt-label {
+      font-size: 0.6rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .receipt-value {
+      font-size: 0.8rem;
+    }
+
+    .receipt-booking-number {
+      font-size: 0.95rem;
+    }
+
+    .receipt-amount {
+      font-size: 1.2rem;
+    }
+
+    .receipt-amount-row {
+      padding: 0.75rem;
+    }
+
+    .receipt-merchant-contact {
+      font-size: 0.75rem;
+    }
+
+    .receipt-actions {
+      padding: 0.65rem;
+      gap: 0.3rem;
+    }
+
+    .btn {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.7rem;
+    }
+
+    .qr-code {
+      min-height: 100px;
+      min-width: 100px;
+      padding: 0.625rem;
+    }
+
+    .qr-text {
+      font-size: 0.6rem;
+    }
+
+    .receipt-footer {
+      padding: 0.6rem;
+    }
+
+    .receipt-footer-text {
+      font-size: 0.6rem;
+      margin: 0.15rem 0;
+    }
+
+    .receipt-footer-small {
+      font-size: 0.55rem;
+      margin-top: 0.2rem;
+    }
+
+    .receipt-section-title {
+      font-size: 0.75rem;
+      margin-bottom: 0.625rem;
+    }
+
+    /* Fix for modal content not scrolling properly */
+    .receipt-content {
+      max-height: calc(80vh - 160px);
+    }
+  }
+
+</style>
+
+<section class="bookings-section">
+  <div class="bookings-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">
+          <i class="fas fa-shopping-cart"></i>
+          My Bookings
+        </h1>
+        <p class="page-subtitle">View and manage all your pet service bookings</p>
+      </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="search-filter-card">
+      <div class="search-filter-content">
+        <div class="search-box-wrapper">
+          <label class="search-label">
+            <i class="fas fa-search"></i> Search Bookings
+          </label>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="Search by booking ID or merchant name..."
+            onkeyup="filterBookings()">
+        </div>
+        
+        <div class="filter-box-wrapper">
+          <label class="filter-label">
+            <i class="fas fa-filter"></i> Filter Status
+          </label>
+          <select id="statusFilter" class="filter-select" onchange="filterBookings()">
+            <option value="">All Bookings</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="rejected">Rejected</option>
+            <option value="no-show">No-Show</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookings Card - Table -->
+    {% if bookings.items %}
+    <div class="bookings-card">
+      <div class="table-container">
+        <table class="bookings-table">
+          <thead>
+            <tr>
+              <th class="th-booking">Booking #</th>
+              <th class="th-merchant">Merchant</th>
+              <th class="th-date">Appointment</th>
+              <th class="th-status">Status</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in bookings.items %}
+            <tr>
+              <td class="td-booking" data-label="Booking #">
+                <span class="booking-number">{{ booking.booking_number }}</span>
+                <span class="booking-date-text">₱{{ "%.2f"|format(booking.total_amount) }}</span>
+              </td>
+
+              <td class="td-merchant" data-label="Merchant">
+                <span class="merchant-name">{{ booking.merchant.business_name }}</span>
+                <span class="merchant-category">{{ booking.business_category }}</span>
+              </td>
+
+              <td class="td-date" data-label="Appointment">
+                <span class="appointment-date">{{ booking.appointment_date.strftime('%b %d, %Y') }}</span>
+                <span class="appointment-time">{{ booking.appointment_time }}</span>
+              </td>
+
+              <td class="td-status" data-label="Status">
+                {% if booking.status == 'pending' %}
+                  <span class="status-badge pending">
+                    <i class="fas fa-hourglass-half"></i> Pending
+                  </span>
+                {% elif booking.status == 'confirmed' %}
+                  <span class="status-badge confirmed">
+                    <i class="fas fa-check-circle"></i> Confirmed
+                  </span>
+                {% elif booking.status == 'completed' %}
+                  <span class="status-badge completed">
+                    <i class="fas fa-circle-check"></i> Completed
+                  </span>
+                {% elif booking.status == 'cancelled' %}
+                  <span class="status-badge cancelled">
+                    <i class="fas fa-circle-xmark"></i> Cancelled
+                  </span>
+                {% elif booking.status == 'rejected' %}
+                  <span class="status-badge rejected">
+                    <i class="fas fa-ban"></i> Rejected
+                  </span>
+                {% elif booking.status == 'no-show' %}
+                  <span class="status-badge no-show">
+                    <i class="fas fa-minus-circle"></i> No-Show
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="td-actions" data-label="Actions">
+                <div class="action-group">
+                  <button class="action-btn view" title="View Details" 
+                          data-booking-id="{{ booking.id }}"
+                          data-booking-number="{{ booking.booking_number }}"
+                          data-merchant-name="{{ booking.merchant.business_name }}"
+                          data-merchant-email="{{ booking.merchant.contact_email }}"
+                          data-merchant-phone="{{ booking.merchant.contact_phone }}"
+                          data-business-category="{{ booking.business_category }}"
+                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          data-appointment-time="{{ booking.appointment_time }}"
+                          data-total-pets="{{ booking.total_pets }}"
+                          data-service-type="{{ booking.service_type }}"
+                          data-total-amount="{{ "%.2f"|format(booking.total_amount) }}"
+                          data-status="{{ booking.status }}"
+                          data-confirmation-code="{{ booking.confirmation_code }}"
+                          data-qr-code-url="{{ booking.qr_code_url or '' }}"
+                          data-updated-at="{{ booking.updated_at.strftime('%B %d, %Y at %I:%M:%S %p') if booking.updated_at else '' }}"
+                          onclick="showDetailsModal(this)">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  {% if booking.status == 'confirmed' %}
+                  <button class="action-btn download" 
+                          title="Download Receipt as Image"
+                          data-booking-id="{{ booking.id }}"
+                          data-booking-number="{{ booking.booking_number }}"
+                          data-merchant-name="{{ booking.merchant.business_name }}"
+                          data-merchant-email="{{ booking.merchant.contact_email }}"
+                          data-merchant-phone="{{ booking.merchant.contact_phone }}"
+                          data-business-category="{{ booking.business_category }}"
+                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          data-appointment-time="{{ booking.appointment_time }}"
+                          data-total-pets="{{ booking.total_pets }}"
+                          data-service-type="{{ booking.service_type }}"
+                          data-total-amount="{{ "%.2f"|format(booking.total_amount) }}"
+                          data-status="{{ booking.status }}"
+                          data-confirmation-code="{{ booking.confirmation_code }}"
+                          data-qr-code-url="{{ booking.qr_code_url or '' }}"
+                          data-updated-at="{{ booking.updated_at.strftime('%B %d, %Y at %I:%M:%S %p') if booking.updated_at else '' }}"
+                          onclick="downloadReceiptDirectly(this)">
+                    <i class="fas fa-download"></i>
+                  </button>
+                  {% endif %}
+                  {% if booking.status == 'pending' %}
+                  <button class="action-btn cancel" title="Cancel Booking"
+                          data-booking-id="{{ booking.id }}"
+                          onclick="showCancelModal(this)">
+                    <i class="fas fa-times-circle"></i>
+                  </button>
+                  {% elif booking.status == 'rejected' %}
+                  <a href="{{ url_for('messages.start_chat', user_id=booking.merchant.user_id) }}" 
+                     class="action-btn message" title="Message Merchant"
+                     style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-envelope"></i>
+                  </a>
+                  {% elif booking.status == 'cancelled' %}
+                  <a href="{{ url_for('merchant.customer_create_booking', merchant_id=booking.merchant.id) }}" 
+                     class="action-btn book-again" title="Book Again"
+                     style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-calendar-plus"></i>
+                  </a>
+                  {% elif booking.status == 'no-show' %}
+                  <button class="action-btn appeal" title="Appeal"
+                          data-booking-id="{{ booking.id }}"
+                          data-merchant-name="{{ booking.merchant.business_name }}"
+                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          onclick="showAppealModal(this)">
+                    <i class="fas fa-exclamation-circle"></i>
+                  </button>
+                  {% endif %}
+                  {% if booking.status == 'completed' and not booking.review %}
+                  <button class="action-btn review" title="Write a Review"
+                          data-booking-id="{{ booking.id }}">
+                    <i class="fas fa-star"></i>
+                  </button>
+                  {% elif booking.status == 'completed' and booking.review %}
+                  <button class="action-btn view" title="Review Submitted" disabled style="cursor: default; opacity: 0.65;">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          <span>Page <strong id="currentPage">{{ bookings.page if bookings.pages > 0 else 1 }}</strong> of <strong id="totalPages">{{ bookings.pages if bookings.pages > 0 else 1 }}</strong></span>
+        </div>
+        
+        <div class="pagination-controls">
+          {% if bookings.has_prev %}
+            <a href="{{ url_for('user.my_bookings', page=bookings.prev_num, status=status_filter) }}" 
+               class="pagination-btn" title="Previous Page">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          {% endif %}
+
+          {% if bookings.has_next %}
+            <a href="{{ url_for('user.my_bookings', page=bookings.next_num, status=status_filter) }}" 
+               class="pagination-btn" title="Next Page">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="bookings-card">
+      <div class="empty-state">
+        <div class="empty-content">
+          <i class="fas fa-inbox"></i>
+          <h2>No Bookings Yet</h2>
+          <p>You haven't made any bookings yet. Visit nearby pet services and make your first booking!</p>
+          <a href="{{ url_for('user.nearby_services') }}" class="empty-action">
+            <i class="fas fa-search text-white text-lg transition pt-3 duration-300 hover:text-gray-200 hover:scale-110"></i>
+            Find Pet Services
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Receipt Modal (Electronic Booking Proof) -->
+<div id="detailsModal" class="modal-overlay hidden">
+  <div class="modal-content receipt-modal">
+    <div class="receipt-container">
+      <!-- Receipt Header -->
+      <div class="receipt-header">
+        <div class="receipt-logo">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="receipt-title">Booking Confirmation</h2>
+        <p class="receipt-subtitle">Your Digital Receipt</p>
+      </div>
+
+      <!-- Receipt Content -->
+      <div class="receipt-content">
+        <!-- QR Code Section -->
+        <div class="qr-section">
+          <div class="qr-code" id="receiptQR"></div>
+          <p class="qr-text">Scan for booking verification</p>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Booking Header -->
+        <div class="receipt-section">
+          <div class="receipt-row">
+            <div class="receipt-row-item">
+              <span class="receipt-label">Booking Reference</span>
+              <span class="receipt-value receipt-booking-number" id="receiptBookingNumber"></span>
+            </div>
+            <div class="receipt-row-item receipt-align-right">
+              <span class="receipt-label">Status</span>
+              <span class="receipt-value receipt-status" id="receiptStatus"></span>
+            </div>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Confirmation Code</span>
+            <span class="receipt-value" id="receiptConfirmationCode"></span>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Merchant Info Section -->
+        <div class="receipt-section">
+          <h3 class="receipt-section-title"><i class="fas fa-store"></i> Service Provider</h3>
+          <p class="receipt-merchant-name" id="receiptMerchantName"></p>
+          <p class="receipt-merchant-category" id="receiptMerchantCategory"></p>
+          <div style="margin-top: 0.625rem;">
+            <p class="receipt-merchant-contact">
+              <i class="fas fa-phone"></i> <span id="receiptMerchantPhone"></span>
+            </p>
+            <p class="receipt-merchant-contact">
+              <i class="fas fa-envelope"></i> <span id="receiptMerchantEmail"></span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Appointment Details Section -->
+        <div class="receipt-section">
+          <h3 class="receipt-section-title"><i class="fas fa-calendar-alt"></i> Appointment Details</h3>
+          <div class="receipt-row">
+            <div class="receipt-row-item">
+              <span class="receipt-label">Schedule</span>
+              <span class="receipt-value">
+                <span id="receiptAppointmentDate"></span><br>
+                <span style="color: var(--primary); font-weight: 600;" id="receiptAppointmentTime"></span>
+              </span>
+            </div>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Service Type</span>
+            <span class="receipt-value" id="receiptServiceType"></span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Pets Included</span>
+            <span class="receipt-value" id="receiptTotalPets"></span>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Amount Section with Highlight -->
+        <div class="receipt-section">
+          <div class="receipt-row receipt-amount-row">
+            <div style="width: 100%; text-align: center;">
+              <span class="receipt-label">Total Amount Booked</span>
+              <span class="receipt-value receipt-amount" id="receiptTotalAmount"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="receipt-divider"></div>
+
+        <!-- Important Notes -->
+        <div class="receipt-section" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(147, 51, 234, 0.08)); border: 1px solid rgba(168, 85, 247, 0.2); border-left: 4px solid var(--primary); padding: 0.875rem 1rem;">
+          <h4 style="margin: 0 0 0.625rem; font-size: 0.8rem; color: var(--primary); font-weight: 700; text-transform: uppercase; border: none; padding-bottom: 0;">Important Information</h4>
+          <p style="margin: 0.5rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.5;">
+            • Present this booking confirmation at the service provider
+          </p>
+          <p style="margin: 0.5rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.5;">
+            • Arrive 10 minutes before your scheduled appointment
+          </p>
+          <p style="margin: 0.5rem 0; font-size: 0.75rem; color: var(--text-gray); line-height: 1.5;">
+            • Keep this receipt for your records and service history
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">
+          <p class="receipt-footer-text" id="receiptFooterStatus">
+            <i class="fas fa-hourglass-half"></i>
+            Booking Status: Pending
+          </p>
+          <p class="receipt-footer-text receipt-footer-small" style="margin-top: 0.75rem;">
+            Generated on <span id="receiptGeneratedDate"></span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="receipt-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()">
+          <i class="fas fa-times"></i>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Digital Receipt for Download -->
+<div id="digitalReceiptTemplate" style="display: none; position: fixed; left: -9999px; top: 0;">
+  <div class="digital-receipt-wrapper">
+    <!-- Header -->
+    <div class="digital-receipt-header">
+      <div class="digital-receipt-logo">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2 class="digital-receipt-title">Booking Confirmation</h2>
+      <p class="digital-receipt-subtitle">Your Digital Receipt</p>
+    </div>
+
+    <!-- Content -->
+    <div class="digital-receipt-content">
+      <!-- QR Code -->
+      <div class="digital-qr-section">
+        <div class="digital-qr-code" id="digitalQR"></div>
+        <p class="digital-qr-text">Scan for booking verification</p>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Booking Reference & Status -->
+      <div class="digital-section">
+        <div class="digital-row">
+          <div class="digital-row-item">
+            <span class="digital-label">Booking Reference</span>
+            <span class="digital-value digital-booking-number" id="digitalBookingNumber"></span>
+          </div>
+          <div class="digital-row-item digital-row-right">
+            <span class="digital-label">Status</span>
+            <span class="digital-status" id="digitalStatus"></span>
+          </div>
+        </div>
+        <div class="digital-row">
+          <span class="digital-label">Confirmation Code</span>
+          <span class="digital-value" id="digitalConfirmationCode"></span>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Service Provider -->
+      <div class="digital-section">
+        <h3 class="digital-section-title"><i class="fas fa-store"></i> Service Provider</h3>
+        <p class="digital-merchant-name" id="digitalMerchantName"></p>
+        <p class="digital-merchant-category" id="digitalMerchantCategory"></p>
+        <div style="margin-top: 0.625rem;">
+          <p class="digital-merchant-contact">
+            <i class="fas fa-phone"></i> <span id="digitalMerchantPhone"></span>
+          </p>
+          <p class="digital-merchant-contact">
+            <i class="fas fa-envelope"></i> <span id="digitalMerchantEmail"></span>
+          </p>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Appointment Details -->
+      <div class="digital-section">
+        <h3 class="digital-section-title"><i class="fas fa-calendar-alt"></i> Appointment Details</h3>
+        <div class="digital-row">
+          <div class="digital-row-item">
+            <span class="digital-label">Schedule</span>
+            <span class="digital-value">
+              <span id="digitalAppointmentDate"></span><br>
+              <span style="color: var(--primary); font-weight: 600;" id="digitalAppointmentTime"></span>
+            </span>
+          </div>
+        </div>
+        <div class="digital-row">
+          <span class="digital-label">Service Type</span>
+          <span class="digital-value" id="digitalServiceType"></span>
+        </div>
+        <div class="digital-row">
+          <span class="digital-label">Pets Included</span>
+          <span class="digital-value" id="digitalTotalPets"></span>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Total Amount -->
+      <div class="digital-section">
+        <div class="digital-amount-highlight">
+          <span class="digital-label">Total Amount Booked</span>
+          <span class="digital-amount" id="digitalTotalAmount"></span>
+        </div>
+      </div>
+
+      <div class="digital-divider"></div>
+
+      <!-- Important Information -->
+      <div class="digital-section digital-notes-section">
+        <h4 class="digital-notes-title">Important Information</h4>
+        <p class="digital-note-item">• Present this booking confirmation at the service provider</p>
+        <p class="digital-note-item">• Arrive 10 minutes before your scheduled appointment</p>
+        <p class="digital-note-item">• Keep this receipt for your records and service history</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="digital-receipt-footer">
+        <p class="digital-footer-text" id="digitalFooterStatus">
+          <i class="fas fa-hourglass-half"></i>
+          Booking Status: Pending
+        </p>
+        <p class="digital-footer-small">
+          Generated on <span id="digitalGeneratedDate"></span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-exclamation-triangle"></i>
+        Cancel Booking
+      </h3>
+      <button type="button" class="modal-close" onclick="closeCancelModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p style="margin: 0 0 1rem; color: var(--text-gray);">
+        Are you sure you want to cancel this booking? A refund will be processed according to the cancellation policy.
+      </p>
+      <form id="cancelForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="form-group">
+          <label for="cancellationReason">Reason for Cancellation (Optional)</label>
+          <textarea id="cancellationReason" name="cancellation_reason" placeholder="Tell us why you're cancelling..."></textarea>
+        </div>
+      </form>
+
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeCancelModal()">
+        Keep Booking
+      </button>
+      <button type="submit" class="btn btn-delete" onclick="submitCancellation()">
+        <i class="fas fa-trash-alt"></i>
+        Confirm Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Booking Modal (Soft Delete) -->
+<div id="deleteModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-trash-alt"></i>
+        Delete Booking
+      </h3>
+      <button type="button" class="modal-close" onclick="closeDeleteModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p style="margin: 0; color: var(--text-gray);">
+        Are you sure you want to delete this booking? This action cannot be undone.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeDeleteModal()">
+        Keep Booking
+      </button>
+      <button type="button" class="btn btn-delete" onclick="submitDelete()">
+        <i class="fas fa-trash-alt"></i>
+        Confirm Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Appeal No-Show Booking Modal -->
+<div id="appealModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-exclamation-circle"></i>
+        Appeal No-Show Status
+      </h3>
+      <button type="button" class="modal-close" onclick="closeAppealModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div id="appealBookingInfo" style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(168, 85, 247, 0.05); border-radius: var(--radius-sm); border-left: 4px solid #a855f7;">
+        <!-- Populated by showAppealModal() -->
+      </div>
+      <form id="appealForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="form-group">
+          <label for="appealReason">Why didn't you show up for the appointment?</label>
+          <textarea id="appealReason" name="appeal_reason" placeholder="Please provide a detailed explanation of why you couldn't make it to the appointment..." style="min-height: 150px;"></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeAppealModal()">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" onclick="submitAppeal()">
+        <i class="fas fa-paper-plane"></i>
+        Submit Appeal
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal (Shopee-Inspired) -->
+<div id="reviewModal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fas fa-star"></i> Share Your Experience
+      </h2>
+      <button type="button" class="modal-close" onclick="closeReviewModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="reviewForm" class="modal-body">
+      <input type="hidden" id="reviewBookingId" value="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      <!-- Overall Rating Section -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="margin-bottom: 1rem; display: block;">Overall Experience Rating <span style="color: #ef4444;">*</span></label>
+        <div class="star-rating-display" style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem;">
+          <div class="star-inputs" style="display: flex; gap: 0.75rem; font-size: 2rem;">
+            <span class="star-btn" data-rating="1" onclick="setRating(1)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="2" onclick="setRating(2)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="3" onclick="setRating(3)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="4" onclick="setRating(4)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+            <span class="star-btn" data-rating="5" onclick="setRating(5)" style="cursor: pointer; color: #ccc; transition: all 0.2s;">★</span>
+          </div>
+          <span id="ratingText" style="color: var(--primary); font-weight: 600;">Click to rate</span>
+        </div>
+        <input type="hidden" id="overallRating" name="overall_rating" value="0">
+      </div>
+
+      <!-- Aspect Ratings (Row) -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="margin-bottom: 1rem; display: block;">Rate These Aspects</label>
+        <div class="aspect-ratings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <!-- Service Quality -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Service Quality</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="service_quality" data-value="1" onclick="setAspectRating('service_quality', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="2" onclick="setAspectRating('service_quality', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="3" onclick="setAspectRating('service_quality', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="4" onclick="setAspectRating('service_quality', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="service_quality" data-value="5" onclick="setAspectRating('service_quality', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="serviceQualityRating" name="service_quality_rating" value="5">
+          </div>
+
+          <!-- Cleanliness -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Cleanliness</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="cleanliness" data-value="1" onclick="setAspectRating('cleanliness', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="2" onclick="setAspectRating('cleanliness', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="3" onclick="setAspectRating('cleanliness', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="4" onclick="setAspectRating('cleanliness', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="cleanliness" data-value="5" onclick="setAspectRating('cleanliness', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="cleanlinessRating" name="cleanliness_rating" value="5">
+          </div>
+
+          <!-- Staff Friendliness -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Staff Friendliness</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="1" onclick="setAspectRating('staff_friendliness', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="2" onclick="setAspectRating('staff_friendliness', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="3" onclick="setAspectRating('staff_friendliness', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="4" onclick="setAspectRating('staff_friendliness', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="staff_friendliness" data-value="5" onclick="setAspectRating('staff_friendliness', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="staffFriendlinessRating" name="staff_friendliness_rating" value="5">
+          </div>
+
+          <!-- Value for Money -->
+          <div style="padding: 1rem; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm);">
+            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem; color: var(--text-dark);">Value for Money</label>
+            <div style="display: flex; gap: 0.3rem; font-size: 1.25rem;">
+              <span class="aspect-star" data-aspect="value_for_money" data-value="1" onclick="setAspectRating('value_for_money', 1)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="2" onclick="setAspectRating('value_for_money', 2)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="3" onclick="setAspectRating('value_for_money', 3)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="4" onclick="setAspectRating('value_for_money', 4)" style="cursor: pointer; color: #ccc;">★</span>
+              <span class="aspect-star" data-aspect="value_for_money" data-value="5" onclick="setAspectRating('value_for_money', 5)" style="cursor: pointer; color: #ccc;">★</span>
+            </div>
+            <input type="hidden" id="valueForMoneyRating" name="value_for_money_rating" value="5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Highlights/Positive Aspects -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="margin-bottom: 0.75rem; display: block;">Highlights (What you liked) <span style="font-size: 0.8rem; color: var(--text-gray);">- Optional, max 5</span></label>
+        <div id="highlightsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <button type="button" class="highlight-tag" data-highlight="Great Service" onclick="toggleHighlight(this, 'Great Service')">
+            <i class="fas fa-check"></i> Great Service
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Clean & Hygienic" onclick="toggleHighlight(this, 'Clean & Hygienic')">
+            <i class="fas fa-check"></i> Clean & Hygienic
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Friendly Staff" onclick="toggleHighlight(this, 'Friendly Staff')">
+            <i class="fas fa-check"></i> Friendly Staff
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Good Value" onclick="toggleHighlight(this, 'Good Value')">
+            <i class="fas fa-check"></i> Good Value
+          </button>
+          <button type="button" class="highlight-tag" data-highlight="Professional" onclick="toggleHighlight(this, 'Professional')">
+            <i class="fas fa-check"></i> Professional
+          </button>
+        </div>
+        <input type="hidden" id="highlightsInput" name="highlights" value="[]">
+      </div>
+
+      <!-- Review Title -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="reviewTitle">Review Title <span style="color: #ef4444;">*</span></label>
+        <input type="text" id="reviewTitle" name="title" placeholder="Summarize your experience (5-200 characters)" 
+               style="width: 100%; padding: 0.75rem; border: 1px solid rgba(168, 85, 247, 0.2); border-radius: var(--radius-sm); font-size: 0.95rem;" 
+               minlength="5" maxlength="200" required>
+        <small style="display: block; color: var(--text-gray); margin-top: 0.25rem;" id="titleCharCount">0/200 characters</small>
+      </div>
+
+      <!-- Review Comment -->
+      <div class="form-group">
+        <label for="reviewComment">Your Review <span style="font-size: 0.8rem; color: var(--text-gray);">- Optional</span></label>
+        <textarea id="reviewComment" name="comment" placeholder="Share more details about your experience (up to 5000 characters)" 
+                  style="width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid rgba(168, 85, 247, 0.2); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.95rem; resize: vertical;"
+                  maxlength="5000"></textarea>
+        <small style="display: block; color: var(--text-gray); margin-top: 0.25rem;" id="commentCharCount">0/5000 characters</small>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeReviewModal()">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);" onclick="submitReview()">
+        <i class="fas fa-paper-plane"></i>
+        Submit Review
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HTML2Canvas Library - for converting receipt to image -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- jsPDF Library - for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  /* Review Modal Styles */
+  .highlight-tag {
+    padding: 0.5rem 1rem;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 20px;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    border: none;
+  }
+
+  .highlight-tag:hover {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.3);
+  }
+
+  .highlight-tag.selected {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .highlight-tag i {
+    display: none;
+  }
+
+  .highlight-tag.selected i {
+    display: inline;
+  }
+
+  .aspect-ratings input {
+    margin-top: 0.5rem;
+  }
+</style>
+
+
+<script>
+  let currentBookingId = null;
+
+  // Format time from 24-hour to 12-hour with AM/PM
+  function formatTo12Hour(time24) {
+    if (!time24) return time24;
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+  }
+
+  function showDetailsModal(button) {
+    const bookingId = button.dataset.bookingId;
+    const bookingNumber = button.dataset.bookingNumber;
+    const merchantName = button.dataset.merchantName;
+    const merchantEmail = button.dataset.merchantEmail;
+    const merchantPhone = button.dataset.merchantPhone;
+    const businessCategory = button.dataset.businessCategory;
+    const appointmentDate = button.dataset.appointmentDate;
+    const appointmentTime = button.dataset.appointmentTime;
+    const totalPets = button.dataset.totalPets;
+    const serviceType = button.dataset.serviceType;
+    const totalAmount = button.dataset.totalAmount;
+    const status = button.dataset.status;
+    const confirmationCode = button.dataset.confirmationCode;
+    const qrCodeUrl = button.dataset.qrCodeUrl;
+    const updatedAt = button.dataset.updatedAt;
+
+    // Populate receipt data
+    document.getElementById('receiptBookingNumber').textContent = bookingNumber;
+    document.getElementById('receiptMerchantName').textContent = merchantName;
+    document.getElementById('receiptMerchantCategory').textContent = businessCategory;
+    document.getElementById('receiptMerchantEmail').textContent = merchantEmail;
+    document.getElementById('receiptMerchantPhone').textContent = merchantPhone;
+    document.getElementById('receiptAppointmentDate').textContent = appointmentDate;
+    document.getElementById('receiptAppointmentTime').textContent = formatTo12Hour(appointmentTime);
+    document.getElementById('receiptTotalPets').textContent = totalPets + ' pet' + (totalPets != 1 ? 's' : '');
+    document.getElementById('receiptServiceType').textContent = serviceType;
+    document.getElementById('receiptTotalAmount').textContent = '₱' + totalAmount;
+    document.getElementById('receiptConfirmationCode').textContent = confirmationCode;
+    
+    // Format status with badge
+    const statusElement = document.getElementById('receiptStatus');
+    statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    statusElement.className = 'receipt-value receipt-status status-' + status;
+
+    // Update footer status message based on booking status
+    const footerStatusElement = document.getElementById('receiptFooterStatus');
+    if (status === 'confirmed' || status === 'completed') {
+      footerStatusElement.innerHTML = '<i class="fas fa-check-circle"></i>Booking Confirmed & Secured';
+      footerStatusElement.style.color = 'var(--success)';
+    } else if (status === 'pending') {
+      footerStatusElement.innerHTML = '<i class="fas fa-hourglass-half"></i>Booking Pending for Confirmation';
+      footerStatusElement.style.color = 'var(--warning)';
+    } else if (status === 'cancelled') {
+      footerStatusElement.innerHTML = '<i class="fas fa-circle-xmark"></i>Booking Cancelled';
+      footerStatusElement.style.color = 'var(--danger)';
+    } else if (status === 'rejected') {
+      footerStatusElement.innerHTML = '<i class="fas fa-circle-xmark"></i>Booking Rejected';
+      footerStatusElement.style.color = 'var(--danger)';
+    }
+
+    // Set generated date from booking updated timestamp
+    if (updatedAt) {
+      document.getElementById('receiptGeneratedDate').textContent = updatedAt;
+    } else {
+      const fallbackDate = new Date();
+      const dateStr = fallbackDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = fallbackDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('receiptGeneratedDate').textContent = `${dateStr} at ${timeStr}`;
+    }
+
+    // Display server-generated QR Code
+    const qrContainer = document.getElementById('receiptQR');
+    qrContainer.innerHTML = ''; // Clear previous QR code
+    
+    if (qrCodeUrl) {
+      const qrImage = document.createElement('img');
+      qrImage.src = qrCodeUrl;
+      qrImage.alt = 'Booking QR Code';
+      qrImage.style.width = '140px';
+      qrImage.style.height = '140px';
+      qrImage.style.borderRadius = '8px';
+      qrImage.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      qrContainer.appendChild(qrImage);
+    } else {
+      // Fallback message if QR code generation failed
+      qrContainer.innerHTML = '<div style="width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; border-radius: 8px; font-size: 12px; color: #999;">QR Code unavailable</div>';
+    }
+
+    document.getElementById('detailsModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDetailsModal() {
+    document.getElementById('detailsModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function showCancelModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    document.getElementById('cancelForm').reset();
+    document.getElementById('cancelModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCancelModal() {
+    document.getElementById('cancelModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+  }
+
+  function submitCancellation() {
+    if (currentBookingId) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/user/booking/' + currentBookingId + '/cancel';
+      
+      // Add CSRF token
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = document.querySelector('input[name="csrf_token"]').value;
+      form.appendChild(csrfInput);
+      
+      // Add cancellation reason
+      const reasonInput = document.getElementById('cancellationReason');
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'cancellation_reason';
+      input.value = reasonInput.value;
+      form.appendChild(input);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function showDeleteModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+  }
+
+  function submitDelete() {
+    if (currentBookingId) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/user/booking/' + currentBookingId + '/delete';
+      
+      // Add CSRF token
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = document.querySelector('input[name="csrf_token"]').value;
+      form.appendChild(csrfInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function showAppealModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    const merchantName = button.dataset.merchantName;
+    const appointmentDate = button.dataset.appointmentDate;
+    
+    // Populate booking info
+    const bookingInfo = document.getElementById('appealBookingInfo');
+    bookingInfo.innerHTML = `
+      <div style="font-size: 0.95rem;">
+        <div style="margin-bottom: 0.5rem;"><strong>Merchant:</strong> ${merchantName}</div>
+        <div><strong>Appointment Date:</strong> ${appointmentDate}</div>
+      </div>
+    `;
+    
+    // Reset form
+    document.getElementById('appealForm').reset();
+    document.getElementById('appealModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAppealModal() {
+    document.getElementById('appealModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+  }
+
+  function submitAppeal() {
+    const appealReason = document.getElementById('appealReason').value.trim();
+    
+    if (!appealReason) {
+      
+      return;
+    }
+
+    const submitBtn = document.querySelector('#appealModal .btn-primary');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    // Send appeal to server
+    fetch('/user/booking/' + currentBookingId + '/appeal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+      },
+      body: JSON.stringify({
+        appeal_reason: appealReason
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        
+        closeAppealModal();
+        location.reload();
+      } else {
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    })
+    .catch(error => {
+      
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    });
+  }
+
+  function downloadReceipt(button) {
+    const bookingId = button.dataset.bookingId;
+    
+    // First, show the details modal with receipt
+    button.closest('tr')?.querySelector('.action-btn.view')?.click();
+    
+    // Show download prompt after modal renders
+    setTimeout(() => {
+      
+    }, 300);
+  }
+
+  function downloadReceiptDirectly(button) {
+    const bookingId = button.dataset.bookingId;
+    const bookingNumber = button.dataset.bookingNumber;
+    const merchantName = button.dataset.merchantName;
+    const merchantEmail = button.dataset.merchantEmail;
+    const merchantPhone = button.dataset.merchantPhone;
+    const businessCategory = button.dataset.businessCategory;
+    const appointmentDate = button.dataset.appointmentDate;
+    const appointmentTime = button.dataset.appointmentTime;
+    const totalPets = button.dataset.totalPets;
+    const serviceType = button.dataset.serviceType;
+    const totalAmount = button.dataset.totalAmount;
+    const status = button.dataset.status;
+    const confirmationCode = button.dataset.confirmationCode;
+    const qrCodeUrl = button.dataset.qrCodeUrl;
+    const updatedAt = button.dataset.updatedAt;
+
+    // Show loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+
+    // Populate digital receipt template
+    document.getElementById('digitalBookingNumber').textContent = bookingNumber;
+    document.getElementById('digitalMerchantName').textContent = merchantName;
+    document.getElementById('digitalMerchantCategory').textContent = businessCategory;
+    document.getElementById('digitalMerchantEmail').textContent = merchantEmail;
+    document.getElementById('digitalMerchantPhone').textContent = merchantPhone;
+    document.getElementById('digitalAppointmentDate').textContent = appointmentDate;
+    document.getElementById('digitalAppointmentTime').textContent = formatTo12Hour(appointmentTime);
+    document.getElementById('digitalTotalPets').textContent = totalPets + ' pet' + (totalPets != 1 ? 's' : '');
+    document.getElementById('digitalServiceType').textContent = serviceType;
+    document.getElementById('digitalTotalAmount').textContent = '₱' + totalAmount;
+    document.getElementById('digitalConfirmationCode').textContent = confirmationCode;
+    
+    // Format status with badge for digital receipt
+    const digitalStatusElement = document.getElementById('digitalStatus');
+    digitalStatusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    digitalStatusElement.className = 'digital-status status-' + status;
+
+    // Update footer status message for digital receipt
+    const digitalFooterStatusElement = document.getElementById('digitalFooterStatus');
+    if (status === 'confirmed' || status === 'completed') {
+      digitalFooterStatusElement.innerHTML = '<i class="fas fa-check-circle"></i> Booking Confirmed & Secured';
+      digitalFooterStatusElement.style.color = '#10b981';
+    } else {
+      digitalFooterStatusElement.innerHTML = '<i class="fas fa-hourglass-half"></i> Booking Status: ' + status.charAt(0).toUpperCase() + status.slice(1);
+      digitalFooterStatusElement.style.color = '#6b7280';
+    }
+
+    // Set generated date from booking updated timestamp for digital receipt
+    if (updatedAt) {
+      document.getElementById('digitalGeneratedDate').textContent = updatedAt;
+    } else {
+      const fallbackDate = new Date();
+      const dateStr = fallbackDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = fallbackDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('digitalGeneratedDate').textContent = `${dateStr} at ${timeStr}`;
+    }
+
+    // Display QR Code in digital receipt
+    const digitalQRContainer = document.getElementById('digitalQR');
+    digitalQRContainer.innerHTML = '';
+    
+    if (qrCodeUrl) {
+      const qrImage = document.createElement('img');
+      qrImage.src = qrCodeUrl;
+      qrImage.alt = 'Booking QR Code';
+      qrImage.style.width = '140px';
+      qrImage.style.height = '140px';
+      qrImage.style.borderRadius = '8px';
+      digitalQRContainer.appendChild(qrImage);
+    } else {
+      digitalQRContainer.innerHTML = '<div style="width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; border-radius: 8px; font-size: 12px; color: #999;">QR Code unavailable</div>';
+    }
+
+    // Wait for QR to load and then download
+    setTimeout(() => {
+      try {
+        const element = document.getElementById('digitalReceiptTemplate');
+        const wrapper = element.querySelector('.digital-receipt-wrapper');
+        const fileName = `PetSona_Receipt_${bookingNumber}_${new Date().getTime()}.png`;
+        
+        // Clone the digital receipt wrapper
+        const clone = wrapper.cloneNode(true);
+        clone.style.position = 'fixed';
+        clone.style.left = '-9999px';
+        clone.style.top = '0';
+        clone.style.width = '520px';
+        clone.style.display = 'block';
+        
+        document.body.appendChild(clone);
+        
+        // Wait for images to load
+        setTimeout(() => {
+          html2canvas(clone, {
+            backgroundColor: '#ffffff',
+            scale: 3,
+            logging: false,
+            allowTaint: true,
+            useCORS: true,
+            width: 520,
+            windowHeight: 0,
+            windowWidth: 520,
+            scrollY: 0,
+            scrollX: 0,
+            imageTimeout: 10000,
+            removeContainer: false,
+            letterRendering: true
+          }).then(canvas => {
+            document.body.removeChild(clone);
+            
+            // Convert canvas to blob and download
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+              }
+              
+              // Restore button state
+              button.innerHTML = originalHTML;
+              button.disabled = false;
+            }, 'image/png', 1.0);
+          }).catch(err => {
+            if (document.body.contains(clone)) {
+              document.body.removeChild(clone);
+            }
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            
+          });
+        }, 500);
+      } catch (err) {
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+        
+      }
+    }, 300);
+  }
+
+  function downloadQRCodeDirect(button) {
+    // Get data from button attributes
+    const bookingNumber = button.dataset.bookingNumber;
+    const confirmationCode = button.dataset.confirmationCode;
+    const qrUrl = button.dataset.qrUrl;
+    
+    if (!qrUrl) {
+      
+      return;
+    }
+    
+    // Create filename with booking details
+    const fileName = `PetSona_QR_${bookingNumber}_${confirmationCode}_${new Date().getTime()}.png`;
+    
+    // Show loading state
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+    
+    // Download the QR code image
+    const link = document.createElement('a');
+    link.href = qrUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Restore button state after a longer delay to show spinner
+    setTimeout(() => {
+      button.innerHTML = originalText;
+      button.disabled = false;
+    }, 1500);
+  }
+
+  function saveReceiptAsImage() {
+    const element = document.querySelector('.receipt-container');
+    const bookingNumber = document.getElementById('receiptBookingNumber').textContent;
+    const fileName = `PetSona_Receipt_${bookingNumber}_${new Date().getTime()}.png`;
+    
+    // Find the button and show loading state
+    const downloadBtn = event.target.closest('button');
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    downloadBtn.disabled = true;
+    
+    try {
+      // Create a clone to avoid affecting the original element
+      const clone = element.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '520px';
+      clone.style.maxHeight = 'none';
+      clone.style.height = 'auto';
+      clone.style.maxWidth = '520px';
+      clone.querySelector('.receipt-actions').style.display = 'none';
+      
+      document.body.appendChild(clone);
+      
+      // Wait for images to load
+      setTimeout(() => {
+        html2canvas(clone, {
+          backgroundColor: '#ffffff',
+          scale: 3,
+          logging: false,
+          allowTaint: true,
+          useCORS: true,
+          width: 520,
+          windowHeight: 0,
+          windowWidth: 520,
+          scrollY: 0,
+          scrollX: 0,
+          imageTimeout: 10000,
+          removeContainer: true,
+          letterRendering: true,
+          onclone: (clonedDocument) => {
+            const clonedElement = clonedDocument.querySelector('.receipt-container');
+            if (clonedElement) {
+              clonedElement.style.maxHeight = 'none';
+              clonedElement.style.height = 'auto';
+            }
+          }
+        }).then(canvas => {
+          document.body.removeChild(clone);
+          
+          // Convert canvas to blob and download
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = fileName;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            }
+            
+            // Restore button state
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+          }, 'image/png', 1.0);
+        }).catch(err => {
+          if (document.body.contains(clone)) {
+            document.body.removeChild(clone);
+          }
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.disabled = false;
+          
+        });
+      }, 500);
+    } catch (err) {
+      downloadBtn.innerHTML = originalText;
+      downloadBtn.disabled = false;
+      
+    }
+  }
+
+  function saveReceiptAsPDF() {
+    const element = document.querySelector('.receipt-container');
+    const bookingNumber = document.getElementById('receiptBookingNumber').textContent;
+    const fileName = `PetSona_Receipt_${bookingNumber}_${new Date().getTime()}.pdf`;
+    
+    // Find the button and show loading state
+    const downloadBtn = event.target.closest('button');
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    downloadBtn.disabled = true;
+    
+    try {
+      // Create a clone to avoid affecting the original element
+      const clone = element.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '520px';
+      clone.style.maxHeight = 'none';
+      clone.style.height = 'auto';
+      clone.style.maxWidth = '520px';
+      clone.querySelector('.receipt-actions').style.display = 'none';
+      
+      document.body.appendChild(clone);
+      
+      // Wait for images to load
+      setTimeout(() => {
+        html2canvas(clone, {
+          backgroundColor: '#ffffff',
+          scale: 3,
+          logging: false,
+          allowTaint: true,
+          useCORS: true,
+          width: 520,
+          windowHeight: 0,
+          windowWidth: 520,
+          scrollY: 0,
+          scrollX: 0,
+          imageTimeout: 10000,
+          removeContainer: true,
+          letterRendering: true,
+          onclone: (clonedDocument) => {
+            const clonedElement = clonedDocument.querySelector('.receipt-container');
+            if (clonedElement) {
+              clonedElement.style.maxHeight = 'none';
+              clonedElement.style.height = 'auto';
+            }
+          }
+        }).then(canvas => {
+          document.body.removeChild(clone);
+          
+          // Create PDF with proper color preservation
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+            compress: false
+          });
+          
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          
+          // Calculate image size to fit A4 with margins
+          const margin = 5;
+          const maxWidth = pageWidth - (margin * 2);
+          
+          const imgData = canvas.toDataURL('image/png');
+          const imgAspect = canvas.width / canvas.height;
+          let imgWidth = maxWidth;
+          let imgHeight = imgWidth / imgAspect;
+          
+          // If image is taller than one page, scale it down
+          const maxHeight = pageHeight - (margin * 2);
+          if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+            imgWidth = imgHeight * imgAspect;
+          }
+          
+          // Center image horizontally
+          const xPos = (pageWidth - imgWidth) / 2;
+          const yPos = margin;
+          
+          // Add image to PDF with full color preservation
+          pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
+          
+          // Add footer information
+          const footerY = yPos + imgHeight + 4;
+          pdf.setFontSize(8);
+          pdf.setTextColor(107, 114, 128);
+          
+          const timestamp = new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+          
+          pdf.text(`Receipt Generated: ${timestamp}`, pageWidth / 2, footerY, { align: 'center' });
+          pdf.text('Keep this receipt for your records', pageWidth / 2, footerY + 4, { align: 'center' });
+          
+          // Save PDF
+          pdf.save(fileName);
+          
+          // Restore button state
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.disabled = false;
+        }).catch(err => {
+          if (document.body.contains(clone)) {
+            document.body.removeChild(clone);
+          }
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.disabled = false;
+          
+        });
+      }, 500);
+    } catch (err) {
+      downloadBtn.innerHTML = originalText;
+      downloadBtn.disabled = false;
+      
+    }
+  }
+
+  // Close modals on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeDetailsModal();
+      closeCancelModal();
+      closeDeleteModal();
+    }
+  });
+
+  // Close modals on background click
+  document.getElementById('detailsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDetailsModal();
+  });
+
+  document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCancelModal();
+  });
+
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  // Format all appointment times to 12-hour format on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.appointment-time').forEach(elem => {
+      elem.textContent = formatTo12Hour(elem.textContent.trim());
+    });
+  });
+
+  // Filter bookings based on search term and status
+  function filterBookings() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+    const tableBody = document.querySelector('.bookings-table tbody');
+    const rows = tableBody.querySelectorAll('tr');
+    
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+      // Skip empty state row
+      if (row.querySelector('.empty-state')) {
+        return;
+      }
+      
+      // Get booking number, merchant name from the row
+      const bookingNumber = row.querySelector('.booking-number')?.textContent.toLowerCase() || '';
+      const merchantName = row.querySelector('.merchant-name')?.textContent.toLowerCase() || '';
+      const status = row.querySelector('.status-badge')?.textContent.toLowerCase() || '';
+      
+      // Check if row matches search term
+      const matchesSearch = !searchTerm || 
+        bookingNumber.includes(searchTerm) || 
+        merchantName.includes(searchTerm);
+      
+      // Check if row matches status filter
+      const matchesStatus = !statusFilter || status.includes(statusFilter);
+      
+      // Show or hide row
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+    
+    // Show empty state if no rows are visible
+    const existingEmptyRow = tableBody.querySelector('.empty-row');
+    if (visibleCount === 0 && !existingEmptyRow) {
+      const emptyStateRow = document.createElement('tr');
+      emptyStateRow.classList.add('empty-row');
+      emptyStateRow.innerHTML = `
+        <td colspan="5" class="empty-state">
+          <div class="empty-content">
+            <i class="fas fa-search"></i>
+            <p>No bookings match your search criteria</p>
+          </div>
+        </td>
+      `;
+      tableBody.appendChild(emptyStateRow);
+    } else if (visibleCount > 0 && existingEmptyRow) {
+      existingEmptyRow.remove();
+    }
+  }
+
+  // Allow Enter key to trigger search
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          filterBookings();
+        }
+      });
+    }
+  });
+
+  // ========== REVIEW FUNCTIONS ==========
+  let selectedHighlights = [];
+
+  function showReviewModal(button) {
+    currentBookingId = button.dataset.bookingId;
+    document.getElementById('reviewBookingId').value = currentBookingId;
+    
+    // Reset form
+    document.getElementById('reviewForm').reset();
+    resetReviewForm();
+    
+    document.getElementById('reviewModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeReviewModal() {
+    document.getElementById('reviewModal').classList.add('hidden');
+    currentBookingId = null;
+    document.body.style.overflow = '';
+    resetReviewForm();
+  }
+
+  function resetReviewForm() {
+    // Reset ratings
+    document.getElementById('overallRating').value = '0';
+    document.getElementById('ratingText').textContent = 'Click to rate';
+    document.querySelectorAll('.star-btn').forEach(star => {
+      star.style.color = '#ccc';
+    });
+    
+    // Reset aspect ratings
+    document.getElementById('serviceQualityRating').value = '5';
+    document.getElementById('cleanlinessRating').value = '5';
+    document.getElementById('staffFriendlinessRating').value = '5';
+    document.getElementById('valueForMoneyRating').value = '5';
+    updateAspectStarColors();
+    
+    // Reset highlights
+    selectedHighlights = [];
+    document.querySelectorAll('.highlight-tag').forEach(tag => {
+      tag.classList.remove('selected');
+    });
+    document.getElementById('highlightsInput').value = '[]';
+    
+    // Reset text inputs
+    document.getElementById('reviewTitle').value = '';
+    document.getElementById('reviewComment').value = '';
+    document.getElementById('titleCharCount').textContent = '0/200 characters';
+    document.getElementById('commentCharCount').textContent = '0/5000 characters';
+  }
+
+  function setRating(rating) {
+    document.getElementById('overallRating').value = rating;
+    
+    // Update star colors
+    document.querySelectorAll('.star-btn').forEach((star, index) => {
+      if (index < rating) {
+        star.style.color = '#fbbf24';
+      } else {
+        star.style.color = '#ccc';
+      }
+    });
+    
+    // Update text
+    const texts = {
+      1: '😞 Poor',
+      2: '😕 Fair',
+      3: '😐 Average',
+      4: '😊 Good',
+      5: '😍 Excellent'
+    };
+    document.getElementById('ratingText').textContent = texts[rating] || 'Click to rate';
+    document.getElementById('ratingText').style.color = rating >= 4 ? '#10b981' : (rating >= 3 ? '#f59e0b' : '#ef4444');
+  }
+
+  function setAspectRating(aspect, rating) {
+    const fieldMap = {
+      'service_quality': 'serviceQualityRating',
+      'cleanliness': 'cleanlinessRating',
+      'staff_friendliness': 'staffFriendlinessRating',
+      'value_for_money': 'valueForMoneyRating'
+    };
+    
+    document.getElementById(fieldMap[aspect]).value = rating;
+    updateAspectStarColors();
+  }
+
+  function updateAspectStarColors() {
+    const aspects = [
+      { aspect: 'service_quality', field: 'serviceQualityRating' },
+      { aspect: 'cleanliness', field: 'cleanlinessRating' },
+      { aspect: 'staff_friendliness', field: 'staffFriendlinessRating' },
+      { aspect: 'value_for_money', field: 'valueForMoneyRating' }
+    ];
+    
+    aspects.forEach(({ aspect, field }) => {
+      const rating = parseInt(document.getElementById(field).value);
+      document.querySelectorAll(`.aspect-star[data-aspect="${aspect}"]`).forEach((star, index) => {
+        if (index < rating) {
+          star.style.color = '#fbbf24';
+        } else {
+          star.style.color = '#ccc';
+        }
+      });
+    });
+  }
+
+  function toggleHighlight(button, highlight) {
+    button.classList.toggle('selected');
+    
+    if (button.classList.contains('selected')) {
+      if (!selectedHighlights.includes(highlight)) {
+        selectedHighlights.push(highlight);
+      }
+    } else {
+      selectedHighlights = selectedHighlights.filter(h => h !== highlight);
+    }
+    
+    document.getElementById('highlightsInput').value = JSON.stringify(selectedHighlights);
+  }
+
+  // Track character count for title
+  document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('reviewTitle');
+    if (titleInput) {
+      titleInput.addEventListener('input', function() {
+        document.getElementById('titleCharCount').textContent = this.value.length + '/200 characters';
+      });
+    }
+    
+    const commentInput = document.getElementById('reviewComment');
+    if (commentInput) {
+      commentInput.addEventListener('input', function() {
+        document.getElementById('commentCharCount').textContent = this.value.length + '/5000 characters';
+      });
+    }
+  });
+
+  function showFlashMessage(message, category = 'success') {
+    const categoryClass = category === 'error' ? 'danger' : category;
+    let container = document.querySelector('.flash-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'flash-container';
+      const contentWrapper = document.querySelector('.container-fluid') || document.body;
+      contentWrapper.prepend(container);
+    }
+
+    const iconClass = category === 'success'
+      ? 'fa-check-circle'
+      : category === 'warning'
+      ? 'fa-exclamation-triangle'
+      : 'fa-times-circle';
+
+    const flash = document.createElement('div');
+    flash.className = `flash flash-${categoryClass}`;
+    flash.innerHTML = `
+      <div class="flash-icon"><i class="fas ${iconClass}"></i></div>
+      <div class="flash-content">${message}</div>
+      <button type="button" class="flash-close" aria-label="Close notification">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+
+    const closeBtn = flash.querySelector('.flash-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => flash.remove());
+    }
+
+    container.appendChild(flash);
+    setTimeout(() => {
+      if (flash.parentNode) flash.parentNode.removeChild(flash);
+    }, 6400);
+  }
+
+  function submitReview() {
+    const bookingId = document.getElementById('reviewBookingId').value;
+    const overallRating = parseFloat(document.getElementById('overallRating').value);
+    const serviceQualityRating = parseInt(document.getElementById('serviceQualityRating').value);
+    const cleanlinessRating = parseInt(document.getElementById('cleanlinessRating').value);
+    const staffFriendlinessRating = parseInt(document.getElementById('staffFriendlinessRating').value);
+    const valueForMoneyRating = parseInt(document.getElementById('valueForMoneyRating').value);
+    const title = document.getElementById('reviewTitle').value.trim();
+    const comment = document.getElementById('reviewComment').value.trim();
+    const highlights = selectedHighlights;
+    
+    // Validation
+    if (overallRating < 1 || overallRating > 5) {
+      showFlashMessage('Please select an overall rating', 'warning');
+      return;
+    }
+    
+    if (!title || title.length < 5) {
+      showFlashMessage('Review title must be at least 5 characters', 'warning');
+      return;
+    }
+    
+    if (title.length > 200) {
+      showFlashMessage('Review title must not exceed 200 characters', 'warning');
+      return;
+    }
+    
+    if (comment && comment.length > 5000) {
+      showFlashMessage('Review comment must not exceed 5000 characters', 'warning');
+      return;
+    }
+    
+    const submitBtn = document.querySelector('#reviewModal .btn-primary');
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+      submitBtn.disabled = true;
+    }
+    
+    // Submit review
+    fetch('/user/booking/' + bookingId + '/review', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+      },
+      body: JSON.stringify({
+        overall_rating: overallRating,
+        service_quality_rating: serviceQualityRating,
+        cleanliness_rating: cleanlinessRating,
+        staff_friendliness_rating: staffFriendlinessRating,
+        value_for_money_rating: valueForMoneyRating,
+        title: title,
+        comment: comment || null,
+        highlights: highlights
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showFlashMessage('Review submitted successfully! Thank you for your feedback.', 'success');
+        closeReviewModal();
+        location.reload();
+      } else {
+        showFlashMessage('Error submitting review: ' + (data.error || 'Unknown error'), 'error');
+        const buttonToRestore = document.querySelector('#reviewModal .btn-primary') || document.querySelector('#reviewModal .modal-footer button:last-child');
+        if (buttonToRestore) {
+          buttonToRestore.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+          buttonToRestore.disabled = false;
+        }
+      }
+    })
+    .catch(error => {
+      
+      
+      const buttonToRestore = document.querySelector('#reviewModal .btn-primary') || document.querySelector('#reviewModal .modal-footer button:last-child');
+      if (buttonToRestore) {
+        buttonToRestore.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+        buttonToRestore.disabled = false;
+      }
+    });
+  }
+
+  // Add click handler for review button
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.action-btn.review')) {
+        const button = e.target.closest('.action-btn.review');
+        showReviewModal(button);
+      }
+    });
+    
+    // Close review modal on escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const reviewModal = document.getElementById('reviewModal');
+        if (reviewModal && !reviewModal.classList.contains('hidden')) {
+          closeReviewModal();
+        }
+      }
+    });
+    
+    // Close review modal on background click
+    const reviewModal = document.getElementById('reviewModal');
+    if (reviewModal) {
+      reviewModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeReviewModal();
+        }
+      });
+    }
+  });
+</script>
+
+{% endblock %}
+

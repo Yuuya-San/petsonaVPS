@@ -1,0 +1,730 @@
+{% extends "user/base.html" %}
+
+{% block title %}Select Your Location - PetSona{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 md:py-8 lg:py-12 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+  <div class="mx-auto w-full max-w-5xl" style="width: 90vw; max-width: 95vw;">
+    
+    <!-- Header Section -->
+    <div class="mb-4 sm:mb-6 md:mb-8">
+      <div class="flex items-center gap-2 sm:gap-3 mb-2">
+        <div class="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-lg">
+          <i class="fas fa-map text-base sm:text-lg"></i>
+        </div>
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">Set Your Location</h1>
+      </div>
+      <p class="text-sm sm:text-base text-slate-600 ml-10 sm:ml-12 lg:ml-14">Choose your location on the map to find nearby services</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+      
+      <!-- Map Container -->
+      <div class="relative bg-slate-100 w-full">
+        <div id="locationMap" class="w-full"></div>
+
+        <!-- Map Overlay Controls -->
+        <div class="map-overlay absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 z-40">
+          <button
+            id="useCurrentLocationBtn"
+            onclick="useCurrentLocation()"
+            class="map-control-btn group"
+            title="Use current location">
+            <i class="fas fa-location-crosshairs text-lg sm:text-xl"></i>
+            <span class="map-control-tooltip">My Location</span>
+          </button>
+
+          <button
+            id="confirmLocation"
+            class="map-control-btn group"
+            title="Save this location"
+            disabled>
+            <i class="fas fa-check text-lg sm:text-xl"></i>
+            <span class="map-control-tooltip">Save Location</span>
+          </button>
+
+          <a
+            href="{{ url_for('user.nearby_services') }}"
+            class="map-control-btn group inline-flex"
+            title="Go back">
+            <i class="fas fa-arrow-left text-lg sm:text-xl"></i>
+            <span class="map-control-tooltip">Cancel</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Info Cards Section -->
+      <div class="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-slate-50 via-purple-50 to-slate-50 border-t-2 border-slate-100">
+        
+        <!-- Cards Grid - Fully Responsive -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+          
+          <!-- Coordinates Card -->
+          <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <div class="w-8 sm:w-10 h-8 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-compass text-purple-600 text-sm sm:text-base"></i>
+              </div>
+              <label class="text-xs sm:text-sm font-bold text-slate-700">Coordinates</label>
+            </div>
+            <div id="coordsDisplay" class="text-xs sm:text-sm md:text-base font-mono text-purple-700 bg-slate-50 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-purple-200 break-all">
+              📍 Click on the map to select location
+            </div>
+          </div>
+
+          <!-- Address Card -->
+          <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <div class="w-8 sm:w-10 h-8 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-location-dot text-purple-600 text-sm sm:text-base"></i>
+              </div>
+              <label class="text-xs sm:text-sm font-bold text-slate-700">Address</label>
+            </div>
+            <div id="addressDisplay" class="text-xs sm:text-sm text-slate-600 bg-slate-50 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-purple-200 min-h-[2.5rem] sm:min-h-[3rem] flex items-center line-clamp-3">
+              Address will appear here
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Action Buttons (Below Cards) -->
+        <div class="mt-4 sm:mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:hidden">
+          <button
+            id="confirmLocationMobile"
+            class="mobile-action-btn bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800"
+            disabled>
+            <i class="fas fa-check"></i>
+            <span>Save Location</span>
+          </button>
+          <a
+            href="{{ url_for('user.nearby_services') }}"
+            class="mobile-action-btn bg-slate-200 hover:bg-slate-300 text-slate-900 no-underline inline-flex">
+            <i class="fas fa-arrow-left"></i>
+            <span>Cancel</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- Hidden inputs for coordinates -->
+<input type="hidden" id="latitude" name="latitude">
+<input type="hidden" id="longitude" name="longitude">
+
+<!-- LEAFLET SCRIPTS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  /* ==================== Map Container Styles ==================== */
+  #locationMap {
+    width: 100% !important;
+    min-height: 350px !important;
+    height: 350px !important;
+    display: block !important;
+    position: relative !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    border-radius: 0 !important;
+  }
+
+  /* Tablet sizes */
+  @media (min-width: 640px) {
+    #locationMap {
+      height: 450px !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    #locationMap {
+      height: 500px !important;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #locationMap {
+      height: 550px !important;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    #locationMap {
+      height: 600px !important;
+    }
+  }
+
+  @media (min-width: 1920px) {
+    #locationMap {
+      height: 700px !important;
+    }
+  }
+
+  #locationMap.leaflet-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    z-index: 1 !important;
+    border-radius: 0 !important;
+  }
+
+  #locationMap .leaflet-pane {
+    z-index: 2 !important;
+  }
+
+  #locationMap .leaflet-control {
+    z-index: 3 !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+  }
+
+  .leaflet-popup-content {
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+  }
+
+  .leaflet-popup-tip {
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* ==================== Map Overlay Controls ==================== */
+  .map-overlay {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 0.875rem;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(10px);
+    min-width: fit-content;
+  }
+
+  @media (max-width: 640px) {
+    .map-overlay {
+      gap: 0.4rem;
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+    }
+  }
+
+  .map-control-btn {
+    width: 3rem;
+    height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.75rem;
+    color: #0f172a;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.125rem;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .map-control-btn:hover:not(:disabled) {
+    background: #9333ea;
+    color: white;
+    border-color: #9333ea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .map-control-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .map-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f3f4f6;
+  }
+
+  .map-control-tooltip {
+    display: none !important;
+    position: absolute;
+    bottom: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.9);
+    color: white;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.4rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .map-control-tooltip {
+      display: none !important;
+    }
+  }
+
+  /* Smooth transitions */
+  .leaflet-container {
+    transition: background-color 0.3s ease;
+  }
+
+  /* ==================== Mobile Action Buttons ==================== */
+  .mobile-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 0.875rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-action-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-action-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .mobile-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .mobile-action-btn i {
+    font-size: 1.125rem;
+  }
+
+  /* ==================== Loading States ==================== */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .btn-spinner {
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: rgba(255, 255, 255, 1);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner-spin {
+    animation: spin 1.5s linear infinite;
+  }
+
+  .is-loading {
+    pointer-events: none;
+  }
+
+  /* ==================== Leaflet Controls Responsiveness ==================== */
+  .leaflet-control-container {
+    font-size: 0.875rem;
+  }
+
+  .leaflet-control-zoom {
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .leaflet-control-zoom a {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    line-height: 2.5rem !important;
+    font-size: 1.125rem !important;
+    color: #0f172a !important;
+    border: none !important;
+    background: white !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .leaflet-control-zoom a:hover {
+    background: #9333ea !important;
+    color: white !important;
+    transform: scale(1.05);
+  }
+
+  .leaflet-control-zoom a:first-child {
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+  }
+
+  .leaflet-control-zoom a:last-child {
+    border-radius: 0 0 0.5rem 0.5rem !important;
+  }
+
+  /* ==================== Leaflet Attribution ==================== */
+  .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.5rem !important;
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* ==================== Utility Classes ==================== */
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .break-all {
+    word-break: break-all;
+  }
+
+  /* ==================== Print Styles ==================== */
+  @media print {
+    .map-overlay,
+    .mobile-action-btn {
+      display: none !important;
+    }
+  }
+
+  /* ==================== Touch Device Optimization ==================== */
+  @media (hover: none) and (pointer: coarse) {
+    .map-control-btn {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+
+    .map-control-btn:active {
+      background: #9333ea;
+      color: white;
+      border-color: #9333ea;
+    }
+  }
+</style>
+
+<script>
+let map;
+let marker;
+let selectedLat = null;
+let selectedLng = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  initMap();
+});
+
+function initMap() {
+  
+
+  try {
+    // Create the map centered on Philippines
+    map = L.map('locationMap', {
+      center: [12.8797, 121.7740], // Center of Philippines
+      zoom: 6, // Zoomed out to show whole country
+      attributionControl: true,
+      zoomControl: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      dragging: true,
+      touchZoom: true
+    });
+
+    
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+      minZoom: 5
+    }).addTo(map);
+
+    
+
+    // Create draggable marker at center
+    marker = L.marker([12.8797, 121.7740], {
+      draggable: true
+    }).addTo(map).bindPopup('Click on the map to set your location<br><small>Or drag this marker</small>');
+
+    
+
+    // Update coordinates when dragging
+    marker.on('dragend', function() {
+      const pos = marker.getLatLng();
+      updateLocation(pos.lat, pos.lng);
+    });
+
+    // Click to place marker
+    map.on('click', function(e) {
+      marker.setLatLng(e.latlng);
+      updateLocation(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Force map to resize after a delay
+    setTimeout(() => {
+      map.invalidateSize(true);
+      
+    }, 100);
+
+    // Add a second delay for better rendering
+    setTimeout(() => {
+      map.invalidateSize(true);
+      
+    }, 500);
+
+    
+
+  } catch(err) {
+    
+    
+  }
+}
+
+function updateLocation(lat, lng) {
+  
+
+  selectedLat = lat;
+  selectedLng = lng;
+
+  // Update hidden inputs
+  document.getElementById('latitude').value = lat.toFixed(6);
+  document.getElementById('longitude').value = lng.toFixed(6);
+
+  // Update display
+  document.getElementById('coordsDisplay').textContent = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+  // Reverse geocode to get address
+  reverseGeocode(lat, lng);
+
+  // Enable confirm button
+  document.getElementById('confirmLocation').disabled = false;
+  document.getElementById('confirmLocationMobile').disabled = false;
+}
+
+function reverseGeocode(lat, lng) {
+  const addressDisplay = document.getElementById('addressDisplay');
+  addressDisplay.textContent = 'Loading address...';
+
+  // Use backend reverse geocoding to avoid CORS issues
+  fetch('{{ url_for("user.reverse_geocode") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      latitude: lat,
+      longitude: lng
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      addressDisplay.textContent = data.locationText;
+    } else {
+      addressDisplay.textContent = 'Address not found';
+    }
+  })
+  .catch(error => {
+    
+    addressDisplay.textContent = 'Unable to load address';
+  });
+}
+
+function useCurrentLocation() {
+  if (!navigator.geolocation) {
+    showFlashMessage('Geolocation is not supported by your browser.', 'danger');
+    return;
+  }
+
+  const btn = document.getElementById('useCurrentLocationBtn');
+  const originalHTML = btn.innerHTML;
+  
+  // Show loading state
+  btn.disabled = true;
+  btn.classList.add('is-loading');
+  btn.innerHTML = '<div class="btn-spinner"></div>';
+  document.getElementById('coordsDisplay').innerHTML = '<i class="fas fa-spinner spinner-spin"></i> Getting your location...';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      // Center map on current location with appropriate zoom
+      map.setView([lat, lng], 15);
+
+      // Move marker to current location
+      marker.setLatLng([lat, lng]);
+
+      // Update location
+      updateLocation(lat, lng);
+      
+      // Reset button state
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      btn.innerHTML = originalHTML;
+    },
+    (error) => {
+      showFlashMessage('Unable to get your current location. Please select location manually on the map.', 'warning');
+      document.getElementById('coordsDisplay').innerHTML = '📍 Click on the map to select location';
+      
+      // Reset button state
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      btn.innerHTML = originalHTML;
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+// Confirm location and save to sessionStorage
+document.getElementById('confirmLocation').addEventListener('click', handleConfirmLocation);
+document.getElementById('confirmLocationMobile').addEventListener('click', handleConfirmLocation);
+
+function handleConfirmLocation() {
+  if (!selectedLat || !selectedLng) {
+    showFlashMessage('Please select a location first.', 'danger');
+    return;
+  }
+
+  const btn = this;
+  const originalHTML = btn.innerHTML;
+
+  // Show saving state
+  btn.disabled = true;
+  btn.classList.add('is-loading');
+
+  // Trigger global loader overlay if available
+  if (window.showLoader) {
+    window.showLoader();
+  }
+
+  // Also update the mobile button if this was the desktop one
+  const otherBtn = btn.id === 'confirmLocation' ? 
+    document.getElementById('confirmLocationMobile') : 
+    document.getElementById('confirmLocation');
+  otherBtn.disabled = true;
+  otherBtn.classList.add('is-loading');
+  otherBtn.innerHTML = '<div class="btn-spinner"></div><span>Saving Location...</span>';
+
+  // Save to sessionStorage
+  sessionStorage.setItem('petsona_selected_lat', selectedLat.toString());
+  sessionStorage.setItem('petsona_selected_lng', selectedLng.toString());
+
+  // Show success message
+  setTimeout(() => {
+    showFlashMessage('Location saved successfully!', 'success');
+    
+    // Redirect back to nearby services after a short delay
+    setTimeout(() => {
+      window.location.href = '{{ url_for("user.nearby_services") }}';
+    }, 1200);
+  }, 600);
+}
+
+// Flash message helper function
+function showFlashMessage(message, category = 'info') {
+  // Create flash message container if it doesn't exist
+  let flashContainer = document.getElementById('flash-messages');
+  
+  if (!flashContainer) {
+    flashContainer = document.createElement('div');
+    flashContainer.id = 'flash-messages';
+    flashContainer.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; z-index: 9999; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none;';
+    document.body.insertBefore(flashContainer, document.body.firstChild);
+  }
+
+  // Create flash message element
+  const categoryMap = {
+    'success': 'bg-green-50 text-green-900 border-green-200',
+    'danger': 'bg-red-50 text-red-900 border-red-200',
+    'warning': 'bg-yellow-50 text-yellow-900 border-yellow-200',
+    'info': 'bg-blue-50 text-blue-900 border-blue-200'
+  };
+
+  const iconMap = {
+    'success': 'fa-check-circle text-green-600',
+    'danger': 'fa-exclamation-circle text-red-600',
+    'warning': 'fa-exclamation-triangle text-yellow-600',
+    'info': 'fa-info-circle text-blue-600'
+  };
+
+  const flashHTML = `
+    <div class="flash-message mx-auto max-w-2xl w-full px-4 pointer-events-auto animate-slide-in">
+      <div class="flex items-center gap-3 p-4 rounded-lg border ${categoryMap[category] || categoryMap['info']} shadow-md">
+        <i class="fas ${iconMap[category] || iconMap['info']} text-lg"></i>
+        <span class="flex-1">${message}</span>
+        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-lg hover:opacity-70">×</button>
+      </div>
+    </div>
+  `;
+
+  const messageDiv = document.createElement('div');
+  messageDiv.innerHTML = flashHTML;
+  flashContainer.appendChild(messageDiv.firstElementChild);
+
+  // Auto-remove after 4 seconds
+  setTimeout(() => {
+    const msg = flashContainer.querySelector('.flash-message');
+    if (msg) {
+      msg.style.animation = 'slide-out 0.3s ease-out forwards';
+      setTimeout(() => msg.remove(), 300);
+    }
+  }, 4000);
+}
+
+// Add CSS animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(-1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes slide-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-1rem);
+    }
+  }
+  
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
+`;
+document.head.appendChild(style);
+</script>
+
+{% endblock %}

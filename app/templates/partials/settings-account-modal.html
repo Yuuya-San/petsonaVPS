@@ -1,0 +1,626 @@
+<!-- Account Settings Modal -->
+<div class="modal fade" id="settingsAccountModal" tabindex="-1" role="dialog" aria-labelledby="settingsAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg glass-modal-container" role="document" style="max-width: 580px;">
+    <div class="modal-content glass-modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header glass-modal-header border-0">
+        <div class="d-flex align-items-center">
+          <div class="glass-modal-icon-container">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div class="ml-3">
+            <h5 class="modal-title glass-modal-title text-center" id="settingsAccountModalLabel">Password & Security</h5>
+            <p class="glass-modal-subtitle text-center">Update your password to keep your account secure</p>
+          </div>
+        </div>
+        <button type="button" class="close glass-modal-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body glass-modal-body">
+        <form id="accountSettingsForm">
+          <!-- Current Password Field -->
+          <div class="form-group glass-form-group">
+            <label for="currentPassword" class="glass-form-label">
+              <i class="fas fa-key mr-2"></i>Current Password
+            </label>
+            <div class="glass-input-wrapper">
+              <input type="password" class="form-control glass-form-input" id="currentPassword" 
+                     placeholder="Enter your current password" required>
+              <span class="glass-input-icon">
+                <i class="fas fa-eye-slash toggle-password" style="cursor: pointer;" data-target="#currentPassword"></i>
+              </span>
+            </div>
+            <small class="glass-form-helper-text">We need your current password to verify your identity</small>
+          </div>
+
+          <hr class="glass-form-divider">
+
+          <!-- New Password Field -->
+          <div class="form-group glass-form-group">
+            <label for="newPassword" class="glass-form-label">
+              <i class="fas fa-lock-open mr-2"></i>New Password
+            </label>
+            <div class="glass-input-wrapper">
+              <input type="password" class="form-control glass-form-input" id="newPassword" 
+                     placeholder="Enter a strong new password" required>
+              <span class="glass-input-icon">
+                <i class="fas fa-eye-slash toggle-password" style="cursor: pointer;" data-target="#newPassword"></i>
+              </span>
+            </div>
+            <small class="glass-form-helper-text">Use at least 8 characters with uppercase, lowercase, numbers, and symbols</small>
+            
+            <!-- Password Strength Indicator -->
+            <div class="glass-password-strength mt-2">
+              <div class="glass-strength-meter">
+                <div class="glass-strength-bar" id="passwordStrengthBar"></div>
+              </div>
+              <small id="passwordStrengthText" class="glass-strength-text">Enter a password to check strength</small>
+            </div>
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div class="form-group glass-form-group">
+            <label for="confirmPassword" class="glass-form-label">
+              <i class="fas fa-check-circle mr-2"></i>Confirm Password
+            </label>
+            <div class="glass-input-wrapper">
+              <input type="password" class="form-control glass-form-input" id="confirmPassword" 
+                     placeholder="Confirm your new password" required>
+              <span class="glass-input-icon">
+                <i class="fas fa-eye-slash toggle-password" style="cursor: pointer;" data-target="#confirmPassword"></i>
+              </span>
+            </div>
+            <small class="glass-form-helper-text">Must match your new password</small>
+          </div>
+
+          <!-- Security Info -->
+          <div class="glass-security-info">
+            <div class="glass-info-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Your password will be securely encrypted</span>
+            </div>
+            <div class="glass-info-item">
+              <i class="fas fa-clock"></i>
+              <span>You'll need to log in again after changing your password</span>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer glass-modal-footer border-0 d-flex justify-content-center flex-nowrap">
+        <button type="button" class="btn btn-secondary glass-btn-secondary flex-fill mr-2 text-center" data-dismiss="modal">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary glass-btn-primary flex-fill ml-2 text-center" id="savePasswordBtn">
+          <i class="fas fa-check mr-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Glass Modal Container */
+  .glass-modal-container .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .glass-modal-header {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(167, 107, 207, 0.05) 100%);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    padding: 24px;
+    flex-shrink: 0;
+  }
+
+  .glass-modal-icon-container {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  .glass-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+
+  .glass-modal-subtitle {
+    font-size: 13px;
+    color: #999;
+    margin: 0;
+  }
+
+  .glass-modal-close {
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    font-size: 24px;
+  }
+
+  .glass-modal-close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+  }
+
+  .glass-modal-body {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* Form Styling */
+  .glass-form-group {
+    margin-bottom: 24px;
+  }
+
+  .glass-form-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .glass-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .glass-form-input {
+    width: 100%;
+    padding: 12px 16px 12px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    padding-right: 40px;
+  }
+
+  .glass-form-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: #fff;
+    outline: none;
+  }
+
+  .glass-input-icon {
+    position: absolute;
+    right: 12px;
+    color: #999;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .glass-input-icon:hover {
+    color: #667eea;
+  }
+
+  .glass-form-helper-text {
+    display: block;
+    margin-top: 6px;
+    color: #999;
+    font-size: 12px;
+  }
+
+  .glass-form-divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+    margin: 24px 0;
+  }
+
+  /* Password Strength Indicator */
+  .glass-password-strength {
+    width: 100%;
+  }
+
+  .glass-strength-meter {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .glass-strength-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff4757, #ffa502, #2ed573);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+
+  .glass-strength-text {
+    color: #999;
+    font-size: 12px;
+    display: block;
+    margin-top: 6px;
+  }
+
+  /* Security Info */
+  .glass-security-info {
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.05) 0%, rgba(102, 126, 234, 0.05) 100%);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 24px;
+  }
+
+  .glass-info-item {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .glass-info-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .glass-info-item i {
+    color: #2ed573;
+    margin-right: 10px;
+    font-size: 14px;
+  }
+
+  /* Modal Footer */
+  .glass-modal-footer {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 16px 24px;
+    border-top: 1px solid rgba(102, 126, 234, 0.1);
+    flex-shrink: 0;
+  }
+
+  .glass-btn-secondary,
+  .glass-btn-primary {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    white-space: nowrap;
+    min-width: 120px;
+  }
+
+  .glass-btn-secondary {
+    background: #f5f5f5;
+    color: #666;
+  }
+
+  .glass-btn-secondary:hover {
+    background: #e8e8e8;
+    color: #333;
+  }
+
+  .glass-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.35);
+  }
+
+  .glass-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+  }
+
+  .glass-btn-primary:active {
+    transform: translateY(0);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .glass-modal-container .modal-content {
+      margin: 10px;
+      max-height: 90vh;
+    }
+
+    .glass-modal-body {
+      padding: 20px;
+    }
+
+    .modal-header.glass-modal-header {
+      padding: 16px;
+    }
+
+    .glass-modal-icon-container {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+
+    .glass-modal-title {
+      font-size: 16px;
+    }
+
+    .glass-form-group {
+      margin-bottom: 16px;
+    }
+
+    .glass-form-label {
+      font-size: 13px;
+    }
+
+    .glass-modal-footer {
+      padding: 12px 16px;
+    }
+
+    .glass-modal-footer .btn {
+      font-size: 13px;
+      padding: 8px 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .glass-modal-body {
+      padding: 16px;
+    }
+
+    .glass-modal-title {
+      font-size: 14px;
+    }
+
+    .glass-form-input {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .glass-form-label {
+      font-size: 12px;
+    }
+
+    .glass-modal-footer .btn {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+  }
+</style>
+
+<script>
+  // Function to display flash messages
+  function showFlashMessage(message, category = 'info') {
+    // Create a proper Bootstrap alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${category === 'error' ? 'danger' : category} alert-dismissible fade show`;
+    alertDiv.setAttribute('role', 'alert');
+    alertDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 300px;
+      max-width: 500px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease-in-out;
+    `;
+    
+    alertDiv.innerHTML = `
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <strong>${category.charAt(0).toUpperCase() + category.slice(1)}:</strong> ${message}
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Bootstrap alert dismiss functionality if jQuery is available
+    if (typeof $ !== 'undefined' && $.fn && typeof $.fn.alert === 'function') {
+      $(alertDiv).alert();
+      setTimeout(() => {
+        $(alertDiv).alert('close');
+      }, 5000);
+    } else {
+      setTimeout(() => {
+        if (alertDiv.parentNode) {
+          alertDiv.parentNode.removeChild(alertDiv);
+        }
+      }, 5000);
+    }
+  }
+  
+  // Add CSS animation for the alert
+  if (!document.querySelector('style[data-alert-animation]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-alert-animation', 'true');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Toggle password visibility
+  document.querySelectorAll('.toggle-password').forEach(el => {
+    el.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-target');
+      const input = document.querySelector(targetId);
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      this.classList.toggle('fa-eye');
+      this.classList.toggle('fa-eye-slash');
+    });
+  });
+
+  // Password strength checker - Matches RegisterForm validation rules
+  document.getElementById('newPassword').addEventListener('input', function() {
+    const password = this.value;
+    const strengthBar = document.getElementById('passwordStrengthBar');
+    const strengthText = document.getElementById('passwordStrengthText');
+    
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    // Count met requirements
+    const metCount = Object.values(requirements).filter(met => met).length;
+    const strength = metCount * 20;
+
+    // Update strength bar
+    strengthBar.style.width = strength + '%';
+    
+    // Update strength text
+    let text = '';
+    let color = '';
+    
+    if (metCount === 0) {
+      text = 'Enter a password';
+      color = '#999';
+    } else if (metCount === 1) {
+      text = 'Very weak password';
+      color = '#ff4757';
+      strengthBar.style.background = '#ff4757';
+    } else if (metCount === 2) {
+      text = 'Weak password';
+      color = '#ffa502';
+      strengthBar.style.background = '#ffa502';
+    } else if (metCount === 3) {
+      text = 'Fair password';
+      color = '#ffb800';
+      strengthBar.style.background = '#ffb800';
+    } else if (metCount === 4) {
+      text = 'Good password';
+      color = '#9c27b0';
+      strengthBar.style.background = '#9c27b0';
+    } else if (metCount === 5) {
+      text = 'Strong password ✓';
+      color = '#2ed573';
+      strengthBar.style.background = '#2ed573';
+    }
+    
+    strengthText.textContent = text;
+    strengthText.style.color = color;
+  });
+
+  // Save password button
+  document.getElementById('savePasswordBtn').addEventListener('click', async function() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    // Validation - Match RegisterForm requirements
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showFlashMessage('All fields are required', 'warning');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showFlashMessage('New passwords do not match', 'warning');
+      return;
+    }
+
+    // Password requirement validation (matching forms.py)
+    const requirements = {
+      length: newPassword.length >= 8,
+      uppercase: /[A-Z]/.test(newPassword),
+      lowercase: /[a-z]/.test(newPassword),
+      number: /\d/.test(newPassword),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword)
+    };
+
+    // Check each requirement
+    const errors = [];
+    if (!requirements.length) errors.push('At least 8 characters');
+    if (!requirements.uppercase) errors.push('At least one uppercase letter');
+    if (!requirements.lowercase) errors.push('At least one lowercase letter');
+    if (!requirements.number) errors.push('At least one number');
+    if (!requirements.special) errors.push('At least one special character (!@#$%^&*(),.?":{}|<>)');
+
+    if (errors.length > 0) {
+      showFlashMessage('Password must include: ' + errors.join(', '), 'warning');
+      return;
+    }
+
+    // Send to server
+    try {
+      this.disabled = true;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+
+      // Trigger global loading
+      if (window.LoaderManager) {
+        window.LoaderManager.show();
+      }
+
+      // Get CSRF token from meta tag or form
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      
+      const response = await fetch('/api/account/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showFlashMessage('✓ Password changed successfully. Redirecting to login...', 'success');
+        // Clear form
+        document.getElementById('accountSettingsForm').reset();
+        // Close modal using jQuery
+        $('#settingsAccountModal').modal('hide');
+        // Redirect after a short delay
+        setTimeout(() => { window.location.href = '/auth/logout'; }, 2000);
+      } else {
+        showFlashMessage(data.message || 'Failed to change password', 'error');
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-check mr-2"></i>Save Changes';
+      }
+    } catch (error) {
+      showFlashMessage('Error: ' + error.message, 'error');
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-check mr-2"></i>Save Changes';
+    }
+  });
+
+  // Clear form when modal is closed - use hidden.bs.modal event
+  const accountModalElement = document.getElementById('settingsAccountModal');
+  if (accountModalElement) {
+    $(accountModalElement).on('hidden.bs.modal', function() {
+      document.getElementById('accountSettingsForm').reset();
+      document.getElementById('passwordStrengthBar').style.width = '0%';
+      document.getElementById('passwordStrengthText').textContent = 'Enter a password to check strength';
+      // Reset button state
+      const saveBtn = document.getElementById('savePasswordBtn');
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Save Changes';
+    });
+  }
+</script>

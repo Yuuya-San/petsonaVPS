@@ -1,0 +1,150 @@
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <!-- Brand Logo -->
+  <a href="{{ url_for('admin.dashboard') }}" class="brand-link">
+    <img src="{{ url_for('static', filename='images/logo/petsona-logo.png') }}" alt="PetSona Logo" class="brand-logo">
+    <span class="brand-text font-weight-light">PetSona</span>
+  </a>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
+
+        <!-- Dashboard -->
+        <li class="nav-item">
+          <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+            <i class="nav-icon fas fa-home"></i>
+            <p>Dashboard</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
+            <i class="nav-icon fas fa-users"></i>
+            <p>All Users</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('admin.admin_add_user') }}" class="nav-link {% if request.endpoint == 'admin.admin_add_user' %}active{% endif %}">
+            <i class="nav-icon fas fa-user-plus"></i>
+            <p>Add User</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('admin.merchant_applications') }}" class="nav-link {% if request.endpoint == 'admin.merchant_applications' %}active{% endif %}">
+            <i class="nav-icon fa-solid fa-address-card"></i>
+            <p>Pending Applications</p>
+            
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('admin.archive_users') }}" class="nav-link {% if request.endpoint == 'admin.archive_users' %}active{% endif %}">
+            <i class="nav-icon fas fa-archive"></i>
+            <p>Archive Users</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('pets.species_index') }}"
+            class="nav-link {% if request.path.startswith('/pets/species') %}active{% endif %}">
+            <i class="nav-icon fa-solid fa-database"></i>
+            <p>Pet Database</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint == 'matching.quiz' %}active{% endif %}">
+            <i class="nav-icon fas fa-heartbeat"></i>
+            <p>Match Pet</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('matching.history') }}"
+              class="nav-link {% if request.endpoint in ['matching.history', 'matching.general_results', 'matching.breed_match'] %}active{% endif %}">
+               <i class="nav-icon fas fa-history"></i>
+            <p>Match History</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('pets.archived_items') }}" class="nav-link {% if request.endpoint == 'pets.archived_items' %}active{% endif %}">
+            <i class="nav-icon fa-solid fa-folder-minus"></i>
+            <p>Archived Pets</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('admin.audit_logs') }}" class="nav-link {% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">
+            <i class="nav-icon fas fa-file-alt"></i>
+            <p>Audit Logs</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('admin.archive_audit_logs') }}" class="nav-link {% if request.endpoint == 'admin.archive_audit_logs' %}active{% endif %}">
+            <i class="nav-icon fa-solid fa-file-zipper"></i>
+            <p>Archive Audit</p>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+  </div>
+</aside>
+
+<!-- CSS for tab underline -->
+<style>
+  /* ================= SCROLLBAR STYLING ================= */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #8C00FF;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7a00d9;
+  }
+  /* Firefox scrollbar */
+  .sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: #8C00FF transparent;
+  }
+
+  .nav-icon {
+    color: #a855f7 !important;
+    font-size: 1.1em !important;
+  }
+
+  .nav-link {
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .nav-link.active {
+    border-bottom: 3px solid #8C00FF; /* highlight color */
+    color: #8C00FF;
+  }
+  .nav-link.active i {
+    color: #a855f7 !important;
+  }
+  .nav-header {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8C00FF;
+  }
+  .nav-header::after {
+    content: '';
+    flex-grow: 1;
+    margin-left: 8px;
+    border-bottom: 1px dashed #8C00FF;
+  }
+</style>

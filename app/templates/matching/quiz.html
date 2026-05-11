@@ -1,0 +1,413 @@
+{% if current_user.is_authenticated %}
+  {% extends current_user.role ~ "/base.html" %}
+{% else %}
+  {% extends "auth/base.html" %}
+{% endif %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="{{ url_for('static', filename='shared/loader.js') }}"></script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .question-card { animation: slideUp 0.5s ease-out; }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .loading-spinner {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    margin: 0 auto;
+  }
+
+  .spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: #667eea;
+    border-right-color: #764ba2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner-ring:nth-child(2) {
+    width: 70%;
+    height: 70%;
+    top: 15%;
+    left: 15%;
+    border-top-color: #764ba2;
+    border-right-color: #ec4899;
+    animation: spin 1.5s linear infinite reverse;
+  }
+
+  .loading-text {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+</style>
+
+<div class="min-h-screen flex justify-center" style="background-color: rgba(249, 250, 251, 0.5);">
+  <div class="w-[95vw] md:w-[90vw] max-w-[95vw] md:max-w-[90vw] mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6 space-y-6 sm:space-y-8">
+
+    <!-- Quiz Introduction -->
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-3xl p-6 sm:p-8 border border-indigo-100">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div class="flex-shrink-0">
+          <i class="fa-solid fa-heart text-2xl text-indigo-600"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Find Your Perfect Pet Match</h1>
+          <p class="text-gray-700 text-sm sm:text-base leading-relaxed">
+            We're not just finding a pet you can <strong>care for</strong>—we're finding one that <strong>truly aligns</strong> with your lifestyle. 
+            This quiz measures real compatibility: how well your daily life matches what a pet actually needs. 
+            We prioritize pet welfare first, so you get honest guidance about which pets are right for you.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ CONTAINER -->
+    <div x-data="quizApp()" class="space-y-5 sm:space-y-6" x-init="init()">
+      <!-- Progress Bar -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+        <div class="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+          <span class="text-xs sm:text-sm font-semibold text-indigo-700">
+            Question <span x-text="currentIndex + 1"></span> of <span x-text="quizQuestions.length"></span>
+          </span>
+          <span class="text-xs sm:text-sm text-gray-600 font-medium">
+            <span x-text="Math.round((answeredCount/quizQuestions.length)*100)"></span>% Complete
+          </span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
+          <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full rounded-full transition-all duration-300" :style="'width: ' + ((currentIndex + 1) / quizQuestions.length * 100) + '%'"></div>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div x-show="!quizComplete" class="bg-white rounded-3xl shadow-lg p-6 sm:p-8 question-card border border-gray-100">
+        <div class="mb-8">
+          <div class="mb-4">
+            <p class="text-xs font-semibold text-indigo-800 uppercase tracking-widest" x-text="quizQuestions[currentIndex]?.section || 'Quiz'"></p>
+          </div>
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-3">
+            <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-snug">
+              <span x-text="quizQuestions[currentIndex]?.question || ''"></span>
+            </h2>
+            <span x-show="isMultiSelectQuestion(quizQuestions[currentIndex]?.name)" class="inline-block bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0">
+              Multiple OK
+            </span>
+          </div>
+          <p class="text-gray-600 text-xs sm:text-sm mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <i class="fa-solid fa-lightbulb mr-2 text-amber-600"></i>
+            <strong>Be honest:</strong> Answer based on your actual lifestyle, not what you think you should do.
+          </p>
+          <p class="text-gray-600 text-xs sm:text-sm">
+            <template x-if="isMultiSelectQuestion(quizQuestions[currentIndex]?.name)">
+              <span>You can select multiple options</span>
+            </template>
+            <template x-if="!isMultiSelectQuestion(quizQuestions[currentIndex]?.name)">
+              <span>Select one option to continue</span>
+            </template>
+          </p>
+        </div>
+
+        <!-- Options -->
+        <div class="space-y-3 mb-8">
+          <template x-for="(option, idx) in (quizQuestions[currentIndex]?.options || [])" :key="idx">
+            <label class="flex items-center p-4 sm:p-5 border-2 border-gray-200 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all group active:scale-95"
+                   :class="isSelected(option) ? 'border-indigo-800 bg-indigo-50 ring-2 ring-indigo-200' : ''"
+            >
+              <input :type="isMultiSelectQuestion(quizQuestions[currentIndex]?.name) ? 'checkbox' : 'radio'"
+                     :value="option"
+                     @change="selectAnswer(option, quizQuestions[currentIndex]?.name)"
+                     :checked="isSelected(option)"
+                     class="w-5 h-5 text-indigo-800 flex-shrink-0 cursor-pointer">
+              <span class="ml-3 text-sm sm:text-base text-gray-700 font-medium group-hover:text-gray-900 transition" x-text="option"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- Loading Screen -->
+      <div x-show="quizComplete" class="bg-white rounded-3xl shadow-lg p-8 sm:p-12 text-center question-card border border-gray-100">
+        <div class="mb-8">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+          </div>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 loading-text">Analyzing Your True Compatibility...</h2>
+        <p class="text-gray-600 text-sm sm:text-base">Measuring how well your lifestyle aligns with each pet's actual needs</p>
+        <p class="text-gray-500 text-xs sm:text-sm mt-4">We prioritize pet welfare by being honest about mismatches</p>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div x-show="!quizComplete" class="flex flex-row flex-nowrap w-full gap-3 sm:gap-4 justify-between items-center">
+
+        <!-- Back Button -->
+        <button
+          @click="prevQuestion()"
+          :disabled="currentIndex === 0"
+          class="flex-1 min-w-[120px] h-12 sm:h-auto px-4 sm:px-6 sm:py-3
+                bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed
+                text-gray-800 font-semibold rounded-xl transition
+                flex items-center justify-center gap-1 sm:gap-2"
+          :class="currentIndex === 0 ? 'opacity-50' : 'opacity-100'"
+        >
+          <i class="fa-solid fa-chevron-left text-base sm:text-lg"></i>
+          <span class="text-xs sm:text-sm">Back</span>
+        </button>
+
+        <!-- Next / Submit Button -->
+        <button
+          @click="currentIndex === (quizQuestions.length - 1) ? submitQuiz() : nextQuestion()"
+          :disabled="!isQuestionAnswered(currentIndex) || isLoading"
+          class="flex-1 min-w-[120px] h-12 sm:h-auto px-4 sm:px-6 sm:py-3
+                flex items-center justify-center gap-1 sm:gap-2
+                font-semibold rounded-xl transition
+                disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="currentIndex === (quizQuestions.length - 1)
+            ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+            : 'bg-indigo-800 hover:bg-indigo-900 text-white'"
+        >
+          <i :class="isLoading ? 'fa-solid fa-spinner animate-spin' : (currentIndex === (quizQuestions.length - 1) ? 'fa-solid fa-check' : 'fa-solid fa-chevron-right')" class="text-base sm:text-lg"></i>
+          <span class="text-xs sm:text-sm" x-text="isLoading ? 'Finding...' : (currentIndex === (quizQuestions.length - 1) ? 'See My Matches' : 'Next')"></span>
+        </button>
+
+      </div>
+
+  </div>
+</div>
+
+<script>
+  function quizApp() {
+    return {
+      currentIndex: 0,
+      quizComplete: false,
+      answers: {},
+      answeredCount: 0,
+      isLoading: false,
+      resultsVisible: false,
+      quizResults: null,
+      quizQuestions: [],
+
+      init() {
+        this.quizQuestions = this.getQuizQuestions();
+        this.resultsVisible = false;
+        this.quizResults = null;
+        this.currentIndex = 0;
+        this.answers = {};
+        this.quizQuestions.forEach(q => {
+          this.answers[q.name] = null;
+        });
+        this.updateProgress();
+      },
+
+      getQuizQuestions() {
+        return [
+          { name: 'pet_preference', section: 'About You', question: 'What type of pet(s) do you prefer?', options: ['Dogs', 'Cats', 'Birds', 'Fish', 'Reptiles', 'Amphibians', 'Small Mammals'], isMultiSelect: true },
+          { name: 'pet_allergies', section: 'About You', question: 'Do you have any pet allergies?', options: ['Yes', 'No'] },
+          { name: 'energy_level', section: 'About You', question: 'How active are you most days?', options: ['I mostly relax at home', 'I move around sometimes', 'I am very active and always busy'] },
+          { name: 'noise_level', section: 'About You', question: 'How much noise can you handle at home?', options: ['I need it very quiet', 'Some noise is okay', 'Noise does not bother me'] },
+          { name: 'social_needs', section: 'About You', question: 'How much attention do you want to give your pet?', options: ['Just a little', 'A fair amount', 'A lot, I like bonding'] },
+          { name: 'handling_tolerance', section: 'About You', question: 'How would you describe your home environment?', options: ['Very calm and quiet', 'Normal', 'Busy, noisy, and active'] },
+          { name: 'daily_care_time', section: 'Time & Care', question: 'How much time can you spend on pet care daily?', options: ['Less than 1 hour', '1-2 hours', '2-4 hours', 'More than 4 hours'] },
+          { name: 'exercise_needs', section: 'Time & Care', question: 'Can you give your pet exercise or play every day?', options: ['No, I am busy', 'Maybe, I am not sure', 'Yes, I can'] },
+          { name: 'environment_complexity', section: 'Time & Care', question: 'Are you comfortable setting up enclosures (e.g., tanks, cages)?', options: ['No, I prefer simple pets', 'I can manage a little', 'Yes, I am okay with it'] },
+          { name: 'experience_required', section: 'Experience', question: 'Have you taken care of pets before?', options: ['This is my first pet', 'I have had a few', 'I have a lot of experience'] },
+          { name: 'trainability', section: 'Experience', question: 'How patient are you with training or teaching a pet?', options: ['Not very patient', 'Somewhat patient', 'Very patient'] },
+          { name: 'temperament_tolerance', section: 'Experience', question: 'How well can you handle difficult or stubborn pets?', options: ['Not well', 'I can try', 'I handle them well'] },
+          { name: 'space_needs', section: 'Home & Space', question: 'How big is your living space?', options: ['Small apartment or room', 'Medium-sized home', 'Large home or house with space'] },
+          { name: 'min_enclosure_size', section: 'Home & Space', question: 'Can you keep tanks, cages, or enclosures if needed?', options: ['No', 'Small ones only', 'Large ones are okay'] },
+          { name: 'monthly_cost_level', section: 'Budget & Costs', question: 'How much can you spend on your pet each month?', options: ['Low budget', 'Medium budget', 'High budget'] },
+          { name: 'emergency_care_risk', section: 'Budget & Costs', question: 'Can you handle emergency vet bills?', options: ['No, I cannot', 'Maybe, I am not sure', 'Yes, I can'] },
+          { name: 'child_friendly', section: 'Household', question: 'Do you have children at home?', options: ['Yes', 'No'] },
+          { name: 'other_pets_friendly', section: 'Household', question: 'What types of pets do you currently have?', options: ['None', 'Dogs', 'Cats', 'Small Mammals (Birds, Hamster, etc.)'], isMultiSelect: true },
+          { name: 'prey_drive', section: 'Species & Safety', question: 'Are you comfortable with pets that may hunt or eat other animals? ', options: ['No, I am not', 'Maybe, I am not sure', 'Yes, I am'] },
+          { name: 'okay_fragile', section: 'Species & Safety', question: 'Are you comfortable caring for fragile or delicate animals?', options: ['No, I am not', 'Maybe, I am not sure', 'Yes, I am'] },
+          { name: 'okay_special_vet', section: 'Species & Safety', question: 'Can you access specialized veterinary care if needed?', options: ['No, I cannot', 'Maybe, I am not sure', 'Yes, I can'] }
+        ];
+      },
+
+      resetQuiz() {
+        this.init();
+        this.quizComplete = false;
+        this.isLoading = false;
+      },
+
+      isMultiSelectQuestion(questionName) {
+        const question = this.quizQuestions.find(q => q.name === questionName);
+        return question && question.isMultiSelect === true;
+      },
+
+      isSelected(option) {
+        const currentQuestion = this.quizQuestions[this.currentIndex];
+        if (!currentQuestion) return false;
+        
+        const answer = this.answers[currentQuestion.name];
+        
+        if (this.isMultiSelectQuestion(currentQuestion.name)) {
+          // For multi-select, answer is an array
+          return Array.isArray(answer) && answer.includes(option);
+        } else {
+          // For single-select, answer is a string
+          return answer === option;
+        }
+      },
+
+      selectAnswer(option, questionName) {
+        const questionIdx = questionName ? this.quizQuestions.findIndex(q => q.name === questionName) : this.currentIndex;
+        const currentQuestion = this.quizQuestions[questionIdx];
+        
+        if (!currentQuestion) return;
+        
+        if (this.isMultiSelectQuestion(currentQuestion.name)) {
+          // For multi-select questions
+          if (!Array.isArray(this.answers[currentQuestion.name])) {
+            this.answers[currentQuestion.name] = [];
+          }
+          
+          const index = this.answers[currentQuestion.name].indexOf(option);
+          if (index > -1) {
+            // Remove if already selected
+            this.answers[currentQuestion.name].splice(index, 1);
+          } else {
+            // Add if not selected
+            this.answers[currentQuestion.name].push(option);
+          }
+        } else {
+          // For single-select questions
+          this.answers[currentQuestion.name] = option;
+        }
+        
+        this.updateProgress();
+      },
+
+      updateProgress() {
+        this.answeredCount = 0;
+        this.quizQuestions.forEach(q => {
+          const answer = this.answers[q.name];
+          if (q.isMultiSelect) {
+            if (Array.isArray(answer) && answer.length > 0) {
+              this.answeredCount++;
+            }
+          } else {
+            if (answer !== null && answer !== '') {
+              this.answeredCount++;
+            }
+          }
+        });
+      },
+
+      prevQuestion() {
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+
+      isQuestionAnswered(index) {
+        const question = this.quizQuestions[index];
+        if (!question) return false;
+        
+        const answer = this.answers[question.name];
+        
+        if (question.isMultiSelect) {
+          return Array.isArray(answer) && answer.length > 0;
+        } else {
+          return answer !== null && answer !== '' && answer !== undefined;
+        }
+      },
+
+      nextQuestion() {
+        if (this.currentIndex < this.quizQuestions.length - 1) {
+          this.currentIndex++;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+
+      async submitQuiz() {
+        this.isLoading = true;
+        this.quizComplete = true;
+
+        const formattedAnswers = {};
+        Object.entries(this.answers).forEach(([key, value]) => {
+          // Convert array answers (multi-select) to comma-separated strings
+          if (Array.isArray(value)) {
+            formattedAnswers[key] = value.join(',');
+          } else {
+            formattedAnswers[key] = value;
+          }
+        });
+
+        try {
+          
+          const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
+          const csrfToken = csrfTokenElement ? csrfTokenElement.content : '';
+          
+          if (!csrfToken) {
+            
+          }
+          
+          
+          const response = await fetch('/matching/api/quiz-submit', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(formattedAnswers)
+          });
+
+          
+          const data = await response.json();
+          
+
+          if (data.success && response.ok) {
+            this.quizResults = data;
+            // Keep loader visible and redirect after 2.5 seconds to ensure session is saved
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            
+            window.location.href = '/matching/results/general';
+          } else {
+            this.quizComplete = false;
+            
+            
+            alert('Error: ' + (data.error || 'Failed to process quiz'));
+          }
+        } catch (error) {
+          
+          
+          this.quizComplete = false;
+          alert('An error occurred. Please try again.');
+        }
+      }
+    }
+  }
+</script>
+
+{% endblock %}

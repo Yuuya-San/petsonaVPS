@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}PetSona | About Us{% endblock %}
+
+{% block content %}
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: #f8fafc;
+}
+
+/* ================= ABOUT HERO ================= */
+
+.about-hero {
+  position: relative;
+  width: 100vw;
+  height: auto;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem);
+  text-align: center;
+  overflow: hidden;
+}
+
+.about-hero::before {
+  content: "";
+  position: absolute;
+  inset: -2%;
+  background:
+    url("{{ url_for('static', filename='images/bg/bg-image.png') }}")
+    center / cover no-repeat;
+  z-index: 1;
+  background-attachment: fixed;
+}
+
+.about-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15,23,42,.90) 0%,
+    rgba(15,23,42,.70) 35%,
+    rgba(15,23,42,.30) 65%,
+    rgba(15,23,42,.10) 100%
+  );
+  z-index: 2;
+}
+
+.about-hero-inner {
+  position: relative;
+  z-index: 3;
+  max-width: 900px;
+  animation: fadeUp 1s ease;
+}
+
+.about-hero h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: white;
+  text-shadow: 0 14px 50px rgba(0,0,0,.45);
+}
+
+.about-hero h1 span {
+  background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.about-hero p {
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  max-width: 800px;
+  margin: 0 auto 0.8rem;
+  line-height: 1.6;
+  color: #e5e7eb;
+}
+
+/* ================= PILLARS GRID ================= */
+
+.about-pillars {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3rem) clamp(1.25rem, 5vw, 6rem);
+  display: grid;
+  gap: clamp(2rem, 4vw, 3.5rem);
+}
+
+@media (min-width: 1024px) {
+  .about-pillars {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1023px) {
+  .about-pillars {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= CARD ================= */
+
+.pillar-card {
+  position: relative;
+  padding: clamp(2rem, 4vw, 3rem);
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(99, 102, 241, 0.08) 100%);
+  backdrop-filter: blur(28px);
+  border: 1px solid rgba(140, 0, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12);
+  text-align: center;
+  transition: all .45s ease;
+}
+
+.pillar-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(520px circle at top center, rgba(167,139,250,.18), transparent 65%);
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+.pillar-card:hover::before {
+  opacity: 1;
+}
+
+.pillar-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 45px 95px rgba(124,58,237,.25);
+}
+
+/* ================= ICON ================= */
+
+.pillar-icon {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #6366f1;
+  font-size: 1.7rem;
+  box-shadow: 0 14px 36px rgba(99, 102, 241, 0.28);
+}
+
+/* ================= TEXT ================= */
+
+.pillar-card h3 {
+  font-size: clamp(1.45rem, 3vw, 1.9rem);
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  color: #1f2937;
+  text-align: center;
+  width: 100%;
+}
+
+.pillar-card p {
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.8;
+  color: #475569;
+  text-align: center;
+  width: 100%;
+}
+
+.pillar-card ul {
+  margin-top: 0.5rem;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+  width: 100%;
+}
+
+.pillar-card ul li {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  color: #475569;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.pillar-card ul li::before {
+  content: "";
+  display: none;
+}
+
+/* ================= ANIMATION ================= */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<section class="about-hero">
+  <div class="about-hero-inner">
+    <h1>About <span>PetSona</span></h1>
+
+    <p>
+      PetSona is a smart web-based platform built to promote responsible pet ownership and help reduce pet abandonment. It bridges the gap between pets and owners by encouraging better understanding, guided care, and informed decision-making that strengthens their long-term bond.
+    </p>
+
+    <p>
+      In addition to intelligent pet-related guidance, PetSona connects users to nearby pet hotel services that offer daycare and overnight care. This ensures that pet owners can focus on work, travel, or daily responsibilities with peace of mind, knowing their pets are safe, cared for, and comfortable in their temporary stay.
+    </p>
+  </div>
+</section>
+
+<section class="about-pillars">
+
+  <div class="pillar-card">
+    <div class="pillar-icon">
+      <i class="fas fa-bullseye"></i>
+    </div>
+    <h3>Our Mission</h3>
+    <p>
+      To promote responsible pet ownership through intelligent guidance, education, and accessible care services. We aim to reduce pet abandonment and strengthen the bond between pets and owners by encouraging awareness, preparedness, and long-term commitment.
+    </p>
+  </div>
+
+  <div class="pillar-card">
+    <div class="pillar-icon">
+      <i class="fas fa-eye"></i>
+    </div>
+    <h3>Our Vision</h3>
+    <p>
+      A future where every pet is properly understood, cared for, and placed in environments that match their needs—reducing abandonment and strengthening human–animal relationships through technology-driven solutions.
+    </p>
+  </div>
+
+  <div class="pillar-card">
+    <div class="pillar-icon">
+      <i class="fas fa-heart"></i>
+    </div>
+    <h3>Our Core Values</h3>
+    <ul>
+      <li><strong>Care</strong> — Prioritizing the well-being of both pets and owners</li>
+      <li><strong>Responsibility</strong> — Promoting informed and lifelong commitment to pet care</li>
+      <li><strong>Trust</strong> — Delivering honest and transparent guidance</li>
+      <li><strong>Innovation</strong> — Using technology to improve pet care, matching, and services</li>
+    </ul>
+  </div>
+
+</section>
+
+{% endblock %}

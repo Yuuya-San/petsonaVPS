@@ -32,8 +32,6 @@ with app.app_context():
     if not admin_exists:
         user.create_admin(
             email=ADMIN_EMAIL,
-            first_name="Petsona",
-            last_name="Support",
             password="Petsona-0717",
             photo_url=DEFAULT_ADMIN_PHOTO
         )

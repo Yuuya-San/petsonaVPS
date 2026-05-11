@@ -13,6 +13,10 @@ import os
 def create_app(config_class: type = Config):
     app = Flask(__name__, static_folder="static", template_folder="templates")
 
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
     # Always load base config first
     app.config.from_object(config_class)
 

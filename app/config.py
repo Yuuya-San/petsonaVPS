@@ -34,8 +34,13 @@ class Config:
             'connect_timeout': 10,
             'read_timeout': 30,
             'write_timeout': 30,
+            'autocommit': False,  # Use explicit commits
         }
     }
+    
+    # Session timeout - prevent long-lived connections
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
+    SESSION_REFRESH_EACH_REQUEST = False
 
     RATELIMIT_STORAGE_URI = "redis://localhost:6379/2"
     

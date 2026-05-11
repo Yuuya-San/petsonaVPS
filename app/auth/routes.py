@@ -30,6 +30,15 @@ def safe_query(query_func, *args, **kwargs):
         db.session.rollback()  # Ensure session is rolled back on error
         return None
 
+# Safe current_user check - prevents infinite loop on session issues
+def is_user_authenticated():
+    """Safely check if current user is authenticated without hanging"""
+    try:
+        return current_user.is_authenticated
+    except Exception as e:
+        current_app.logger.warning(f"Error checking current_user: {e}")
+        return False
+
 
 DEFAULT_AVATARS = [
     "images/avatar/avatar-1.png",
@@ -81,6 +90,23 @@ def home():
         total_merchants=total_merchants,
         total_matches=total_matches
     )
+
+# DEBUG ENDPOINT - REMOVE IN PRODUCTION
+@bp.route('/debug/login-status')
+def debug_login_status():
+    """Debug endpoint to check login status (remove in production)"""
+    if current_app.config.get('DEBUG'):
+        try:
+            return {
+                'is_authenticated': current_user.is_authenticated,
+                'user_id': current_user.id if current_user.is_authenticated else None,
+                'email': current_user.email if current_user.is_authenticated else None,
+                'session_data': dict(session),
+                'database_connected': bool(db.engine.pool.checkedout()),
+            }
+        except Exception as e:
+            return {'error': str(e)}, 500
+    return {'error': 'Not available in production'}, 403
 
 @bp.route('/feature')
 def feature():
@@ -336,198 +362,219 @@ def google_callback():
 @limiter.limit("10 per minute")
 def login():
     form = LoginForm()
-
-    if form.validate_on_submit():
-        email = form.email.data.lower()
-        base_meta = {'email': email}
-
-        # Always log out any existing user before a new login attempt
-        if current_user.is_authenticated:
+    
+    # GET request - just render the login form
+    if request.method == 'GET':
+        return render_template('auth/login.html', form=form)
+    
+    # POST request - validate and process login
+    if not form.validate_on_submit():
+        # Form validation failed - display errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(error, 'danger')
+        return render_template('auth/login.html', form=form), 422
+    
+    email = form.email.data.lower().strip()
+    base_meta = {'email': email}
+    
+    try:
+        # STEP 1: Check if user is already authenticated - use safe check
+        if is_user_authenticated():
+            current_app.logger.info(f"User already authenticated, logging out before new login attempt")
             logout_user()
             session.clear()
-
-        # Clear session to ensure no old user data remains
+        
+        # STEP 2: Clear session completely to avoid stale data
         session.clear()
         
-        # Query user AFTER session is cleared to avoid connection conflicts
-        try:
-            user = User.query.filter_by(email=email).first()
-        except Exception as e:
-            current_app.logger.error(f"Database error during login: {e}")
-            flash('Database error. Please try again.', 'danger')
-            return redirect(url_for('auth.login'))
-
-        # Generate a new session token for this login
-        session_token = secrets.token_urlsafe(32)
-
+        # STEP 3: Query the user from database
+        current_app.logger.debug(f"Querying user with email: {email}")
+        user = User.query.filter_by(email=email).first()
+        
         if user is None:
             log_event('user.login_failed', details={**base_meta, 'reason': 'no_user'}, commit=False)
             flash('Invalid email or password.', 'danger')
-            return redirect(url_for('auth.login'))
+            return render_template('auth/login.html', form=form), 401
         
-        # Check if user registered via Google - they must use Google login
+        # STEP 4: Check if user registered via Google
         if user.registration_method == 'google':
             log_event('user.login_failed', details={**base_meta, 'reason': 'google_account_must_use_google_login'}, commit=False)
             flash('This account was created using Google Sign-In. Please use the Google login button instead.', 'danger')
-            return redirect(url_for('auth.login'))
-
-        # Lockout check
+            return render_template('auth/login.html', form=form), 401
+        
+        # STEP 5: Check if account is locked
         if user.lockout_until and user.lockout_until > get_ph_datetime():
+            remaining_time = (user.lockout_until - get_ph_datetime()).total_seconds() / 60
             log_event('user.login_locked', details={'locked_until': user.lockout_until.isoformat()}, commit=False)
-            flash('Account temporarily locked due to too many failed login attempts. Try again later.', 'danger')
-            return redirect(url_for('auth.login'))
-
-        if user.check_password(form.password.data):
-            # 2FA check (if enabled)
-            if user.is_2fa_enabled:
-                # Store user info in session for 2FA verification
-                session['pending_2fa_user_id'] = user.id
-                session['pending_2fa_login_type'] = 'user'
-                db.session.commit()  # Commit session update before redirect
-                log_event('user.login_pending_2fa', details={'email': email}, commit=False)
-                return redirect(url_for('auth.verify_2fa'))
-
-            # Success: reset counters and update session token in one commit
-            user.failed_login_attempts = 0
-            user.lockout_until = None
-            user.session_token = session_token
-            db.session.commit()  # Single commit for all user updates
-            
-            session['session_token'] = session_token
-            login_user(user)
-            log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr}, commit=False)
-
-            # Redirect based on role
-            if user.role == 'user':
-                return redirect(url_for('user.dashboard'))
-            elif user.role == 'merchant':
-                return redirect(url_for('merchant.dashboard'))
-            else:
-                flash('You do not have the required permissions to access this page.', 'danger')
-                return redirect(url_for('auth.login'))
-        else:
-            # Failure: increment failed attempts and potentially lock account
+            flash(f'Account temporarily locked. Try again in {int(remaining_time)} minutes.', 'danger')
+            return render_template('auth/login.html', form=form), 401
+        
+        # STEP 6: Verify password
+        if not user.check_password(form.password.data):
+            # Password incorrect - increment failed attempts
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-
-            # Use safe defaults in case config keys are missing
+            
             max_attempts = current_app.config.get('MAX_FAILED_LOGIN', 5)
-            lockout_time = current_app.config.get('LOCKOUT_TIME', 900)  # 15 minutes default
-
+            lockout_time = current_app.config.get('LOCKOUT_TIME', 900)
+            
             if user.failed_login_attempts >= max_attempts:
                 user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
-                db.session.commit()  # Single commit for lockout
+                db.session.commit()
                 log_event('user.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
                 flash('Account locked due to many failed attempts. Please try again later.', 'danger')
             else:
-                db.session.commit()  # Single commit for failed attempt
+                db.session.commit()
                 log_event('user.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
                 flash('Invalid email or password.', 'danger')
-
-            return redirect(url_for('auth.login'))
-
-    # Always flash validation errors if present
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(error, 'danger')
-
-    return render_template('auth/login.html', form=form)
+            
+            return render_template('auth/login.html', form=form), 401
+        
+        # STEP 7: Check if 2FA is enabled
+        if user.is_2fa_enabled:
+            session['pending_2fa_user_id'] = user.id
+            session['pending_2fa_login_type'] = 'user'
+            db.session.commit()
+            log_event('user.login_pending_2fa', details={'email': email}, commit=False)
+            current_app.logger.info(f"2FA required for user {email}")
+            return redirect(url_for('auth.verify_2fa'))
+        
+        # STEP 8: Successful login - reset counters and create session
+        user.failed_login_attempts = 0
+        user.lockout_until = None
+        session_token = secrets.token_urlsafe(32)
+        user.session_token = session_token
+        db.session.commit()
+        
+        session['session_token'] = session_token
+        login_user(user, remember=False)
+        log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr}, commit=False)
+        
+        current_app.logger.info(f"Login successful for user {email}")
+        flash('✓ Login successful!', 'success')
+        
+        # STEP 9: Redirect based on role
+        if user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        else:
+            return redirect(url_for('auth.home'))
+    
+    except Exception as e:
+        current_app.logger.error(f"CRITICAL ERROR during login: {str(e)}", exc_info=True)
+        db.session.rollback()
+        flash('A critical error occurred during login. Please try again.', 'danger')
+        return render_template('auth/login.html', form=form), 500
 
         
 @bp.route('/admin-login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def admin_login():
     from .forms import AdminLoginForm
-
+    
     form = AdminLoginForm()
-
-    if form.validate_on_submit():
-        email = form.email.data.lower()
-        base_meta = {'email': email}
+    
+    # GET request - just render the admin login form
+    if request.method == 'GET':
+        return render_template('auth/admin_login.html', form=form)
+    
+    # POST request - validate and process admin login
+    if not form.validate_on_submit():
+        # Form validation failed - display errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(error, 'danger')
+        return render_template('auth/admin_login.html', form=form), 422
+    
+    email = form.email.data.lower().strip()
+    base_meta = {'email': email}
+    
+    try:
+        # STEP 1: Check if user is already authenticated with safe access
+        current_user_authenticated = False
+        current_user_id = None
+        try:
+            current_user_authenticated = is_user_authenticated()
+            current_user_id = current_user.id if current_user_authenticated else None
+        except:
+            pass
         
-        # Enforce single-login-per-session: if already logged in as another user, prevent login
-        if current_user.is_authenticated:
-            # Query admin user first to compare ID
+        if current_user_authenticated and current_user_id:
+            # Check if trying to login as a different admin
             try:
-                temp_user = User.query.filter_by(email=email, role='admin').first()
+                admin_user = User.query.filter_by(email=email, role='admin').first()
+                if admin_user and admin_user.id != current_user_id:
+                    flash('You are already logged in as another user. Please log out first to switch accounts.', 'warning')
+                    return render_template('auth/admin_login.html', form=form), 401
             except Exception as e:
-                current_app.logger.error(f"Database error during admin login check: {e}")
-                flash('Database error. Please try again.', 'danger')
-                return redirect(url_for('auth.admin_login'))
-                
-            if current_user.id != (temp_user.id if temp_user else None):
-                flash('You are already logged in as another user. Please log out first to switch accounts.', 'warning')
-                return redirect(url_for('auth.login'))
-
-        # Clear session to ensure no old user data remains
+                current_app.logger.error(f"Error checking admin login conflict: {e}")
+        
+        # STEP 2: Clear session
         session.clear()
         
-        # Query admin user AFTER session is cleared
-        try:
-            user = User.query.filter_by(email=email, role='admin').first()
-        except Exception as e:
-            current_app.logger.error(f"Database error during admin login: {e}")
-            flash('Database error. Please try again.', 'danger')
-            return redirect(url_for('auth.admin_login'))
-
-        # No admin found
+        # STEP 3: Query admin user
+        current_app.logger.debug(f"Querying admin user with email: {email}")
+        user = User.query.filter_by(email=email, role='admin').first()
+        
         if user is None:
             log_event('admin.login_failed', details={**base_meta, 'reason': 'no_admin'}, commit=False)
             flash('Invalid admin credentials.', 'danger')
-            return redirect(url_for('auth.admin_login'))
-
-        # Account locked
+            return render_template('auth/admin_login.html', form=form), 401
+        
+        # STEP 4: Check if account is locked
         if user.lockout_until and user.lockout_until > get_ph_datetime():
+            remaining_time = (user.lockout_until - get_ph_datetime()).total_seconds() / 60
             log_event('admin.login_locked', details={'locked_until': user.lockout_until.isoformat()}, commit=False)
-            flash('Account temporarily locked. Try again later.', 'danger')
-            return redirect(url_for('auth.admin_login'))
-
-        # Password correct
-        if user.check_password(form.password.data):
-            # 2FA check
-            if user.is_2fa_enabled:
-                # Store user info in session for 2FA verification
-                session['pending_2fa_user_id'] = user.id
-                session['pending_2fa_login_type'] = 'admin'
-                db.session.commit()  # Commit session update before redirect
-                log_event('admin.login_pending_2fa', details={'email': email}, commit=False)
-                return redirect(url_for('auth.verify_2fa'))
-
-            # Successful login - single commit
-            user.failed_login_attempts = 0
-            user.lockout_until = None
+            flash(f'Admin account temporarily locked. Try again in {int(remaining_time)} minutes.', 'danger')
+            return render_template('auth/admin_login.html', form=form), 401
+        
+        # STEP 5: Verify password
+        if not user.check_password(form.password.data):
+            # Password incorrect - increment failed attempts
+            user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+            
+            max_attempts = current_app.config.get('MAX_FAILED_LOGIN', 5)
+            lockout_time = current_app.config.get('LOCKOUT_TIME', 900)
+            
+            if user.failed_login_attempts >= max_attempts:
+                user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
+                db.session.commit()
+                log_event('admin.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
+                flash('Admin account locked due to many failed attempts. Please try again later.', 'danger')
+            else:
+                db.session.commit()
+                log_event('admin.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
+                flash('Invalid admin credentials.', 'danger')
+            
+            return render_template('auth/admin_login.html', form=form), 401
+        
+        # STEP 6: Check if 2FA is enabled
+        if user.is_2fa_enabled:
+            session['pending_2fa_user_id'] = user.id
+            session['pending_2fa_login_type'] = 'admin'
             db.session.commit()
-
-            login_user(user)
-            log_event('admin.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr}, commit=False)
-
-            flash('Admin login successful.', 'success')
-            return redirect(url_for('admin.dashboard'))
-
-        # Wrong password - single commit with audit log
-        user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-
-        # Safe config access
-        max_attempts = current_app.config.get('MAX_FAILED_LOGIN', 5)
-        lockout_time = current_app.config.get('LOCKOUT_TIME', 900)
-
-        if user.failed_login_attempts >= max_attempts:
-            user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
-            db.session.commit()
-            log_event('admin.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
-            flash('Account locked due to many failed attempts. Please try again later.', 'danger')
-        else:
-            db.session.commit()
-            log_event('admin.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}, commit=False)
-            flash('Invalid admin credentials.', 'danger')
-
-        return redirect(url_for('auth.admin_login'))
-
-    # Form validation errors
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(error, 'danger')
-
-    return render_template('auth/admin_login.html', form=form)
+            log_event('admin.login_pending_2fa', details={'email': email}, commit=False)
+            current_app.logger.info(f"2FA required for admin {email}")
+            return redirect(url_for('auth.verify_2fa'))
+        
+        # STEP 7: Successful login - reset counters
+        user.failed_login_attempts = 0
+        user.lockout_until = None
+        db.session.commit()
+        
+        login_user(user, remember=False)
+        log_event('admin.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr}, commit=False)
+        
+        current_app.logger.info(f"Admin login successful for {email}")
+        flash('✓ Admin login successful!', 'success')
+        return redirect(url_for('admin.dashboard'))
+    
+    except Exception as e:
+        current_app.logger.error(f"CRITICAL ERROR during admin login: {str(e)}", exc_info=True)
+        db.session.rollback()
+        flash('A critical error occurred during admin login. Please try again.', 'danger')
+        return render_template('auth/admin_login.html', form=form), 500
 
 
 @bp.route('/verify-2fa', methods=['GET', 'POST'])

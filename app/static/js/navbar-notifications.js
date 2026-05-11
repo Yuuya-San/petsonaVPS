@@ -115,7 +115,7 @@ function initializeNotificationSocket() {
     console.log('📡 Socket.IO available, initializing notification socket...');
 
     notificationSocket = io({
-        transports: ['websocket'],
+        transports: ['websocket', 'polling'],
         upgrade: false,
         reconnection: true,
         reconnection_delay: 1000,

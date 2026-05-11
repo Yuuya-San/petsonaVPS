@@ -136,11 +136,12 @@ class MessagingApp {
         clearInterval(waitForSocket);
         console.log('⚠️ Creating new socket instance (shared socket not available)');
         this.socket = io({
+          transports: ['websocket', 'polling'],
           upgrade: false,
           reconnection: true,
           reconnectionDelay: 1000,
           reconnectionDelayMax: 5000,
-          reconnectionAttempts: 5,
+          reconnectionAttempts: 999,
         });
         this.setupSocketEvents();
       }

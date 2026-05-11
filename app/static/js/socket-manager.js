@@ -55,15 +55,12 @@ class SocketManager {
           reconnectionDelayMax: 3000,
           reconnectionAttempts: this.maxReconnectAttempts,
           
-          // Transport optimization - WebSocket only in production
-          // Polling is disabled to prevent unnecessary requests
-          transports: ['websocket'],
+          // Transport optimization - Allow both WebSocket and polling for compatibility
+          // WebSocket preferred, polling as fallback
+          transports: ['websocket', 'polling'],
           
           // Don't upgrade if already WebSocket
           upgrade: false,
-          
-          // Message settings
-          transports: ['websocket'], // WebSocket only, no polling
           
           // Connection pooling and resource management
           forceNew: false,

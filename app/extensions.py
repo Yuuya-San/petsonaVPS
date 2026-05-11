@@ -39,20 +39,20 @@ talisman = Talisman()
 # CSRF protection
 csrf = CSRFProtect()
 
-# Socket.IO for real-time updates - Production-ready with eventlet
-# Uses eventlet for high-performance async I/O and greenlet concurrency
+# Socket.IO for real-time updates - Production-ready with gevent
+# Uses gevent for high-performance async I/O and greenlet concurrency
 socketio = SocketIO(
     # Performance optimizations
-    async_mode='eventlet',  # High-performance async mode (matches production guide)
+    async_mode='gevent',  # High-performance async mode for production
     cors_allowed_origins="*",
     
     # Connection parameters
     ping_timeout=120,  # Timeout before disconnecting idle clients
     ping_interval=30,  # Server-side ping interval
     
-    # Transport optimization - WebSocket only in production (no polling overhead)
-    # Polling is disabled in production to reduce unnecessary requests
-    transports=['websocket'],
+    # Transport optimization - Allow both WebSocket and polling for compatibility
+    # WebSocket preferred, polling as fallback
+    transports=['websocket', 'polling'],
     
     # Message compression for bandwidth reduction
     compress=True,

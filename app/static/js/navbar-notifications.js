@@ -72,7 +72,6 @@ function injectNotificationCSS() {
         }
     `;
     document.head.appendChild(style);
-    console.log('✅ Notification CSS injected with unread indicators');
 }
 
 // Initialize Socket.IO connection for notifications (wait for Socket.IO to load)
@@ -103,29 +102,75 @@ function format12HourTime(dateString) {
     }
 }
 
+function getNotificationRedirectUrl(notificationData) {
+    if (!notificationData) {
+        return null;
+    }
+
+    if (notificationData.link) {
+        return notificationData.link;
+    }
+
+    const relatedType = (notificationData.related_type || '').toString().toLowerCase().trim();
+    const relatedId = notificationData.related_id;
+    const pathname = window.location.pathname.toLowerCase();
+
+    if (!relatedType || !relatedId) {
+        return null;
+    }
+
+    switch (relatedType) {
+        case 'booking':
+            if (pathname.startsWith('/merchant')) {
+                return '/merchant/bookings-list';
+            }
+            return '/user/bookings';
+        case 'message':
+            if (relatedId) {
+                return `/messages/conversation/${relatedId}`;
+            }
+            return '/messages/inbox';
+        case 'merchant':
+            return '/merchant/dashboard';
+        case 'merchant_application':
+            return '/merchant/dashboard';
+        case 'user':
+            return '/user/dashboard';
+        default:
+            if (pathname.startsWith('/merchant')) {
+                return '/merchant/dashboard';
+            }
+            if (pathname.startsWith('/admin')) {
+                return '/admin/dashboard';
+            }
+            return '/user/dashboard';
+    }
+}
+
 // Function to initialize Socket.IO when ready
 function initializeNotificationSocket() {
     // Check if io is available (Socket.IO loaded)
     if (typeof io === 'undefined') {
-        console.warn('⏳ Socket.IO not loaded yet, retrying in 500ms...');
         setTimeout(initializeNotificationSocket, 500);
         return;
     }
 
-    console.log('📡 Socket.IO available, initializing notification socket...');
-
-    notificationSocket = io({
-        transports: ['websocket', 'polling'],
-        upgrade: false,
-        reconnection: true,
-        reconnection_delay: 1000,
-        reconnection_delay_max: 5000,
-        reconnection_attempts: 999
-    });
+    if (window.sharedSocket) {
+        notificationSocket = window.sharedSocket;
+    } else if (notificationSocket) {
+        // reuse existing notification socket if already created
+    } else {
+        notificationSocket = window.sharedSocket = io({
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnection_delay: 1000,
+            reconnection_delay_max: 5000,
+            reconnection_attempts: 999
+        });
+    }
 
     // === SOCKET CONNECTION EVENTS ===
     notificationSocket.on('connect', function() {
-        console.log('✅ Notification Socket Connected');
         isSocketConnected = true;
         
         // Request initial notification count
@@ -134,47 +179,38 @@ function initializeNotificationSocket() {
     });
 
     notificationSocket.on('disconnect', function() {
-        console.log('❌ Notification Socket Disconnected');
         isSocketConnected = false;
     });
 
     notificationSocket.on('error', function(error) {
-        console.error('🔥 Notification Socket Error:', error);
     });
 
     // === RECEIVED NOTIFICATION EVENTS ===
     notificationSocket.on('new_notification_received', function(data) {
-        console.log('📬 New Notification:', data);
         handleNewNotification(data);
     });
 
     notificationSocket.on('unread_count', function(data) {
-        console.log('🔔 Unread Count:', data.count);
         updateNotificationBadge(data.count);
     });
 
     notificationSocket.on('unread_count_update', function(data) {
-        console.log('🔄 Unread Count Updated:', data.unread_count);
         updateNotificationBadge(data.unread_count);
     });
 
     notificationSocket.on('notifications_list', function(data) {
-        console.log('📋 Notifications List:', data.notifications.length);
         displayNotifications(data.notifications, data.unread_count);
     });
 
     notificationSocket.on('notification_marked_read', function(data) {
-        console.log('✓ Notification Marked Read - New Unread:', data.unread_count);
         updateNotificationBadge(data.unread_count);
     });
 
     notificationSocket.on('all_notifications_marked_read', function(data) {
-        console.log('✓ All Notifications Marked Read');
         updateNotificationBadge(0);
     });
 
     notificationSocket.on('notification_detail', function(data) {
-        console.log('📦 Received notification detail:', data);
         if (data.notification) {
             displayNotificationModal(data.notification);
         }
@@ -340,68 +376,57 @@ function requestNotificationPermission() {
     }
 }
 
-// ===== FETCH NOTIFICATIONS ON DROPDOWN CLICK ====
+// === FETCH NOTIFICATIONS ON DROPDOWN CLICK ===
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait for jQuery to be loaded
-    function waitForJQuery(callback) {
-        if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
-            callback();
-        } else {
-            setTimeout(() => waitForJQuery(callback), 100);
-        }
-    }
-
-    waitForJQuery(() => {
-        // Inject aggressive CSS to force new design
-        injectNotificationCSS();
-        
-        // Initialize Socket.IO when page loads
-        initializeNotificationSocket();
-        
-        // Find the notifications dropdown trigger
-        const notificationsDropdown = document.querySelector('[data-toggle="dropdown"][href="#"]');
-        
-        if (notificationsDropdown) {
-            notificationsDropdown.addEventListener('click', function() {
-                // Emit request to get notifications
-                if (isSocketConnected && notificationSocket) {
-                    notificationSocket.emit('get_notifications');
-                }
-            });
-        }
-        
-        // Setup notification modal navigation buttons
-        const prevBtn = document.getElementById('notifPrevBtn');
-        const nextBtn = document.getElementById('notifNextBtn');
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function() {
-                if (currentNotificationIndex > 0) {
-                    currentNotificationIndex--;
-                    displayNotificationModal(allNotifications[currentNotificationIndex]);
-                }
-            });
-        }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
-                if (currentNotificationIndex < allNotifications.length - 1) {
-                    currentNotificationIndex++;
-                    displayNotificationModal(allNotifications[currentNotificationIndex]);
-                }
-            });
-        }
-        
-        // Request notification permission
-        requestNotificationPermission();
-        
-        // Refresh notifications every 30 seconds
-        setInterval(function() {
+    // Inject aggressive CSS to force new design
+    injectNotificationCSS();
+    
+    // Initialize Socket.IO when page loads
+    initializeNotificationSocket();
+    
+    // Find the notifications dropdown trigger
+    const notificationsDropdown = document.querySelector('[data-toggle="dropdown"][href="#"]');
+    
+    if (notificationsDropdown) {
+        notificationsDropdown.addEventListener('click', function() {
+            // Emit request to get notifications
             if (isSocketConnected && notificationSocket) {
-                notificationSocket.emit('get_unread_count');
+                notificationSocket.emit('get_notifications');
             }
-        }, 30000);
-    });
+        });
+    }
+    
+    // Setup notification modal navigation buttons
+    const prevBtn = document.getElementById('notifPrevBtn');
+    const nextBtn = document.getElementById('notifNextBtn');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (currentNotificationIndex > 0) {
+                currentNotificationIndex--;
+                displayNotificationModal(allNotifications[currentNotificationIndex]);
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            if (currentNotificationIndex < allNotifications.length - 1) {
+                currentNotificationIndex++;
+                displayNotificationModal(allNotifications[currentNotificationIndex]);
+            }
+        });
+    }
+    
+    // Request notification permission
+    requestNotificationPermission();
+    
+    // Refresh notifications every 30 seconds
+    setInterval(function() {
+        if (isSocketConnected && notificationSocket) {
+            notificationSocket.emit('get_unread_count');
+        }
+    }, 30000);
 });
 
 // === MARK NOTIFICATION AS READ ===
@@ -422,7 +447,6 @@ function markAllNotificationsAsRead() {
 
 // === VIEW NOTIFICATION IN MODAL ===
 function viewNotificationFull(notificationId) {
-    console.log('📖 Opening notification modal for ID:', notificationId);
     
     // Find the notification in the current list
     const container = document.querySelector('.notifications-scroll-container');
@@ -431,7 +455,6 @@ function viewNotificationFull(notificationId) {
     // Get all notification items and find the one we're looking for
     const notificationItem = container.querySelector(`[data-notification-id="${notificationId}"]`);
     if (!notificationItem) {
-        console.warn('Notification item not found in DOM');
         return;
     }
     
@@ -449,12 +472,10 @@ function viewNotificationFull(notificationId) {
 
 // === DISPLAY NOTIFICATION MODAL ===
 function displayNotificationModal(notificationData) {
-    console.log('🔍 Displaying notification modal:', notificationData);
     
     // Get modal elements
     const modal = document.getElementById('notificationModal');
     if (!modal) {
-        console.warn('Notification modal not found in DOM');
         return;
     }
     
@@ -557,6 +578,9 @@ function displayNotificationModal(notificationData) {
             actionLink.style.display = 'none !important';
         }
     }
+
+    // Compute redirect URL for View button
+    const viewUrl = getNotificationRedirectUrl(notificationData);
     
     // Update notification counter
     const currentCounter = document.getElementById('notifCurrent');
@@ -578,28 +602,26 @@ function displayNotificationModal(notificationData) {
         nextBtn.style.opacity = currentNotificationIndex >= (allNotifications.length - 1) ? '0.5' : '1';
     }
     
-    // Handle mark as read button
+    // Handle View button
     const markReadBtn = document.getElementById('notificationMarkReadBtn');
     if (markReadBtn) {
-        if (isRead) {
-            markReadBtn.innerHTML = '<i class="fas fa-check-double"></i> Already Read';
-            markReadBtn.disabled = true;
-            markReadBtn.style.opacity = '0.6';
-        } else {
-            markReadBtn.innerHTML = '<i class="fas fa-check"></i> Mark as Read';
+        if (viewUrl) {
+            markReadBtn.style.display = 'inline-flex';
             markReadBtn.disabled = false;
             markReadBtn.style.opacity = '1';
+            markReadBtn.innerHTML = '<i class="fas fa-eye"></i> View';
             markReadBtn.onclick = function() {
-                markNotificationAsRead(notificationId);
-                // Close modal after marking as read
-                setTimeout(function() {
-                    if (typeof $ !== 'undefined' && $.fn.modal) {
-                        $('#notificationModal').modal('hide');
-                    } else {
-                        modal.style.display = 'none';
-                    }
-                }, 300);
+                if (!isRead) {
+                    markNotificationAsRead(notificationId);
+                }
+                window.location.href = viewUrl;
             };
+        } else {
+            markReadBtn.innerHTML = '<i class="fas fa-eye"></i> View';
+            markReadBtn.disabled = true;
+            markReadBtn.style.opacity = '0.6';
+            markReadBtn.style.display = 'inline-flex';
+            markReadBtn.onclick = null;
         }
     }
     
@@ -607,7 +629,6 @@ function displayNotificationModal(notificationData) {
     setNotificationToDelete(notificationId);
     
     // Show modal with proper Bootstrap handling
-    console.log('📖 Opening notification modal...');
     try {
         if (typeof $ !== 'undefined' && $.fn.modal) {
             // Ensure modal is properly set up
@@ -618,15 +639,12 @@ function displayNotificationModal(notificationData) {
                 focus: true
             });
             $modal.modal('show');
-            console.log('✅ Modal shown via Bootstrap');
         } else {
             // Fallback for non-Bootstrap environments
             modal.style.display = 'block';
             modal.style.zIndex = '10000';
-            console.log('✅ Modal shown via direct display');
         }
     } catch (error) {
-        console.error('❌ Error opening modal:', error);
         modal.style.display = 'block';
         modal.style.zIndex = '10000';
     }
@@ -680,7 +698,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     showFlashMessage('Failed to delete notification', 'danger');
                 }
             } catch (error) {
-                console.error('Error deleting notification:', error);
                 showFlashMessage('Error deleting notification', 'danger');
             } finally {
                 setButtonLoading(confirmDeleteBtn, false, 'Delete');
@@ -728,7 +745,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     showFlashMessage('Failed to delete notifications', 'danger');
                 }
             } catch (error) {
-                console.error('Error deleting all notifications:', error);
                 showFlashMessage('Error deleting notifications', 'danger');
             } finally {
                 setButtonLoading(confirmDeleteAllBtn, false, 'Delete all');

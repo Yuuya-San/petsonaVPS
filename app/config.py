@@ -9,7 +9,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
 
-    PREFERRED_URL_SCHEME = "https"
+    PREFERRED_URL_SCHEME = "http"
 
     # Session & cookies
     SESSION_COOKIE_HTTPONLY = True
@@ -122,35 +122,51 @@ class ProductionConfig(Config):
 
     CSP = {
         "default-src": ["'self'"],
+
         "script-src": [
             "'self'",
+            "'unsafe-inline'",
+            "'unsafe-eval'",
             "https://www.google.com",
-            "https://www.gstatic.com"
+            "https://www.gstatic.com",
+            "https://www.recaptcha.net"
         ],
+
         "style-src": [
             "'self'",
+            "'unsafe-inline'",
             "https://fonts.googleapis.com",
-            "https://www.gstatic.com"
+            "https://cdnjs.cloudflare.com"
         ],
+
         "font-src": [
             "'self'",
-            "https://fonts.gstatic.com"
+            "https://fonts.gstatic.com",
+            "https://cdnjs.cloudflare.com",
+            "data:"
         ],
-        "img-src": [
-            "'self'",
-            "data:",
-            "https://www.google.com",
-            "https://www.gstatic.com"
-        ],
+
         "frame-src": [
+            "'self'",
             "https://www.google.com",
-            "https://www.gstatic.com"
+            "https://www.recaptcha.net"
         ],
+
         "connect-src": [
             "'self'",
             "https://www.google.com",
-            "https://www.gstatic.com"
+            "https://www.gstatic.com",
+            "https://www.recaptcha.net"
         ],
+
+        "img-src": [
+            "'self'",
+            "data:",
+            "blob:",
+            "https://www.google.com",
+            "https://www.gstatic.com",
+            "https://www.recaptcha.net"
+        ]
     }
 
     FRONTEND_URL = None

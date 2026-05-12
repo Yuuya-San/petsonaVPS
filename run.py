@@ -14,7 +14,7 @@ logging.basicConfig(
 DEFAULT_ADMIN_PHOTO = "images/logo/admin-avatar.png"
 
 # Check for production mode
-is_production = '--prod' in sys.argv
+is_production = os.environ.get("FLASK_ENV") == "production"
 
 # Create Flask app and get Socket.IO instance
 app, socketio = create_app(config_name='production' if is_production else 'development')

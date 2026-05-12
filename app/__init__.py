@@ -45,7 +45,7 @@ def create_app(config_name='development'):
     mail.init_app(app)
     bcrypt.init_app(app)
     limiter.init_app(app)
-    talisman.init_app(app, content_security_policy=app.config.get("CSP", {}))
+    talisman.init_app(app, force_https=False, content_security_policy=None)
     from app.extensions import csrf
     csrf.init_app(app)
     init_redis_for_socketio(app, socketio, async_mode)

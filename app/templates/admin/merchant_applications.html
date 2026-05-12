@@ -240,7 +240,7 @@
     <!-- Premium Detail Modal with Modern Design -->
     <template x-if="selectedApp">
         <div class="modal-overlay" @click.self="selectedApp = null">
-            <div class="modal-content-wrapper" style="max-width: 42rem;" @click.stop>
+            <div class="modal-content-wrapper w-[95vw] lg:max-w-[580px]" @click.stop>
                 
                 <!-- Modal Header -->
                 <div class="modal-header">
@@ -1307,14 +1307,22 @@ function merchantApplications() {
   background: white;
   border-radius: 2rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
-  width: 95vw !important;
-  max-width: 95vw !important;
-  min-width: 95vw !important;
+  width: 95vw;
+  max-width: 95vw;
+  min-width: 95vw;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+@media (min-width: 1024px) {
+  .modal-content-wrapper {
+    width: 580px;
+    max-width: 580px;
+    min-width: 580px;
+  }
 }
 
 .modal-header {

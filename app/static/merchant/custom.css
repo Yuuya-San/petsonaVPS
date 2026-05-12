@@ -867,8 +867,11 @@ html, body {
               0 0 0 1px rgba(140, 0, 255, 0.08) inset;
   margin-top: 0.5rem;
   padding: 1rem;
-  min-width: 380px;
-  max-height: 65vh;
+  min-width: 320px;
+  width: 420px;
+  max-width: 95vw;
+  height: auto;
+  max-height: 85vh;
   overflow-y: auto;
   animation: slideInDown 0.3s ease-out;
   position: absolute;
@@ -1165,7 +1168,11 @@ html, body {
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .glass-dropdown-menu {
-    min-width: 340px;
+    min-width: 280px;
+    width: 380px;
+    max-width: 90vw;
+    height: auto;
+    max-height: 85vh;
   }
   
   .glass-section-title {

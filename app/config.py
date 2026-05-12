@@ -1,82 +1,82 @@
 import os
 from datetime import timedelta
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class Config:
-    """Base config - safe defaults"""
-    SECRET_KEY = os.getenv("SECRET_KEY") or "fallback-very-strong-key"
+    """Base config - shared settings"""
+
+    SECRET_KEY = os.getenv("SECRET_KEY", "fallback-very-strong-key")
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
 
     PREFERRED_URL_SCHEME = "https"
 
-    # Session & cookies - safest defaults
+    # Session & cookies
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
 
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URI",
-        "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
-    )
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = False
-    
-    # Connection pooling - CRITICAL for preventing connection exhaustion
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 20,
-        'pool_recycle': 3600,
-        'pool_pre_ping': True,
-        'max_overflow': 40,
-        'connect_args': {
-            'connect_timeout': 10,
-            'read_timeout': 30,
-            'write_timeout': 30,
-            'autocommit': False,  # Use explicit commits
-        }
-    }
-    
-    # Session timeout - prevent long-lived connections
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
     SESSION_REFRESH_EACH_REQUEST = False
 
+    # Connection pooling
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_size": 20,
+        "pool_recycle": 3600,
+        "pool_pre_ping": True,
+        "max_overflow": 40,
+        "connect_args": {
+            "connect_timeout": 10,
+            "read_timeout": 30,
+            "write_timeout": 30,
+            "autocommit": False,
+        },
+    }
+
+    # Redis
+    REDIS_URL = "redis://localhost:6379/0"
+
     RATELIMIT_STORAGE_URI = "redis://localhost:6379/2"
-    
+
+
     # Mail
-    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True").lower() in ("true", "1", "yes")
-    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False").lower() in ("true", "1", "yes")
-    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "jeysalas05@gmail.com")
-    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "dvwj yvbl kqxu rbya")
-    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME)
-    
-    # Redis / Socket.IO queue
-    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-    SOCKETIO_USE_REDIS = os.getenv("SOCKETIO_USE_REDIS", "False").lower() in ("true", "1", "yes")
-    SOCKETIO_REDIS_URL = os.getenv("SOCKETIO_REDIS_URL", os.getenv("REDIS_URL", "redis://localhost:6379/1"))
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 587
+    MAIL_USE_TLS = "True"
+    MAIL_USE_SSL = "False"
+    MAIL_USERNAME = "petsona.helpcare@gmail.com"
+    MAIL_PASSWORD = "fvgj yfgi aulq squa"
+    MAIL_DEFAULT_SENDER = MAIL_USERNAME
 
-    # =========================
-    # GOOGLE OAUTH CONFIG
-    # =========================
-    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "246292318836-fh4abergpjnerh6nj55plpr0lusrqu0q.apps.googleusercontent.com")
-    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "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")
-    
-    # OAuth Settings
-    AUTHLIB_INSECURE_TRANSPORT = os.getenv("AUTHLIB_INSECURE_TRANSPORT", "False").lower() in ("true", "1", "yes")
+    # Socket.IO
+    SOCKETIO_USE_REDIS = "False"
+    SOCKETIO_REDIS_URL = "redis://localhost:6379/1"
 
-    # File Upload Configuration
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'messages')
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB max file size
+    # Google OAuth
+    GOOGLE_CLIENT_ID = "246292318836-fh4abergpjnerh6nj55plpr0lusrqu0q.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET = "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"
+    
+    # reCAPTCHA Configuration
+    RECAPTCHA_SITE_KEY = "6Le4c94sAAAAADh1YOljhLnxWDxvrMbGCDzSXcWT"
+    RECAPTCHA_SECRET_KEY = "6Le4c94sAAAAAHVDiFrjrGYM6c6bdBs0KhnS72VN"
+
+    AUTHLIB_INSECURE_TRANSPORT = "False"
+
+    # Uploads
+    UPLOAD_FOLDER = os.path.join(
+        os.path.dirname(__file__),
+        "static",
+        "uploads",
+        "messages"
+    )
+
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024
 
     @staticmethod
     def init_app(app):
         """Initialize extensions with the app"""
+
         from app.extensions import oauth
-        
-        # Register Google OAuth
+
         oauth.register(
             name="google",
             client_id=app.config.get("GOOGLE_CLIENT_ID"),
@@ -87,51 +87,81 @@ class Config:
             }
         )
 
-    
+
 class DevelopmentConfig(Config):
-    """Development config - allow insecure cookies on HTTP dev"""
+    """Development config"""
+
     DEBUG = True
-    SESSION_COOKIE_SECURE = False  # safe for localhost dev
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URI",
-        "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
-    )
+
+    SESSION_COOKIE_SECURE = False
+
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:Petsona-0717@localhost/petsona"
+
     AUTHLIB_INSECURE_TRANSPORT = True
 
-    # Password reset token expiry (seconds)
-    RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))
-
+    RESET_TOKEN_EXPIRY = 3600
 
 class ProductionConfig(Config):
-    """Production config - secure defaults"""
+    """Production config"""
+
     DEBUG = False
-    SESSION_COOKIE_SECURE = True  # must use HTTPS
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URI",
-        "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
-    )
 
-    # REMEMBER_COOKIE_DURATION = timedelta(days=7)  # Uncomment if using remember me
+    SESSION_COOKIE_SECURE = True
 
-    # Password reset token expiry (seconds)
-    RESET_TOKEN_EXPIRY = int(os.getenv("RESET_TOKEN_EXPIRY", 3600))
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
 
-    # Rate limiting defaults
+
+    RESET_TOKEN_EXPIRY = 3600
+
     RATELIMIT_DEFAULT = "200 per day"
     RATELIMIT_STRATEGY = "fixed-window"
 
-    # Account lockout policy
-    MAX_FAILED_LOGIN = int(os.getenv("MAX_FAILED_LOGIN", 5))
-    LOCKOUT_TIME = int(os.getenv("LOCKOUT_TIME", 300))  # seconds
+    MAX_FAILED_LOGIN = 5
 
-    # CSP (restrictive - adjust if you load external assets)
+    LOCKOUT_TIME = 300
+
     CSP = {
         "default-src": ["'self'"],
-        "script-src": ["'self'"],
-        "style-src": ["'self'", "https://fonts.googleapis.com"],
-        "font-src": ["'self'", "https://fonts.gstatic.com"],
-        "img-src": ["'self'", "data:"],
+        "script-src": [
+            "'self'",
+            "https://www.google.com",
+            "https://www.gstatic.com"
+        ],
+        "style-src": [
+            "'self'",
+            "https://fonts.googleapis.com",
+            "https://www.gstatic.com"
+        ],
+        "font-src": [
+            "'self'",
+            "https://fonts.gstatic.com"
+        ],
+        "img-src": [
+            "'self'",
+            "data:",
+            "https://www.google.com",
+            "https://www.gstatic.com"
+        ],
+        "frame-src": [
+            "https://www.google.com",
+            "https://www.gstatic.com"
+        ],
+        "connect-src": [
+            "'self'",
+            "https://www.google.com",
+            "https://www.gstatic.com"
+        ],
     }
 
-    # Optional frontend base used for reset links (if you want frontend separate)
-    FRONTEND_URL = os.getenv("FRONTEND_URL", None)
+    FRONTEND_URL = None
+
+
+config_by_name = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+}
+
+
+def get_config():
+    env = "development"
+    return config_by_name.get(env, DevelopmentConfig)

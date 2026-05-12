@@ -7,7 +7,17 @@ window.LoaderManager = window.LoaderManager || {
     isLoading: false,
     debounceTimer: null,
     debounceDelay: 300, // Delay before actually hiding
-    
+    ignoredRequestPatterns: [
+        /google\.com\/recaptcha/, 
+        /gstatic\.com\//,
+        /recaptcha\/api\.js/,
+    ],
+
+    shouldTrackRequest(url) {
+        if (!url || typeof url !== 'string') return true;
+        return !this.ignoredRequestPatterns.some(pattern => pattern.test(url));
+    },
+
     init() {
         this.overlay = document.getElementById('loader-overlay');
         if (!this.overlay) return;
@@ -180,20 +190,23 @@ window.LoaderManager = window.LoaderManager || {
         const self = this;
         
         window.fetch = function(...args) {
-            // Only show loader if no existing loader on page
-            if (!self.hasExistingLoader()) {
+            const requestUrl = args[0] instanceof Request ? args[0].url : String(args[0] || '');
+            if (self.shouldTrackRequest(requestUrl) && !self.hasExistingLoader()) {
                 self.incrementRequest('fetch');
                 self.show();
             }
             
             return originalFetch.apply(this, args)
                 .then(response => {
-                    // Decrement after response received (not after processing)
-                    self.decrementRequest('fetch');
+                    if (self.shouldTrackRequest(requestUrl)) {
+                        self.decrementRequest('fetch');
+                    }
                     return response;
                 })
                 .catch(error => {
-                    self.decrementRequest('fetch');
+                    if (self.shouldTrackRequest(requestUrl)) {
+                        self.decrementRequest('fetch');
+                    }
                     throw error;
                 });
         };
@@ -205,7 +218,7 @@ window.LoaderManager = window.LoaderManager || {
         const self = this;
         
         XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-            this._loaderTracked = true;
+            this._loaderTracked = self.shouldTrackRequest(String(url || ''));
             return originalOpen.apply(this, [method, url, ...rest]);
         };
         
@@ -217,7 +230,7 @@ window.LoaderManager = window.LoaderManager || {
             
             const self_ref = self;
             const onStateChange = () => {
-                if (this.readyState === XMLHttpRequest.DONE) {
+                if (this.readyState === XMLHttpRequest.DONE && this._loaderTracked) {
                     self_ref.decrementRequest('xhr');
                 }
             };

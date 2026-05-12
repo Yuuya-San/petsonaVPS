@@ -239,13 +239,14 @@ class SocketIOMessageQueue:
 
 # ==================== INITIALIZATION ====================
 
-def init_redis_for_socketio(app, socketio):
+def init_redis_for_socketio(app, socketio, async_mode='threading'):
     """
     Initialize Redis for Flask-SocketIO in distributed deployments
     
     Args:
         app: Flask application instance
         socketio: Flask-SocketIO instance
+        async_mode: Async mode to use ('threading' or 'gevent')
     """
     use_redis = app.config.get('SOCKETIO_USE_REDIS', True)
     redis_url = app.config.get('SOCKETIO_REDIS_URL', None)
@@ -270,15 +271,15 @@ def init_redis_for_socketio(app, socketio):
                 logger.info("✅ Socket.IO configured with Redis message queue")
             except Exception as e:
                 logger.warning(f"Could not configure Socket.IO Redis queue: {e}")
-                socketio.init_app(app, async_mode='gevent')
+                socketio.init_app(app, async_mode=async_mode)
         else:
-            socketio.init_app(app, async_mode='gevent')
+            socketio.init_app(app, async_mode=async_mode)
         
         return redis_manager
     
     except Exception as e:
         logger.error(f"Error initializing Redis: {e}")
-        socketio.init_app(app, async_mode='gevent')
+        socketio.init_app(app, async_mode=async_mode)
         return None
 
 

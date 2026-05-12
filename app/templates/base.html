@@ -24,29 +24,15 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
 
   <!-- Shared CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/compatibility-scores.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/flash-messages.css') }}">
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- Alpine -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <script>
-        tailwind.config = {
-        theme: {
-            extend: {
-            colors: {
-                lavender: '#E6E6FA'
-            }
-            }
-        }
-        }
-    </script>
 
     <style>
     [x-cloak] { display: none !important; }

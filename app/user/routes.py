@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, abort, jso
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.user import bp
 from app.decorators import user_required
-from app.models import Species, Breed, Merchant, MatchHistory
+from app.models import Species, Breed, Merchant, MatchHistory, Vote
 from app import db
 from app.extensions import csrf
 from app.utils.notification_manager import NotificationManager
@@ -115,13 +115,13 @@ def dashboard():
     # Get top 3 species by vote count
     top_species = Species.query.filter(
         Species.deleted_at.is_(None)
-    ).order_by(Species.heart_vote_count.desc()).limit(3).all()
+    ).order_by(Species.heart_vote_count.desc()).limit(4).all()
     
     # ======================== TOP BREEDS SECTION ========================
     # Get top 3 breeds by vote count
     top_breeds = Breed.query.filter(
         Breed.deleted_at.is_(None)
-    ).order_by(Breed.heart_vote_count.desc()).limit(3).all()
+    ).order_by(Breed.heart_vote_count.desc()).limit(4).all()
     
     # ======================== RECENTLY ADDED/UPDATED ========================
     # Get recently added species (last 7 days)
@@ -167,11 +167,20 @@ def species_index():
     )
 
     species_list = pagination.items
+    voted_species_ids = set()
+    if species_list:
+        species_ids = [species.id for species in species_list]
+        user_votes = Vote.query.filter(
+            Vote.user_id == current_user.id,
+            Vote.species_id.in_(species_ids)
+        ).all()
+        voted_species_ids = {vote.species_id for vote in user_votes}
 
     return render_template(
         'user/species_index.html',
         species_list=species_list,
         pagination=pagination,
+        voted_species_ids=voted_species_ids,
         page_title="Pet Species"
     )
 
@@ -187,10 +196,20 @@ def view_species(id):
         is_active=True   
     ).order_by(Breed.name.asc()).all()
 
+    voted_breed_ids = set()
+    if breeds:
+        breed_ids = [breed.id for breed in breeds]
+        user_votes = Vote.query.filter(
+            Vote.user_id == current_user.id,
+            Vote.breed_id.in_(breed_ids)
+        ).all()
+        voted_breed_ids = {vote.breed_id for vote in user_votes}
+
     return render_template(
         'user/view_species.html',
         species=species,
         breeds=breeds,
+        voted_breed_ids=voted_breed_ids,
         page_title=f"{species.name} Breeds"
     )
 

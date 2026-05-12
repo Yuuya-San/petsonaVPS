@@ -8,30 +8,34 @@ from app.redis_manager import init_redis_for_socketio
 from app.models import *
 from .config import DevelopmentConfig, ProductionConfig
 import os
+from .config import get_config
 
-
-def create_app(config_class: type = Config):
+def create_app(config_name='development'):
     app = Flask(__name__, static_folder="static", template_folder="templates")
 
     from werkzeug.middleware.proxy_fix import ProxyFix
 
     # CRITICAL: Include x_for=1 to properly handle X-Forwarded-For header
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_for=1, x_host=1)
 
-    # Always load base config first
-    app.config.from_object(config_class)
-
-    # Then override with environment-specific config
-    env = os.getenv("FLASK_ENV", "development")
-    if env == "production":
+    # Load config based on name
+    if config_name == 'production':
         app.config.from_object(ProductionConfig)
+        env = "production"
+        async_mode = 'gevent'
     else:
         app.config.from_object(DevelopmentConfig)
+        env = "development"
+        async_mode = 'threading'
 
     # Session cookie settings - set AFTER config loading to ensure they take effect
-    app.config['SESSION_COOKIE_SECURE'] = True if env == "production" else False
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    if env == "production":
+        app.config["SESSION_COOKIE_SECURE"] = True
+    else:
+        app.config["SESSION_COOKIE_SECURE"] = False
+
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     # Initialize extensions
 
@@ -44,7 +48,7 @@ def create_app(config_class: type = Config):
     talisman.init_app(app, content_security_policy=app.config.get("CSP", {}))
     from app.extensions import csrf
     csrf.init_app(app)
-    init_redis_for_socketio(app, socketio)
+    init_redis_for_socketio(app, socketio, async_mode)
     oauth.init_app(app)
     
     # Initialize QR Code generator
@@ -52,7 +56,7 @@ def create_app(config_class: type = Config):
     qr_generator.init_app(app)
     
     # Initialize config (including OAuth registration)
-    config_class.init_app(app)
+    get_config().init_app(app)
 
     # Custom Jinja2 filter for converting operating days from numeric to names
     def convert_operating_days(operating_days_str):

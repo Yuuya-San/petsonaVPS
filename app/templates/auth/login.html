@@ -487,9 +487,9 @@
     <h2 class="title">Welcome Back</h2>
     <p class="subtitle">Login to continue</p>
 
-    <form method="post" novalidate class="auth-form">
+    <form method="post" novalidate class="auth-form" id="login-form">
       {{ form.hidden_tag() }}
-
+      <input type="hidden" name="recaptcha_token" id="recaptcha_token" value="">
       <div class="input-group">
         <span class="icon"><i class="fas fa-envelope"></i></span>
         {{ form.email(class_='input-field', placeholder="Email Address", required=true) }}
@@ -534,8 +534,12 @@
   </div>
 </div>
 
+<script async defer src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const recaptchaSiteKey = "{{ recaptcha_site_key }}";
+  const recaptchaTokenInput = document.getElementById('recaptcha_token');
+  const loginForm = document.getElementById('login-form');
   const submitBtn = document.querySelector('.btn-primary');
   const showPasswordCheckbox = document.getElementById('showPassword');
   let passwordInput = document.querySelector('input[name="password"]');
@@ -559,6 +563,29 @@ document.addEventListener('DOMContentLoaded', function() {
     if (submitBtn) {
       submitBtn.disabled = !isValid;
     }
+  }
+
+  function executeRecaptcha(action, callback) {
+    if (!recaptchaSiteKey || !window.grecaptcha) {
+      return callback();
+    }
+    grecaptcha.ready(function() {
+      grecaptcha.execute(recaptchaSiteKey, { action: action }).then(function(token) {
+        if (recaptchaTokenInput) {
+          recaptchaTokenInput.value = token;
+        }
+        callback();
+      });
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      executeRecaptcha('login', function() {
+        loginForm.submit();
+      });
+    });
   }
 
   if (emailInput) {

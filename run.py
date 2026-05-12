@@ -2,6 +2,7 @@ from app import create_app, db
 from app.models import *
 import os
 import logging
+import sys
 
 # Configure logging
 logging.basicConfig(
@@ -12,8 +13,11 @@ logging.basicConfig(
 # Default admin photo
 DEFAULT_ADMIN_PHOTO = "images/logo/admin-avatar.png"
 
+# Check for production mode
+is_production = '--prod' in sys.argv
+
 # Create Flask app and get Socket.IO instance
-app, socketio = create_app()
+app, socketio = create_app(config_name='production' if is_production else 'development')
 
 # Ensure tables exist before querying for admin user
 with app.app_context():
@@ -40,8 +44,8 @@ with app.app_context():
         print(f"Admin account already exists: {ADMIN_EMAIL}")
 
 if __name__ == '__main__':
-    host = os.getenv("HOST", "0.0.0.0")
-    port = int(os.getenv("PORT", "5000"))
+    host = "0.0.0.0"
+    port = 5000
 
     socketio.run(
         app,

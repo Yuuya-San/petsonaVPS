@@ -709,7 +709,7 @@
           <div class="vote-overlay">
             <button
               type="button"
-              class="vote-button species-vote-button"
+              class="vote-button species-vote-button{% if species.id in voted_species_ids %} voted{% endif %}"
               data-species-id="{{ species.id }}"
               data-voted="{{ 'true' if species.id in voted_species_ids else 'false' }}"
               aria-label="Vote for {{ species.name }}"

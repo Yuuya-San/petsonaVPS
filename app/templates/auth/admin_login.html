@@ -540,8 +540,9 @@
     <h2 class="title">Welcome Back</h2>
     <p class="subtitle">Login to continue</p>
 
-    <form method="post" novalidate class="auth-form">
+    <form method="post" novalidate class="auth-form" id="admin-login-form">
       {{ form.hidden_tag() }}
+      <input type="hidden" name="recaptcha_token" id="recaptcha_token" value="">
 
       <div class="input-group">
         <span class="icon"><i class="fas fa-envelope"></i></span>
@@ -623,7 +624,35 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   updateSubmitButton();
+
+  const adminLoginForm = document.getElementById('admin-login-form');
+  const recaptchaTokenInput = document.getElementById('recaptcha_token');
+  const recaptchaSiteKey = "{{ recaptcha_site_key }}";
+
+  function executeRecaptcha(action, callback) {
+    if (!recaptchaSiteKey || !window.grecaptcha) {
+      return callback();
+    }
+    grecaptcha.ready(function() {
+      grecaptcha.execute(recaptchaSiteKey, { action: action }).then(function(token) {
+        if (recaptchaTokenInput) {
+          recaptchaTokenInput.value = token;
+        }
+        callback();
+      });
+    });
+  }
+
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      executeRecaptcha('admin_login', function() {
+        adminLoginForm.submit();
+      });
+    });
+  }
 });
 </script>
+<script async defer src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
 
 {% endblock %}

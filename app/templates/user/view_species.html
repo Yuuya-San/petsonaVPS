@@ -765,7 +765,7 @@
           <div class="vote-overlay">
             <button
               type="button"
-              class="vote-button breed-vote-button"
+              class="vote-button breed-vote-button{% if breed.id in voted_breed_ids %} voted{% endif %}"
               data-breed-id="{{ breed.id }}"
               data-voted="{{ 'true' if breed.id in voted_breed_ids else 'false' }}"
               aria-label="Vote for {{ breed.name }}"

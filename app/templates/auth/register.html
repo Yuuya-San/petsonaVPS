@@ -519,6 +519,7 @@
 
     <form method="post" novalidate class="auth-form" id="register-form">
       {{ form.hidden_tag() }}
+      <input type="hidden" name="recaptcha_token" id="recaptcha_token" value="">
 
       <!-- PERSONAL INFO -->
       <div class="form-section personal-info-section" id="personal-info-section">
@@ -706,6 +707,37 @@ document.getElementById('back-to-personal-info').onclick = () => {
   passwordSection.style.display = 'none';
   personalSection.style.display = '';
 };
+</script>
+<script async defer src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+<script>
+(function() {
+  const recaptchaSiteKey = "{{ recaptcha_site_key }}";
+  const registerForm = document.getElementById('register-form');
+  const recaptchaTokenInput = document.getElementById('recaptcha_token');
+
+  function executeRecaptcha(action, callback) {
+    if (!recaptchaSiteKey || !window.grecaptcha) {
+      return callback();
+    }
+    grecaptcha.ready(function() {
+      grecaptcha.execute(recaptchaSiteKey, { action: action }).then(function(token) {
+        if (recaptchaTokenInput) {
+          recaptchaTokenInput.value = token;
+        }
+        callback();
+      });
+    });
+  }
+
+  if (registerForm) {
+    registerForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      executeRecaptcha('register', function() {
+        registerForm.submit();
+      });
+    });
+  }
+})();
 </script>
 
 {% endblock %}

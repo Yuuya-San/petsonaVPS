@@ -59,8 +59,9 @@ class SocketManager {
           // WebSocket preferred, polling as fallback
           transports: ['websocket', 'polling'],
           
-          // Don't upgrade if already WebSocket
-          upgrade: false,
+          // Allow protocol upgrade from polling to websocket if needed
+          upgrade: true,
+          rememberUpgrade: true,
           
           // Connection pooling and resource management
           forceNew: false,

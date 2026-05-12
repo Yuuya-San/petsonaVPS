@@ -39,11 +39,9 @@ talisman = Talisman()
 # CSRF protection
 csrf = CSRFProtect()
 
-# Socket.IO for real-time updates - Production-ready with gevent
-# Uses gevent for high-performance async I/O and greenlet concurrency
+# Socket.IO for real-time updates - Async mode determined by environment
 socketio = SocketIO(
-    # Performance optimizations
-    async_mode='gevent',  # High-performance async mode for production
+    # Connection parameters
     cors_allowed_origins="*",
     
     # Connection parameters

@@ -93,6 +93,7 @@ def change_password(user, current_password, new_password):
     
     # Set new password
     user.set_password(new_password)
+    user.has_temp_password = False  # Clear temporary password flag
     db.session.commit()
     
     return True, "Password changed successfully"

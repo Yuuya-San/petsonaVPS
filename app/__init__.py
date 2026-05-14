@@ -112,7 +112,13 @@ def create_app(config_name='development'):
     @login_manager.user_loader
     def load_user(user_id):
         try:
-            return User.query.get(int(user_id))
+            user = User.query.get(int(user_id))
+            if user and user.has_temp_password:
+                # Force logout users with temporary passwords
+                import logging
+                logging.warning(f"User {user_id} has temporary password - forcing logout")
+                return None
+            return user
         except Exception as e:
             # Log the error but don't crash the app
             import logging

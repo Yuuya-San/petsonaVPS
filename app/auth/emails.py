@@ -91,10 +91,17 @@ def send_password_reset_email(user, token: str):
 
 def send_temp_credentials(email, password):
     """Sends temporary account credentials to newly created admin accounts."""
+    front_url = current_app.config.get('FRONTEND_URL')
+    if front_url:
+        login_url = f"{front_url.rstrip('/')}/auth/login"
+    else:
+        login_url = url_for('auth.login', _external=True)
+    
     html = render_template(
         'auth/temp_credentials_email.html',
         email=email,
-        password=password
+        password=password,
+        login_url=login_url
     )
     
     send_email(

@@ -410,6 +410,15 @@ def login():
             return redirect(url_for('auth.login'))
 
         if user.check_password(form.password.data):
+            # Check if user has temporary password - force password change
+            if user.has_temp_password:
+                # Store user info in session for password change
+                session['pending_password_change_user_id'] = user.id
+                session['pending_password_change_reason'] = 'temp_password'
+                log_event('user.login_temp_password', details={'email': email})
+                flash('For security reasons, you must change your temporary password before accessing your account.', 'warning')
+                return redirect(url_for('auth.change_temp_password'))
+
             # 2FA check (if enabled)
             if user.is_2fa_enabled:
                 # Store user info in session for 2FA verification
@@ -820,4 +829,62 @@ def reset_password(token):
             flash(error, 'danger')
 
     return render_template('auth/reset_password.html', form=form)
+
+
+@bp.route('/change-temp-password', methods=['GET', 'POST'])
+def change_temp_password():
+    """Force password change for users with temporary passwords"""
+    # Check if user is in pending password change session
+    user_id = session.get('pending_password_change_user_id')
+    reason = session.get('pending_password_change_reason')
+    
+    if not user_id or reason != 'temp_password':
+        flash('Invalid session. Please log in again.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    user = User.query.get(user_id)
+    if not user:
+        session.pop('pending_password_change_user_id', None)
+        session.pop('pending_password_change_reason', None)
+        flash('User not found. Please log in again.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    form = ResetPasswordForm()  # Reuse the reset password form
+    
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        user.has_temp_password = False  # Clear temporary password flag
+        user.failed_login_attempts = 0
+        user.lockout_until = None
+        db.session.commit()
+        
+        # Clear session
+        session.pop('pending_password_change_user_id', None)
+        session.pop('pending_password_change_reason', None)
+        
+        # Generate session token and log in user
+        import secrets
+        session_token = secrets.token_urlsafe(32)
+        user.session_token = session_token
+        db.session.commit()
+        session['session_token'] = session_token
+        login_user(user)
+        
+        log_event('user.temp_password_changed', details={'user': user_snapshot(user)})
+        flash('Password changed successfully. Welcome to Petsona!', 'success')
+        
+        # Redirect based on role
+        if user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        else:
+            return redirect(url_for('auth.home'))
+    
+    # Flash form validation errors
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(error, 'danger')
+    
+    return render_template('auth/change_temp_password.html', form=form)
 

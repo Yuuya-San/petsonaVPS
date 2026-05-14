@@ -37,6 +37,8 @@ class User(db.Model, UserMixin):
     
     registration_method = db.Column(db.String(32), default='system')  # 'system' or 'google'
     session_token = db.Column(db.String(255))
+    
+    has_temp_password = db.Column(db.Boolean, default=False)  # True if password was set by admin
 
     @property
     def is_admin(self):

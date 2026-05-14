@@ -216,7 +216,8 @@ def admin_add_user():
             first_name=form.first_name.data,
             last_name=form.last_name.data,
             role=form.role.data,
-            photo_url=random.choice(DEFAULT_AVATARS)
+            photo_url=random.choice(DEFAULT_AVATARS),
+            has_temp_password=True  # Mark as having temporary password
         )
 
         user.set_password(temp_password)

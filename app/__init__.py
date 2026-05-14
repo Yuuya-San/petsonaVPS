@@ -1,6 +1,6 @@
 """Application factory. Initializes extensions, registers blueprints."""
-from flask import Flask, redirect, url_for, request, flash # pyright: ignore[reportMissingImports]
-from werkzeug.exceptions import RequestEntityTooLarge # pyright: ignore[reportMissingImports]
+from flask import Flask, redirect, url_for, request, flash, jsonify # pyright: ignore[reportMissingImports]
+from werkzeug.exceptions import RequestEntityTooLarge, TooManyRequests # pyright: ignore[reportMissingImports]
 from .config import Config
 from app.extensions import db, migrate, login_manager, mail, bcrypt, limiter, talisman, socketio, oauth
 from app.utils.db_init import ensure_database_exists, create_tables
@@ -224,6 +224,20 @@ def create_app(config_name='development'):
     def handle_request_entity_too_large(error):
         flash('Uploaded files exceed the maximum allowed upload size. Reduce attachments and try again.', 'danger')
         return redirect(request.referrer or url_for('merchant.apply'))
+
+    # Global rate limit handler
+    @app.errorhandler(TooManyRequests)
+    def handle_rate_limit(error):
+        message = 'Too many requests. Please slow down and try again in a few moments.'
+        if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+            return jsonify({
+                'error': 'rate_limit_exceeded',
+                'message': message,
+                'retry_after': error.description if hasattr(error, 'description') else None
+            }), 429
+
+        flash(message, 'warning')
+        return redirect(request.referrer or request.path)
 
     # Root route
     @app.route("/")

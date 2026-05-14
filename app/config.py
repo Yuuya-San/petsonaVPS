@@ -41,8 +41,8 @@ class Config:
     # Mail
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
-    MAIL_USE_TLS = "True"
-    MAIL_USE_SSL = "False"
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
     MAIL_USERNAME = "petsona.helpcare@gmail.com"
     MAIL_PASSWORD = "fvgj yfgi aulq squa"
     MAIL_DEFAULT_SENDER = MAIL_USERNAME
@@ -100,6 +100,7 @@ class DevelopmentConfig(Config):
     AUTHLIB_INSECURE_TRANSPORT = True
 
     RESET_TOKEN_EXPIRY = 3600
+    FRONTEND_URL = "http://localhost:5000"
 
 class ProductionConfig(Config):
     """Production config"""
@@ -110,8 +111,8 @@ class ProductionConfig(Config):
 
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://petsona_user:Petsona-0717@localhost/petsona_db"
 
-
     RESET_TOKEN_EXPIRY = 3600
+    FRONTEND_URL = "https://petsona.online"
 
     RATELIMIT_DEFAULT = "200 per day"
     RATELIMIT_STRATEGY = "fixed-window"

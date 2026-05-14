@@ -114,3 +114,16 @@ def add_missing_columns(engine):
             # else: column already exists, continue
             else:
                 print("is_open column already exists in merchants table")
+
+        # Add healthcare_info column to breed table if it doesn't exist
+        try:
+            connection.execute(text("""
+                ALTER TABLE breed 
+                ADD COLUMN healthcare_info TEXT NULL 
+                COMMENT 'Detailed healthcare information including vaccination frequency, vet visits, parasite control, dental care, and other medical requirements'
+            """))
+            print("✅ Added healthcare_info column to breed table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding healthcare_info column: {e}")
+            # else: column already exists, continue

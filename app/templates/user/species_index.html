@@ -564,6 +564,11 @@
     color: #991b1b;
   }
 
+  .status-medium {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
   @media (max-width: 640px) {
     .modal-content-wrapper {
       max-width: 100%;
@@ -806,7 +811,7 @@
     <div class="modal-body">
 
       <!-- HERO IMAGE -->
-      <div class="mb-6 rounded-xl overflow-hidden shadow-md h-48 sm:h-56">
+      <div class="mx-auto mb-6 rounded-xl overflow-hidden shadow-md w-64 h-80">
         <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
              alt="Pet Profile Image"
              class="w-full h-full object-cover">
@@ -837,7 +842,7 @@
               <i :class="viewSpecies?.beginner_friendly ? 'fa-solid fa-star text-green-600' : 'fa-solid fa-graduation-cap text-orange-600'" class="flex-shrink-0"></i>
               <span x-text="viewSpecies?.beginner_friendly ? 'Are new to pet ownership' : 'Have pet experience'"></span>
             </div>
-            <span :class="viewSpecies?.beginner_friendly ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.beginner_friendly ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.beginner_friendly ? 'Great' : 'Experienced'"></span>
           </div>
           
@@ -847,7 +852,7 @@
               <i :class="viewSpecies?.requires_exercise ? 'fa-solid fa-fire text-green-600' : 'fa-solid fa-couch text-blue-600'" class="flex-shrink-0"></i>
               <span x-text="viewSpecies?.requires_exercise ? 'Are active and enjoy outdoor activities' : 'Prefer a quiet, relaxed lifestyle'"></span>
             </div>
-            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.requires_exercise ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.requires_exercise ? 'Active' : 'Relaxed'"></span>
           </div>
 
@@ -857,7 +862,7 @@
               <i :class="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'fa-solid fa-hourglass-end text-green-600' : 'fa-solid fa-circle-check text-blue-600'" class="flex-shrink-0"></i>
               <span x-text="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'Have time for regular care & maintenance' : 'Want a low-maintenance companion'"></span>
             </div>
-            <span :class="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.requires_training || viewSpecies?.requires_grooming ? 'Committed' : 'Low-Key'"></span>
           </div>
 
@@ -867,7 +872,7 @@
               <i :class="viewSpecies?.requires_enclosure ? 'fa-solid fa-house text-green-600' : 'fa-solid fa-person text-blue-600'" class="flex-shrink-0"></i>
               <span x-text="viewSpecies?.requires_enclosure ? 'Can provide dedicated space/tank/cage' : 'Want a mobile or space-flexible pet'"></span>
             </div>
-            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.requires_enclosure ? 'Space' : 'Flexible'"></span>
           </div>
         </div>
@@ -950,7 +955,7 @@
               <i class="fa-solid fa-person-hiking text-green-600 flex-shrink-0"></i>
               <span>Daily activity and playtime</span>
             </div>
-            <span :class="viewSpecies?.requires_exercise ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.requires_exercise ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.requires_exercise ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
@@ -958,7 +963,7 @@
               <i class="fa-solid fa-book text-green-600 flex-shrink-0"></i>
               <span>Training and teaching</span>
             </div>
-            <span :class="viewSpecies?.requires_training ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.requires_training ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.requires_training ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
@@ -966,7 +971,7 @@
               <i class="fa-solid fa-spray-can text-green-600 flex-shrink-0"></i>
               <span>Regular grooming or cleaning</span>
             </div>
-            <span :class="viewSpecies?.requires_grooming ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.requires_grooming ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.requires_grooming ? 'Yes' : 'No'"></span>
           </div>
           <div class="care-requirement-item">
@@ -974,7 +979,7 @@
               <i class="fa-solid fa-home text-green-600 flex-shrink-0"></i>
               <span>Dedicated space (tank, cage, or habitat)</span>
             </div>
-            <span :class="viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no'" class="status-badge flex-shrink-0"
+            <span :class="'status-badge flex-shrink-0 ' + (viewSpecies?.requires_enclosure ? 'status-yes' : 'status-no')"
                   x-text="viewSpecies?.requires_enclosure ? 'Yes' : 'No'"></span>
           </div>
         </div>

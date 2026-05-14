@@ -500,6 +500,11 @@
     color: #991b1b;
   }
 
+  .status-medium {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
   @media (max-width: 640px) {
     .modal-content-wrapper {
       max-width: 100%;
@@ -960,8 +965,8 @@
                 </div>
                 <input type="file" name="image" x-ref="imageInput" @change="imagePreview = URL.createObjectURL($event.target.files[0])" hidden accept="image/*">
                 <template x-if="imagePreview">
-                  <div class="mt-4 relative w-full">
-                    <img :src="imagePreview" class="h-40 w-full object-cover rounded-xl border border-gray-200 shadow-md">
+                  <div class="mt-4 relative w-48 mx-auto">
+                    <img :src="imagePreview" class="h-64 w-full object-cover rounded-xl border border-gray-200 shadow-md">
                     <p class="text-xs text-gray-500 mt-2">Preview (will update on save)</p>
                   </div>
                 </template>
@@ -1125,7 +1130,7 @@
     <div class="modal-body">
 
       <!-- HERO IMAGE -->
-      <div class="mb-6 rounded-xl overflow-hidden shadow-md h-48 sm:h-56">
+      <div class="mb-6 rounded-xl overflow-hidden shadow-md w-64 h-80 mx-auto">
         <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
              alt="Pet Profile Image"
              class="w-full h-full object-cover">

@@ -373,6 +373,11 @@
     color: #991b1b;
   }
 
+  .status-medium {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
   .glass-card {
     background: rgba(243, 244, 246, 0.75);
     backdrop-filter: blur(16px);
@@ -718,7 +723,15 @@
         breedModal: false,
         selectedBreed: null,
         editingBreed: null,
-        imagePreview: null
+        imagePreview: null,
+        getStatusClass(value) {
+          if (!value) return 'status-medium';
+          const val = value.toString().toLowerCase();
+          if (['low','small','easy','beginner','simple','silent','none'].includes(val)) return 'status-yes';
+          if (['medium','moderate','intermediate'].includes(val)) return 'status-medium';
+          if (['high','large','difficult','advanced','complex','loud'].includes(val)) return 'status-no';
+          return 'status-medium';
+        }
       }"
      class="w-[95vw] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
 
@@ -867,7 +880,7 @@
       <div class="modal-body">
 
         <!-- HERO IMAGE SECTION -->
-        <div class="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden shadow-md mb-6">
+        <div class="relative w-64 h-80 mx-auto rounded-2xl overflow-hidden shadow-md mb-6">
           <img :src="selectedBreed?.image_url ? '/static/' + selectedBreed.image_url : '/static/uploads/no-image-attachment.jpg'"
                alt="Breed Image"
                class="w-full h-full object-cover">
@@ -954,7 +967,7 @@
                 <i class="fa-solid fa-bolt text-yellow-500 text-lg"></i>
                 <span>Energy Level</span>
               </div>
-              <span class="status-badge bg-yellow-100 text-yellow-700" x-text="selectedBreed?.energy_level || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.energy_level)" x-text="selectedBreed?.energy_level || 'N/A'"></span>
             </div>
             {% if species.requires_exercise %}
             <div class="care-requirement-item">
@@ -962,7 +975,7 @@
                 <i class="fa-solid fa-dumbbell text-green-500 text-lg"></i>
                 <span>Exercise Needs</span>
               </div>
-              <span class="status-badge bg-green-100 text-green-700" x-text="selectedBreed?.exercise_needs || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.exercise_needs)" x-text="selectedBreed?.exercise_needs || 'N/A'"></span>
             </div>
             {% endif %}
             {% if species.requires_grooming %}
@@ -971,7 +984,7 @@
                 <i class="fa-solid fa-scissors text-pink-500 text-lg"></i>
                 <span>Grooming Needs</span>
               </div>
-              <span class="status-badge bg-pink-100 text-pink-700" x-text="selectedBreed?.grooming_needs || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.grooming_needs)" x-text="selectedBreed?.grooming_needs || 'N/A'"></span>
             </div>
             {% endif %}
             <div class="care-requirement-item">
@@ -979,7 +992,7 @@
                 <i class="fa-solid fa-ruler-combined text-purple-500 text-lg"></i>
                 <span>Space Needs</span>
               </div>
-              <span class="status-badge bg-purple-100 text-purple-700" x-text="selectedBreed?.space_needs || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.space_needs)" x-text="selectedBreed?.space_needs || 'N/A'"></span>
             </div>
             {% if species.requires_training %}
             <div class="care-requirement-item">
@@ -987,7 +1000,7 @@
                 <i class="fa-solid fa-brain text-indigo-500 text-lg"></i>
                 <span>Ease of Training</span>
               </div>
-              <span class="status-badge bg-indigo-100 text-indigo-700" x-text="selectedBreed?.trainability || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.trainability)" x-text="selectedBreed?.trainability || 'N/A'"></span>
             </div>
             {% endif %}
             {% if not species.fragile_species %}
@@ -996,7 +1009,7 @@
                 <i class="fa-solid fa-handshake text-green-500 text-lg"></i>
                 <span>Comfort With Being Held</span>
               </div>
-              <span class="status-badge bg-green-100 text-green-700" x-text="selectedBreed?.handling_tolerance || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.handling_tolerance)" x-text="selectedBreed?.handling_tolerance || 'N/A'"></span>
             </div>
             {% endif %}
           </div>
@@ -1016,14 +1029,14 @@
                 <i class="fa-solid fa-volume-high text-orange-500 text-lg"></i>
                 <span>Noise Level</span>
               </div>
-              <span class="status-badge bg-orange-100 text-orange-700" x-text="selectedBreed?.noise_level || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.noise_level)" x-text="selectedBreed?.noise_level || 'N/A'"></span>
             </div>
             <div class="care-requirement-item">
               <div class="care-requirement-label">
                 <i class="fa-solid fa-users text-indigo-500 text-lg"></i>
                 <span>Social Needs</span>
               </div>
-              <span class="status-badge bg-indigo-100 text-indigo-700" x-text="selectedBreed?.social_needs || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.social_needs)" x-text="selectedBreed?.social_needs || 'N/A'"></span>
             </div>
             {% if species.predatory_species %}
             <div class="care-requirement-item">
@@ -1031,7 +1044,7 @@
                 <i class="fa-solid fa-paw text-gray-600 text-lg"></i>
                 <span>Hunting Instinct</span>
               </div>
-              <span class="status-badge bg-gray-100 text-gray-700" x-text="selectedBreed?.prey_drive || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.prey_drive)" x-text="selectedBreed?.prey_drive || 'N/A'"></span>
             </div>
             {% endif %}
             <div class="care-requirement-item">
@@ -1039,7 +1052,7 @@
                 <i class="fa-solid fa-triangle-exclamation text-red-500 text-lg"></i>
                 <span>Safety With Other Pets</span>
               </div>
-              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.compatibility_risk || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.compatibility_risk)" x-text="selectedBreed?.compatibility_risk || 'N/A'"></span>
             </div>
           </div>
 
@@ -1146,28 +1159,28 @@
                 <i class="fa-solid fa-heart text-red-500 text-lg"></i>
                 <span>How Much Daily Care Needed</span>
               </div>
-              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.care_intensity || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.care_intensity)" x-text="selectedBreed?.care_intensity || 'N/A'"></span>
             </div>
             <div class="care-requirement-item">
               <div class="care-requirement-label">
                 <i class="fa-solid fa-clock text-yellow-500 text-lg"></i>
                 <span>Time You Need to Spend Daily</span>
               </div>
-              <span class="status-badge bg-yellow-100 text-yellow-700" x-text="selectedBreed?.time_commitment || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.time_commitment)" x-text="selectedBreed?.time_commitment || 'N/A'"></span>
             </div>
             <div class="care-requirement-item">
               <div class="care-requirement-label">
                 <i class="fa-solid fa-user-graduate text-indigo-500 text-lg"></i>
                 <span>Experience Level Needed</span>
               </div>
-              <span class="status-badge bg-indigo-100 text-indigo-700" x-text="selectedBreed?.experience_required || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.experience_required)" x-text="selectedBreed?.experience_required || 'N/A'"></span>
             </div>
             <div class="care-requirement-item">
               <div class="care-requirement-label">
                 <i class="fa-solid fa-cubes text-purple-500 text-lg"></i>
                 <span>Difficulty Setting Up Home</span>
               </div>
-              <span class="status-badge bg-purple-100 text-purple-700" x-text="selectedBreed?.environment_complexity || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.environment_complexity)" x-text="selectedBreed?.environment_complexity || 'N/A'"></span>
             </div>
           </div>
         </div>
@@ -1186,7 +1199,7 @@
                 <i class="fa-solid fa-heart-pulse text-red-500 text-lg"></i>
                 <span>Preventive Health Care Needed</span>
               </div>
-              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.preventive_care_level || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.preventive_care_level)" x-text="selectedBreed?.preventive_care_level || 'N/A'"></span>
             </div>
             {% if species.special_vet_required %}
             <div class="care-requirement-item">
@@ -1194,7 +1207,7 @@
                 <i class="fa-solid fa-ambulance text-orange-600 text-lg"></i>
                 <span>Unexpected Emergency Bills</span>
               </div>
-              <span class="status-badge bg-orange-100 text-orange-700" x-text="selectedBreed?.emergency_care_risk || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.emergency_care_risk)" x-text="selectedBreed?.emergency_care_risk || 'N/A'"></span>
             </div>
             {% endif %}
             {% if species.fragile_species %}
@@ -1203,7 +1216,7 @@
                 <i class="fa-solid fa-brain text-purple-500 text-lg"></i>
                 <span>How Sensitive to Stress & Changes</span>
               </div>
-              <span class="status-badge bg-purple-100 text-purple-700" x-text="selectedBreed?.stress_sensitivity || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.stress_sensitivity)" x-text="selectedBreed?.stress_sensitivity || 'N/A'"></span>
             </div>
             {% endif %}
             <div class="care-requirement-item">
@@ -1211,14 +1224,14 @@
                 <i class="fa-solid fa-wallet text-red-600 text-lg"></i>
                 <span>Monthly Expense Level</span>
               </div>
-              <span class="status-badge bg-red-100 text-red-700" x-text="selectedBreed?.monthly_cost_level || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.monthly_cost_level)" x-text="selectedBreed?.monthly_cost_level || 'N/A'"></span>
             </div>
             <div class="care-requirement-item">
               <div class="care-requirement-label">
                 <i class="fa-solid fa-piggy-bank text-emerald-500 text-lg"></i>
                 <span>Total Cost Over Lifetime</span>
               </div>
-              <span class="status-badge bg-emerald-100 text-emerald-700" x-text="selectedBreed?.lifetime_cost_level || 'N/A'"></span>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.lifetime_cost_level)" x-text="selectedBreed?.lifetime_cost_level || 'N/A'"></span>
             </div>
           </div>
         </div>
@@ -1237,6 +1250,18 @@
           </div>
         </template>
         {% endif %}
+
+        <template x-if="selectedBreed?.healthcare_info && selectedBreed?.healthcare_info.trim()">
+          <div class="mb-6">
+            <div class="border-t-2 border-dashed border-gray-300 mb-6"></div>
+            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-heartbeat text-red-500"></i> Healthcare Information
+            </h3>
+            <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-4 border border-red-200 border-l-4 border-l-red-600">
+              <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="selectedBreed?.healthcare_info"></p>
+            </div>
+          </div>
+        </template>
 
         <!-- INFO ALERT -->
         <div class="info-alert">

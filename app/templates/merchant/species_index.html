@@ -564,6 +564,11 @@
     color: #991b1b;
   }
 
+  .status-medium {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
   @media (max-width: 640px) {
     .modal-content-wrapper {
       max-width: 100%;
@@ -806,7 +811,7 @@
     <div class="modal-body">
 
       <!-- HERO IMAGE -->
-      <div class="mb-6 rounded-xl overflow-hidden shadow-md h-48 sm:h-56">
+      <div class="mx-auto mb-6 rounded-xl overflow-hidden shadow-md w-64 h-80">
         <img :src="viewSpecies?.image_url ? '/static/' + viewSpecies.image_url : '/static/uploads/no-image-attachment.jpg'"
              alt="Pet Profile Image"
              class="w-full h-full object-cover">

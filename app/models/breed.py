@@ -38,6 +38,8 @@ class Breed(db.Model):
     common_health_issues = db.Column(db.Text,comment="Breed-typical health issues vets warn about")
     emergency_care_risk = db.Column(db.Enum('Low', 'Medium', 'High'),default='Low',comment="Likelihood of emergency or sudden medical costs")
     stress_sensitivity = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium',comment="How easily the pet becomes stressed by change")
+    healthcare_info = db.Column(db.Text, nullable=True, comment="Detailed healthcare information including vaccination frequency, vet visits, and other medical care requirements")
+    stress_sensitivity = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium',comment="How easily the pet becomes stressed by change")
     monthly_cost_level = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium',comment="Food, grooming, routine care")
     lifetime_cost_level = db.Column(db.Enum('Low', 'Medium', 'High'),default='Medium',comment="Expected long-term financial commitment")
     care_cost = db.Column(db.String(255),comment="Estimated average annual care cost")
@@ -124,6 +126,7 @@ class Breed(db.Model):
             "emergency_care_risk": escape(self.emergency_care_risk) if self.emergency_care_risk else "",
             "stress_sensitivity": escape(self.stress_sensitivity) if self.stress_sensitivity else "",
             "common_health_issues": escape(self.common_health_issues) if self.common_health_issues else "",
+            "healthcare_info": escape(self.healthcare_info) if self.healthcare_info else "",
             "lifespan": escape(self.lifespan) if self.lifespan else "",
 
             # --------------------------

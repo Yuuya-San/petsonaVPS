@@ -273,6 +273,9 @@ def save_breed():
     common_health = request.form.get('common_health_issues', '').strip() if request.form.get('common_health_issues') else None
     track_change("common_health_issues", common_health)
 
+    healthcare = request.form.get('healthcare_info', '').strip() if request.form.get('healthcare_info') else None
+    track_change("healthcare_info", healthcare)
+
     # --- IMAGE UPLOAD ---
     file = request.files.get('image')
     if file and file.filename:

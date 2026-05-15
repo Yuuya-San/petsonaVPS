@@ -100,7 +100,7 @@ class DevelopmentConfig(Config):
     AUTHLIB_INSECURE_TRANSPORT = True
 
     RESET_TOKEN_EXPIRY = 3600
-    FRONTEND_URL = "http://localhost:5000"
+    FRONTEND_URL = "http://127.0.0.1:5000"
 
 class ProductionConfig(Config):
     """Production config"""

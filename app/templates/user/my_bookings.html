@@ -851,10 +851,10 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     z-index: 9999;
-    padding: 1rem;
+    padding: 2rem 1rem 1rem;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
   }
@@ -874,7 +874,7 @@
     overflow: hidden;
     max-width: 480px;
     width: 95vw;
-    height: 90vh;
+    max-height: 85vh;
     display: flex;
     flex-direction: column;
     animation: slideUp 0.3s ease-out;
@@ -939,7 +939,7 @@
     padding: 1.5rem;
     flex: 1;
     overflow-y: auto;
-    max-height: calc(90vh - 140px);
+    max-height: calc(85vh - 130px);
   }
 
   .booking-detail {

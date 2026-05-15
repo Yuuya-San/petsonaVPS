@@ -27,24 +27,25 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding:
-    clamp(2.5rem, 6vw, 7rem)
-    clamp(1rem, 5vw, 8rem);
+  padding: clamp(2.5rem, 6vw, 7rem) clamp(1rem, 5vw, 8rem);
   text-align: center;
   overflow: hidden;
+  margin: 0 !important;
+  padding: clamp(2.5rem, 6vw, 7rem) clamp(1rem, 5vw, 8rem) !important;
 }
 
 @media (max-width: 768px) {
   .contact-hero {
-    height: auto;
-    min-height: 60vh;
+    height: 100vh;
+    min-height: auto;
     padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
   }
 }
 
 @media (max-width: 480px) {
   .contact-hero {
-    min-height: 50vh;
+    height: 100vh;
+    min-height: auto;
     padding: clamp(1.5rem, 4vw, 2.5rem) clamp(0.75rem, 3vw, 1.5rem);
   }
 }

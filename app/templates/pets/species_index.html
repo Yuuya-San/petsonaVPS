@@ -98,16 +98,94 @@
   /* Fade out for hidden items */
   .species-item {
     transition: all 0.3s ease;
+    opacity: 0;
+    animation: cardEntrance 0.7s ease-out forwards;
+  }
+
+  @keyframes cardEntrance {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .species-item.hidden {
     display: none;
   }
 
+  .species-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .species-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .species-card-actions .species-action-button {
+    flex: 1 1 calc(50% - 0.75rem);
+    min-width: 140px;
+    min-height: 3rem;
+    width: 100%;
+  }
+
+  .species-card-actions .species-action-button {
+    min-width: 0;
+  }
+
+  /* CTA truncation and compact fallback */
+  .species-action-button {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .species-action-button .cta-text {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .species-action-button.compact {
+    font-size: 0.78rem;
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .species-action-button.compact-xs {
+    font-size: 0.72rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+
+  @media (max-width: 420px) {
+    .species-card-actions .species-action-button {
+      flex-basis: 100%;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .glass-card,
-    .glass-search {
+    .glass-search,
+    .species-item {
       transition: none;
+      animation: none;
     }
   }
 
@@ -128,8 +206,8 @@
     background: white;
     border-radius: 2rem;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
-    max-width: 36rem;
-    width: 100%;
+    max-width: min(95vw, 36rem);
+    width: min(95vw, 100%);
     max-height: 90vh;
     overflow: hidden;
     display: flex;
@@ -190,27 +268,60 @@
   }
 
   .modal-footer {
-    padding: 1.5rem;
-    border-top: 1px solid rgba(168, 85, 247, 0.15);
-    display: flex;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    justify-content: flex-end;
-    align-items: center;
-    flex-wrap: wrap;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 0.8) 100%);
+
+    padding: 1.5rem;
+    box-sizing: border-box;
+
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(249, 250, 251, 0.8) 100%
+    );
+  }
+
+  .modal-footer > * {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .modal-footer form {
+    width: 100%;
+    margin: 0;
   }
 
   .modal-footer .modal-btn {
-    justify-content: center;
-    text-align: center;
-  }
+    width: 100% !important;
+    height: 52px !important;
 
-  .modal-footer .modal-btn span {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+
+    margin: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .modal-btn {
+    flex: 1;
+    min-width: 0;
     width: 100%;
-    text-align: center;
+    min-height: 3rem;
+  }
+
+  .modal-btn .btn-label {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .preview-section {
@@ -507,7 +618,7 @@
 
   @media (max-width: 640px) {
     .modal-content-wrapper {
-      max-width: 100%;
+      max-width: 95vw;
       border-radius: 1.5rem;
       max-height: 95vh;
     }
@@ -530,16 +641,19 @@
     }
 
     .modal-footer {
-      padding: 1rem;
+      display: flex;
       flex-direction: row;
-      justify-content: center;
+      padding: 1rem;
       gap: 0.75rem;
-      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .modal-btn {
+      flex: 1;
       min-width: 0;
-      width: auto;
       font-size: 0.875rem;
       padding: 0.625rem 1rem;
     }
@@ -577,8 +691,8 @@
   get visibleCount() {
     return document.querySelectorAll('.species-item:not(.hidden)').length;
   }
-}" class="w-full min-h-screen">
-  <div class="w-[95vw] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-8 lg:py-8 space-y-6 sm:space-y-8">
+}" class="w-full min-h-screen animate-fadeIn">
+  <div class="w-[95vw] mx-auto px-2 sm:px-4 lg:px-6 py-8 sm:py-8 lg:py-8 space-y-6 sm:space-y-8">
 
     <!-- HEADER -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
@@ -656,7 +770,7 @@
 
     <!-- SPECIES GRID -->
     <div id="species-grid"
-         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 m-4 gap-4 sm:gap-5 lg:gap-6">
+         class="species-grid gap-4 sm:gap-5 lg:gap-6">
 
     {% for species in species_list %}
         {% set image_url = url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') %}
@@ -664,11 +778,13 @@
         <div x-data="{ menu: false }"
             data-species-name="{{ species.name.lower() }}"
             class="species-item w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
-            style="height: 400px; min-height: 400px; max-height: 400px;
+            style="height: 400px; min-height: 400px; max-height: 400px; max-width: 340px;
                     background-image: url('{{ image_url }}');
                     background-size: cover;
                     background-position: center;
+                    justify-self: center;
                     background-repeat: no-repeat;">
+
 
       <!-- MENU BUTTON -->
       <button @click="menu = !menu"
@@ -745,14 +861,14 @@
       <div class="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 gap-4">
 
         <!-- CTA BUTTONS -->
-        <div class="mt-auto flex gap-2 pt-2">
+        <div class="mt-auto flex gap-2">
 
           <!-- VIEW DETAILS -->
           <button 
               type="button"
               @click="viewSpecies = JSON.parse($el.getAttribute('data-species')); viewModal = true; menu=false"
               data-species='{{ species.as_dict|tojson|replace("'", "&apos;")|safe }}'
-              class="flex-1 text-center
+              class="species-action-button flex-1 text-center
                     bg-white/30 backdrop-blur-md
                     border border-indigo-200/40
                     text-indigo-800
@@ -768,12 +884,12 @@
                     hover:scale-[1.02]
                     active:scale-100
                     focus:outline-none focus:ring-2 focus:ring-indigo-300">
-            Learn More
+            <span class="cta-text">Learn More</span>
           </button>
 
           <!-- EXPLORE VARIANTS -->
           <a href="{{ url_for('pets.view_species', id=species.id) }}"
-            class="flex-1 text-center
+            class="species-action-button flex-1 text-center
                     bg-white/20 backdrop-blur-md
                     border border-purple-200/40
                     text-purple-800
@@ -789,7 +905,7 @@
                     hover:scale-[1.02]
                     active:scale-100
                     focus:outline-none focus:ring-2 focus:ring-purple-300">
-            {{ species.active_breed_count }} {% if species.has_breed %}Breed{% else %}Variant{% endif %}{{ 's' if species.active_breed_count != 1 else '' }}
+            <span class="cta-text">{{ species.active_breed_count }} {% if species.has_breed %}Breed{% else %}Variant{% endif %}{{ 's' if species.active_breed_count != 1 else '' }}</span>
           </a>
 
         </div>
@@ -806,7 +922,7 @@
   <div x-show="confirm" x-transition.opacity
        class="modal-overlay"
        @click.self="confirm=false">
-    <div class="modal-content-wrapper" style="max-width: 28rem;">
+    <div class="modal-content-wrapper" x-show="confirm" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" style="max-width: min(95vw, 28rem);">
 
       <!-- MODAL HEADER -->
       <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
@@ -848,17 +964,13 @@
 
       <!-- MODAL FOOTER -->
       <div class="modal-footer">
-        <button type="button" @click="confirm=false" class="modal-btn modal-btn-secondary">
-          <i class="fa-solid fa-ban"></i>
-          Cancel
-        </button>
         <form method="POST"
               :action="'/pets/species/' + (deletingSpecies?.id || '') + '/delete'"
-              class="flex">
+              class="flex w-full">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button type="submit" class="modal-btn modal-btn-delete">
             <i class="fa-regular fa-trash-can"></i>
-            Remove Profile
+            Remove
           </button>
         </form>
       </div>
@@ -870,7 +982,7 @@
   <div x-show="speciesModal" x-transition.opacity
        class="modal-overlay"
        @click.self="speciesModal=false; imagePreview=null">
-    <div class="modal-content-wrapper" style="max-width: 42rem;">
+    <div class="modal-content-wrapper" x-show="speciesModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" style="max-width: min(95vw, 42rem);">
 
       <!-- MODAL HEADER -->
       <div class="modal-header">
@@ -1090,18 +1202,19 @@
       <div class="modal-footer">
         <button type="button" @click="speciesModal=false; imagePreview=null; speciesName=''; speciesDescription=''; speciesEthicalNotes=''" :disabled="formSubmitting" class="modal-btn modal-btn-secondary" :style="formSubmitting ? 'opacity: 0.5; cursor: not-allowed;' : ''">
           <i class="fa-solid fa-ban"></i>
-          <span>Cancel</span>
+          <span class="btn-label">Cancel</span>
         </button>
         <button type="submit" form="species-form" :disabled="formSubmitting" class="modal-btn modal-btn-primary" :style="formSubmitting ? 'opacity: 0.8;' : ''">
           <template x-if="!formSubmitting">
               <span class="flex items-center gap-2">
                   <i class="fa-solid fa-check"></i>
-                  <span x-text="editingSpecies ? 'Save Profile' : 'Create Profile'"></span>
+                  <span class="btn-label" x-text="editingSpecies ? 'Save' : 'Create'"></span>
               </span>
           </template>
           <template x-if="formSubmitting">
             <span class="spinner" style="border-top-color: white;"></span>
-            <span>Loading...</span>
+            <span class="btn-label hidden sm:inline">Saving...</span>
+            <span class="btn-label sm:hidden">Wait</span>
           </template>
         </button>
       </div>
@@ -1113,12 +1226,11 @@
 <!-- 🔷 VIEW SPECIES MODAL - MODERN CLEAN DESIGN -->
 <div x-show="viewModal" x-transition.opacity
      class="modal-overlay">
-  <div class="modal-content-wrapper">
+  <div class="modal-content-wrapper" x-show="viewModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" style="max-width: min(95vw, 42rem);">
 
     <!-- MODAL HEADER -->
     <div class="modal-header">
       <h3 class="modal-header-title">
-        <i class="fa-solid fa-heart"></i>
         Pet Profile
       </h3>
       <button type="button" class="modal-close-btn" @click="viewModal=false; viewSpecies=null" title="Close">
@@ -1368,15 +1480,6 @@
         <span>This profile helps you make an informed decision about pet adoption. Think carefully before bringing any pet home!</span>
       </div>
 
-    </div>
-
-    <!-- MODAL FOOTER -->
-    <div class="modal-footer">
-      <button @click="viewModal=false; viewSpecies=null"
-              class="modal-btn modal-btn-secondary">
-        <i class="fa-solid fa-xmark"></i>
-        Close
-      </button>
     </div>
 
   </div>

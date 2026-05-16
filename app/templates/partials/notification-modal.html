@@ -198,16 +198,8 @@
 </style>
 
 <script>
-// DEBUG: Log when modal is shown
-document.getElementById('notificationModal')?.addEventListener('show.bs.modal', function() {
-    setTimeout(() => {
-        const avatarImg = document.getElementById('notifSenderAvatarImg');
-        const senderName = document.getElementById('notifSenderName');        
-    }, 100);
-});
-
 document.addEventListener('DOMContentLoaded', function() {
-    // ===== MAIN NOTIFICATION MODAL CLOSE =====
+    // ===== MAIN NOTIFICATION MODAL CLOSE (Vanilla JS) =====
     const closeNotifButtons = document.querySelectorAll('#notificationModal .close-notif-modal, #notificationModal #notifCloseBtn');
     const notificationModal = document.getElementById('notificationModal');
 
@@ -215,13 +207,25 @@ document.addEventListener('DOMContentLoaded', function() {
         closeNotifButtons.forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                $(notificationModal).modal('hide');
+                // Use vanilla JS to hide the modal
+                notificationModal.classList.remove('show');
+                notificationModal.setAttribute('aria-hidden', 'true');
+                notificationModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                // Remove modal backdrop
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
             });
         });
         // Close on ESC key
         notificationModal.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                $(notificationModal).modal('hide');
+                notificationModal.classList.remove('show');
+                notificationModal.setAttribute('aria-hidden', 'true');
+                notificationModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
             }
         });
     }

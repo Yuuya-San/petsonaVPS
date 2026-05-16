@@ -9,12 +9,12 @@
 ================================ */
 .auth-bg {
   position: relative;
-  height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: clamp(2rem, 6vh, 3.2rem) 1rem;
+  align-items: center;
+  padding: 58px 16px 16px 16px;
   overflow-x: hidden;
 }
 
@@ -51,34 +51,35 @@
 .auth-card {
   position: relative;
   z-index: 3;
-  width: clamp(280px, 85vw, 400px);
+  width: 100%;
+  max-width: 400px;
   padding: 1.4rem 1.5rem;
   border-radius: 16px;
+  margin-top: -116px !important;
 
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(99, 102, 241, 0.08) 100%
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(99, 102, 241, 0.12) 100%
   );
-  backdrop-filter: blur(20px) saturate(130%);
-  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
 
-  border: 1px solid rgba(140, 0, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(140, 0, 255, 0.08) inset;
+  border: 1px solid rgba(140, 0, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(140, 0, 255, 0.1) inset;
   
 }
 
 /* Tablet */
 @media (max-width: 768px) {
-  .auth-card {
-    width: clamp(250px, 90vw, 350px);
+  .amax-width: 350px;
     padding: 1.3rem 1.4rem;
   }
-}
 
 /* Mobile */
 @media (max-width: 480px) {
   .auth-card {
+    max-width: 100%
     width: clamp(220px, 95vw, 320px);
     padding: 1.2rem 1.2rem;
   }
@@ -87,12 +88,13 @@
 /* Short height / landscape */
 @media (max-height: 620px) {
   .auth-bg {
-    padding-top: 1rem;
+    padding-top: 16px;
+    padding-bottom: 8px;
   }
 
   .auth-card {
     padding: 1rem 1.2rem;
-    width: clamp(200px, 90vw, 320px);
+    max-width: 380px;
   }
 
   .title {
@@ -120,14 +122,14 @@
   text-align: center;
   font-size: 1.55rem;
   font-weight: 700;
-  color: #0d0d0d;
+  color: #36064D;
   margin-bottom: 0.15rem;
 }
 
 .subtitle {
   text-align: center;
   font-size: 0.75rem;
-  color: #6366f1;
+  color: #4f46e5;
   margin-bottom: 0.9rem;
 }
 
@@ -146,18 +148,28 @@
   align-items: center;
   gap: 0.6rem;
   padding-bottom: 0.3rem;
-  border-bottom: 1px solid rgba(210, 205, 235, 0.45);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+
+  border: none !important;
+  border-bottom: 1px solid #36064D !important;
+
+  box-shadow: none !important;
 }
 
 .input-group:focus-within {
-  border-bottom-color: #6366f1;
-  box-shadow: 0 2px 0 rgba(99, 102, 241, 0.35);
+  border-bottom: 1px solid #36064D !important;
+  box-shadow: none !important;
+}
+
+.input-group input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
 
 /* Icons */
 .icon i {
-  color: #6366f1;
+  color: #36064D !important;
 }
 
 /* Input */
@@ -166,12 +178,12 @@
   background: transparent;
   border: none;
   outline: none;
-  padding: 0.35rem 0;
-  color: #1a1a1a;
+  padding: 0.5rem 0;
   font-size: 0.9rem;
 }
 
 .input-field::placeholder {
+  color: #36064D !important;
   color: rgba(26, 26, 26, 0.5);
 }
 
@@ -196,8 +208,9 @@
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  margin-left: 12px;
   font-size: 0.85rem;
-  color: #1a1a1a;
+  color: #36064D;
 }
 
 .checkbox-input {
@@ -285,13 +298,13 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #1a1a1a;
+  color: #36064D !important;
   text-align: center;
   flex-wrap: wrap;
 }
 
 .links a {
-  color: #000000;
+  color: #36064D !important;
   text-decoration: none;
   font-weight: 500;
   border-bottom: 1px solid transparent;
@@ -299,9 +312,9 @@
 }
 
 .links a:hover {
-  color: #ffffff;
-  border-bottom-color: #ffffff;
+  color: #4f46e5 !important;
 }
+
 
 .links .divider {
   opacity: 0.6;
@@ -418,66 +431,20 @@
    SMART FORM COMPRESSION (SMALL DEVICES)
 ================================ */
 
-/* Phones & small tablets */
-@media (max-width: 480px) {
-
+/* Tablet */
+@media (max-width: 768px) {
   .auth-card {
-    padding: 1rem 1rem;
-    border-radius: 14px;
+    max-width: 350px;
+    padding: 1.3rem 1.4rem;
   }
+}
 
-  .title {
-    font-size: 1.3rem;
-    margin-bottom: 0.1rem;
-  }
-
-  .subtitle {
-    font-size: 0.7rem;
-    margin-bottom: 0.7rem;
-  }
-
-  .auth-form {
-    gap: 0.85rem;
-  }
-
-  .input-group {
-    padding-bottom: 0.2rem;
-  }
-
-  .input-field {
-    font-size: 0.85rem;
-    padding: 0.3rem 0;
-  }
-
-  .btn-primary {
-    margin-top: 0.5rem;
-    padding: 0.6rem;
-    font-size: 0.8rem;
-    min-height: 30px;
-  }
-
-  .auth-separator {
-    margin: 0.45rem 0 0.45rem;
-    font-size: 0.65rem;
-  }
-
-  .social-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-  }
-
-  .social-btn.google-wide {
-    padding: 0.7rem;
-  }
-
-  .social-btn i {
-    font-size: 0.95rem;
-  }
-
-  .links {
-    margin-top: 0.55rem;
-    font-size: 0.75rem;
+/* Mobile */
+@media (max-width: 480px) {
+  .auth-card {
+    max-width: 100%;
+    width: clamp(220px, 95vw, 320px);
+    padding: 1.2rem 1.2rem;
   }
 }
 
@@ -485,7 +452,7 @@
 </style>
 
 <div class="auth-bg">
-  <div class="auth-card">
+  <div class="auth-card fade-in">
 
     <h2 class="title">Welcome Back</h2>
     <p class="subtitle">Login to continue</p>

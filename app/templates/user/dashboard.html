@@ -82,6 +82,8 @@
     animation: float 3s ease-in-out infinite;
   }
 
+  @import url('https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css');
+
   .top-cards-section {
     width: min(95vw, 100%);
     max-width: 95vw;
@@ -94,44 +96,39 @@
     }
   }
 
+  /* Layout: show up to 8 cards in one horizontal row
+     - Each card has responsive width between 280px and 330px
+     - Prevent wrapping; we'll hide cards that don't fit via JS
+  */
   .top-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(220px, 1fr));
+    display: flex;
     gap: 1.5rem;
     width: 100%;
     align-items: stretch;
+    flex-wrap: nowrap; /* keep all cards on one line */
+    overflow: hidden; /* hide any visual overflow; JS will fully hide unfit cards */
+    justify-content: center; /* center visible cards */
   }
 
   .top-cards-grid > div {
-    width: 100%;
+    flex: 1 1 clamp(280px, 16vw, 330px); /* allow growth if space; min 280, responsive, max 330 */
+    min-width: 280px;
+    max-width: 330px;
     margin: 0;
-    min-width: 0;
     height: 380px;
     min-height: 380px;
     max-height: 380px;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+    will-change: transform, opacity;
+    background: rgba(255, 255, 255, 0.64);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 25px 55px rgba(124, 58, 237, 0.08);
+    backdrop-filter: blur(18px);
   }
 
-@media (min-width: 900px) and (max-width: 1200px) {
-  .top-cards-grid {
-    grid-template-columns: repeat(3, minmax(220px, 1fr));
-  }
-
-  .top-cards-grid > div:nth-child(4) {
-    display: none;
-  }
-}
-
-  @media (max-width: 900px) {
-    .top-cards-grid {
-      grid-template-columns: repeat(2, minmax(240px, 1fr));
-    }
-  }
-
-  @media (max-width: 640px) {
-    .top-cards-grid {
-      grid-template-columns: 1fr;
-    }
-  }
+/* Removed grid-based responsive rules for .top-cards-grid to keep single-line flex layout.
+   Width responsiveness is handled by clamp() on each card and JS will hide cards that don't fit.
+*/
 
   .vote-overlay {
     position: absolute;
@@ -228,10 +225,11 @@
 
   /* Premium Glassmorphism for Hero */
   .glass-hero {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1.5px solid rgba(168, 85, 247, 0.25);
-    box-shadow: 0 15px 60px rgba(168, 85, 247, 0.12);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(22px);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    box-shadow: 0 35px 90px rgba(124, 58, 237, 0.08);
+    transform: translateZ(0);
   }
 
   /* Stats Card Glassmorphism */
@@ -244,10 +242,10 @@
   }
 
   .stat-glass:hover {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.78);
     border-color: rgba(168, 85, 247, 0.35);
-    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.15);
-    transform: translateY(-8px);
+    box-shadow: 0 18px 42px rgba(168, 85, 247, 0.16);
+    transform: translateY(-10px) scale(1.005);
   }
 
   /* Responsibility Card */
@@ -260,10 +258,10 @@
   }
 
   .responsibility-glass:hover {
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(34, 197, 94, 0.4);
-    box-shadow: 0 12px 36px rgba(34, 197, 94, 0.15);
-    transform: translateY(-6px);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(34, 197, 94, 0.38);
+    box-shadow: 0 20px 46px rgba(34, 197, 94, 0.14);
+    transform: translateY(-10px) scale(1.002);
   }
 
   /* Species/Breed Card with Premium Glass */
@@ -339,9 +337,9 @@
   }
 
   .btn-glass:hover {
-    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.3);
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 18px 48px rgba(168, 85, 247, 0.25);
+    transform: translateY(-2px) scale(1.01);
+    border-color: rgba(255, 255, 255, 0.6);
   }
 
   .btn-glass::after {
@@ -511,8 +509,8 @@
     <div class="glass-hero rounded-3xl overflow-hidden animate-fadeIn">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 p-6 md:p-10 lg:p-14 items-center">
         <!-- Text Content -->
-        <div class="animate-slideInLeft space-y-6">
-          <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+        <div class="animate-slideInLeft space-y-6" data-aos="fade-right" data-aos-duration="1000" data-aos-offset="120">
+          <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight" data-aos="fade-down" data-aos-duration="900" data-aos-delay="120">
             <span class="gradient-text">Find Your Purrfect Pet Match</span>
           </h2>
           
@@ -535,7 +533,7 @@
         </div>
 
         <!-- Visual Element -->
-        <div class="hidden lg:flex justify-center items-center">
+        <div class="hidden lg:flex justify-center items-center" data-aos="fade-left" data-aos-duration="1050" data-aos-offset="120" data-aos-delay="120">
           <div class="relative">
             <div class="absolute inset-0 bg-gradient-to-br from-purple-200 to-purple-100 rounded-3xl blur-3xl opacity-30"></div>
             <script src="https://cdn.lordicon.com/lordicon.js"></script>
@@ -561,7 +559,10 @@
 
     <!-- TOP SPECIES GRID -->
     <div id="top-species-grid"
-         class="top-cards-grid gap-4 sm:gap-5 lg:gap-6">
+         class="top-cards-grid gap-4 sm:gap-5 lg:gap-6"
+         data-aos="fade-up"
+         data-aos-duration="1000"
+         data-aos-offset="140">
 
     {% for species in top_species %}
         {% set image_url = url_for('static', filename=species.image_url or 'uploads/no-image-attachment.jpg') %}
@@ -569,6 +570,9 @@
         <div x-data="{ menu: false }"
             data-species-name="{{ species.name.lower() }}"
             class="species-item w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
+            data-aos="zoom-in"
+            data-aos-duration="850"
+            data-aos-delay="80"
             style="height: 380px; min-height: 380px; max-height: 380px;
                     background-image: url('{{ image_url }}');
                     background-size: cover;
@@ -638,13 +642,19 @@
     </div>
 
     <div id="top-breeds-grid"
-         class="top-cards-grid gap-4 sm:gap-5 lg:gap-6">
+         class="top-cards-grid gap-4 sm:gap-5 lg:gap-6"
+         data-aos="fade-up"
+         data-aos-duration="1000"
+         data-aos-offset="140">
 
       {% for breed in top_breeds %}
         {% set image_url = url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') %}
 
         <div x-data="{ menu: false }"
             class="w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
+            data-aos="zoom-in"
+            data-aos-duration="850"
+            data-aos-delay="80"
             style="height: 400px; min-height: 400px; max-height: 400px;
                     background-image: url('{{ image_url }}');
                     background-size: cover;
@@ -713,7 +723,7 @@
         <p class="text-gray-600 text-lg">Essential practices for pet care</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up" data-aos-duration="900" data-aos-delay="120">
         <div class="responsibility-glass rounded-2xl p-6 md:p-8 group space-y-4">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xl">
@@ -906,5 +916,84 @@
     };
   }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.documentElement.classList.add('dashboard-loading');
+    if (typeof AOS !== 'undefined') {
+      AOS.init({
+        duration: 820,
+        easing: 'ease-out-cubic',
+        once: true,
+        mirror: false,
+        offset: 120,
+        delay: 80
+      });
+    }
+
+    const containers = document.querySelectorAll('#top-species-grid, #top-breeds-grid');
+
+    function updateContainer(container) {
+      if (!container) return;
+      const cards = Array.from(container.querySelectorAll(':scope > div'));
+
+      // Ensure only first 8 cards are considered; hide any beyond 8
+      cards.forEach((card, idx) => {
+        if (idx >= 8) card.style.display = 'none';
+        else card.style.display = '';
+      });
+
+      const containerWidth = container.clientWidth;
+      const gap = parseFloat(getComputedStyle(container).gap) || 24; // fallback to ~1.5rem
+      let used = 0;
+
+      for (let i = 0; i < Math.min(8, cards.length); i++) {
+        const card = cards[i];
+        card.style.display = '';
+        const w = card.getBoundingClientRect().width;
+
+        if (used + w > containerWidth + 0.5) {
+          card.style.display = 'none';
+        } else {
+          used += w + gap;
+        }
+      }
+    }
+
+    function updateAll() {
+      containers.forEach(updateContainer);
+    }
+
+    updateAll();
+    window.addEventListener('resize', updateAll);
+    window.addEventListener('load', updateAll);
+
+    window.addEventListener('load', function () {
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove('dashboard-loading');
+      });
+    });
+  });
+</script>
+
+<style>
+  /* Smooth modern page entrance animation */
+  html.dashboard-loading .min-h-screen > * {
+    opacity: 0;
+    transform: translateY(20px) scale(0.992);
+  }
+
+  html.dashboard-loading .top-cards-grid > div {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+
+  .min-h-screen > *,
+  .top-cards-grid > div {
+    transition: opacity 520ms cubic-bezier(0.22, 1, 0.36, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+</style>
 
 {% endblock %}

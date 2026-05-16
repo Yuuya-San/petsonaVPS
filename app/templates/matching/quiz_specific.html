@@ -85,6 +85,12 @@
   .quiz-page-wrapper {
     width: 95vw;
     max-width: 95vw;
+    animation: petsonaMatchingPageFade 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes petsonaMatchingPageFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @media (min-width: 1023px) {
@@ -96,7 +102,7 @@
 </style>
 
 <div class="min-h-screen flex justify-center">
-  <div class="quiz-page-wrapper min-w-0 mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6 space-y-6 sm:space-y-8">
+  <div class="quiz-page-wrapper petsona-page-fade min-w-0 mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6 space-y-6 sm:space-y-8">
 
     <!-- Breed Introduction -->
     <div class="bg-white rounded-3xl shadow-lg p-6 sm:p-8 border border-gray-100 mb-6">

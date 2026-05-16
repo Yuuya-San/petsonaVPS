@@ -115,13 +115,13 @@ def dashboard():
     # Get top 3 species by vote count
     top_species = Species.query.filter(
         Species.deleted_at.is_(None)
-    ).order_by(Species.heart_vote_count.desc()).limit(4).all()
+    ).order_by(Species.heart_vote_count.desc()).limit(8).all()
     
     # ======================== TOP BREEDS SECTION ========================
     # Get top 3 breeds by vote count
     top_breeds = Breed.query.filter(
         Breed.deleted_at.is_(None)
-    ).order_by(Breed.heart_vote_count.desc()).limit(4).all()
+    ).order_by(Breed.heart_vote_count.desc()).limit(8).all()
     
     # ======================== RECENTLY ADDED/UPDATED ========================
     # Get recently added species (last 7 days)

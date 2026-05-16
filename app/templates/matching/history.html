@@ -84,13 +84,22 @@
     width: 100%;
     min-height: 100vh;
     background: transparent;
+    display: flex;
+    justify-content: center;
   }
 
   .petsona-mh-history-container {
-    max-width: 1400px;
+    width: 95vw;
+    max-width: none;
     margin: 0 auto;
-    padding: 24px;
+    padding: 24px clamp(20px, 4vw, 40px);
     padding-top: 40px;
+    animation: petsonaMatchingPageFade 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes petsonaMatchingPageFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .petsona-mh-page-header {
@@ -168,10 +177,9 @@
       0 0 1px rgba(168, 85, 247, 0.1);
     border-radius: 1.75rem;
     overflow: hidden;
+    min-height: 600px;
     animation: fadeIn 0.5s ease-out 0.1s both;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  min-height: 600px;
   }
 
   .petsona-mh-table-container {
@@ -186,6 +194,67 @@
     gap: 0.5rem;
     padding: 1.5rem 1.25rem;
     border-top: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .pagination-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1.5rem 1.25rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .pagination-info {
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+
+  .pagination-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.4rem;
+    height: 2.4rem;
+    padding: 0 0.85rem;
+    border-radius: 0.85rem;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    background: rgba(255, 255, 255, 0.92);
+    color: #7c3aed;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: rgba(124, 58, 237, 0.12);
+    border-color: rgba(124, 58, 237, 0.4);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .pagination-btn-active {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    color: #ffffff;
+  }
+
+  .pagination-ellipsis {
+    color: #9ca3af;
+    font-size: 1rem;
+    padding: 0 0.35rem;
   }
 
   .petsona-mh-pagination-btn {
@@ -245,9 +314,13 @@
     z-index: 10;
   }
 
+  .petsona-mh-history-table th,
+  .petsona-mh-history-table td {
+    text-align: center;
+  }
+
   .petsona-mh-history-table th {
     padding: 1.25rem 1.25rem;
-    text-align: left;
     font-weight: 700;
     color: #a855f7;
     font-size: 0.9rem;
@@ -568,6 +641,21 @@
       grid-template-columns: 130px 1fr;
       gap: 1.25rem;
       font-size: 0.95rem;
+    }
+
+    .pagination-footer {
+      justify-content: center;
+    }
+
+    .pagination-info {
+      width: 100%;
+      text-align: center;
+      order: 1;
+    }
+
+    .pagination-controls {
+      justify-content: center;
+      width: 100%;
     }
 
     .petsona-mh-action-btn {
@@ -994,7 +1082,63 @@
           </tbody>
         </table>
       </div>
-      <div class="petsona-mh-pagination-container" id="paginationContainer"></div>
+      {% if pagination %}
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          Showing {{ pagination.total }} results — page {{ pagination.page }} of {{ pagination.pages }}
+        </div>
+        <div class="pagination-controls">
+          {% if pagination.has_prev %}
+            <a href="{{ url_for('matching.history', page=1) }}" class="pagination-btn" title="First page">
+              <i class="fa-solid fa-angle-double-left"></i>
+            </a>
+            <a href="{{ url_for('matching.history', page=pagination.prev_num) }}" class="pagination-btn" title="Previous page">
+              <i class="fa-solid fa-angle-left"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled><i class="fa-solid fa-angle-double-left"></i></button>
+            <button class="pagination-btn" disabled><i class="fa-solid fa-angle-left"></i></button>
+          {% endif %}
+
+          {% set start_page = pagination.page - 2 if pagination.page - 2 > 1 else 1 %}
+          {% set end_page = pagination.page + 2 if pagination.page + 2 < pagination.pages else pagination.pages %}
+
+          {% if start_page > 1 %}
+            <a href="{{ url_for('matching.history', page=1) }}" class="pagination-btn">1</a>
+            {% if start_page > 2 %}
+              <span class="pagination-ellipsis">&hellip;</span>
+            {% endif %}
+          {% endif %}
+
+          {% for p in range(start_page, end_page + 1) %}
+            {% if p == pagination.page %}
+              <span class="pagination-btn pagination-btn-active">{{ p }}</span>
+            {% else %}
+              <a href="{{ url_for('matching.history', page=p) }}" class="pagination-btn">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if end_page < pagination.pages %}
+            {% if end_page < pagination.pages - 1 %}
+              <span class="pagination-ellipsis">&hellip;</span>
+            {% endif %}
+            <a href="{{ url_for('matching.history', page=pagination.pages) }}" class="pagination-btn">{{ pagination.pages }}</a>
+          {% endif %}
+
+          {% if pagination.has_next %}
+            <a href="{{ url_for('matching.history', page=pagination.next_num) }}" class="pagination-btn" title="Next page">
+              <i class="fa-solid fa-angle-right"></i>
+            </a>
+            <a href="{{ url_for('matching.history', page=pagination.pages) }}" class="pagination-btn" title="Last page">
+              <i class="fa-solid fa-angle-double-right"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn" disabled><i class="fa-solid fa-angle-right"></i></button>
+            <button class="pagination-btn" disabled><i class="fa-solid fa-angle-double-right"></i></button>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
     </div>
 
     {% else %}
@@ -1019,153 +1163,7 @@
 <script src="https://cdn.lordicon.com/lordicon.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Enhanced table responsiveness with Alpine.js style filtering (optional)
   document.addEventListener('DOMContentLoaded', function() {
-    // Pagination setup
-    const ITEMS_PER_PAGE = 10;
-    const historyTable = document.querySelector('.petsona-mh-history-table tbody');
-    const paginationContainer = document.getElementById('paginationContainer');
-    
-    if (historyTable) {
-      const rows = Array.from(historyTable.querySelectorAll('tr'));
-      const totalPages = Math.ceil(rows.length / ITEMS_PER_PAGE);
-      let currentPage = 1;
-
-      function showPage(page) {
-        rows.forEach((row, index) => {
-          const pageNumber = Math.ceil((index + 1) / ITEMS_PER_PAGE);
-          row.classList.toggle('petsona-mh-table-row-hidden', pageNumber !== page);
-        });
-        
-        // Update pagination buttons
-        document.querySelectorAll('.petsona-mh-pagination-btn').forEach(btn => {
-          if (btn.dataset.page) {
-            btn.classList.toggle('active', parseInt(btn.dataset.page) === page);
-          }
-        });
-      }
-
-      function renderPagination() {
-        paginationContainer.innerHTML = '';
-        
-        if (totalPages <= 1) return;
-
-        // Previous button
-        const prevBtn = document.createElement('button');
-        prevBtn.className = 'petsona-mh-pagination-btn';
-        prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-        prevBtn.disabled = currentPage === 1;
-        prevBtn.addEventListener('click', () => {
-          if (currentPage > 1) {
-            currentPage--;
-            showPage(currentPage);
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        });
-        paginationContainer.appendChild(prevBtn);
-
-        // Page buttons
-        const maxVisible = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-        
-        if (endPage - startPage + 1 < maxVisible) {
-          startPage = Math.max(1, endPage - maxVisible + 1);
-        }
-
-        if (startPage > 1) {
-          const firstBtn = document.createElement('button');
-          firstBtn.className = 'petsona-mh-pagination-btn';
-          firstBtn.dataset.page = '1';
-          firstBtn.textContent = '1';
-          firstBtn.addEventListener('click', () => {
-            currentPage = 1;
-            showPage(currentPage);
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
-          paginationContainer.appendChild(firstBtn);
-
-          if (startPage > 2) {
-            const ellipsis = document.createElement('span');
-            ellipsis.className = 'petsona-mh-pagination-info';
-            ellipsis.textContent = '...';
-            paginationContainer.appendChild(ellipsis);
-          }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-          const btn = document.createElement('button');
-          btn.className = 'petsona-mh-pagination-btn';
-          btn.dataset.page = i;
-          btn.textContent = i;
-          if (i === currentPage) btn.classList.add('active');
-          btn.addEventListener('click', () => {
-            currentPage = i;
-            showPage(currentPage);
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
-          paginationContainer.appendChild(btn);
-        }
-
-        if (endPage < totalPages) {
-          if (endPage < totalPages - 1) {
-            const ellipsis = document.createElement('span');
-            ellipsis.className = 'petsona-mh-pagination-info';
-            ellipsis.textContent = '...';
-            paginationContainer.appendChild(ellipsis);
-          }
-
-          const lastBtn = document.createElement('button');
-          lastBtn.className = 'petsona-mh-pagination-btn';
-          lastBtn.dataset.page = totalPages;
-          lastBtn.textContent = totalPages;
-          lastBtn.addEventListener('click', () => {
-            currentPage = totalPages;
-            showPage(currentPage);
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
-          paginationContainer.appendChild(lastBtn);
-        }
-
-        // Next button
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'petsona-mh-pagination-btn';
-        nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-        nextBtn.disabled = currentPage === totalPages;
-        nextBtn.addEventListener('click', () => {
-          if (currentPage < totalPages) {
-            currentPage++;
-            showPage(currentPage);
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        });
-        paginationContainer.appendChild(nextBtn);
-
-        // Page info
-        const info = document.createElement('span');
-        info.className = 'petsona-mh-pagination-info';
-        info.textContent = `Page ${currentPage} of ${totalPages}`;
-        paginationContainer.appendChild(info);
-      }
-
-      showPage(1);
-      renderPagination();
-    }
-
-    // Mobile table card enhancement
-    const historyCards = document.querySelectorAll('.petsona-mh-history-card');
-    historyCards.forEach(card => {
-      if (window.innerWidth <= 768) {
-        card.style.boxShadow = '0 8px 24px rgba(168, 85, 247, 0.12)';
-      }
-    });
-
-    // Smooth scroll behavior
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
@@ -1179,15 +1177,11 @@
       });
     });
 
-    // Add loading state to buttons
     document.querySelectorAll('.petsona-mh-action-btn, .petsona-mh-no-data-btn').forEach(button => {
       button.addEventListener('click', function() {
-        const originalText = this.innerHTML;
         this.disabled = true;
         this.style.opacity = '0.7';
         this.style.pointerEvents = 'none';
-        
-        // Re-enable after navigation (in case it fails)
         setTimeout(() => {
           this.disabled = false;
           this.style.opacity = '1';
@@ -1195,12 +1189,11 @@
         }, 2000);
       });
     });
+  });
 
-    // Add fade-in animation on page load
-    window.addEventListener('load', function() {
-      document.querySelectorAll('.petsona-mh-stat-card, .petsona-mh-history-card, .petsona-mh-no-data-section').forEach((el, index) => {
-        el.style.animation = `fadeIn 0.5s ease-out ${index * 0.1}s both`;
-      });
+  window.addEventListener('load', function() {
+    document.querySelectorAll('.petsona-mh-stat-card, .petsona-mh-history-card, .petsona-mh-no-data-section').forEach((el, index) => {
+      el.style.animation = `fadeIn 0.5s ease-out ${index * 0.1}s both`;
     });
   });
 </script>

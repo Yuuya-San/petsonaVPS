@@ -37,14 +37,35 @@
     <style>
     [x-cloak] { display: none !important; }
     
+    /* ================= HIDE SCROLLBARS (X & Y) ACROSS ALL DEVICES - SCROLLING ENABLED ================= */
     ::-webkit-scrollbar {
-      width: 0;
+      width: 0 !important;
+      height: 0 !important;
     }
+    
+    ::-webkit-scrollbar-thumb {
+      background: transparent !important;
+      opacity: 0 !important;
+      display: none !important;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent !important;
+      opacity: 0 !important;
+      display: none !important;
+    }
+    
     * {
       scrollbar-width: none !important;
+      scrollbar-color: transparent transparent !important;
+      -ms-overflow-style: none !important;
+    }
+    
+    *::-webkit-scrollbar {
+      width: 0 !important;
+      height: 0 !important;
     }
     </style>
-    
     <!-- Font Awesome CDN -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -53,30 +74,7 @@
         referrerpolicy="no-referrer" />
 
   {% block styles %}{% endblock %}
-
-  <style>
-    /* ================= SCROLLBAR STYLING ================= */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #8C00FF;
-      border-radius: 4px;
-      transition: background 0.3s ease;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #7a00d9;
-    }
-    /* Firefox scrollbar */
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: #8C00FF transparent;
-    }
-
+<style>
     /* ================= FULL PAGE GLASSMORPHISM ================= */
     html, body {
       margin: 0;

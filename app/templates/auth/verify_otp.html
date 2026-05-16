@@ -8,12 +8,12 @@
 ================================ */
 .auth-bg {
   position: relative;
-  height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: clamp(2rem, 6vh, 3.2rem) 1rem;
+  align-items: center;
+  padding: 58px 16px 16px 16px;
 }
 
 .auth-bg::before {
@@ -48,13 +48,14 @@
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
   padding: 2.2rem;
+  margin-top: -116px !important;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(99, 102, 241, 0.08) 100%);
-  backdrop-filter: blur(20px) saturate(130%);
-  border: 1px solid rgba(140, 0, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(140, 0, 255, 0.08) inset;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(99, 102, 241, 0.12) 100%);
+  backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(140, 0, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(140, 0, 255, 0.1) inset;
 }
 
 /* ===============================
@@ -62,18 +63,19 @@
 ================================ */
 .title {
   text-align: center;
-  font-size: 1.85rem;
+  font-size: 1.55rem;
   font-weight: 700;
-  color: #0d0d0d;
-  margin-bottom: 0.3rem;
+  color: #36064D;
+  margin-bottom: 0.15rem;
 }
 
 .subtitle {
   text-align: center;
-  font-size: 0.9rem;
-  color: #6366f1;
-  margin-bottom: 1.8rem;
+  font-size: 0.75rem;
+  color: #4f46e5;
+  margin-bottom: 0.9rem;
 }
+
 
 /* ===============================
    FORM
@@ -84,34 +86,48 @@
   gap: 1.4rem;
 }
 
+/* Underline input group */
 .input-group {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding-bottom: 0.3rem;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.25);
+
+  border: none !important;
+  border-bottom: 1px solid #36064D !important;
+
+  box-shadow: none !important;
 }
 
 .input-group:focus-within {
-  border-bottom-color: #6366f1;
-  box-shadow: 0 2px 0 rgba(99, 102, 241, 0.35);
+  border-bottom: 1px solid #36064D !important;
+  box-shadow: none !important;
 }
 
+.input-group input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Icons */
 .icon i {
-  color: #6366f1;
+  color: #36064D !important;
 }
 
+/* Input */
 .input-field {
   flex: 1;
   background: transparent;
   border: none;
   outline: none;
-  padding: 0.4rem 0;
-  color: #1a1a1a;
-  font-size: 0.95rem;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
 }
 
 .input-field::placeholder {
+  color: #36064D !important;
   color: rgba(26, 26, 26, 0.5);
 }
 
@@ -119,52 +135,67 @@
    BUTTON
 ================================ */
 .btn-primary {
-  width: 100%;
-  margin-top: 1.2rem;
-  padding: 0.95rem;
-  border-radius: 14px;
+  margin-top: 0.6rem;
+  padding: 0.7rem;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 34px;
+
   background: linear-gradient(135deg, #6366f1, #8C00FF);
   color: #ffffff;
   font-weight: 600;
-  font-size: 0.95rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.85rem;
+
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.35);
-  transform: translateY(-2px);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  background: linear-gradient(135deg, #a5a5d8, #b39ddb);
+  box-shadow: none;
+  transform: none;
 }
 
 /* ===============================
    LINKS
 ================================ */
 .links {
-  margin-top: 1.6rem;
+  margin-top: 0.8rem;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
-  color: #1a1a1a;
+  font-size: 0.8rem;
+  color: #36064D;
   text-align: center;
   flex-wrap: wrap;
 }
 
 .links a {
-  color: #000000;
+  color: #36064D;
   text-decoration: none;
   font-weight: 500;
 }
 
 .links a:hover {
-  color: #ffffff;
+  color: #4f46e5;
   text-decoration: underline;
 }
 </style>

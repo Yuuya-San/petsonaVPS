@@ -41,6 +41,42 @@
     animation: slideDown 0.4s ease-out;
   }
 
+  /* Card entrance, responsive grid and CTA handling (copied from species index) */
+  .species-item {
+    transition: all 0.3s ease;
+    opacity: 0;
+    animation: cardEntrance 0.7s ease-out forwards;
+  }
+
+  @keyframes cardEntrance {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .species-item.hidden { display: none; }
+
+  .species-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .species-card-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; }
+
+  .species-action-button { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .species-action-button .cta-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .species-action-button.compact { font-size: 0.78rem; padding-top: 0.45rem; padding-bottom: 0.45rem; }
+  .species-action-button.compact-xs { font-size: 0.72rem; padding-top: 0.35rem; padding-bottom: 0.35rem; }
+  @media (max-width: 420px) { .species-card-actions .species-action-button { flex-basis: 100%; } }
+
   /* Modern Modal Styles */
   .modal-overlay {
     position: fixed;
@@ -393,7 +429,7 @@
     transform: translateY(-8px);
   }
 
-  .merchant-vote-overlay {
+  .vote-overlay {
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -409,7 +445,7 @@
     max-width: none;
   }
 
-  .merchant-vote-button {
+  .vote-button {
     pointer-events: auto;
     display: inline-flex;
     align-items: center;
@@ -427,22 +463,22 @@
     backdrop-filter: blur(16px);
   }
 
-  .merchant-vote-button:hover {
+  .vote-button:hover {
     transform: translateY(-1px) scale(1.03);
     box-shadow: 0 18px 35px rgba(99, 102, 241, 0.18);
   }
 
-  .merchant-vote-button.voted {
+  .vote-button.voted {
     background: rgba(167, 139, 250, 0.95);
     color: #ffffff;
     border-color: rgba(167, 139, 250, 0.8);
   }
 
-  .merchant-vote-button.voted lord-icon {
+  .vote-button.voted lord-icon {
     filter: drop-shadow(0 0 0.35rem rgba(124, 58, 237, 0.2));
   }
 
-  .merchant-vote-count {
+  .vote-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -454,21 +490,21 @@
     letter-spacing: 0.01em;
   }
 
-  .merchant-vote-button:not(.voted) .merchant-vote-count {
+  .vote-button:not(.voted) .vote-count {
     background: rgba(167, 139, 250, 0.9);
     color: #ffffff;
   }
 
-  .merchant-vote-button.voted .merchant-vote-count {
+  .vote-button.voted .vote-count {
     background: rgba(255, 255, 255, 0.9);
     color: #7c3aed;
   }
 
-  .merchant-vote-button:not(.voted) lord-icon {
+  .vote-button:not(.voted) lord-icon {
     filter: drop-shadow(0 0 0.15rem rgba(124, 58, 237, 0.1));
   }
 
-  .merchant-vote-button.voted lord-icon {
+  .vote-button.voted lord-icon {
     filter: drop-shadow(0 0 0.25rem rgba(255, 255, 255, 0.42));
   }
 
@@ -564,12 +600,6 @@
     max-height: 200px;
     overflow-y: auto;
     border: 1px solid rgba(168, 85, 247, 0.1);
-  }
-
-  .description-text {
-    word-break: break-word;
-    white-space: normal;
-    line-height: 1.4;
   }
 
   /* Form Field Alignment Styles */
@@ -739,7 +769,7 @@
           return 'status-medium';
         }
       }"
-     class="w-[95vw] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
+     class="w-[95vw] mx-auto px-2 sm:px-4 lg:px-6 py-6 space-y-10">
 
   <!-- 🔷 BREEDS SECTION -->
   <div>
@@ -766,7 +796,7 @@
 
 
     {% if breeds %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-4 sm:gap-5 lg:gap-6">
+    <div id="species-grid" class="species-grid gap-4 sm:gap-5 lg:gap-6">
 
 
        {% for breed in breeds %}
@@ -774,17 +804,19 @@
         {% set image_url = url_for('static', filename=breed.image_url or 'uploads/no-image-attachment.jpg') %}
 
         <div x-data="{ menu: false, confirm: false }"
-            class="w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
-            style="height: 400px; min-height: 400px; max-height: 400px;
-                    background-image: url('{{ image_url }}');
-                    background-size: cover;
-                    background-position: center;
-                    background-repeat: no-repeat;">
+            class="species-item w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
+            style="height: 400px; min-height: 400px; max-height: 400px; max-width: 340px;
+              background-image: url('{{ image_url }}');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              justify-self: center;
+              animation-delay: {{ loop.index0 * 0.05 }}s;">
 
-          <div class="merchant-vote-overlay">
+          <div class="vote-overlay">
             <button
               type="button"
-              class="merchant-vote-button breed-vote-button{% if breed.id in voted_breed_ids %} voted{% endif %}"
+              class="vote-button breed-vote-button{% if breed.id in voted_breed_ids %} voted{% endif %}"
               data-breed-id="{{ breed.id }}"
               data-voted="{{ 'true' if breed.id in voted_breed_ids else 'false' }}"
               aria-label="Vote for {{ breed.name }}"
@@ -796,13 +828,13 @@
                 colors="{{ 'primary:#ffffff,secondary:#ffffff' if breed.id in voted_breed_ids else 'primary:#d4d1fa,secondary:#c69cf4' }}"
                 style="width:34px;height:28px">
               </lord-icon>
-              <span class="merchant-vote-count" aria-live="polite">{{ breed.heart_vote_count or 0 }}</span>
+              <span class="vote-count" aria-live="polite">{{ breed.heart_vote_count or 0 }}</span>
             </button>
           </div>
 
         <!-- CONTENT -->
         <div class="p-4 sm:p-5 flex flex-col flex-1">
-          
+
           <!-- ACTION BUTTONS CONTAINER -->
           <div class="mt-auto flex gap-2">
 
@@ -810,8 +842,8 @@
             <button 
                 @click="selectedBreed = JSON.parse($el.getAttribute('data-breed')); viewModal = true;"
                 data-breed='{{ breed.as_dict|tojson|replace("'", "&apos;")|safe }}'
-              class="flex-1 text-center
-                    bg-white/30 backdrop-blur-md
+              class="species-action-button flex-1 text-center
+                bg-white/30 backdrop-blur-md
                     border border-indigo-200/40
                     text-indigo-800
                     py-2 sm:py-2.5 px-3
@@ -826,12 +858,12 @@
                     hover:scale-[1.02]
                     active:scale-100
                     focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                Learn More
+              <span class="cta-text">Learn More</span>
             </button>
 
             <!-- MATCH BUTTON -->
             <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
-            class="flex-1 text-center
+            class="species-action-button flex-1 text-center
                     bg-white/20 backdrop-blur-md
                     border border-purple-200/40
                     text-purple-800
@@ -847,7 +879,7 @@
                     hover:scale-[1.02]
                     active:scale-100
                     focus:outline-none focus:ring-2 focus:ring-purple-300">
-              Match Me
+              <span class="cta-text">Match Me</span>
             </a>
 
           </div>
@@ -869,12 +901,11 @@
   <div x-show="viewModal" x-transition.opacity
        class="modal-overlay"
        @click.self="viewModal=false; selectedBreed=null">
-    <div class="modal-content-wrapper">
+    <div class="modal-content-wrapper" x-show="viewModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100" x-cloak>
 
       <!-- HEADER with Close Button -->
       <div class="modal-header">
         <h3 class="modal-header-title">
-          <i class="fa-solid fa-dna"></i>
           Breed Profile
         </h3>
         <button type="button" class="modal-close-btn" @click="viewModal=false; selectedBreed=null" title="Close">
@@ -1074,7 +1105,7 @@
                   <i class="fa-solid fa-dog text-lg" :class="selectedBreed?.dog_friendly ? 'text-green-600' : 'text-red-500'"></i>
                   <div>
                     <div class="font-semibold text-gray-900 text-sm">Other Dogs</div>
-                    <div class="text-xs text-gray-600 description-text">Safe to live with other dog breeds</div>
+                    <div class="text-xs text-gray-600">Safe to live with other dog breeds</div>
                   </div>
                 </div>
                 <span :class="selectedBreed?.dog_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge ml-2">
@@ -1089,7 +1120,7 @@
                   <i class="fa-solid fa-cat text-lg" :class="selectedBreed?.cat_friendly ? 'text-green-600' : 'text-red-500'"></i>
                   <div>
                     <div class="font-semibold text-gray-900 text-sm">Cats</div>
-                    <div class="text-xs text-gray-600 description-text">Can coexist peacefully with cats</div>
+                    <div class="text-xs text-gray-600">Can coexist peacefully with cats</div>
                   </div>
                 </div>
                 <span :class="selectedBreed?.cat_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge ml-2">
@@ -1104,7 +1135,7 @@
                   <i class="fa-solid fa-heart text-lg" :class="selectedBreed?.small_pet_friendly ? 'text-green-600' : 'text-red-500'"></i>
                   <div>
                     <div class="font-semibold text-gray-900 text-sm">Small Pets</div>
-                    <div class="text-xs text-gray-600 description-text">Safe with rabbits, guinea pigs, hamsters, etc.</div>
+                    <div class="text-xs text-gray-600">Safe with rabbits, guinea pigs, hamsters, etc.</div>
                   </div>
                 </div>
                 <span :class="selectedBreed?.small_pet_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge ml-2">
@@ -1119,7 +1150,7 @@
                   <i class="fa-solid fa-lungs text-lg" :class="selectedBreed?.allergy_friendly ? 'text-green-600' : 'text-red-500'"></i>
                   <div>
                     <div class="font-semibold text-gray-900 text-sm">Allergy Friendly</div>
-                    <div class="text-xs text-gray-600 description-text">Suitable for people with allergies</div>
+                    <div class="text-xs text-gray-600">Suitable for people with allergies</div>
                   </div>
                 </div>
                 <span :class="selectedBreed?.allergy_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge ml-2">
@@ -1134,7 +1165,7 @@
                   <i class="fa-solid fa-child text-lg" :class="selectedBreed?.child_friendly ? 'text-green-600' : 'text-red-500'"></i>
                   <div>
                     <div class="font-semibold text-gray-900 text-sm">Children</div>
-                    <div class="text-xs text-gray-600 description-text">Safe and gentle with kids of all ages</div>
+                    <div class="text-xs text-gray-600">Safe and gentle with kids of all ages</div>
                   </div>
                 </div>
                 <span :class="selectedBreed?.child_friendly ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="status-badge ml-2">
@@ -1263,7 +1294,7 @@
             <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3 flex items-center gap-2">
               <i class="fa-solid fa-heartbeat text-red-500"></i> Healthcare Information
             </h3>
-            <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-orange-200 border-l-4 border-l-orange-600">
+            <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-4 border border-red-200 border-l-4 border-l-red-600">
               <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line" x-text="selectedBreed?.healthcare_info"></p>
             </div>
           </div>
@@ -1275,15 +1306,6 @@
           <span class="text-sm">Review all information above for complete breed details.</span>
         </div>
 
-      </div>
-
-      <!-- FOOTER BUTTONS -->
-      <div class="modal-footer">
-        <button @click="viewModal=false; selectedBreed=null"
-                class="modal-btn modal-btn-secondary">
-          <i class="fa-solid fa-xmark"></i>
-          Close
-        </button>
       </div>
 
     </div>
@@ -1315,7 +1337,7 @@
 
   async function toggleBreedVote(button) {
     const breedId = button.dataset.breedId;
-    const voteCountEl = button.querySelector('.merchant-vote-count');
+    const voteCountEl = button.querySelector('.vote-count');
     if (!breedId || !voteCountEl) return;
 
     button.disabled = true;
@@ -1358,7 +1380,7 @@
       if (!breedId) return;
 
       socketManager.watchBreed(breedId, (voteCount) => {
-        const voteCountEl = document.querySelector(`.breed-vote-button[data-breed-id="${breedId}"] .merchant-vote-count`);
+        const voteCountEl = document.querySelector(`.breed-vote-button[data-breed-id="${breedId}"] .vote-count`);
         if (voteCountEl) {
           voteCountEl.textContent = voteCount;
         }
@@ -1369,6 +1391,38 @@
   document.addEventListener('DOMContentLoaded', () => {
     initializeBreedVoteButtons();
     registerBreedVoteSocketHandlers();
+
+    // Reduce CTA font-size progressively if label overflows the button
+    function shortenCTAIfNeeded(btn) {
+      const textEl = btn.querySelector('.cta-text') || btn;
+      // remove any compact classes
+      btn.classList.remove('compact', 'compact-xs');
+
+      // store original text so we can restore it if needed
+      if (!btn.__originalText) btn.__originalText = textEl.textContent.trim();
+      textEl.textContent = btn.__originalText;
+
+      requestAnimationFrame(() => {
+        if (textEl.scrollWidth > textEl.clientWidth + 1) {
+          btn.classList.add('compact');
+          requestAnimationFrame(() => {
+            if (textEl.scrollWidth > textEl.clientWidth + 1) {
+              btn.classList.add('compact-xs');
+            }
+          });
+        }
+      });
+    }
+
+    const ctaButtons = Array.from(document.querySelectorAll('.species-action-button'));
+    ctaButtons.forEach(btn => shortenCTAIfNeeded(btn));
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => ctaButtons.forEach(b => shortenCTAIfNeeded(b)));
+      ctaButtons.forEach(b => ro.observe(b));
+    } else {
+      window.addEventListener('resize', () => ctaButtons.forEach(b => shortenCTAIfNeeded(b)));
+    }
   });
 </script>
 

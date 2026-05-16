@@ -268,32 +268,30 @@ def breed_match(breed_id):
 @limiter.exempt
 @login_required
 def history():
-    """Display all match history for current user"""
+    """Display paginated match history for current user"""
     if not current_user.is_authenticated:
-        # Show anonymous user results
         return redirect(url_for('matching.quiz'))
-    
+
+    page = request.args.get('page', 1, type=int)
     try:
-        matches = MatchHistory.query.filter_by(user_id=current_user.id).order_by(MatchHistory.created_at.desc()).all()
-        print(f"[HISTORY] Found {len(matches)} matches for user {current_user.id}")
-        
+        pagination = MatchHistory.query.filter_by(user_id=current_user.id)
+        pagination = pagination.order_by(MatchHistory.created_at.desc()).paginate(page=page, per_page=10, error_out=False)
+
         matches_data = []
-        for match in matches:
+        for match in pagination.items:
             try:
-                match_dict = match.as_dict
-                matches_data.append(match_dict)
+                matches_data.append(match.as_dict)
             except Exception as e:
                 print(f"[HISTORY ERROR] Failed to convert match {match.id}: {e}")
                 import traceback
                 traceback.print_exc()
-        
-        print(f"[HISTORY] Returning {len(matches_data)} matches to template")
-        return render_template("matching/history.html", matches=matches_data)
+
+        return render_template("matching/history.html", matches=matches_data, pagination=pagination)
     except Exception as e:
         print(f"[HISTORY ERROR] Exception in history route: {e}")
         import traceback
         traceback.print_exc()
-        return render_template("matching/history.html", matches=[])
+        return render_template("matching/history.html", matches=[], pagination=None)
 
 
 # --------------------------

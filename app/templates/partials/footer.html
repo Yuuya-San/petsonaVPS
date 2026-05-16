@@ -12,10 +12,27 @@
 </footer>
 
 <style>
+:root {
+  --lavender-main: #8b5cf6;
+  --lavender-glow: rgba(139,92,246,.45);
+  --lavender-soft: rgba(139,92,246,.18);
+  --lavender-dark: #6c54d9;
+  --gray-main: #1f2937;
+  --white-soft: rgba(255,255,255,.8);
+  --white-softer: rgba(255,255,255,.6);
+
+  --glass-bg: rgba(255,255,255,.15);
+  --glass-border: rgba(255,255,255,.25);
+  --glass-shadow: rgba(139,92,246,.1);
+  --page-horizontal-padding: clamp(1rem, 4vw, 3.5rem);
+}
+
 /* ================= GLASS FOOTER ================= */
 .glass-footer {
+  box-sizing: border-box;
   width: 100%;
   margin-top: 2.5rem;
+  padding-inline: var(--page-horizontal-padding);
   background: linear-gradient(
     135deg,
     rgba(139, 92, 246, 0.06),
@@ -29,9 +46,11 @@
 
 /* INNER WRAP */
 .footer-inner {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100vw;
+    margin: 0;
+    padding: 1.5rem clamp(2rem, 4vw, 4rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -47,7 +66,6 @@
   color: var(--gray-main);
   font-size: 0.95rem;
   white-space: nowrap;
-  margin-left: 1rem;
 }
 
 .footer-brand i {
@@ -62,7 +80,6 @@
   color: #64748b;
   font-weight: 500;
   text-align: right;
-  margin-right: 1rem;
 }
 
 /* ================= MOBILE (max-width: 640px) ================= */
@@ -75,26 +92,24 @@
     flex-direction: column;
     text-align: center;
     gap: 0.8rem;
-    padding: 1.2rem 1.5rem;
+    padding: 1.2rem clamp(1rem, 3.5vw, 2rem);
   }
 
   .footer-brand {
     justify-content: center;
     font-size: 0.9rem;
-    margin-left: 0;
   }
 
   .footer-text {
     text-align: center;
     font-size: 0.75rem;
-    margin-right: 0;
   }
 }
 
 /* ================= TABLET (641px - 1023px) ================= */
 @media (min-width: 641px) and (max-width: 1023px) {
   .footer-inner {
-    padding: 1.4rem 5rem;
+    padding: 1.4rem clamp(1.5rem, 4vw, 3.5rem);
   }
 
   .footer-brand {
@@ -109,7 +124,7 @@
 /* ================= LARGE TABLET LANDSCAPE (1000px - 1023px) ================= */
 @media (min-width: 1000px) and (max-width: 1023px) {
   .footer-inner {
-    padding: 1.4rem 5rem;
+    padding: 1.4rem clamp(1.5rem, 4vw, 3.5rem);
   }
 }
 
@@ -120,7 +135,7 @@
   }
 
   .footer-inner {
-    padding: 1.6rem 3rem;
+    padding: 1.6rem clamp(2rem, 4vw, 4rem);
     gap: 1.5rem;
   }
 

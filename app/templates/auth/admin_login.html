@@ -8,12 +8,12 @@
 ================================ */
 .auth-bg {
   position: relative;
-  height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: clamp(2rem, 6vh, 3.2rem) 1rem;
+  align-items: center;
+  padding: 58px 16px 16px 16px;
   overflow-x: hidden;
 }
 
@@ -48,20 +48,22 @@
 .auth-card {
   position: relative;
   z-index: 3;
-  width: clamp(280px, 85vw, 400px);
+  width: 100%;
+  max-width: 400px;
   padding: 1.4rem 1.5rem;
   border-radius: 20px;
+  margin-top: -116px !important;
 
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(99, 102, 241, 0.08) 100%
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(99, 102, 241, 0.12) 100%
   );
-  backdrop-filter: blur(20px) saturate(130%);
-  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
 
-  border: 1px solid rgba(140, 0, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(140, 0, 255, 0.08) inset;
+  border: 1px solid rgba(140, 0, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(140, 0, 255, 0.1) inset;
 }
 
 /* ===============================
@@ -71,15 +73,15 @@
   text-align: center;
   font-size: 1.55rem;
   font-weight: 700;
-  color: #0d0d0d;
-  margin-bottom: 0.2rem;
+  color: #36064D;
+  margin-bottom: 0.15rem;
 }
 
 .subtitle {
   text-align: center;
   font-size: 0.75rem;
-  color: #6366f1;
-  margin-bottom: 1.2rem;
+  color: #4f46e5;
+  margin-bottom: 0.9rem;
 }
 
 /* ===============================
@@ -91,47 +93,52 @@
   gap: 1.1rem;
 }
 
+/* Underline input group */
 .input-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid rgba(210, 205, 235, 0.45);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  gap: 0.6rem;
+  padding-bottom: 0.3rem;
+
+  border: none !important;
+  border-bottom: 1px solid #36064D !important;
+
+  box-shadow: none !important;
 }
 
 .input-group:focus-within {
-  border-bottom-color: #6366f1;
-  box-shadow: 0 2px 0 rgba(99, 102, 241, 0.35);
+  border-bottom: 1px solid #36064D !important;
+  box-shadow: none !important;
 }
 
+.input-group input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Icons */
 .icon i {
-  color: #6366f1;
+  color: #36064D !important;
 }
 
+/* Input */
 .input-field {
   flex: 1;
   background: transparent;
   border: none;
   outline: none;
-  padding: 0.3rem 0;
-  color: #1a1a1a;
+  padding: 0.5rem 0;
   font-size: 0.9rem;
 }
 
 .input-field::placeholder {
+  color: #36064D !important;
   color: rgba(26, 26, 26, 0.5);
 }
 
-/* Status icons (valid / invalid) */
-.input-status {
-  font-size: 0.85rem;
-  color: #6366f1;
-}
-
-/* ===============================
-   PASSWORD TOGGLE
-================================ */
+/* Toggle password */
 .toggle-password {
   background: none;
   border: none;
@@ -152,8 +159,9 @@
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  margin-left: 12px;
   font-size: 0.85rem;
-  color: #1a1a1a;
+  color: #36064D;
 }
 
 .checkbox-input {
@@ -236,16 +244,19 @@
    LINKS
 ================================ */
 .links {
-  margin-top: 1.2rem;
+  margin-top: 0.8rem;
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
-  color: #1a1a1a;
+  font-size: 0.85rem;
+  color: #36064D !important;
+  text-align: center;
+  flex-wrap: wrap;
 }
 
 .links a {
-  color: #000000;
+  color: #36064D !important;
   text-decoration: none;
   font-weight: 500;
   border-bottom: 1px solid transparent;
@@ -253,10 +264,13 @@
 }
 
 .links a:hover {
-  color: #ffffff;
-  border-bottom-color: #ffffff;
+  color: #4f46e5 !important;
 }
 
+
+.links .divider {
+  opacity: 0.6;
+}
 /* ===============================
    SOCIAL LOGIN (ICON ONLY)
 ================================ */

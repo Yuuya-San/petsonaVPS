@@ -493,21 +493,56 @@
         display: none !important;
     }
 
+    /* Page Load Animations */
+    @keyframes pageEntranceFade {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUpIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     .container-fluid {
-        max-width: 85vw;
+        animation: pageEntranceFade 0.6s ease-out forwards;
+    }
+
+    .profile-header {
+        animation: slideUpIn 0.8s ease-out 0.1s forwards;
+    }
+
+    .profile-header {
+        opacity: 0;
+    }
+
+    .container-fluid {
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 30px 15px;
+        padding: 30px 20px;
     }
 
     @media (max-width: 1024px) {
         .container-fluid {
-            max-width: 90vw;
+            max-width: 95%;
+            padding: 25px 15px;
         }
     }
 
     @media (max-width: 768px) {
         .container-fluid {
-            max-width: 95vw;
+            max-width: 100%;
+            padding: 20px 10px;
         }
     }
 
@@ -800,8 +835,11 @@
     </div>
 </div>
 
+{% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+// Custom animations on page load and mode switching
+// relocated to scripts block so jQuery is available before page scripts run
+window.addEventListener('DOMContentLoaded', function() {
     const viewMode = document.getElementById('view-mode');
     const editMode = document.getElementById('edit-mode');
     const editToggleBtn = document.getElementById('edit-toggle-btn');
@@ -812,16 +850,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadPreview = document.getElementById('upload-preview');
     const previewImg = document.getElementById('preview-img');
 
+    // Trigger animations on page load
+    window.addEventListener('load', function() {
+        const profileContent = document.querySelectorAll('.profile-content .info-card');
+        profileContent.forEach((card, index) => {
+            card.style.animation = `slideUpIn 0.8s ease-out ${0.2 + (index * 0.1)}s forwards`;
+            card.style.opacity = '0';
+        });
+    });
+
     // Toggle view/edit mode
     editToggleBtn.addEventListener('click', function() {
         viewMode.classList.toggle('hidden');
         editMode.classList.toggle('hidden');
+        // Retrigger animations when switching to edit mode
+        if (!editMode.classList.contains('hidden')) {
+            const formSections = editMode.querySelectorAll('.edit-form-section');
+            formSections.forEach((section, index) => {
+                section.style.animation = 'none';
+                section.offsetHeight; // Trigger reflow
+                section.style.animation = `slideUpIn 0.8s ease-out ${0.2 + (index * 0.1)}s forwards`;
+                section.style.opacity = '0';
+            });
+        }
     });
 
     cancelBtn.addEventListener('click', function() {
         viewMode.classList.remove('hidden');
         editMode.classList.add('hidden');
         document.getElementById('edit-form').reset();
+        // Retrigger animations when switching back to view mode
+        const profileContent = document.querySelectorAll('.profile-content .info-card');
+        profileContent.forEach((card, index) => {
+            card.style.animation = 'none';
+            card.offsetHeight; // Trigger reflow
+            card.style.animation = `slideUpIn 0.8s ease-out ${0.2 + (index * 0.1)}s forwards`;
+            card.style.opacity = '0';
+        });
     });
 
     // Avatar selection
@@ -858,6 +923,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Page visibility - retrigger animations when page becomes visible
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            // Retrigger animations
+        }
+    });
+
     // Drag and drop
     const uploadArea = document.querySelector('.upload-area');
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -893,3 +965,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+{% endblock %}
+

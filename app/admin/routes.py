@@ -18,7 +18,7 @@ from app.utils.audit import log_event, user_snapshot
 import csv
 import json
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import timezone, UTC # pyright: ignore[reportMissingModuleSource]
 from app.utils.activity_formatter import format_activity
 from app.utils.activity_config import RECENT_ACTIVITY_EVENTS
@@ -118,14 +118,30 @@ def users():
         abort(403)
 
     role = request.args.get("role")
+    search = request.args.get("search", "", type=str).strip()
     page = request.args.get("page", 1, type=int)
 
     # Query only active (non-deleted) users sorted by first name
-    query = User.query.filter_by(is_active=True).order_by(User.first_name)
+    query = User.query.filter_by(is_active=True)
 
     # Filter by role if selected
     if role:
         query = query.filter_by(role=role)
+
+    # Filter by search term across all pages
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                User.email.ilike(search_term),
+                User.first_name.ilike(search_term),
+                User.last_name.ilike(search_term),
+                func.concat(User.first_name, ' ', User.last_name).ilike(search_term),
+                func.concat(User.last_name, ' ', User.first_name).ilike(search_term)
+            )
+        )
+
+    query = query.order_by(User.first_name)
 
     # Paginate 10 users per page
     users_paginated = query.paginate(page=page, per_page=10)
@@ -137,7 +153,8 @@ def users():
         "admin/users.html",
         users=users_paginated,
         roles=roles,
-        selected_role=role
+        selected_role=role,
+        search=search
     )
 
 @bp.route("/users/archive")
@@ -149,9 +166,22 @@ def archive_users():
         abort(403)
 
     page = request.args.get("page", 1, type=int)
+    search = request.args.get("search", "", type=str)
 
     # Query soft-deleted users sorted by deletion date (newest first)
-    query = User.query.filter_by(is_active=False).order_by(User.deleted_at.desc())
+    query = User.query.filter_by(is_active=False)
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                User.email.ilike(search_term),
+                func.concat(User.first_name, ' ', User.last_name).ilike(search_term),
+                func.concat(User.last_name, ' ', User.first_name).ilike(search_term)
+            )
+        )
+
+    query = query.order_by(User.deleted_at.desc())
 
     # Paginate 10 users per page
     users_paginated = query.paginate(page=page, per_page=10)
@@ -167,7 +197,8 @@ def archive_users():
 
     return render_template(
         "admin/archive_users.html",
-        users=users_paginated
+        users=users_paginated,
+        search=search
     )
 
 @bp.route("/users/restore/<int:id>", methods=["POST"])
@@ -340,12 +371,38 @@ def audit_logs():
 
     page = request.args.get("page", 1, type=int)
     per_page = 10
+    search = request.args.get("search", "", type=str).strip()
+    start_date = request.args.get("start_date", type=str)
+    end_date = request.args.get("end_date", type=str)
 
-    # Fetch non-deleted logs sorted by timestamp (newest first) with pagination
+    query = AuditLog.query.filter_by(deleted_at=None)
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                AuditLog.event.ilike(search_term),
+                AuditLog.actor_email.ilike(search_term),
+                cast(AuditLog.actor_id, db.String).ilike(search_term),
+            )
+        )
+
+    if start_date:
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d")
+            query = query.filter(AuditLog.timestamp >= start)
+        except ValueError:
+            pass
+
+    if end_date:
+        try:
+            end = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(microseconds=1)
+            query = query.filter(AuditLog.timestamp <= end)
+        except ValueError:
+            pass
+
     pagination = (
-        AuditLog.query
-        .filter_by(deleted_at=None)
-        .order_by(AuditLog.timestamp.desc())
+        query.order_by(AuditLog.timestamp.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )
 
@@ -356,6 +413,9 @@ def audit_logs():
         "admin/audit_logs.html",
         logs=pagination.items,
         pagination=pagination,
+        search=search,
+        start_date=start_date,
+        end_date=end_date,
         page_title="Audit Logs"
     )
 
@@ -454,17 +514,48 @@ def archive_audit_logs():
 
     page = request.args.get("page", 1, type=int)
     per_page = 10
+    search = request.args.get("search", "", type=str).strip()
+    start_date = request.args.get("start_date", type=str)
+    end_date = request.args.get("end_date", type=str)
 
-    # Fetch soft-deleted logs sorted by deletion date (newest first)
-    pagination = AuditLog.query.filter(AuditLog.deleted_at.isnot(None))\
-        .order_by(AuditLog.deleted_at.desc())\
-        .paginate(page=page, per_page=per_page, error_out=False)
+    query = AuditLog.query.filter(AuditLog.deleted_at.isnot(None))
 
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                AuditLog.event.ilike(search_term),
+                AuditLog.actor_email.ilike(search_term),
+                cast(AuditLog.actor_id, db.String).ilike(search_term),
+            )
+        )
+
+    if start_date:
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d")
+            query = query.filter(AuditLog.deleted_at >= start)
+        except ValueError:
+            pass
+
+    if end_date:
+        try:
+            end = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(microseconds=1)
+            query = query.filter(AuditLog.deleted_at <= end)
+        except ValueError:
+            pass
+
+    pagination = query.order_by(AuditLog.deleted_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     logs = pagination.items
-    return render_template("admin/archive_audit_logs.html",
-                            logs=logs,
-                            pagination=pagination,
-                            page_title="Archived Audit Logs")
+
+    return render_template(
+        "admin/archive_audit_logs.html",
+        logs=logs,
+        pagination=pagination,
+        search=search,
+        start_date=start_date,
+        end_date=end_date,
+        page_title="Archived Audit Logs"
+    )
 
 @bp.route("/audit_logs/restore/<int:log_id>", methods=["POST"])
 @login_required
@@ -493,14 +584,30 @@ def get_merchants():
         abort(403)
     
     try:
-        # Get status filter from query params (default: show all non-deleted)
+        # Get status and search filters from query params
         status = request.args.get('status', 'all')
+        search = request.args.get('search', '', type=str).strip()
         
         # Query non-deleted merchants and apply status filter if specified
         query = Merchant.query.filter(Merchant.deleted_at.is_(None))
         
         if status and status != 'all':
             query = query.filter_by(application_status=status)
+
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                or_(
+                    Merchant.business_name.ilike(search_term),
+                    Merchant.owner_manager_name.ilike(search_term),
+                    Merchant.contact_email.ilike(search_term),
+                    Merchant.contact_phone.ilike(search_term),
+                    Merchant.city.ilike(search_term),
+                    Merchant.province.ilike(search_term),
+                    Merchant.barangay.ilike(search_term),
+                    cast(Merchant.id, db.String).ilike(search_term)
+                )
+            )
         
         # Sort by submission date if available, otherwise by creation date (newest first)
         merchants = query.order_by(func.coalesce(Merchant.submitted_at, Merchant.created_at).desc()).all()

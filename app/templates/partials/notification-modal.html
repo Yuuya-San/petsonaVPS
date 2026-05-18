@@ -1,6 +1,6 @@
 <!-- Notification Detail Modal -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px !important; width: 100% !important;">
         <div class="modal-content" style="border: none; border-radius: 16px; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15); background: #ffffff; overflow: hidden;">
             
             <!-- Modal Header with Icon and Close -->
@@ -89,12 +89,14 @@
 }
 
 #notificationModal .modal-dialog {
-    animation: notifSlideIn 0.4s cubic-bezier(0.23, 1, 0.320, 1) forwards;
+    animation: notifFadeIn 0.35s cubic-bezier(0.23, 1, 0.320, 1) forwards !important;
+    max-width: 420px !important;
+    width: 100% !important;
 }
 
-@keyframes notifSlideIn {
+@keyframes notifFadeIn {
     from {
-        transform: translateY(-50px) scale(0.95);
+        transform: translateY(-20px) scale(0.98);
         opacity: 0;
     }
     to {

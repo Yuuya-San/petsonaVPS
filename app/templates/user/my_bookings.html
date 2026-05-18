@@ -36,6 +36,8 @@
     background: transparent;
     min-height: 100vh;
     padding: 2rem 1rem;
+    opacity: 0;
+    animation: bookingsFadeIn 0.45s ease-out forwards;
   }
 
   .bookings-container {
@@ -884,6 +886,17 @@
     from {
       opacity: 0;
       transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bookingsFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
     }
     to {
       opacity: 1;
@@ -2081,6 +2094,41 @@
     }
   }
 
+  /* Medium devices (800px - 1200px): Hide appointment column to maximize width */
+  @media (min-width: 800px) and (max-width: 1200px) {
+    .bookings-container {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .search-filter-card,
+    .bookings-card {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .search-filter-content {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    .search-box-wrapper,
+    .filter-box-wrapper {
+      width: 100%;
+    }
+
+    .bookings-table th:nth-child(3),
+    .bookings-table td:nth-child(3) {
+      display: none;
+    }
+
+    .bookings-table th:last-child,
+    .bookings-table td:last-child {
+      text-align: center;
+    }
+  }
+
   @media (max-width: 480px) {
     .bookings-section {
       padding: 0.75rem;
@@ -2412,7 +2460,49 @@
 
 </style>
 
-<section class="bookings-section">
+<section class="bookings-section" x-data="{
+    searchTerm: '{{ search | default('') }}',
+    statusFilter: '{{ status_filter | default('all') }}',
+    searchTimeout: null,
+    handleSearchInput() {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        const pageInput = document.getElementById('searchPageInput');
+        if (pageInput) pageInput.value = '1';
+        this.loadSearchResults();
+      }, 300);
+    },
+    handleStatusChange() {
+      const pageInput = document.getElementById('searchPageInput');
+      if (pageInput) pageInput.value = '1';
+      this.loadSearchResults();
+    },
+    async loadSearchResults() {
+      const url = new URL(window.location.origin + window.location.pathname);
+      if (this.searchTerm) {
+        url.searchParams.set('search', this.searchTerm);
+      } else {
+        url.searchParams.delete('search');
+      }
+      if (this.statusFilter && this.statusFilter !== 'all') {
+        url.searchParams.set('status', this.statusFilter);
+      } else {
+        url.searchParams.delete('status');
+      }
+      url.searchParams.set('page', '1');
+      const response = await fetch(url.href, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (!response.ok) return;
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newCard = doc.querySelector('.bookings-card');
+      const currentCard = document.querySelector('.bookings-card');
+      if (newCard && currentCard) currentCard.replaceWith(newCard);
+      window.history.replaceState({}, '', url.href);
+    }
+  }">
   <div class="bookings-container">
     
     <!-- Page Header -->
@@ -2428,25 +2518,28 @@
 
     <!-- Search and Filter Section -->
     <div class="search-filter-card">
-      <div class="search-filter-content">
+      <form id="searchForm" class="search-filter-content" method="GET">
         <div class="search-box-wrapper">
           <label class="search-label">
             <i class="fas fa-search"></i> Search Bookings
           </label>
           <input 
             type="text" 
+            name="search"
             id="searchInput" 
             class="search-input" 
             placeholder="Search by booking ID or merchant name..."
-            onkeyup="filterBookings()">
+            value="{{ search | default('') }}"
+            @input="handleSearchInput()"
+            x-model="searchTerm">
         </div>
         
         <div class="filter-box-wrapper">
           <label class="filter-label">
             <i class="fas fa-filter"></i> Filter Status
           </label>
-          <select id="statusFilter" class="filter-select" onchange="filterBookings()">
-            <option value="">All Bookings</option>
+          <select name="status" id="statusFilter" class="filter-select" @change="handleStatusChange()" x-model="statusFilter">
+            <option value="all">All Bookings</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="completed">Completed</option>
@@ -2455,12 +2548,15 @@
             <option value="no-show">No-Show</option>
           </select>
         </div>
-      </div>
+        <input type="hidden" id="searchPageInput" name="page" value="1">
+      </form>
     </div>
 
     <!-- Bookings Card - Table -->
     {% if bookings.items %}
-    <div class="bookings-card">
+    <div class="bookings-card" x-data="bookingsManager()" @mount="initBookings()" x-cloak 
+         data-search="{{ search | default('') | e }}"
+         data-status="{{ status_filter | default('all') | e }}">
       <div class="table-container">
         <table class="bookings-table">
           <thead>
@@ -2606,15 +2702,14 @@
         </table>
       </div>
 
-      <!-- Pagination -->
       <div class="pagination-footer">
         <div class="pagination-info">
-          <span>Page <strong id="currentPage">{{ bookings.page if bookings.pages > 0 else 1 }}</strong> of <strong id="totalPages">{{ bookings.pages if bookings.pages > 0 else 1 }}</strong></span>
+          <span>Page <strong id="currentPage">{{ bookings.page if bookings.pages else 1 }}</strong> of <strong id="totalPages">{{ bookings.pages if bookings.pages else 1 }}</strong></span>
         </div>
         
         <div class="pagination-controls">
           {% if bookings.has_prev %}
-            <a href="{{ url_for('user.my_bookings', page=bookings.prev_num, status=status_filter) }}" 
+            <a href="{{ url_for('user.my_bookings', page=bookings.prev_num, status=status_filter if status_filter else None, search=search if search else None) }}" 
                class="pagination-btn" title="Previous Page">
               <i class="fas fa-chevron-left"></i>
             </a>
@@ -2625,13 +2720,13 @@
           {% endif %}
 
           {% if bookings.has_next %}
-            <a href="{{ url_for('user.my_bookings', page=bookings.next_num, status=status_filter) }}" 
+            <a href="{{ url_for('user.my_bookings', page=bookings.next_num, status=status_filter if status_filter else None, search=search if search else None) }}" 
                class="pagination-btn" title="Next Page">
               <i class="fas fa-chevron-right"></i>
             </a>
           {% else %}
             <button class="pagination-btn" disabled>
-              <i class="fas fa-chevron-right"></i>
+              <i class="fas fa-chevron-right\"></i>
             </button>
           {% endif %}
         </div>
@@ -3882,6 +3977,78 @@
   });
 
   // Filter bookings based on search term and status
+  function bookingsManager() {
+    const card = document.querySelector('.bookings-card');
+    const dataSearch = card?.dataset.search || '';
+    const dataStatus = card?.dataset.status || '';
+
+    return {
+      searchTerm: dataSearch,
+      statusFilter: dataStatus,
+      searchTimeout: null,
+
+      initBookings() {
+      },
+
+      handleSearchInput() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+          const pageInput = document.getElementById('searchPageInput');
+          if (pageInput) {
+            pageInput.value = '1';
+          }
+          this.loadSearchResults();
+        }, 300);
+      },
+
+      handleStatusChange() {
+        const pageInput = document.getElementById('searchPageInput');
+        if (pageInput) {
+          pageInput.value = '1';
+        }
+        this.loadSearchResults();
+      },
+
+      async loadSearchResults() {
+        const url = new URL(window.location.origin + window.location.pathname);
+
+        if (this.searchTerm) {
+          url.searchParams.set('search', this.searchTerm);
+        } else {
+          url.searchParams.delete('search');
+        }
+
+        if (this.statusFilter && this.statusFilter !== 'all') {
+          url.searchParams.set('status', this.statusFilter);
+        } else {
+          url.searchParams.delete('status');
+        }
+
+        url.searchParams.set('page', '1');
+
+        const response = await fetch(url.href, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newCard = doc.querySelector('.bookings-card');
+        const currentCard = document.querySelector('.bookings-card');
+
+        if (newCard && currentCard) {
+          currentCard.replaceWith(newCard);
+        }
+
+        window.history.replaceState({}, '', url.href);
+      }
+    };
+  }
+
   function filterBookings() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value.toLowerCase();

@@ -268,6 +268,39 @@
     }
   }
 
+  /* Medium devices (800px - 1200px): Hide appointment column to maximize width */
+  @media (min-width: 800px) and (max-width: 1200px) {
+    .bookings-container,
+    .search-filter-card,
+    .bookings-card {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .search-filter-content {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    .search-box-wrapper,
+    .filter-box-wrapper {
+      width: 100%;
+    }
+
+    .bookings-table th:nth-child(3),
+    .bookings-table td:nth-child(3),
+    .bookings-table th:nth-child(5),
+    .bookings-table td:nth-child(5) {
+      display: none;
+    }
+
+    .bookings-table th:last-child,
+    .bookings-table td:last-child {
+      text-align: center;
+    }
+  }
+
   /* --- Modal Glassmorphism --- */
   .modal-content.view-modal {
     background: rgba(255, 255, 255, 0.8);
@@ -498,6 +531,7 @@
     max-width: 100%;
     box-sizing: border-box;
     overflow-x: hidden;
+    animation: bookingsFadeIn 0.5s ease-out both;
   }
 
   .bookings-container {
@@ -506,6 +540,11 @@
     box-sizing: border-box;
     margin: 0 auto;
     padding: 0 1rem;
+  }
+
+  @keyframes bookingsFadeIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .bookings-card,

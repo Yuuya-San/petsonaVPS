@@ -17,6 +17,8 @@
     max-width: 100vw;
     min-height: 100vh;
     overflow: visible;
+    animation: userFormFadeIn 0.45s ease-out both;
+    will-change: opacity, transform;
   }
   .hero-glow {
     position: absolute;
@@ -316,6 +318,20 @@
 
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+
+  /* Fade-in animation for the user form page */
+  @keyframes userFormFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .page-shell {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 </style>
 

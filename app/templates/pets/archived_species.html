@@ -7,12 +7,34 @@
     background: transparent;
     min-height: 100vh;
     padding: 2rem 1rem;
+    overflow-x: hidden;
+    animation: archiveFadeIn 0.45s ease-out both;
   }
+
+  @keyframes archiveFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .users-section {
+      animation: none !important;
+    }
+  }
+
+  :root {
+    --page-card-min-width: 85vw;
+    --page-card-max-width: 95vw;
+    --page-card-width: min(var(--page-card-max-width), calc(100% - 1.5rem));
+  }
+
   .users-container {
-    width: 95vw;
-    max-width: 100%;
+    width: var(--page-card-width);
+    min-width: var(--page-card-min-width);
+    max-width: var(--page-card-max-width);
     margin: 0 auto;
     padding: 0;
+    box-sizing: border-box;
   }
   .page-header {
     display: flex;
@@ -55,6 +77,59 @@
   .users-table {
     width: 100%;
     border-collapse: collapse;
+  }
+  .pagination-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .pagination-info {
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  .pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.4rem;
+    height: 2.4rem;
+    padding: 0 0.85rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    background: rgba(255, 255, 255, 0.7);
+    color: #a855f7;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+  }
+
+  .pagination-btn:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(168, 85, 247, 0.35);
+  }
+
+  .pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  .pagination-current {
+    color: #111827;
+    font-weight: 600;
   }
   .users-table thead {
     background: rgba(168, 85, 247, 0.08);
@@ -397,7 +472,7 @@
 </style>
 
 <section class="users-section">
-  <div class="users-container" x-data="archiveManager()" x-init="initItems()" x-cloak>
+  <div class="users-container" x-data="archiveManager()" data-search-term="{{ request.args.get('search', '') | e }}" x-init="initItems()" x-cloak>
     <div class="page-header">
       <div class="header-left">
         <h1 class="page-title">Archived Species & Breeds</h1>
@@ -411,17 +486,20 @@
 
     <div class="search-filter-card">
       <div class="search-filter-content">
-        <div class="search-box-wrapper">
+        <form id="searchForm" class="search-box-wrapper" method="GET" @submit.prevent>
           <label class="search-label">
             <i class="fas fa-search"></i>
             Search Archived Items
           </label>
           <input type="text"
+                 name="search"
                  x-model="searchTerm"
-                 @input="filterItems()"
+                 @input="handleSearchInput()"
                  class="search-input"
-                 placeholder="Search by species, breed, description, or care level...">
-        </div>
+                 placeholder="Search by species, breed, description, or care level..."
+                 value="{{ request.args.get('search', '') | e }}">
+          <input type="hidden" name="page" value="1">
+        </form>
       </div>
     </div>
 
@@ -438,66 +516,28 @@
             </tr>
           </thead>
           <tbody>
-            {% if archived_species|length + archived_breeds|length > 0 %}
-              {% for species in archived_species %}
+            {% if archived_items|length > 0 %}
+              {% for item in archived_items %}
               <tr class="item-row"
-                  data-name="{{ species.name }}"
-                  data-type="species"
-                  data-details="{{ species.description or '' }}"
-                  data-species="Species">
+                  data-name="{{ item.name }}"
+                  data-type="{{ item.type }}"
+                  data-details="{{ item.details }}"
+                  data-species="{{ item.species_name }}"
+                  data-care-level="{{ item.care_level if item.type == 'breed' else '' }}">
                 <td data-label="Name">
                   <div class="user-info" style="display:flex; align-items:center; gap:0.75rem;">
-                    <span>{{ species.name }}</span>
+                    <span>{{ item.name }}</span>
                   </div>
                 </td>
                 <td data-label="Type">
-                  <span class="status-badge species">Species</span>
-                </td>
-                <td data-label="Species">—</td>
-                <td data-label="Deleted At">
-                  {% if species.deleted_at %}
-                    {{ species.deleted_at|format_ph_datetime }}
-                  {% else %}-{% endif %}
-                </td>
-                <td data-label="Actions">
-                  <div class="action-group">
-                    <button type="button"
-                            class="action-btn btn-success"
-                            title="Restore"
-                            data-toggle="modal"
-                            data-target="#restoreItemModal"
-                            data-item-id="{{ species.id }}"
-                            data-item-name="{{ species.name }}"
-                            data-item-type="Species"
-                            data-item-info="{{ species.description or 'No description available.' }}"
-                            data-item-deleted="{{ species.deleted_at|format_ph_datetime if species.deleted_at else '-' }}"
-                            data-item-action-url="{{ url_for('pets.restore_species', id=species.id) }}">
-                      <i class="fas fa-undo"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-
-              {% for breed in archived_breeds %}
-              <tr class="item-row"
-                  data-name="{{ breed.name }}"
-                  data-type="breed"
-                  data-details="{{ breed.summary or '' }}"
-                  data-species="{{ breed.species.name if breed.species else '—' }}"
-                  data-care-level="{{ breed.care_level or '' }}">
-                <td data-label="Name">
-                  {{ breed.name or '—' }}
-                </td>
-                <td data-label="Type">
-                  <span class="status-badge species">Breed</span>
+                  <span class="status-badge {{ 'species' if item.type == 'species' else 'breed' }}">{{ item.type_label }}</span>
                 </td>
                 <td data-label="Species">
-                  {{ breed.species.name if breed.species else '—' }}
+                  {{ item.species_name }}
                 </td>
                 <td data-label="Deleted At">
-                  {% if breed.deleted_at %}
-                    {{ breed.deleted_at|format_ph_datetime }}
+                  {% if item.deleted_at %}
+                    {{ item.deleted_at|format_ph_datetime }}
                   {% else %}-{% endif %}
                 </td>
                 <td data-label="Actions">
@@ -507,12 +547,12 @@
                             title="Restore"
                             data-toggle="modal"
                             data-target="#restoreItemModal"
-                            data-item-id="{{ breed.id }}"
-                            data-item-name="{{ breed.name }}"
-                            data-item-type="Breed"
-                            data-item-info="{{ breed.summary or 'No summary available.' }}"
-                            data-item-deleted="{{ breed.deleted_at|format_ph_datetime if breed.deleted_at else '-' }}"
-                            data-item-action-url="{{ url_for('pets.restore_breed', id=breed.id) }}">
+                            data-item-id="{{ item.id }}"
+                            data-item-name="{{ item.name }}"
+                            data-item-type="{{ item.type_label }}"
+                            data-item-info="{{ item.details or 'No details available.' }}"
+                            data-item-deleted="{{ item.deleted_at|format_ph_datetime if item.deleted_at else '-' }}"
+                            data-item-action-url="{{ item.action_url }}">
                       <i class="fas fa-undo"></i>
                     </button>
                   </div>
@@ -531,6 +571,31 @@
             {% endif %}
           </tbody>
         </table>
+      </div>
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          Page <strong>{{ pagination.page }}</strong> of <strong>{{ pagination.pages }}</strong>
+        </div>
+        <div class="pagination-controls">
+          {% if pagination.has_prev %}
+            <a href="{{ url_for('pets.archived_items', page=pagination.prev_num, search=request.args.get('search', '')) }}" class="pagination-btn">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn disabled" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          {% endif %}
+          {% if pagination.has_next %}
+            <a href="{{ url_for('pets.archived_items', page=pagination.next_num, search=request.args.get('search', '')) }}" class="pagination-btn">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% else %}
+            <button class="pagination-btn disabled" disabled>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -596,45 +661,51 @@
 <script>
   function archiveManager() {
     return {
-      searchTerm: '',
+      searchTerm: (document.querySelector('.users-container') || { dataset: { searchTerm: '' } }).dataset.searchTerm || '',
+      searchTimeout: null,
 
       initItems() {
-        
+        const pageInput = document.querySelector('#searchForm input[name="page"]');
+        if (pageInput) {
+          pageInput.value = '1';
+        }
       },
 
-      filterItems() {
-        const searchLower = this.searchTerm.toLowerCase();
-        const tables = document.querySelectorAll('.items-table');
+      handleSearchInput() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => this.loadSearchResults(), 300);
+      },
 
-        tables.forEach(table => {
-          let visibleCount = 0;
-          table.querySelectorAll('tbody tr.item-row').forEach(row => {
-            const name = (row.getAttribute('data-name') || '').toLowerCase();
-            const type = (row.getAttribute('data-type') || '').toLowerCase();
-            const details = (row.getAttribute('data-details') || '').toLowerCase();
-            const species = (row.getAttribute('data-species') || '').toLowerCase();
-            const careLevel = (row.getAttribute('data-care-level') || '').toLowerCase();
+      async loadSearchResults() {
+        const url = new URL(window.location.origin + window.location.pathname);
 
-            const matchesSearch = !this.searchTerm ||
-              name.includes(searchLower) ||
-              type.includes(searchLower) ||
-              details.includes(searchLower) ||
-              species.includes(searchLower) ||
-              careLevel.includes(searchLower);
+        if (this.searchTerm) {
+          url.searchParams.set('search', this.searchTerm);
+        } else {
+          url.searchParams.delete('search');
+        }
 
-            if (matchesSearch) {
-              row.style.display = '';
-              visibleCount++;
-            } else {
-              row.style.display = 'none';
-            }
-          });
+        url.searchParams.set('page', '1');
 
-          const emptyRow = table.querySelector('tbody tr.empty-state');
-          if (emptyRow) {
-            emptyRow.style.display = visibleCount === 0 ? '' : 'none';
-          }
+        const response = await fetch(url.href, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newCard = doc.querySelector('.users-card');
+        const currentCard = document.querySelector('.users-card');
+
+        if (newCard && currentCard) {
+          currentCard.replaceWith(newCard);
+        }
+
+        window.history.replaceState({}, '', url.href);
       }
     };
   }

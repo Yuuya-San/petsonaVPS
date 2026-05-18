@@ -41,9 +41,24 @@ body {
 
 /* CONTAINER */
 .page-container {
-  max-width: 1200px;
+  width: 90vw;
+  min-width: 90vw;
+  max-width: 90vw;
   margin: 0 auto;
   padding: 32px 20px;
+  opacity: 0;
+  animation: pageFadeIn 0.45s ease-out 0.1s forwards;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* GLASS */
@@ -82,6 +97,41 @@ body {
   margin-top: 28px;
 }
 
+/* TOP GRID: combine main card + breakdown on very large screens */
+.top-grid {
+  display: block;
+}
+
+@media (min-width: 1281px) {
+  .top-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* Make the main card internal layout stable and prevent stretching */
+  .top-grid .main-card .grid-2 {
+    grid-template-columns: 1fr 360px;
+    align-items: center;
+    gap: 28px;
+  }
+
+  /* Ensure the score column centers vertically within the right card */
+  .top-grid .main-card .grid-2 > div:last-child {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+  }
+
+  /* Lock breakdown column to behave as a column of cards */
+  .top-grid > .section {
+    margin-top: 0;
+  }
+}
+
 /* GRID */
 .grid-2 {
   display: grid;
@@ -103,16 +153,39 @@ body {
   gap: 20px;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 980px) {
   .grid-3 {
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
+  }
+}
+
+/* BREAKDOWN GRID: force 4 + 3 layout on large screens */
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+@media (min-width: 640px) {
+  .breakdown-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 }
 
 @media (min-width: 1024px) {
-  .grid-3 {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  .breakdown-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
+}
+
+@media (min-width: 1281px) {
+  .breakdown-grid {
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+  }
+}
+
+.breakdown-card {
+  min-width: 280px;
 }
 
 /* IMAGE */
@@ -181,6 +254,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 4px;
+  text-align: center;
+}
+
+.score-circle-value,
+.score-circle-text {
+  width: 100%;
+  text-align: center;
 }
 
 .score-circle-value {
@@ -684,6 +764,8 @@ body {
 
   <!-- MAIN CARD -->
 
+  <div class="top-grid">
+
   <div class="glass main-card">
 
     <div class="grid-2">
@@ -759,7 +841,21 @@ body {
             <span class="w-full text-center">Retake Matching</span>
           </a>
 
-          {% if request.args.get('from_results') %}
+          {% if from_history %}
+            <!-- Back to History -->
+            <a href="{{ url_for('matching.history') }}"
+              class="flex items-center justify-center gap-2
+                      h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
+                      rounded-2xl
+                      bg-indigo-600 text-white
+                      text-sm font-semibold
+                      shadow-sm hover:shadow-lg
+                      transition-all duration-200
+                      hover:bg-indigo-700 hover:-translate-y-[1px] active:scale-95">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span class="w-full text-center">Back to History</span>
+            </a>
+          {% elif request.args.get('from_results') %}
             <!-- Back to Results -->
             <a href="{{ url_for('matching.general_results') }}"
               class="flex items-center justify-center gap-2
@@ -846,7 +942,7 @@ body {
     <div class="section-title">Breakdown</div>
     <div class="section-sub">Category compatibility analysis</div>
 
-    <div class="grid-3" style="margin-top: 20px;">
+    <div class="grid-3 breakdown-grid" style="margin-top: 20px;">
       {% for category, data in category_scores.items() %}
         {% set percentage = data.percentage %}
         {% if percentage >= 80 %}
@@ -885,7 +981,10 @@ body {
           </div>
         </div>
       {% endfor %}
+
     </div>
+
+  </div>
 
   </div>
 

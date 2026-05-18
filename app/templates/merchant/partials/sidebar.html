@@ -33,7 +33,7 @@
         </li>
 
         <li class="nav-item">
-          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint == 'matching.quiz' %}active{% endif %}">
+          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint in ['matching.quiz', 'matching.quiz_specific'] %}active{% endif %}">
             <i class="nav-icon fas fa-heartbeat"></i>
             <p>Match Pet</p>
           </a>
@@ -64,7 +64,7 @@
         </li>
 
         <li class="nav-item">
-          <a href="{{ url_for('messages.support') }}" class="nav-link {% if request.endpoint == 'messages.support' %}active{% endif %}">
+          <a href="{{ url_for('messages.support') }}" class="nav-link {% if request.endpoint == 'messages.support' or (request.endpoint == 'messages.conversation' and other_user is defined and other_user.id == 1) %}active{% endif %}">
             <i class="nav-icon fas fa-headset"></i>
             <p>Support</p>
           </a>

@@ -12,7 +12,7 @@
   </div>
 
   <!-- Main Content -->
-  <div class="relative z-10">
+  <div class="relative z-10 store-edit-page">
 
     <!-- Form Container -->
     <div class="px-4 sm:px-4 lg:px-6 py-8">
@@ -719,6 +719,26 @@
 
   #storeMap .leaflet-pane {
     z-index: 2 !important;
+  }
+
+  .store-edit-page {
+    width: 90vw !important;
+    min-width: 90vw !important;
+    max-width: 90vw !important;
+    margin: 0 auto;
+    box-sizing: border-box;
+    animation: pageFadeIn 0.45s ease-out both;
+  }
+
+  .store-edit-page .max-w-6xl {
+    width: 100% !important;
+    max-width: 90vw !important;
+    box-sizing: border-box;
+  }
+
+  @keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes slideIn {

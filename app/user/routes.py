@@ -507,11 +507,27 @@ def my_bookings():
     """Display user's bookings"""
     from app.models.booking import Booking
     from app.utils.qr_generator import qr_generator
+    from sqlalchemy import or_
     
     page = request.args.get('page', 1, type=int)
     status_filter = request.args.get('status', 'all')
+    search = request.args.get('search', '', type=str).strip()
     
     query = Booking.query.filter_by(user_id=current_user.id, deleted_at=None)
+    
+    # Apply search filter if specified - search across booking number and merchant name
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Booking.booking_number.ilike(search_term),
+                Booking.merchant_id.in_(
+                    db.session.query(Merchant.id).filter(
+                        Merchant.business_name.ilike(search_term)
+                    )
+                )
+            )
+        )
     
     if status_filter != 'all':
         query = query.filter_by(status=status_filter)
@@ -540,7 +556,8 @@ def my_bookings():
     
     return render_template('user/my_bookings.html', 
                          bookings=bookings,
-                         status_filter=status_filter)
+                         status_filter=status_filter,
+                         search=search)
 
 
 @bp.route('/booking/<int:booking_id>')

@@ -158,7 +158,8 @@ def general_results():
     if not matches:
         return redirect(url_for('matching.quiz'))
     
-    return render_template("matching/general_results.html", matches=matches)
+    from_history = request.args.get('from_history')
+    return render_template("matching/general_results.html", matches=matches, from_history=from_history)
 
 
 # --------------------------
@@ -338,7 +339,7 @@ def view_result(result_id):
                 session['last_matches'] = matches
                 session['last_answers'] = match.quiz_answers
                 session.modified = True
-                return redirect(url_for('matching.general_results'))
+                return redirect(url_for('matching.general_results', from_history=1))
         except Exception as e:
             print(f"Error reconstructing general matches: {e}")
             pass

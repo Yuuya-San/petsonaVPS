@@ -91,11 +91,10 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="modal-footer glass-modal-footer border-0 d-flex justify-content-center flex-nowrap">
-        <button type="button" class="btn btn-secondary glass-btn-secondary flex-fill mr-2 text-center" data-dismiss="modal">
-          <i class="fas fa-times mr-2"></i>Cancel
-        </button>
-        <button type="button" class="btn btn-primary glass-btn-primary flex-fill ml-2 text-center" id="savePasswordBtn">
+      <div class="modal-footer glass-modal-footer border-0">
+        <button type="button"
+                class="btn btn-primary glass-btn-primary glass-footer-btn-wide"
+                id="savePasswordBtn">
           <i class="fas fa-check mr-2"></i>Save Changes
         </button>
       </div>
@@ -333,7 +332,6 @@
   /* Responsive */
   @media (max-width: 768px) {
     .glass-modal-container .modal-content {
-      margin: 10px;
       max-height: 90vh;
     }
 
@@ -393,6 +391,73 @@
     .glass-modal-footer .btn {
       font-size: 12px;
       padding: 6px 12px;
+    }
+  }
+
+  /* Footer Wide Button */
+  .glass-footer-btn-wide {
+    width: 92%;
+    max-width: 95%;
+    min-height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto;
+
+    border-radius: 10px;
+  }
+
+  /* Mobile Modal Width */
+  @media (max-width: 576px) {
+
+    #settingsAccountModal .modal-dialog {
+      width: 90vw !important;
+      max-width: 90vw !important;
+
+      min-width: 0 !important;
+
+      margin: 10px auto !important;
+
+      left: 0 !important;
+      right: 0 !important;
+
+      transform: none !important;
+
+      display: flex !important;
+      justify-content: center !important;
+    }
+
+    #settingsAccountModal .modal-content {
+      width: 100% !important;
+      max-width: 100% !important;
+
+      overflow: hidden !important;
+
+      margin: 0 auto !important;
+      box-sizing: border-box !important;
+    }
+
+    .glass-footer-btn-wide {
+      width: 92% !important;
+      max-width: 92% !important;
+    }
+  }
+
+  /* Smaller Phones */
+  @media (max-width: 360px) {
+
+    #settingsAccountModal .modal-dialog {
+      width: 88vw !important;
+      max-width: 88vw !important;
+
+      margin: 6px auto !important;
+    }
+
+    .glass-footer-btn-wide {
+      width: 94% !important;
+      max-width: 94% !important;
     }
   }
 </style>

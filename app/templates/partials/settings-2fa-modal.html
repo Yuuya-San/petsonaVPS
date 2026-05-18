@@ -173,18 +173,12 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer glass-modal-footer border-0" id="setupFooter" style="display: none;">
-        <button type="button" class="btn btn-secondary glass-btn-secondary" onclick="cancelSetup()">
-          <i class="fas fa-times mr-2"></i>Cancel
-        </button>
-        <button type="button" class="btn btn-primary glass-btn-primary" id="confirmSetupBtn">
+        <button type="button" class="btn btn-primary glass-btn-primary glass-footer-btn-wide" id="confirmSetupBtn">
           <i class="fas fa-check mr-2"></i>Verify & Enable
         </button>
       </div>
 
-      <div class="modal-footer glass-modal-footer border-0" id="defaultFooter">
-        <button type="button" class="btn btn-secondary glass-btn-secondary" onclick="closeModal()">
-          <i class="fas fa-times mr-2"></i>Close
-        </button>
+      <div class="modal-footer glass-modal-footer border-0" id="defaultFooter" style="display: none;">
       </div>
     </div>
   </div>
@@ -236,10 +230,7 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer glass-modal-footer border-0">
-        <button type="button" class="btn glass-btn-secondary" onclick="closeDisable2FAConfirm()">
-          <i class="fas fa-times mr-2"></i>Cancel
-        </button>
-        <button type="button" class="btn glass-btn-danger" id="confirmDisable2FABtn">
+        <button type="button" class="btn glass-btn-danger glass-footer-btn-wide" id="confirmDisable2FABtn">
           <i class="fas fa-trash-alt mr-2"></i>Yes, Disable 2FA
         </button>
       </div>
@@ -249,6 +240,10 @@
 
 <style>
   /* Glass Modal Container */
+  #settingsTwoFactorModal {
+    padding: 0 !important;
+  }
+
   #settingsTwoFactorModal .glass-modal-container .modal-content {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -261,11 +256,18 @@
   }
 
   #settingsTwoFactorModal .modal-dialog {
-    max-width: 540px;
     width: 100%;
+    min-width: 320px;
+    max-width: 540px;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 
   /* Confirmation Modal Styles */
+  #disable2FAConfirmModal {
+    padding: 0 !important;
+  }
+
   #disable2FAConfirmModal .glass-modal-container .modal-content {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -274,6 +276,20 @@
     box-shadow: 0 20px 60px rgba(255, 71, 87, 0.2);
     display: flex;
     flex-direction: column;
+  }
+
+  #disable2FAConfirmModal .modal-dialog {
+    width: 540px;
+    max-width: 540px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  #disable2FAConfirmModal .modal-footer.glass-modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
   }
 
   #disable2FAConfirmModal .glass-modal-icon-danger {
@@ -395,6 +411,10 @@
     padding: 16px 24px;
     border-top: 1px solid rgba(102, 126, 234, 0.1);
     flex-shrink: 0;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
   }
 
   /* 2FA Status Card */
@@ -692,12 +712,44 @@
   .glass-btn-secondary,
   .glass-btn-primary,
   .glass-btn-danger {
-    padding: 10px 24px;
+    padding: 10px 20px;
     font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
     transition: all 0.3s ease;
     border: none;
+    white-space: nowrap;
+  }
+
+  .glass-footer-btn {
+    flex: 1 1 auto;
+    max-width: 200px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+  }
+
+  .glass-footer-btn-full {
+    flex: 0 1 auto;
+    max-width: 200px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+  }
+
+  .glass-footer-btn-wide {
+    width: 90%;
+    max-width: 95%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    margin: 0 auto;
   }
 
   .glass-btn-secondary {
@@ -746,6 +798,14 @@
 
   /* Responsive */
   @media (max-width: 576px) {
+    #settingsTwoFactorModal {
+      padding: 0 !important;
+    }
+
+    #disable2FAConfirmModal {
+      padding: 0 !important;
+    }
+
     #settingsTwoFactorModal .glass-modal-body {
       padding: 20px;
     }
@@ -769,10 +829,111 @@
     }
 
     #settingsTwoFactorModal .modal-dialog {
-      max-width: 90vw;
+      width: calc(100% - 20px);
+      min-width: 350px;
+      max-width: 540px;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    #disable2FAConfirmModal .modal-dialog {
+      width: calc(100% - 20px);
+      min-width: 350px;
+      max-width: 540px;
+      margin-left: auto !important;
+      margin-right: auto !important;
     }
   }
 
+  /* Extra Small Devices */
+  @media (max-width: 400px) {
+
+    html,
+    body {
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+
+    #settingsTwoFactorModal,
+    #disable2FAConfirmModal {
+      padding: 0 !important;
+      overflow-x: hidden !important;
+    }
+
+    #settingsTwoFactorModal .modal-dialog,
+    #disable2FAConfirmModal .modal-dialog {
+      width: 90vw !important;
+      max-width: 90vw !important;
+      min-width: unset !important;
+
+      margin: 10px auto !important;
+
+      left: 0 !important;
+      right: 0 !important;
+
+      transform: none !important;
+      position: relative !important;
+
+      display: flex !important;
+      justify-content: center !important;
+    }
+
+    #settingsTwoFactorModal .modal-content,
+    #disable2FAConfirmModal .modal-content {
+      width: 100% !important;
+      max-width: 100% !important;
+
+      margin: 0 auto !important;
+
+      box-sizing: border-box !important;
+
+      overflow: hidden !important;
+    }
+
+    #settingsTwoFactorModal .glass-modal-body {
+      padding: 14px !important;
+    }
+
+    #settingsTwoFactorModal .glass-modal-header {
+      padding: 14px !important;
+    }
+
+    .glass-verification-input {
+      width: 100% !important;
+      max-width: 100% !important;
+
+      font-size: 20px !important;
+      letter-spacing: 2px !important;
+
+      padding: 12px !important;
+
+      box-sizing: border-box !important;
+    }
+
+    .glass-key-value {
+      font-size: 12px !important;
+      letter-spacing: 1px !important;
+
+      word-break: break-word !important;
+      overflow-wrap: break-word !important;
+    }
+
+    .glass-app-link,
+    .glass-btn-primary,
+    .glass-btn-secondary,
+    .glass-btn-danger {
+      width: 100% !important;
+      max-width: 100% !important;
+
+      box-sizing: border-box !important;
+    }
+
+    .glass-footer-btn-wide {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
   /* Alert animation */
   @keyframes slideIn {
     from {

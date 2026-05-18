@@ -11,7 +11,7 @@ from app import db
 from app.models import Species, Breed
 from app.utils.audit import log_event
 from . import bp
-from sqlalchemy import func # pyright: ignore[reportMissingImports]
+from sqlalchemy import func, or_ # pyright: ignore[reportMissingImports]
 from app.decorators import admin_required, user_required, merchant_required
 import pytz
 
@@ -343,40 +343,90 @@ def delete_breed(id):
 @login_required
 @admin_required
 def archived_items():
+    search = request.args.get('search', '', type=str).strip()
+
     # Fetch soft-deleted species and breeds
-    archived_species = Species.query.filter(Species.deleted_at.isnot(None)).order_by(Species.name.asc()).all()
-    archived_breeds = Breed.query.filter(Breed.deleted_at.isnot(None)).order_by(Breed.name.asc()).all()
+    archived_species_q = Species.query.filter(Species.deleted_at.isnot(None))
+    archived_breeds_q = Breed.query.filter(Breed.deleted_at.isnot(None))
 
-    # Calculate active breed counts for all species (active breeds only)
-    breed_counts = dict(
-        db.session.query(
-            Breed.species_id,
-            func.count(Breed.id)
+    if search:
+        search_term = f"%{search}%"
+        archived_species_q = archived_species_q.filter(
+            or_(
+                Species.name.ilike(search_term),
+                Species.description.ilike(search_term)
+            )
         )
-        .filter(Breed.deleted_at.is_(None))  # only active breeds
-        .group_by(Breed.species_id)
-        .all()
-    )
+        archived_breeds_q = archived_breeds_q.filter(
+            or_(
+                Breed.name.ilike(search_term),
+                Breed.summary.ilike(search_term),
+                Breed.preventive_care_level.ilike(search_term),
+                Breed.species.has(Species.name.ilike(search_term))
+            )
+        )
 
-    # Attach count to each archived species
+    archived_species = archived_species_q.order_by(Species.name.asc()).all()
+    archived_breeds = archived_breeds_q.order_by(Breed.name.asc()).all()
+
+    archived_items = []
     for species in archived_species:
-        species.active_breeds_count = breed_counts.get(species.id, 0)
+        archived_items.append({
+            'id': species.id,
+            'name': species.name,
+            'type': 'species',
+            'type_label': 'Species',
+            'species_name': '—',
+            'deleted_at': species.deleted_at,
+            'details': species.description or '',
+            'action_url': url_for('pets.restore_species', id=species.id),
+        })
 
-    # Optional: paginate active species (if needed)
+    for breed in archived_breeds:
+        archived_items.append({
+            'id': breed.id,
+            'name': breed.name,
+            'type': 'breed',
+            'type_label': 'Breed',
+            'species_name': breed.species.name if breed.species else '—',
+            'deleted_at': breed.deleted_at,
+            'details': breed.summary or '',
+            'care_level': breed.preventive_care_level or '',
+            'action_url': url_for('pets.restore_breed', id=breed.id),
+        })
+
+    archived_items.sort(key=lambda item: (item['name'] or '').lower())
+
     page = request.args.get('page', 1, type=int)
-    pagination = Species.query.filter(Species.deleted_at.is_(None)).order_by(Species.name.asc()).paginate(
-        page=page, per_page=8, error_out=False
-    )
-    species_list = pagination.items
-    for species in species_list:
-        species.active_breeds_count = breed_counts.get(species.id, 0)
+    per_page = 10
+    total_items = len(archived_items)
+    total_pages = max(1, (total_items + per_page - 1) // per_page)
+    if page < 1:
+        page = 1
+    if page > total_pages:
+        page = total_pages
+
+    start = (page - 1) * per_page
+    end = start + per_page
+    paged_items = archived_items[start:end]
+
+    pagination = {
+        'page': page,
+        'per_page': per_page,
+        'total': total_items,
+        'pages': total_pages,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'prev_num': page - 1 if page > 1 else 1,
+        'next_num': page + 1 if page < total_pages else total_pages,
+    }
 
     return render_template(
         'pets/archived_species.html',
-        archived_species=archived_species,
-        archived_breeds=archived_breeds,
-        species_list=species_list,
-        page_title="Archived Items"
+        archived_items=paged_items,
+        pagination=pagination,
+        page_title="Archived Items",
+        search=search
     )
 
 # -----------------------------

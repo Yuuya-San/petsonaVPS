@@ -35,15 +35,38 @@
   .users-section {
     background: none;
     min-height: auto;
-    padding: 2rem 0 1rem;
+    padding: 2.5rem 0.75rem;
+    background: transparent;
+    display: flex;
+    justify-content: center;
     overflow-x: hidden;
+    animation: usersFadeIn 0.45s ease-out both;
   }
+
+  :root {
+    --page-card-min-width: 85vw;
+    --page-card-max-width: 95vw;
+    --page-card-width: min(var(--page-card-max-width), calc(100% - 1.5rem));
+  }
+
   .users-container {
-    width: 100%;
-    max-width: 95vw;
+    width: var(--page-card-width);
+    min-width: var(--page-card-min-width);
+    max-width: var(--page-card-max-width);
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.75rem;
     box-sizing: border-box;
+  }
+
+  @keyframes usersFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   .page-header {
     display: flex;
@@ -793,7 +816,10 @@
 </style>
 
 <section class="users-section">
-  <div class="users-container" x-data="logsManager()" @mount="initLogs()" x-cloak>
+  <div class="users-container" x-data="logsManager()" @mount="initLogs()" x-cloak
+       data-search="{{ search | default('') | e }}"
+       data-start-date="{{ start_date | default('') | e }}"
+       data-end-date="{{ end_date | default('') | e }}">
     <div class="page-header">
       <div class="header-left">
         <h1 class="page-title">{{ page_title }}</h1>
@@ -803,39 +829,46 @@
 
     <!-- Search Filter Card -->
     <div class="search-filter-card">
-      <div class="search-filter-content">
+      <form id="searchForm" class="search-filter-content" method="GET">
         <div class="search-box-wrapper">
           <label class="search-label">
             <i class="fas fa-search"></i>
             Search Logs
           </label>
-          <input type="text" 
-                 x-model="searchTerm" 
-                 @input="filterLogs()" 
-                 class="search-input" 
-                 placeholder="Search by event or actor...">
+          <input type="text"
+                 name="search"
+                 x-model="searchTerm"
+                 @input="handleSearchInput()"
+                 class="search-input"
+                 placeholder="Search by event or actor..."
+                 value="{{ search | default('') }}">
         </div>
         <div class="date-range-item">
           <label class="search-label">
             <i class="fas fa-calendar"></i>
             From Date
           </label>
-          <input type="date" 
-                 x-model="startDate" 
-                 @input="filterLogs()" 
-                 class="date-input">
+          <input type="date"
+                 name="start_date"
+                 x-model="startDate"
+                 @input="handleSearchInput()"
+                 class="date-input"
+                 value="{{ start_date | default('') }}">
         </div>
         <div class="date-range-item">
           <label class="search-label">
             <i class="fas fa-calendar"></i>
             To Date
           </label>
-          <input type="date" 
-                 x-model="endDate" 
-                 @input="filterLogs()" 
-                 class="date-input">
+          <input type="date"
+                 name="end_date"
+                 x-model="endDate"
+                 @input="handleSearchInput()"
+                 class="date-input"
+                 value="{{ end_date | default('') }}">
         </div>
-      </div>
+        <input type="hidden" id="searchPageInput" name="page" value="1">
+      </form>
     </div>
 
     <div class="users-card">
@@ -918,11 +951,11 @@
       </div>
       <div class="pagination-footer">
         <div class="pagination-info">
-          <span>Page <strong>{{ pagination.page }}</strong> of <strong>{{ pagination.pages }}</strong></span>
+          <span>Page <strong>{{ pagination.page if pagination.pages else 1 }}</strong> of <strong>{{ pagination.pages if pagination.pages else 1 }}</strong></span>
         </div>
         <div class="pagination-controls">
           {% if pagination.has_prev %}
-            <a href="{{ url_for('admin.archive_audit_logs', page=pagination.prev_num) }}" class="pagination-btn">
+            <a href="{{ url_for('admin.archive_audit_logs', page=pagination.prev_num, search=search if search else None, start_date=start_date if start_date else None, end_date=end_date if end_date else None) }}" class="pagination-btn">
               <i class="fas fa-chevron-left"></i>
             </a>
           {% else %}
@@ -931,7 +964,7 @@
             </button>
           {% endif %}
           {% if pagination.has_next %}
-            <a href="{{ url_for('admin.archive_audit_logs', page=pagination.next_num) }}" class="pagination-btn">
+            <a href="{{ url_for('admin.archive_audit_logs', page=pagination.next_num, search=search if search else None, start_date=start_date if start_date else None, end_date=end_date if end_date else None) }}" class="pagination-btn">
               <i class="fas fa-chevron-right"></i>
             </a>
           {% else %}
@@ -1088,60 +1121,73 @@
 
 <script>
   function logsManager() {
+    const container = document.querySelector('.users-container');
+    const dataSearch = container?.dataset.search || '';
+    const dataStartDate = container?.dataset.startDate || '';
+    const dataEndDate = container?.dataset.endDate || '';
+
     return {
-      searchTerm: '',
-      startDate: '',
-      endDate: '',
-      
+      searchTerm: dataSearch,
+      startDate: dataStartDate,
+      endDate: dataEndDate,
+      searchTimeout: null,
+
       initLogs() {
       },
 
-      filterLogs() {
-        
-        const searchLower = this.searchTerm.toLowerCase();
-        const rows = document.querySelectorAll('.users-table tbody tr.audit-row');
-        let visibleCount = 0;
-        
-        rows.forEach(row => {
-          const event = row.getAttribute('data-event') || '';
-          const actor = row.getAttribute('data-actor') || '';
-          const timestamp = row.getAttribute('data-timestamp') || '';
-          
-          // Text search - searches in event and actor
-          const matchesSearch = !this.searchTerm || 
-            event.toLowerCase().includes(searchLower) ||
-            actor.toLowerCase().includes(searchLower);
-          
-          // Date range filtering
-          let withinDateRange = true;
-          if (this.startDate || this.endDate) {
-            const logDate = new Date(timestamp);
-            const startDateObj = this.startDate ? new Date(this.startDate) : null;
-            const endDateObj = this.endDate ? new Date(this.endDate) : null;
-            
-            if (startDateObj && logDate < startDateObj) {
-              withinDateRange = false;
-            }
-            if (endDateObj && logDate > endDateObj) {
-              withinDateRange = false;
-            }
+      handleSearchInput() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+          const pageInput = document.getElementById('searchPageInput');
+          if (pageInput) {
+            pageInput.value = '1';
           }
-          
-          if (matchesSearch && withinDateRange) {
-            row.style.display = '';
-            visibleCount++;
-          } else {
-            row.style.display = 'none';
-          }
-        });
-        
-        
-        // Show empty state if no rows match
-        const table = document.querySelector('.users-table tbody');
-        const emptyRow = table?.querySelector('tr:not(.audit-row)');
-        if (emptyRow) {
-          emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+          this.loadSearchResults();
+        }, 300);
+      },
+
+      async loadSearchResults() {
+        const url = new URL(window.location.origin + window.location.pathname);
+
+        if (this.searchTerm) {
+          url.searchParams.set('search', this.searchTerm);
+        } else {
+          url.searchParams.delete('search');
         }
+
+        if (this.startDate) {
+          url.searchParams.set('start_date', this.startDate);
+        } else {
+          url.searchParams.delete('start_date');
+        }
+
+        if (this.endDate) {
+          url.searchParams.set('end_date', this.endDate);
+        } else {
+          url.searchParams.delete('end_date');
+        }
+
+        url.searchParams.set('page', '1');
+
+        const response = await fetch(url.href, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newCard = doc.querySelector('.users-card');
+        const currentCard = document.querySelector('.users-card');
+
+        if (newCard && currentCard) {
+          currentCard.replaceWith(newCard);
+        }
+
+        window.history.replaceState({}, '', url.href);
       }
     };
   }

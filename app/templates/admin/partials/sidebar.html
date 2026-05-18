@@ -19,7 +19,7 @@
         </li>
 
         <li class="nav-item">
-          <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
+          <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.endpoint in ['admin.users', 'admin.edit_user'] %}active{% endif %}">
             <i class="nav-icon fas fa-users"></i>
             <p>All Users</p>
           </a>
@@ -53,7 +53,7 @@
         </li>
 
         <li class="nav-item">
-          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint == 'matching.quiz' %}active{% endif %}">
+          <a href="{{ url_for('matching.quiz') }}" class="nav-link {% if request.endpoint in ['matching.quiz', 'matching.quiz_specific'] %}active{% endif %}">
             <i class="nav-icon fas fa-heartbeat"></i>
             <p>Match Pet</p>
           </a>

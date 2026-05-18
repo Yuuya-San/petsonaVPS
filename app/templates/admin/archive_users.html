@@ -7,11 +7,31 @@
     min-height: 100vh;
     padding: 2.5rem 0.75rem;
     background: transparent;
+    overflow-x: hidden;
+    animation: usersFadeIn 0.45s ease-out both;
+  }
+
+  @keyframes usersFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .users-section {
+      animation: none !important;
+    }
+  }
+
+  :root {
+    --page-card-min-width: 80vw;
+    --page-card-max-width: 95vw;
+    --page-card-width: min(var(--page-card-max-width), calc(100% - 1.5rem));
   }
 
   .users-container {
-    width: 100%;
-    max-width: 1600px;
+    width: var(--page-card-width);
+    min-width: var(--page-card-min-width);
+    max-width: var(--page-card-max-width);
     margin: 0 auto;
     padding: 0 1.25rem;
     box-sizing: border-box;
@@ -313,12 +333,19 @@
     }
 
     .users-card,
-    .table-container,
-    .search-filter-card {
+    .table-container {
       width: 100%;
       max-width: 100%;
       min-width: 0;
       margin: 0 auto;
+      box-sizing: border-box;
+    }
+
+    .search-filter-card {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      margin: 0 auto 2rem;
       box-sizing: border-box;
     }
 
@@ -474,7 +501,7 @@
 </style>
 
 <section class="users-section">
-  <div class="users-container" x-data="usersManager()" @mount="initUsers()" x-cloak>
+  <div class="users-container" x-data="usersManager()" x-init="initUsers()" x-cloak data-search-term="{{ request.args.get('search', '') | escape }}">
     <div class="page-header">
       <div class="header-left">
         <h1 class="page-title">Archived Users</h1>
@@ -485,17 +512,20 @@
     <!-- Search Filter Card -->
     <div class="search-filter-card">
       <div class="search-filter-content">
-        <div class="search-box-wrapper">
+        <form id="searchForm" class="search-box-wrapper" method="GET">
           <label class="search-label">
             <i class="fas fa-search"></i>
             Search Users
           </label>
-          <input type="text" 
-                 x-model="searchTerm" 
-                 @input="filterUsers()" 
-                 class="search-input" 
-                 placeholder="Search by email or name...">
-        </div>
+          <input type="text"
+                 name="search"
+                 x-model="searchTerm"
+                 @input="handleSearchInput()"
+                 class="search-input"
+                 placeholder="Search by email or name..."
+                 value="{{ request.args.get('search', '') }}">
+          <input type="hidden" name="page" value="1">
+        </form>
       </div>
     </div>
 
@@ -588,11 +618,11 @@
       </div>
       <div class="pagination-footer">
         <div class="pagination-info">
-          <span>Page <strong>{{ users.page }}</strong> of <strong>{{ users.pages }}</strong></span>
+          <span>Page <strong>{{ users.page if users.page > 0 else 1 }}</strong> of <strong>{{ users.pages if users.pages > 0 else 1 }}</strong></span>
         </div>
         <div class="pagination-controls">
           {% if users.has_prev %}
-            <a href="{{ url_for('admin.archive_users', page=users.prev_num) }}" class="pagination-btn">
+            <a href="{{ url_for('admin.archive_users', page=users.prev_num, search=search or None) }}" class="pagination-btn">
               <i class="fas fa-chevron-left"></i>
             </a>
           {% else %}
@@ -601,7 +631,7 @@
             </button>
           {% endif %}
           {% if users.has_next %}
-            <a href="{{ url_for('admin.archive_users', page=users.next_num) }}" class="pagination-btn">
+            <a href="{{ url_for('admin.archive_users', page=users.next_num, search=search or None) }}" class="pagination-btn">
               <i class="fas fa-chevron-right"></i>
             </a>
           {% else %}
@@ -677,41 +707,51 @@
 <script>
   function usersManager() {
     return {
-      searchTerm: '',
-      
+      searchTerm: (document.querySelector('.users-container') || { dataset: { searchTerm: '' } }).dataset.searchTerm || '',
+      searchTimeout: null,
+
       initUsers() {
-        // Initialize search functionality
+        const pageInput = document.querySelector('#searchForm input[name="page"]');
+        if (pageInput) {
+          pageInput.value = '1';
+        }
       },
 
-      filterUsers() {
-        
-        const searchLower = this.searchTerm.toLowerCase();
-        const rows = document.querySelectorAll('.users-table tbody tr.user-row');
-        let visibleCount = 0;
-        
-        rows.forEach(row => {
-          const email = row.getAttribute('data-email') || '';
-          const name = row.getAttribute('data-name') || '';
-          
-          const matchesSearch = !this.searchTerm || 
-            email.toLowerCase().includes(searchLower) ||
-            name.toLowerCase().includes(searchLower);
-          
-          if (matchesSearch) {
-            row.style.display = '';
-            visibleCount++;
-          } else {
-            row.style.display = 'none';
-          }
-        });
-        
-        
-        // Show empty state if no rows match
-        const table = document.querySelector('.users-table tbody');
-        const emptyRow = table?.querySelector('tr:not(.user-row)');
-        if (emptyRow) {
-          emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+      handleSearchInput() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => this.loadSearchResults(), 300);
+      },
+
+      async loadSearchResults() {
+        const url = new URL(window.location.origin + window.location.pathname);
+
+        if (this.searchTerm) {
+          url.searchParams.set('search', this.searchTerm);
+        } else {
+          url.searchParams.delete('search');
         }
+
+        url.searchParams.set('page', '1');
+
+        const response = await fetch(url.href, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newCard = doc.querySelector('.users-card');
+        const currentCard = document.querySelector('.users-card');
+
+        if (newCard && currentCard) {
+          currentCard.replaceWith(newCard);
+        }
+
+        window.history.replaceState({}, '', url.href);
       }
     };
   }

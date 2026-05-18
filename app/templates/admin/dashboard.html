@@ -16,15 +16,27 @@
    DASHBOARD LAYOUT & SPACING
 ================================ */
 .admin-dashboard {
-  padding: 2.5rem 1.5rem;
-  background: linear-gradient(135deg, #f5f5f7 0%, #e8e8f0 100%);
+  padding: 0;
+  background: transparent; /* removed page background for this view */
   min-height: 100vh;
+  animation: adminDashboardFadeIn 0.45s ease-out both;
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
 }
 
 .dashboard-container {
-  max-width: 100%;
-  margin: 0;
   width: 100%;
+  max-width: 90vw !important;
+  margin: 0 auto !important;
+  box-sizing: border-box;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes adminDashboardFadeIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ================================
@@ -78,11 +90,11 @@
 }
 
 .metrics-grid.system-records {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .metrics-grid.analytics {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .metric-card {
@@ -261,11 +273,22 @@
 /* ================================
    ANALYTICS CHARTS
 ================================ */
+.chart-display-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+}
+
 .analytics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  grid-template-columns: 1fr;
   gap: 2rem;
   margin-bottom: 2.5rem;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .chart-container {
@@ -274,6 +297,31 @@
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  margin: 0 auto !important;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 300px;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  border-radius: 12px;
+  min-width: 0 !important;
+}
+
+.chart-wrapper canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border-radius: 12px;
+  touch-action: pan-x;
 }
 
 .chart-title {
@@ -284,29 +332,6 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-}
-
-.chart-title i {
-  color: #8b5cf6;
-}
-
-.chart-wrapper {
-  position: relative;
-  height: 300px;
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  border-radius: 12px;
-}
-
-.chart-wrapper canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none;
-  min-width: 320px;
-  border-radius: 12px;
-  touch-action: pan-x;
 }
 
 /* ================================
@@ -472,48 +497,67 @@
 /* ================================
    CHART PRINT STYLES
 ================================ */
+.chart-card {
+  width: min(90vw, 100%) !important;
+  max-width: 90vw !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  display: block !important;
+}
 
-@media print {
-  .chart-container {
-    break-inside: avoid;
-    border: 1px solid #000;
-    box-shadow: none;
+.chart-card .chart-display-container {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Force a two-column layout inside the 90vw card; each chart takes ~50% */
+.chart-card .analytics-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.5rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-content: center !important;
+  padding: 0 0.75rem !important; /* half-gap side padding for symmetric margins */
+  box-sizing: border-box !important;
+}
+
+.chart-card .chart-container {
+  flex: 0 0 calc((100% - 1.5rem) / 2) !important;
+  width: calc((100% - 1.5rem) / 2) !important;
+  max-width: calc((100% - 1.5rem) / 2) !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .chart-card .chart-container {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
-
-  .chart-wrapper {
-    height: 200px !important;
-  }
-
-  .chart-title {
-    color: #000;
-  }
 }
 
-/* ================================
-   ROLE CARDS
-================================ */
-.role-layout {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+.chart-card .chart-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 
-.role-card {
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8), rgba(237, 233, 254, 0.5));
-  border-radius: 16px;
-  padding: 1.8rem;
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  transition: all 0.3s ease;
+.chart-card .chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  display: block !important;
 }
-
-.role-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.role-card h4 {
-  font-size: 1.2rem;
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 0.8rem;
@@ -550,7 +594,7 @@
 }
 
 .activity-card li {
-  background: #f9fafb;
+  background: white;
   padding: 1.2rem;
   border-radius: 12px;
   margin-bottom: 0.8rem;
@@ -659,13 +703,13 @@
 ================================ */
 .engagement-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2.5rem;
 }
 
 .engagement-card {
-  background: white;
+  background: transparent;
   border-radius: 18px;
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -700,9 +744,9 @@
 /* Ultra-wide screens (1920px+) */
 @media (min-width: 1920px) {
   .admin-dashboard {
-    max-width: 1800px;
+    max-width: none;
     margin: 0 auto;
-    padding: 3rem 3rem;
+    padding: 3rem 0;
   }
 
   .engagement-metrics-grid {
@@ -738,8 +782,8 @@
 /* 4K and larger screens (2560px+) */
 @media (min-width: 2560px) {
   .admin-dashboard {
-    max-width: 2200px;
-    padding: 4rem 4rem;
+    max-width: none;
+    padding: 4rem 0;
   }
 
   .engagement-metrics-grid {
@@ -789,7 +833,7 @@
 /* Large Tablet/Desktop (1025px - 1200px) */
 @media (max-width: 1200px) {
   .admin-dashboard {
-    padding: 2.5rem 1.5rem;
+    padding: 2.5rem 0;
   }
 
   .analytics-grid {
@@ -843,7 +887,7 @@
 /* Small Tablet (641px - 768px) */
 @media (max-width: 768px) {
   .admin-dashboard {
-    padding: 1.5rem 0.75rem;
+    padding: 1.5rem 0;
   }
 
   .section-container {
@@ -961,7 +1005,7 @@
 /* Mobile (361px - 480px) */
 @media (max-width: 480px) {
   .admin-dashboard {
-    padding: 1rem 0.5rem;
+    padding: 1rem 0;
   }
 
   .section-container {
@@ -1086,7 +1130,7 @@
 /* Small Mobile (up to 360px) */
 @media (max-width: 360px) {
   .admin-dashboard {
-    padding: 0.75rem 0.25rem;
+    padding: 0.75rem 0;
   }
 
   .section-container {
@@ -1336,6 +1380,70 @@
   .engagement-card {
     -webkit-transform: translateZ(0); /* Force hardware acceleration */
   }
+}
+/* ================================
+   CHART DISPLAY OVERRIDES
+================================ */
+.chart-card {
+  width: 100% !important;
+  max-width: 90vw !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  display: block !important;
+}
+
+.chart-card .chart-display-container {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Force a two-column layout inside the 90vw card; each chart takes ~50% */
+.chart-card .analytics-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.5rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-content: center !important;
+  padding: 0 0.75rem !important; /* half-gap side padding for symmetric margins */
+  box-sizing: border-box !important;
+}
+
+.chart-card .chart-container {
+  flex: 0 0 calc((100% - 1.5rem) / 2) !important;
+  width: calc((100% - 1.5rem) / 2) !important;
+  max-width: calc((100% - 1.5rem) / 2) !important;
+  min-width: 0 !important; /* allow shrinking on narrow devices */
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .chart-card .chart-container {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+.chart-card .chart-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.chart-card .chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  display: block !important;
 }
 </style>
 
@@ -1622,56 +1730,29 @@
     </div>
 
     <!-- ANALYTICS CHARTS -->
-    <div class="analytics-grid">
-      <!-- Daily New Users Chart -->
-      <div class="chart-container">
-        <div class="chart-title">
-          <i class="fas fa-chart-bar"></i>
-          New Users Per Day (Last 7 Days)
-        </div>
-        <div class="chart-wrapper">
-          <canvas id="dailyUsersChart"></canvas>
-        </div>
-      </div>
-
-      <!-- User Growth Trend Chart -->
-      <div class="chart-container">
-        <div class="chart-title">
-          <i class="fas fa-arrow-trending-up"></i>
-          Cumulative User Growth Trend
-        </div>
-        <div class="chart-wrapper">
-          <canvas id="growthTrendChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Peak Activity Analysis -->
-    <div class="section-container">
-      <div class="key-metrics-header">
-        <div class="section-title">
-          <i class="fas fa-clock"></i>
-          Peak Activity Analysis
-        </div>
-        <span class="metric-period-badge">
-          <i class="fas fa-calendar-day"></i> Today
-        </span>
-      </div>
-
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-icon engagement">
-            <lord-icon
-                src="https://cdn.lordicon.com/twpfmtiv.json"
-                trigger="hover"
-                stroke="bold"
-                style="width:50px;height:50px">
-            </lord-icon>          
+    <div class="chart-card">
+      <div class="chart-display-container">
+        <div class="analytics-grid">
+          <!-- Daily New Users Chart -->
+          <div class="chart-container">
+            <div class="chart-title">
+              <i class="fas fa-chart-bar"></i>
+              New Users Per Day (Last 7 Days)
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="dailyUsersChart"></canvas>
+            </div>
           </div>
-          <div class="metric-content">
-            <span class="metric-label">Peak Activity Hour</span>
-            <span class="metric-value" style="font-size: 1.8rem;">{{ stats.peak_activity_hour }}</span>
-            <span class="metric-badge"><i class="fas fa-star"></i> Busiest Time</span>
+
+          <!-- User Growth Trend Chart -->
+          <div class="chart-container">
+            <div class="chart-title">
+              <i class="fas fa-arrow-trending-up"></i>
+              Cumulative User Growth Trend
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="growthTrendChart"></canvas>
+            </div>
           </div>
         </div>
       </div>

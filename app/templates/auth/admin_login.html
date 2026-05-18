@@ -484,44 +484,51 @@
 /* Short height / landscape */
 @media (max-height: 620px) {
   .auth-bg {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.25rem;
   }
 
   .auth-card {
-    padding: 0.9rem 1.1rem;
-    width: clamp(220px, 95vw, 320px);
-    max-height: calc(100vh - 90px);
+    padding: 0.75rem 0.95rem;
+    width: clamp(240px, 95vw, 360px);
+    max-height: calc(100vh - 76px);
     overflow-y: auto;
+    margin-top: -90px !important;
   }
 
   .title {
-    font-size: 1.2rem;
-    margin-bottom: 0.05rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.1rem;
   }
 
   .subtitle {
-    font-size: 0.65rem;
-    margin-bottom: 0.6rem;
+    font-size: 0.6rem;
+    margin-bottom: 0.5rem;
   }
 
   .auth-form {
-    gap: 0.75rem;
+    gap: 0.55rem;
   }
 
   .input-group {
-    padding-bottom: 0.15rem;
+    padding-bottom: 0.12rem;
+    gap: 0.32rem;
+  }
+
+  .input-field {
+    font-size: 0.8rem;
+    padding: 0.22rem 0;
   }
 
   .btn-primary {
-    padding: 0.55rem;
-    font-size: 0.78rem;
-    min-height: 26px;
-    margin-top: 0.4rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    min-height: 24px;
+    margin-top: 0.2rem;
   }
 
   .auth-separator {
-    margin: 0.6rem 0 0.5rem;
+    margin: 0.25rem 0 0.25rem;
     font-size: 0.6rem;
   }
 
@@ -532,7 +539,7 @@
   }
 
   .social-btn.google-wide {
-    padding: 0.6rem;
+    padding: 0.55rem;
   }
 
   .social-btn i {
@@ -544,9 +551,9 @@
   }
 
   .links {
-    margin-top: 0.4rem;
-    font-size: 0.65rem;
-    gap: 0.3rem;
+    margin-top: 0.25rem;
+    font-size: 0.58rem;
+    gap: 0.22rem;
   }
 }
 </style>

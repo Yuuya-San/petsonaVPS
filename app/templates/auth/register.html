@@ -455,47 +455,69 @@
 /* Short height / landscape */
 @media (max-height: 620px) {
   .auth-bg {
-    padding-top: 0.5rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.25rem;
   }
 
   .auth-card {
-    padding: 0.8rem 1rem;
-    width: clamp(220px, 95vw, 320px);
-    max-height: calc(100vh - 90px);
+    padding: 0.75rem 0.95rem;
+    width: clamp(240px, 95vw, 360px);
+    max-height: calc(100vh - 76px);
     overflow-y: auto;
+    margin-top: -90px !important;
   }
 
   .title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
+    margin-bottom: 0.08rem;
   }
 
   .subtitle {
-    font-size: 0.6rem;
-    margin-bottom: 0.6rem;
+    font-size: 0.58rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
   }
 
   .auth-form {
-    gap: 0.6rem;
+    gap: 0.45rem;
+  }
+
+  .form-section {
+    padding-bottom: 0.25rem;
   }
 
   .input-group {
-    padding-bottom: 0.15rem;
+    padding-bottom: 0.12rem;
+    gap: 0.32rem;
   }
 
   .input-field {
-    font-size: 0.8rem;
-    padding: 0.25rem 0;
+    font-size: 0.78rem;
+    padding: 0.2rem 0;
   }
 
   .themed-btn {
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    min-height: 28px;
+    padding: 0.45rem;
+    font-size: 0.72rem;
+    min-height: 26px;
+  }
+
+  .section-nav {
+    gap: 0.5rem;
   }
 
   .auth-separator {
-    margin: 0.3rem 0 0.3rem;
-    font-size: 0.6rem;
+    margin: 0.25rem 0 0.25rem;
+    font-size: 0.58rem;
+  }
+
+  .social-login {
+    margin-top: 0.28rem;
+    gap: 0.5rem;
   }
 
   .social-btn {
@@ -505,35 +527,42 @@
   }
 
   .social-btn.google-wide {
-    padding: 0.6rem;
+    padding: 0.55rem;
   }
 
   .social-btn i {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
   }
 
   .password-requirements {
     gap: 0.08rem;
-    padding: 0.25rem;
-    margin: 0.15rem 0;
+    padding: 0.22rem;
+    margin: 0.12rem 0;
   }
 
   .requirement {
-    font-size: 0.55rem;
+    font-size: 0.54rem;
+    gap: 0.2rem;
   }
 
   .requirement i {
-    font-size: 0.45rem;
+    font-size: 0.44rem;
   }
 
   .password-strength-meter {
-    margin: 0.15rem 0;
+    margin: 0.12rem 0;
     gap: 0.08rem;
   }
 
   .strength-text {
     font-size: 0.5rem;
   }
+
+  .links {
+    margin-top: 0.25rem;
+    font-size: 0.58rem;
+  }
+}
 
 </style>
 

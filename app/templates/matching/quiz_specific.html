@@ -165,14 +165,18 @@
         <!-- Options -->
         <div class="space-y-3 mb-8">
           <template x-for="(option, idx) in (quizQuestions[currentIndex]?.options || [])" :key="idx">
-            <label class="flex items-center p-4 sm:p-5 border-2 border-gray-200 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all group active:scale-95"
-                   :class="isSelected(option) ? 'border-indigo-800 bg-indigo-50 ring-2 ring-indigo-200' : ''"
+            <label class="flex items-center p-4 sm:p-5 border-2 rounded-2xl transition-all group active:scale-95"
+                   :class="[
+                     isSelected(option) ? 'border-indigo-800 bg-indigo-50 ring-2 ring-indigo-200 cursor-pointer' : 'border-gray-200 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50',
+                     isOptionDisabled(option, quizQuestions[currentIndex]?.name) ? 'opacity-50 cursor-not-allowed' : ''
+                   ]"
             >
               <input :type="isMultiSelectQuestion(quizQuestions[currentIndex]?.name) ? 'checkbox' : 'radio'"
                      :value="option"
                      @change="selectAnswer(option)"
                      :checked="isSelected(option)"
-                     class="w-5 h-5 text-indigo-800 flex-shrink-0 cursor-pointer">
+                     :disabled="isOptionDisabled(option, quizQuestions[currentIndex]?.name)"
+                     class="w-5 h-5 text-indigo-800 flex-shrink-0 cursor-pointer disabled:cursor-not-allowed">
               <span class="ml-3 text-sm sm:text-base text-gray-700 font-medium group-hover:text-gray-900 transition" x-text="option"></span>
             </label>
           </template>
@@ -291,6 +295,26 @@
         return question && question.isMultiSelect === true;
       },
 
+      isOptionDisabled(option, questionName) {
+        // Special handling for other_pets_friendly question
+        if (questionName === 'other_pets_friendly') {
+          const answer = this.answers[questionName];
+          if (!Array.isArray(answer)) return false;
+          
+          // If "None" is selected, disable all other options
+          if (answer.includes('None') && option !== 'None') {
+            return true;
+          }
+          
+          // If any other option is selected, disable "None"
+          if (option === 'None' && answer.length > 0 && !answer.includes('None')) {
+            return true;
+          }
+        }
+        
+        return false;
+      },
+
       isSelected(option) {
         const currentQuestion = this.quizQuestions[this.currentIndex];
         if (!currentQuestion) return false;
@@ -313,11 +337,39 @@
             this.answers[currentQuestion.name] = [];
           }
           
-          const index = this.answers[currentQuestion.name].indexOf(option);
-          if (index > -1) {
-            this.answers[currentQuestion.name].splice(index, 1);
+          // Special handling for other_pets_friendly
+          if (currentQuestion.name === 'other_pets_friendly') {
+            if (option === 'None') {
+              // If selecting "None", clear all other options
+              if (!this.answers[currentQuestion.name].includes('None')) {
+                this.answers[currentQuestion.name] = ['None'];
+              } else {
+                // If deselecting "None", just remove it
+                this.answers[currentQuestion.name].splice(this.answers[currentQuestion.name].indexOf('None'), 1);
+              }
+            } else {
+              // If selecting any other option, remove "None" if it's there
+              const noneIndex = this.answers[currentQuestion.name].indexOf('None');
+              if (noneIndex > -1) {
+                this.answers[currentQuestion.name].splice(noneIndex, 1);
+              }
+              
+              // Toggle the current option
+              const index = this.answers[currentQuestion.name].indexOf(option);
+              if (index > -1) {
+                this.answers[currentQuestion.name].splice(index, 1);
+              } else {
+                this.answers[currentQuestion.name].push(option);
+              }
+            }
           } else {
-            this.answers[currentQuestion.name].push(option);
+            // Normal multi-select behavior for other questions
+            const index = this.answers[currentQuestion.name].indexOf(option);
+            if (index > -1) {
+              this.answers[currentQuestion.name].splice(index, 1);
+            } else {
+              this.answers[currentQuestion.name].push(option);
+            }
           }
         } else {
           this.answers[currentQuestion.name] = option;

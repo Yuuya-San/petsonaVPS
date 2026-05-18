@@ -20,6 +20,21 @@ from typing import Dict, List, Any, Optional
 
 
 # ============================================================================
+# PET PREFERENCE TO ICON MAPPING - For filtering recommendations
+# ============================================================================
+PET_PREFERENCE_TO_ICON = {
+    'Dogs': 'fa-solid fa-dog',
+    'Cats': 'fa-solid fa-cat',
+    'Birds': 'fa-solid fa-dove',
+    'Fish': 'fa-solid fa-fish',
+    'Reptiles': 'fa-solid fa-dragon',
+    'Amphibians': 'fa-solid fa-frog',
+    'Small Mammals': 'fa-solid fa-otter',
+    'Small Animals': 'fa-solid fa-otter',
+}
+
+
+# ============================================================================
 # ANSWER MAPPINGS - Convert user answers to numeric scores (0-4)
 # ============================================================================
 
@@ -117,6 +132,18 @@ ANSWER_MAPPINGS = {
         'Small Pets': 1,
     },
     
+    # Pet Preference
+    'pet_preference': {
+        'Dogs': 'Dogs',
+        'Cats': 'Cats',
+        'Birds': 'Birds',
+        'Fish': 'Fish',
+        'Reptiles': 'Reptiles',
+        'Amphibians': 'Amphibians',
+        'Small Animals': 'Small Animals',
+        'Small Mammals': 'Small Mammals',
+    },
+    
     # Safety
     'prey_drive': {
         'No, I am not': 0,
@@ -132,17 +159,6 @@ ANSWER_MAPPINGS = {
         'No, I cannot': 0,
         'Maybe, I am not sure': 2,
         'Yes, I can': 4,
-    },
-    
-    # Pet Preference
-    'pet_preference': {
-        'Dogs': 'Dogs',
-        'Cats': 'Cats',
-        'Birds': 'Birds',
-        'Fish': 'Fish',
-        'Reptiles': 'Reptiles',
-        'Amphibians': 'Amphibians',
-        'Small Animals': 'Small Animals',
     },
     
     # Health
@@ -503,8 +519,7 @@ def score_question(question_key: str, user_answer: str, breed_value: Any) -> flo
     # ========================================================================
     # SPECIAL CASE HANDLERS
     # ========================================================================
-    
-    # Space and Household Capacity Questions
+
     if question_key in ['space_needs', 'min_enclosure_size', 'handling_tolerance']:
         return score_space_and_household(question_key, user_score, breed_score)
     
@@ -917,15 +932,38 @@ def find_top_matches(answers: Dict, limit: int = 5) -> List[Dict]:
     """
     Find the top N most compatible breeds for user answers.
     
+    Multi-preference Logic:
+    - If user selected 2+ pet preferences, distribute results intelligently
+    - More than 5 preferences: Top 5 overall by score
+    - Exactly 2 preferences: Top 2 per preference + 1 from 3rd highest across all
+    - 3-5 preferences: Distribute slots evenly + fill with 3rd highest
+    
+    Single Preference:
+    - ONLY breeds matching that species icon are recommended
+    - Recommendations are ranked by overall compatibility score
+    
     Args:
         answers: Dictionary of user answers
         limit: Number of breeds to return (default 5)
     
     Returns:
-        List of breed matches with scores
+        List of breed matches with scores (pre-filtered by pet preference if provided)
     """
     if not answers or not isinstance(answers, dict):
         return []
+    
+    # Extract pet preference from answers (used for filtering, not scoring)
+    pet_preference_str = answers.get('pet_preference', '')
+    preferences = []
+    preferred_icons = {}  # Map icon to pet type name
+    
+    if pet_preference_str:
+        # Parse comma-separated preferences and map to icons
+        preferences = [p.strip() for p in pet_preference_str.split(',') if p.strip()]
+        for pref in preferences:
+            icon = PET_PREFERENCE_TO_ICON.get(pref.strip())
+            if icon:
+                preferred_icons[icon] = pref.strip()
     
     # Get all active breeds
     breeds = Breed.query.filter(
@@ -936,9 +974,23 @@ def find_top_matches(answers: Dict, limit: int = 5) -> List[Dict]:
     if not breeds:
         return []
     
-    # Score each breed
+    # If multiple preferences (2+), use intelligent distribution
+    if len(preferences) >= 2:
+        return _find_top_matches_multipreference(answers, breeds, preferred_icons, limit, preferences)
+    
+    # Single preference: use standard filtering
     matches = []
     for breed in breeds:
+        # STRICT filtering: if user specified pet_preference, enforce exact icon match
+        if preferred_icons:
+            # If preferences are specified, breed MUST have species with matching icon
+            if not breed.species:
+                continue  # Skip breeds without species info
+            
+            species_icon = (breed.species.icon or '').strip()
+            if not species_icon or species_icon not in preferred_icons:
+                continue  # Skip breeds that don't match user's pet preferences
+        
         score_data = calculate_compatibility(answers, breed)
         suggestions = generate_suggestions(answers, breed)
         reasons = generate_match_reasons(answers, breed)
@@ -963,6 +1015,134 @@ def find_top_matches(answers: Dict, limit: int = 5) -> List[Dict]:
         })
     
     # Sort by score (highest first)
+    matches.sort(key=lambda x: x['score'], reverse=True)
+    
+    return matches[:limit]
+
+
+def _find_top_matches_multipreference(answers: Dict, all_breeds: List, preferred_icons: Dict, limit: int, preferences: List) -> List[Dict]:
+    """
+    Find top matches when user has 2+ pet preferences.
+    
+    Distribution logic:
+    - More than 5 preferences: Top 5 overall by score
+    - Exactly 2 preferences: Top 2 per preference + 1 from 3rd highest
+    - 3-5 preferences: Distribute evenly + fill with 3rd highest from each
+    
+    Args:
+        answers: User answers dict
+        all_breeds: All breed objects to score
+        preferred_icons: Dict mapping icons to pet type names
+        limit: Number of results to return (default 5)
+        preferences: List of selected pet preference names
+    
+    Returns:
+        List of breed matches with intelligent distribution
+    """
+    # Group breeds by their species icon
+    breeds_by_icon = {}
+    for breed in all_breeds:
+        if breed.species and breed.species.icon and breed.species.icon in preferred_icons:
+            if breed.species.icon not in breeds_by_icon:
+                breeds_by_icon[breed.species.icon] = []
+            breeds_by_icon[breed.species.icon].append(breed)
+    
+    # Score all breeds and group by icon
+    scored_breeds_by_icon = {}
+    for icon, breeds_list in breeds_by_icon.items():
+        scored_breeds_by_icon[icon] = []
+        for breed in breeds_list:
+            score_data = calculate_compatibility(answers, breed)
+            suggestions = generate_suggestions(answers, breed)
+            reasons = generate_match_reasons(answers, breed)
+            
+            breed_result = {
+                'breed': {
+                    'id': breed.id,
+                    'name': breed.name,
+                    'summary': breed.summary,
+                    'image_url': breed.image_url,
+                    'species_id': breed.species_id,
+                    'species': {
+                        'id': breed.species.id,
+                        'name': breed.species.name,
+                    } if breed.species else {}
+                },
+                'score': score_data.get('overall_score', 0),
+                'level': score_data.get('compatibility_level', 'Unknown'),
+                'suggestions': suggestions,
+                'matched_reasons': reasons.get('matched_reasons', []),
+                'mismatch_reasons': reasons.get('mismatch_reasons', []),
+                'icon': icon,
+            }
+            scored_breeds_by_icon[icon].append(breed_result)
+        
+        # Sort by score (highest first)
+        scored_breeds_by_icon[icon].sort(key=lambda x: x['score'], reverse=True)
+    
+    # Distribution logic based on number of preferences
+    matches = []
+    num_prefs = len(preferences)
+    
+    if num_prefs > 5:
+        # More than 5 preferences: Top 5 overall by score (winner takes all)
+        all_scored = []
+        for icon_list in scored_breeds_by_icon.values():
+            all_scored.extend(icon_list)
+        all_scored.sort(key=lambda x: x['score'], reverse=True)
+        matches = all_scored[:limit]
+    
+    elif num_prefs == 2:
+        # 2 preferences: 2 per preference + 1 from 3rd highest
+        for icon in list(preferred_icons.keys())[:2]:
+            breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+            # Take top 2 from each preference
+            matches.extend(breeds_for_icon[:2])
+        
+        # Fill 5th slot with 3rd highest from each preference
+        if len(matches) < limit:
+            third_place_candidates = []
+            for icon in preferred_icons.keys():
+                breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+                if len(breeds_for_icon) > 2:
+                    third_place_candidates.append(breeds_for_icon[2])
+            
+            # Sort third place candidates by score and add top one
+            third_place_candidates.sort(key=lambda x: x['score'], reverse=True)
+            if third_place_candidates:
+                matches.append(third_place_candidates[0])
+    
+    else:
+        # 3-5 preferences: Distribute slots evenly, then fill with 3rd highest
+        breeds_per_pref = limit // num_prefs
+        remainder = limit % num_prefs
+        
+        # First pass: distribute main slots
+        for i, icon in enumerate(list(preferred_icons.keys())[:num_prefs]):
+            breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+            # Determine how many to take from this preference
+            num_to_take = breeds_per_pref + (1 if i < remainder else 0)
+            matches.extend(breeds_for_icon[:num_to_take])
+        
+        # Second pass: fill remaining slots with 3rd highest from each preference
+        if len(matches) < limit:
+            third_place_candidates = []
+            for icon in preferred_icons.keys():
+                breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+                if len(breeds_for_icon) > breeds_per_pref:
+                    # Collect 3rd highest and beyond from each preference
+                    for j in range(breeds_per_pref, len(breeds_for_icon)):
+                        third_place_candidates.append(breeds_for_icon[j])
+            
+            # Sort by score and fill remaining slots
+            third_place_candidates.sort(key=lambda x: x['score'], reverse=True)
+            for candidate in third_place_candidates:
+                if len(matches) < limit:
+                    matches.append(candidate)
+                else:
+                    break
+    
+    # Final sort by score to ensure top performers are shown
     matches.sort(key=lambda x: x['score'], reverse=True)
     
     return matches[:limit]

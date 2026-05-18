@@ -45,14 +45,14 @@ def normalize_quiz_answers(answers: dict) -> dict:
     
     for key, value in answers.items():
         if key == 'pet_preference':
-            # Handle multi-select pet preferences
-            if isinstance(value, str) and value:
-                # If comma-separated, take just the first preference for filtering
-                if ',' in value:
-                    # Store the first preference for filtering
-                    normalized[key] = value.split(',')[0].strip()
-                else:
-                    normalized[key] = value.strip()
+            # Preserve all selected preferences for compatibility scoring.
+            if isinstance(value, list):
+                normalized[key] = ','.join(
+                    str(item).strip() for item in value
+                    if item is not None and str(item).strip()
+                )
+            elif isinstance(value, str):
+                normalized[key] = value.strip()
             else:
                 normalized[key] = value
         

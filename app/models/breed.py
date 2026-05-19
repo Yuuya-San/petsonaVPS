@@ -51,6 +51,7 @@ class Breed(db.Model):
     cat_friendly = db.Column(db.Boolean, default=True)
     small_pet_friendly = db.Column(db.Boolean, default=True)
     min_enclosure_size = db.Column(db.String(100),comment="Minimum recommended enclosure size for the breed")
+    size_category = db.Column(db.Enum('Toy / Extra Small', 'Small', 'Medium', 'Large', 'Giant'), nullable=True, comment="Pet size category based on pet types")
 
     # --------------------------
     # Voting & Engagement
@@ -108,6 +109,7 @@ class Breed(db.Model):
             # Space & Environment
             # --------------------------
             "space_needs": escape(self.space_needs) if self.space_needs else "",
+            "size_category": escape(self.size_category) if self.size_category else "",
             "environment_complexity": escape(self.environment_complexity) if self.environment_complexity else "",
             "min_enclosure_size": escape(self.min_enclosure_size) if self.min_enclosure_size else "",
 

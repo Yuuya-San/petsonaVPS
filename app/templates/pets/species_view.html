@@ -186,7 +186,6 @@
     font-size: 0.8rem;
     gap: 0.25rem;
     min-height: 3rem;
-    justify-content: center;
   }
 
   .btn-label {
@@ -198,8 +197,8 @@
 
   .modal-footer form {
     display: flex;
-    flex: 1 1 0;
-    width: auto;
+    flex: 0 1 8rem;
+    width: 8rem;
   }
 
   .modal-footer form .modal-btn {
@@ -453,6 +452,11 @@
   .status-medium {
     background: #fef3c7;
     color: #92400e;
+  }
+
+  .status-blue {
+    background: #dbeafe;
+    color: #1e40af;
   }
 
   .glass-card {
@@ -715,28 +719,50 @@
     }
   }
 
-  [x-cloak] {
-    display: none !important;
+  .modal-footer {
+    width: 95vw;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* EXACT equal width */
+    gap: 12px;
+  }
+
+  .modal-footer > button,
+  .modal-footer > form {
+    width: 100%;
+    margin: 0;
+  }
+
+  .modal-footer form {
+    display: flex;
+  }
+
+  .modal-footer button {
+    width: 100%;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+
+    box-sizing: border-box;
+    text-align: center;
   }
 </style>
 
-<!-- Parent Alpine for View Modal + Add/Edit Breed Modal -->
+<!-- Parent Alpine for View Modal + Add/Edit Breed Modal + Delete Modal -->
 <div x-data="{
         viewModal: false,
         breedModal: false,
         deleteModal: false,
         selectedBreed: null,
-        selectedDeleteBreed: null,
         editingBreed: null,
+        selectedBreedToDelete: null,
         imagePreview: null,
-        openDeleteBreed(breed) {
-          this.selectedDeleteBreed = breed;
-          this.deleteModal = true;
-        },
-        closeDeleteBreed() {
-          this.deleteModal = false;
-          this.selectedDeleteBreed = null;
-        },
         openEditBreed(breed) {
           this.editingBreed = breed;
           this.imagePreview = breed.image_url ? '{{ url_for('static', filename='') }}' + breed.image_url : null;
@@ -747,6 +773,10 @@
           this.imagePreview = null;
           if($refs.breedFile) $refs.breedFile.value = '';
         },
+        openDeleteConfirm(breed) {
+          this.selectedBreedToDelete = breed;
+          this.deleteModal = true;
+        },
         getStatusClass(value) {
           if (!value) return 'status-medium';
           const val = value.toLowerCase();
@@ -755,7 +785,7 @@
           if (val === 'high' || val === 'large' || val === 'difficult' || val === 'advanced' || val === 'complex' || val === 'loud') return 'status-no';
           return 'status-medium';
         }
-      }" @open-delete-modal.window="openDeleteBreed($event.detail)"
+      }"
      class="w-full min-h-screen animate-fadeIn">
   <div class="w-[95vw] mx-auto px-2 sm:px-4 lg:px-6 py-6 space-y-10">
 
@@ -878,7 +908,11 @@
           </button>
 
           <!-- DELETE BUTTON -->
-          <button @click="$dispatch('open-delete-modal', { id: {{ breed.id }}, name: '{{ breed.name|replace("'", "\\'") }}', summary: '{{ breed.summary|replace("'", "\\'") }}' }); menu=false"
+          <button @click="openDeleteConfirm({
+                    id: {{ breed.id }},
+                    name: '{{ breed.name|replace("'", "\\'" ) }}',
+                    summary: '{{ breed.summary|replace("'", "\\'" ) }}'
+                  }); menu=false"
                   class="flex items-center gap-3 px-4 py-2 mt-2 text-sm font-medium
                         bg-white/20 backdrop-blur-md
                         text-purple-800
@@ -952,75 +986,8 @@
 
           </div>
         </div>
-
-        </div>
       </div>
       {% endfor %}
-
-      <!-- Shared Delete Modal -->
-      <div x-show="deleteModal" x-transition.opacity
-           class="modal-overlay"
-           @click.self="closeDeleteBreed()"
-           x-cloak>
-
-        <div class="modal-content-wrapper" style="margin-top: 2rem; max-width: 480px; height: 500px;">
-
-          <!-- MODAL HEADER -->
-          <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
-            <h3 class="modal-header-title">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              Confirm Delete
-            </h3>
-            <button type="button" class="modal-close-btn" @click="closeDeleteBreed()" title="Close">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-
-          <!-- MODAL BODY -->
-          <div class="modal-body">
-            <p class="text-sm text-gray-700 mb-4 font-medium">
-              You are about to delete this breed:
-            </p>
-
-            <!-- PREVIEW ITEMS -->
-            <div class="preview-section mb-4" style="grid-template-columns: 1fr;">
-              <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
-                <span class="preview-label">Name</span>
-                <span class="preview-value" x-text="selectedDeleteBreed?.name"></span>
-              </div>
-              <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
-                <span class="preview-label">Summary</span>
-                <span class="preview-value" x-text="selectedDeleteBreed?.summary"></span>
-              </div>
-            </div>
-
-            <!-- WARNING ALERT -->
-            <div class="warning-alert">
-              <i class="fa-solid fa-circle-info"></i>
-              <div>
-                <span class="text-xs font-medium text-red-800">This is a soft delete. You can restore it later.</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- MODAL FOOTER -->
-          <div class="modal-footer">
-            <button type="button" @click="closeDeleteBreed()" class="modal-btn modal-btn-secondary">
-              <i class="fa-solid fa-ban"></i>
-              Cancel
-            </button>
-            <form method="POST" x-bind:action="selectedDeleteBreed ? '/pets/breed/' + selectedDeleteBreed.id + '/delete' : '#'" class="flex">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-              <button type="submit" class="modal-btn modal-btn-delete">
-                <i class="fa-regular fa-trash-can"></i>
-                Delete
-              </button>
-            </form>
-          </div>
-
-        </div>
-      </div>
-
     </div>
     {% else %}
       <div class="bg-gray-50 rounded-2xl p-10 text-center text-gray-600">
@@ -1030,9 +997,81 @@
 
   </div>
 
+  <!-- 🔷 DELETE BREED MODAL -->
+  <div x-show="deleteModal" x-transition.opacity
+       class="modal-overlay"
+       @click.self="deleteModal=false">
+
+    <div class="modal-content-wrapper">
+
+      <!-- MODAL HEADER -->
+      <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
+        <h3 class="modal-header-title">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Confirm Delete
+        </h3>
+        <button type="button" class="modal-close-btn" @click="deleteModal=false" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+        <p class="text-sm text-gray-700 mb-4 font-medium">
+          You are about to delete this breed:
+        </p>
+
+        <!-- PREVIEW ITEMS -->
+        <div class="preview-section mb-4" style="grid-template-columns: 1fr;">
+          <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
+            <span class="preview-label">Name</span>
+            <span class="preview-value" x-text="selectedBreedToDelete?.name"></span>
+          </div>
+          <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
+            <span class="preview-label">Summary</span>
+            <span class="preview-value" x-text="selectedBreedToDelete?.summary"></span>
+          </div>
+        </div>
+
+        <!-- WARNING ALERT -->
+        <div class="warning-alert">
+          <i class="fa-solid fa-circle-info"></i>
+          <div>
+            <span class="text-xs font-medium text-red-800">This is a soft delete. You can restore it later.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+        <button
+          type="button"
+          @click="deleteModal=false"
+          class="modal-btn modal-btn-secondary footer-btn"
+        >
+          <i class="fa-solid fa-ban"></i>
+          <span>Cancel</span>
+        </button>
+
+        <form
+          method="POST"
+          :action="selectedBreedToDelete ? `/pets/breed/${selectedBreedToDelete.id}/delete` : '#'"
+          class="footer-form"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <button type="submit" class="modal-btn modal-btn-delete footer-btn">
+            <i class="fa-regular fa-trash-can"></i>
+            <span>Delete</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
   <!-- 🔷 VIEW BREED MODAL -->
   <div x-show="viewModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-       x-cloak
        class="modal-overlay"
        @click.self="viewModal=false; selectedBreed=null">
     <div class="modal-content-wrapper" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
@@ -1076,52 +1115,73 @@
         <!-- SECTION DIVIDER -->
         <div class="section-divider mb-6"></div>
 
-        <!-- COMPATIBILITY SNAPSHOT (6 KEY METRICS FOR MATCHING ENGINE) -->
+        <!-- COMPATIBILITY SNAPSHOT (7 KEY METRICS FOR MATCHING ENGINE) -->
         <div class="mb-6">
           <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
             <i class="fa-solid fa-chart-simple text-indigo-600"></i> Compatibility Snapshot
           </h3>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="space-y-2">
             <!-- Energy Level -->
-            <div class="compatibility-matrix metric-card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-              <div class="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1">Energy Level</div>
-              <div class="stat-value text-blue-600" x-text="selectedBreed?.energy_level || 'N/A'"></div>
-              <div class="text-xs text-blue-600 mt-1"><i class="fa-solid fa-bolt"></i></div>
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
+                <i class="fa-solid fa-bolt text-blue-500 text-lg"></i>
+                <span>Energy Level</span>
+              </div>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.energy_level)" x-text="selectedBreed?.energy_level || 'N/A'"></span>
             </div>
 
             <!-- Time Commitment -->
-            <div class="compatibility-matrix metric-card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
-              <div class="text-xs font-bold text-purple-700 uppercase tracking-wide mb-1">Time Needed</div>
-              <div class="stat-value text-purple-600" x-text="selectedBreed?.time_commitment || 'N/A'"></div>
-              <div class="text-xs text-purple-600 mt-1"><i class="fa-solid fa-hourglass-end"></i></div>
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
+                <i class="fa-solid fa-hourglass-end text-purple-500 text-lg"></i>
+                <span>Time Needed</span>
+              </div>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.time_commitment)" x-text="selectedBreed?.time_commitment || 'N/A'"></span>
             </div>
 
             <!-- Space Needs -->
-            <div class="compatibility-matrix metric-card bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-              <div class="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Space Needs</div>
-              <div class="stat-value text-green-600" x-text="selectedBreed?.space_needs || 'N/A'"></div>
-              <div class="text-xs text-green-600 mt-1"><i class="fa-solid fa-ruler"></i></div>
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
+                <i class="fa-solid fa-ruler text-green-500 text-lg"></i>
+                <span>Space Needs</span>
+              </div>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.space_needs)" x-text="selectedBreed?.space_needs || 'N/A'"></span>
             </div>
 
             <!-- Experience Required -->
-            <div class="compatibility-matrix metric-card bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
-              <div class="text-xs font-bold text-orange-700 uppercase tracking-wide mb-1">Experience</div>
-              <div class="stat-value text-orange-600" x-text="selectedBreed?.experience_required || 'N/A'"></div>
-              <div class="text-xs text-orange-600 mt-1"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
+                <i class="fa-solid fa-graduation-cap text-orange-500 text-lg"></i>
+                <span>Experience Required</span>
+              </div>
+              <span :class="'status-badge ' + getStatusClass(selectedBreed?.experience_required)" x-text="selectedBreed?.experience_required || 'N/A'"></span>
             </div>
 
-            <!-- Monthly Cost -->
-            <div class="compatibility-matrix metric-card bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
-              <div class="text-xs font-bold text-red-700 uppercase tracking-wide mb-1">Monthly Cost</div>
-              <div class="stat-value text-red-600" x-text="selectedBreed?.monthly_cost_level || 'N/A'"></div>
-              <div class="text-xs text-red-600 mt-1"><i class="fa-solid fa-wallet"></i></div>
+            <!-- Care Cost -->
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
+                <i class="fa-solid fa-wallet text-red-500 text-lg"></i>
+                <span>Estimated Care Cost</span>
+              </div>
+              <span class="status-badge status-blue" x-text="selectedBreed?.care_cost || 'N/A'"></span>
             </div>
 
             <!-- Lifespan -->
-            <div class="compatibility-matrix metric-card bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200">
-              <div class="text-xs font-bold text-pink-700 uppercase tracking-wide mb-1">Lifespan</div>
-              <div class="stat-value text-pink-600" x-text="selectedBreed?.lifespan || 'N/A'"></div>
-              <div class="text-xs text-pink-600 mt-1"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
+                <i class="fa-solid fa-hourglass-half text-pink-500 text-lg"></i>
+                <span>Lifespan</span>
+              </div>
+              <span class="status-badge status-blue" x-text="selectedBreed?.lifespan || 'N/A'"></span>
+            </div>
+
+            <!-- Size Category -->
+            <div class="care-requirement-item">
+              <div class="care-requirement-label">
+                <i class="fa-solid fa-weight text-cyan-500 text-lg"></i>
+                <span>Size Category</span>
+              </div>
+              <span class="status-badge status-blue" x-text="selectedBreed?.size_category || 'N/A'"></span>
             </div>
           </div>
         </div>
@@ -1464,7 +1524,6 @@
 
   <!-- 🔷 ADD / EDIT BREED MODAL -->
   <div x-show="breedModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-       x-cloak
        class="modal-overlay"
        @click.self="breedModal=false; resetBreedForm()">
     <div class="modal-content-wrapper" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
@@ -1570,6 +1629,21 @@
                       class="border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white placeholder-gray-400 transition shadow-sm hover:shadow-md w-full">
               </div>
               {% endif %}
+
+              <!-- Size Category -->
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-weight text-indigo-600"></i> Size Category
+                </label>
+                <select name="size_category" x-bind:value="editingBreed?.size_category || ''" class="form-select">
+                  <option value="">-- Select Size --</option>
+                  <option value="Toy / Extra Small">Toy / Extra Small</option>
+                  <option value="Small">Small</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Large">Large</option>
+                  <option value="Giant">Giant</option>
+                </select>
+              </div>
             </div>
           </div>
 

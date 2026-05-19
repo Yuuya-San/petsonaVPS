@@ -1,17 +1,67 @@
 """
-Pet Compatibility Scoring Engine
+Pet Compatibility Scoring Engine - ENHANCED VERSION
 
-A clean, modular system for calculating pet-owner compatibility.
-Evaluates user answers against breed requirements across 8 dimensions.
+A sophisticated, modular system for calculating pet-owner compatibility.
+Evaluates user answers against breed requirements with advanced accuracy.
 
 Architecture:
-1. Answer Normalization - Convert user answers to numeric scores (0-4)
-2. Breed Value Normalization - Convert breed requirements to numeric scores
-3. Question Scoring - Score individual questions with special case handling
-4. Penalty Calculation - Apply penalties based on gaps between user and breed
-5. Compatibility Calculation - Aggregate scores across all questions
-6. Suggestions - Generate improvement recommendations
-7. Match Reasons - Explain why user and pet matched
+1. Answer Normalization - Convert user answers to numeric scores (0-4) with case-insensitive matching
+2. Breed Value Normalization - Convert breed requirements to numeric scores with multiple format support
+3. Question Scoring - Score individual questions with special case handling and edge case management
+4. Penalty Calculation - Non-linear penalty curve for accurate gap-based scoring
+5. Filtering - STRICT filtering by pet type and size with fallback validation
+6. Compatibility Calculation - Weighted category aggregation with importance-based prioritization
+7. Suggestions - Generate improvement recommendations based on mismatches
+8. Match Reasons - Explain why user and pet are (or aren't) compatible
+
+IMPORTANCE GUIDE (Question Weights by Category):
+============================================================================
+Very Strong Importance (Weights: 1.40-1.50):
+  - Personality / Temperament: trainability, temperament_tolerance
+  - Energy / Activity Match: energy_level, exercise_needs
+  - Lifestyle Compatibility: noise_level, social_needs, handling_tolerance
+  - Safety: prey_drive, okay_fragile (primary safety concerns)
+
+Strong Importance (Weights: 1.20-1.35):
+  - Household Environment: child_friendly, other_pets_friendly, space_needs
+  - Safety of User: okay_special_vet (secondary safety concerns)
+
+Moderate-Strong Importance (Weights: 1.10-1.15):
+  - Time Availability: daily_care_time
+  - Pet Allergies / Health: pet_allergies (health concerns)
+
+Moderate Importance (Weights: 0.85-0.95):
+  - Experience Level: experience_required
+  - Financial Capacity: monthly_cost_level, emergency_care_risk
+  - Space/Environment: min_enclosure_size, environment_complexity
+
+Weak-Moderate Importance (Weights: 0.65-0.70):
+  - Appearance Preferences: pet_preference, pet_size_preference
+  
+KEY ENHANCEMENTS IN THIS VERSION:
+============================================================================
+✓ Non-linear Penalty Curve: Gap 1 = 70% (not 75%), Gap 2 = 40% (not 45%), 
+                             Gap 3 = 10% (not 15%) - steeper penalties for larger gaps
+✓ Accurate Filtering: STRICT breed matching on pet type AND size, with validation
+✓ Enhanced Scoring: Question-specific logic with edge case handling
+✓ Better Normalization: Case-insensitive answer matching with fallback validation
+✓ Nuanced Safety: Binary safety questions allow "Maybe" option (0.70, not 1.0)
+✓ Health Priority: Pet allergies score 0.40 (significant penalty) not 0.50
+✓ Category Transparency: Category scores include weight values for clarity
+✓ Minimum Threshold: Results filtered to exclude very poor matches (< 40%)
+✓ Pet Compatibility: Enhanced pet type detection and compatibility checking
+✓ Multi-preference Distribution: Intelligent result distribution across multiple pet types
+
+PENALTY SCORING CURVE:
+Gap 0 → 1.0 (100% match)
+Gap 1 → 0.70 (70% match - acceptable)
+Gap 2 → 0.40 (40% match - significant mismatch)
+Gap 3 → 0.10 (10% match - critical mismatch)
+Gap 4+ → 0.0 (0% match - complete dealbreaker)
+
+This priority system ensures critical compatibility factors (personality, energy,
+household safety) heavily influence the final score, while aesthetic preferences
+(pet type, size preference) have minimal impact. This keeps pet welfare as the focus.
 """
 
 from app.models.breed import Breed
@@ -32,6 +82,20 @@ PET_PREFERENCE_TO_ICON = {
     'Small Mammals': 'fa-solid fa-otter',
     'Small Animals': 'fa-solid fa-otter',
 }
+
+
+# ============================================================================
+# PET SIZE PREFERENCE TO BREED SIZE CATEGORY MAPPING - For filtering by size
+# ============================================================================
+# Maps quiz answer options to breed.size_category enum values
+PET_SIZE_PREFERENCE_TO_CATEGORY = {
+    'Toy / Extra Small': 'Toy / Extra Small',
+    'Small': 'Small',
+    'Medium': 'Medium',
+    'Large': 'Large',
+    'Giant': 'Giant',
+}
+
 
 
 # ============================================================================
@@ -144,6 +208,15 @@ ANSWER_MAPPINGS = {
         'Small Mammals': 'Small Mammals',
     },
     
+    # Pet Size Preference (maps to breed.size_category)
+    'pet_size_preference': {
+        'Toy / Extra Small': 'Toy / Extra Small',
+        'Small': 'Small',
+        'Medium': 'Medium',
+        'Large': 'Large',
+        'Giant': 'Giant',
+    },
+    
     # Safety
     'prey_drive': {
         'No, I am not': 0,
@@ -192,28 +265,40 @@ QUESTION_TO_ATTRIBUTE = {
     'okay_special_vet': ('special_vet_required', 'species'),
 }
 
-# Question Weights (importance of each question)
+# Question Weights (importance of each question, based on compatibility guide)
+# See top comment for importance guide
 QUESTION_WEIGHTS = {
-    'energy_level': 0.95,
-    'exercise_needs': 0.95,
-    'noise_level': 0.80,
-    'social_needs': 0.85,
-    'handling_tolerance': 0.85,
-    'experience_required': 1.00,
-    'trainability': 0.95,
-    'temperament_tolerance': 0.95,
-    'space_needs': 1.00,
-    'environment_complexity': 0.85,
-    'min_enclosure_size': 0.85,
-    'daily_care_time': 0.95,
-    'monthly_cost_level': 1.00,
-    'emergency_care_risk': 0.95,
-    'child_friendly': 0.98,
-    'other_pets_friendly': 0.95,
-    'prey_drive': 0.98,
-    'okay_fragile': 0.98,
-    'okay_special_vet': 0.95,
-    'pet_allergies': 1.00,
+    # Very Strong Importance (Personality / Temperament & Energy Match)
+    'trainability': 1.50,                    # Personality/Temperament - Very Strong
+    'temperament_tolerance': 1.50,           # Personality/Temperament - Very Strong
+    'energy_level': 1.45,                    # Energy/Activity Match + Lifestyle - Very Strong
+    'exercise_needs': 1.45,                  # Energy/Activity Match + Lifestyle - Very Strong
+    
+    # Strong Importance (Lifestyle & Household Environment & Safety)
+    'noise_level': 1.35,                     # Lifestyle - Strong
+    'social_needs': 1.35,                    # Lifestyle - Strong
+    'handling_tolerance': 1.35,              # Personality/Lifestyle + Household - Strong
+    'child_friendly': 1.30,                  # Household Environment - Strong
+    'other_pets_friendly': 1.30,             # Household Environment - Strong
+    'space_needs': 1.25,                     # Household + Space - Strong
+    'prey_drive': 1.40,                      # Safety of User - Strong/Moderate-Strong
+    'okay_fragile': 1.40,                    # Safety of User - Strong/Moderate-Strong
+    'okay_special_vet': 1.35,                # Safety of User - Moderate-Strong
+    
+    # Moderate-Strong Importance (Time & Health)
+    'pet_allergies': 1.25,                   # Health - Moderate-Strong
+    'daily_care_time': 1.10,                 # Time Availability - Moderate-Strong
+    
+    # Moderate Importance (Experience & Financial)
+    'experience_required': 0.90,              # Experience Level - Moderate
+    'monthly_cost_level': 0.85,              # Financial Capacity - Moderate
+    'emergency_care_risk': 0.85,             # Financial Capacity - Moderate
+    'environment_complexity': 0.90,          # Space/Environment - Moderate
+    'min_enclosure_size': 0.85,              # Space/Environment - Moderate
+    
+    # Weak-Moderate Importance (Appearance Preferences)
+    'pet_preference': 0.65,                  # Appearance Preferences - Weak-Moderate
+    'pet_size_preference': 0.65,             # Appearance Preferences - Weak-Moderate
 }
 
 # Category Weights (importance of each category)
@@ -250,6 +335,8 @@ QUESTION_CATEGORIES = {
     'okay_fragile': 'safety',
     'okay_special_vet': 'safety',
     'pet_allergies': 'health',
+    'pet_preference': 'lifestyle',  # Appearance preferences in lifestyle category
+    'pet_size_preference': 'lifestyle',  # Appearance preferences in lifestyle category
 }
 
 
@@ -259,32 +346,58 @@ QUESTION_CATEGORIES = {
 
 def normalize_answer(question_key: str, answer: str) -> Optional[int]:
     """
-    Convert user answer to numeric score (0-4).
+    Convert user answer to numeric score (0-4) with validation.
+    
+    Enhanced features:
+    - Case-insensitive matching
+    - Whitespace trimming
+    - Returns None for unmapped answers (safe fallback)
     
     Args:
         question_key: The question identifier
         answer: The user's answer text
     
     Returns:
-        Numeric score (0-4) or None if answer not found
+        Numeric score (0-4) or None if answer not found or invalid
     """
-    if not answer or question_key not in ANSWER_MAPPINGS:
+    if not answer or not isinstance(answer, str):
         return None
     
+    if question_key not in ANSWER_MAPPINGS:
+        return None
+    
+    # Normalize the answer for matching
     mapping = ANSWER_MAPPINGS[question_key]
-    answer = str(answer).strip()
-    return mapping.get(answer)
+    answer_normalized = str(answer).strip()
+    
+    # Try exact match first
+    if answer_normalized in mapping:
+        return mapping[answer_normalized]
+    
+    # Try case-insensitive match as fallback
+    for key, value in mapping.items():
+        if key.lower() == answer_normalized.lower():
+            return value
+    
+    # No match found
+    return None
 
 
 def normalize_breed_value(breed_value: Any) -> Optional[int]:
     """
-    Convert breed requirement to numeric score (1-4).
+    Convert breed requirement to numeric score (1-4) with enhanced handling.
+    
+    Supports:
+    - Boolean values (True=4, False=1)
+    - String levels (Low/Medium/High/Very High)
+    - Numeric values (1-4 range)
+    - Case-insensitive matching
     
     Args:
         breed_value: The breed's requirement value (boolean, string, int, etc.)
     
     Returns:
-        Numeric score (1-4) or None if no value
+        Numeric score (1-4) or None if no valid value found
     """
     if breed_value is None:
         return None
@@ -293,15 +406,27 @@ def normalize_breed_value(breed_value: Any) -> Optional[int]:
     if isinstance(breed_value, bool):
         return 4 if breed_value else 1
     
-    # Handle strings (Low/Medium/High/Very High)
+    # Handle numeric values directly
+    if isinstance(breed_value, int):
+        if 1 <= breed_value <= 4:
+            return breed_value
+    
+    # Handle string values (Low/Medium/High/Very High)
     value_str = str(breed_value).strip().lower()
     
+    # Map common string representations
     mapping = {
         'low': 1,
         'medium': 2,
         'high': 3,
         'very high': 4,
+        'very_high': 4,
+        'true': 4,
+        'false': 1,
+        'yes': 4,
+        'no': 1,
     }
+    
     return mapping.get(value_str)
 
 
@@ -313,26 +438,34 @@ def calculate_penalty(gap: int) -> float:
     """
     Calculate penalty score based on gap between user and breed requirement.
     
-    Scoring:
-    - Gap 0: 1.0 (perfect match)
-    - Gap 1: 0.75 (good match)
-    - Gap 2: 0.45 (moderate match)
-    - Gap 3: 0.15 (poor match)
+    Uses non-linear scoring curve for better accuracy:
+    - Gap 0: 1.0 (perfect match - 100%)
+    - Gap 1: 0.70 (acceptable gap - 70%)
+    - Gap 2: 0.40 (significant gap - 40%)
+    - Gap 3+: 0.10 (critical gap - 10%)
+    
+    Non-linear curve emphasizes importance of small gaps while penalizing large ones.
     
     Args:
-        gap: Difference between breed requirement and user capability
+        gap: Difference between breed requirement and user capability (non-negative)
     
     Returns:
         Penalty score (0.0-1.0)
     """
-    penalty_map = {
-        0: 1.0,   # Perfect match
-        1: 0.75,  # Small gap
-        2: 0.45,  # Medium gap
-        3: 0.15,  # Large gap
-    }
+    if gap < 0:
+        return 1.0  # User exceeds requirement (perfect match)
     
-    return penalty_map.get(gap, 0.0) if gap >= 0 else 1.0
+    # Non-linear penalty curve: steeper for larger gaps
+    if gap == 0:
+        return 1.0
+    elif gap == 1:
+        return 0.70  # 30% penalty for small gap
+    elif gap == 2:
+        return 0.40  # 60% penalty for medium gap
+    elif gap == 3:
+        return 0.10  # 90% penalty for large gap
+    else:
+        return 0.0  # Complete mismatch for gap >= 4
 
 
 # ============================================================================
@@ -341,10 +474,12 @@ def calculate_penalty(gap: int) -> float:
 
 def score_space_and_household(question_key: str, user_score: int, breed_score: int) -> float:
     """
-    Score space and household capacity questions.
+    Score space and household capacity questions with threshold logic.
     
-    Logic: Having MORE capacity is always better. If user's capacity >= pet's 
-    requirement, it's a perfect match.
+    Logic: Having MORE capacity is always better. Uses graduated scoring:
+    - If user's capacity >= pet's requirement: Perfect match (1.0)
+    - If user's capacity meets minimum threshold (requirement - 1): Good match (0.70)
+    - If user's capacity is below threshold: Apply graduated penalty
     
     Args:
         question_key: The question identifier
@@ -354,36 +489,50 @@ def score_space_and_household(question_key: str, user_score: int, breed_score: i
     Returns:
         Score (0.0-1.0)
     """
+    # Perfect match: user has >= capacity than required
     if user_score >= breed_score:
         return 1.0
     
+    # Calculate gap
     gap = breed_score - user_score
+    
+    # Use penalty curve for graduated scoring
     return calculate_penalty(gap)
 
 
 def score_binary_safety(user_answer: str) -> float:
     """
-    Score binary safety questions (okay_fragile, okay_special_vet).
+    Score binary safety questions (okay_fragile, okay_special_vet) with nuance.
     
-    Logic: User must accept the risk or requirement.
-    - Accept/Maybe → Perfect match (1.0)
-    - Reject → Deal breaker (0.0)
+    Logic: User must accept the risk/requirement with graduated scoring:
+    - Definite acceptance ('Yes, I am', 'Yes, I can'): Perfect match (1.0)
+    - Uncertain but open ('Maybe, I am not sure'): Good match (0.70)
+    - Rejection ('No, I am not', 'No', 'No, I cannot'): Deal breaker (0.0)
+    
+    This allows for uncertainty rather than binary on/off scoring.
     
     Args:
         user_answer: The user's answer text
     
     Returns:
-        Score (0.0 or 1.0)
+        Score (0.0, 0.70, or 1.0)
     """
-    accept_answers = ['Yes', 'Yes, I am', 'Maybe, I am not sure', 'Yes, I can']
-    reject_answers = ['No, I am not', 'No', 'No, I cannot']
+    user_answer = str(user_answer).strip().lower()
     
-    if user_answer in accept_answers:
+    # Definite acceptance
+    if user_answer in ['yes', 'yes, i am', 'yes, i can']:
         return 1.0
-    elif user_answer in reject_answers:
+    
+    # Uncertain but open to it
+    if user_answer in ['maybe', 'maybe, i am not sure', 'maybe, i am not sure']:
+        return 0.70  # Allows for flexibility while penalizing uncertainty
+    
+    # Rejection
+    if user_answer in ['no', 'no, i am not', 'no, i cannot']:
         return 0.0
     
-    return 0.5  # Uncertain
+    # Unknown answer - treat as uncertain
+    return 0.5
 
 
 def score_child_friendly(user_answer: str, breed_value: Any) -> float:
@@ -423,14 +572,16 @@ def score_child_friendly(user_answer: str, breed_value: Any) -> float:
 
 def score_household_pets(user_answer: str, breed_value: Any) -> float:
     """
-    Score household pets compatibility question.
+    Score household pets compatibility with enhanced logic.
     
-    Logic: Check if breed is compatible with pets user has.
+    Logic: Check if breed is compatible with pets user currently has
     - No pets → Always perfect (1.0)
-    - Has pets → Check breed compatibility
+    - Has pets → Check breed compatibility with each pet type
+    - Missing compatibility data → Assume compatible (1.0)
+    - Pet incompatible → Significant penalty (0.0)
     
     Args:
-        user_answer: User's pets (comma-separated or single)
+        user_answer: User's pets (comma-separated or single value, "None" for no pets)
         breed_value: Breed object with pet compatibility attributes
     
     Returns:
@@ -438,52 +589,81 @@ def score_household_pets(user_answer: str, breed_value: Any) -> float:
     """
     user_answer_str = str(user_answer).strip()
     
-    # User has no pets = perfect for any breed
-    if user_answer_str == 'None':
+    # User has no pets - always compatible
+    if user_answer_str.lower() == 'none':
         return 1.0
     
-    # No breed data = assume compatible
+    # No breed data to check - assume compatible
     if breed_value is None:
         return 1.0
     
-    # Parse pets
+    # Parse user's current pets (handle both comma-separated and single values)
     if ',' in user_answer_str:
         pets = [p.strip() for p in user_answer_str.split(',')]
-        pets = [p for p in pets if p != 'None']
+        pets = [p for p in pets if p.lower() != 'none']
     else:
         pets = [user_answer_str] if user_answer_str else []
     
-    if not pets:
+    # No pets listed
+    if not pets or len(pets) == 0:
         return 1.0
     
-    # Check breed compatibility with each pet
+    # Check breed compatibility with each pet type
     for pet in pets:
-        compatible = False
+        pet_lower = pet.lower().strip()
+        compatible = True
         
-        if pet == 'Dogs':
+        # Check breed attributes for specific pet types
+        if 'dog' in pet_lower:
+            # Check dog_friendly attribute if it exists
             compatible = getattr(breed_value, 'dog_friendly', True)
-        elif pet == 'Cats':
+        elif 'cat' in pet_lower:
+            # Check cat_friendly attribute if it exists
             compatible = getattr(breed_value, 'cat_friendly', True)
-        elif pet == 'Small Pets':
+        elif 'bird' in pet_lower or 'small' in pet_lower:
+            # Check small pet/bird compatibility
+            compatible = getattr(breed_value, 'small_pet_friendly', True)
+        elif 'rodent' in pet_lower or 'hamster' in pet_lower or 'mouse' in pet_lower:
+            # Check rodent compatibility
             compatible = getattr(breed_value, 'small_pet_friendly', True)
         
+        # If any pet is incompatible, return failure
         if not compatible:
             return 0.0
     
+    # All pets are compatible
     return 1.0
 
 
 def score_pet_allergies(user_answer: str) -> float:
     """
-    Score pet allergies question (informational, doesn't eliminate).
+    Score pet allergies question with health prioritization.
+    
+    Logic: Pet allergies are health-related and more serious than other preferences
+    - No allergies: Perfect match (1.0)
+    - Has allergies: Caution flag (0.40) - not a deal breaker but requires management
+    
+    This allows users with allergies to find pets they can still live with,
+    but prioritizes allergy-free options.
     
     Args:
         user_answer: "Yes" or "No"
     
     Returns:
-        Score (0.5 if allergies, 1.0 if no allergies)
+        Score (0.40 if allergies, 1.0 if no allergies)
     """
-    return 0.5 if user_answer == 'Yes' else 1.0
+    user_answer_norm = str(user_answer).strip().lower()
+    
+    # User has allergies - significant score reduction
+    if user_answer_norm == 'yes':
+        return 0.40  # 60% penalty but not a complete dealbreaker
+    
+    # No allergies - perfect match
+    if user_answer_norm == 'no':
+        return 1.0
+    
+    # Unknown/unclear
+    return 0.5
 
 
 # ============================================================================
@@ -494,7 +674,11 @@ def score_question(question_key: str, user_answer: str, breed_value: Any) -> flo
     """
     Score a single question by applying appropriate logic.
     
-    Handles special cases and applies standard scoring for normal questions.
+    Enhanced scoring with:
+    - Question-specific handling for edge cases
+    - Special case handlers for critical questions
+    - Standard scoring with gap analysis for others
+    - Better handling of missing data
     
     Args:
         question_key: The question identifier
@@ -504,13 +688,17 @@ def score_question(question_key: str, user_answer: str, breed_value: Any) -> flo
     Returns:
         Score (0.0-1.0)
     """
+    # Skip pet preference/size preference questions - they're filtered, not scored
+    if question_key in ['pet_preference', 'pet_size_preference']:
+        return 1.0  # Auto-pass if breed made it through filtering
+    
     # Normalize answers
     user_score = normalize_answer(question_key, user_answer)
     breed_score = normalize_breed_value(breed_value)
     
     # Handle missing user answer
     if user_score is None:
-        return 0.5
+        return 0.5  # Penalize missing answers
     
     # Handle missing breed data - assume perfect match
     if breed_score is None:
@@ -520,10 +708,11 @@ def score_question(question_key: str, user_answer: str, breed_value: Any) -> flo
     # SPECIAL CASE HANDLERS
     # ========================================================================
 
+    # Space capacity questions - more capacity is always better
     if question_key in ['space_needs', 'min_enclosure_size', 'handling_tolerance']:
         return score_space_and_household(question_key, user_score, breed_score)
     
-    # Environment Complexity - Special handling (willingness/capability, not capacity)
+    # Environment Complexity - willingness/capability, not capacity
     if question_key == 'environment_complexity':
         # User willing to set up complex environments >= breed needs = perfect match
         if user_score >= breed_score:
@@ -532,29 +721,31 @@ def score_question(question_key: str, user_answer: str, breed_value: Any) -> flo
         gap = breed_score - user_score
         return calculate_penalty(gap)
     
-    # Child Friendly Question (special logic)
+    # Child Friendly Question (special logic - household composition matters)
     if question_key == 'child_friendly':
         return score_child_friendly(user_answer, breed_value)
     
-    # Binary Safety Questions (fragile, special vet)
+    # Binary Safety Questions (fragile, special vet) - nuanced scoring
     if question_key in ['okay_fragile', 'okay_special_vet']:
         return score_binary_safety(user_answer)
     
-    # Household Pets
+    # Household Pets - compatibility check
     if question_key == 'other_pets_friendly':
         return score_household_pets(user_answer, breed_value)
     
-    # Pet Allergies
+    # Pet Allergies - informational, doesn't eliminate
     if question_key == 'pet_allergies':
         return score_pet_allergies(user_answer)
     
     # ========================================================================
-    # STANDARD SCORING
+    # STANDARD SCORING WITH GRADUATED PENALTIES
     # ========================================================================
     
+    # Perfect match: user meets or exceeds requirement
     if user_score >= breed_score:
         return 1.0
     
+    # Mismatch: use gap-based penalty
     gap = breed_score - user_score
     return calculate_penalty(gap)
 
@@ -643,30 +834,40 @@ def calculate_compatibility(answers: Dict, breed) -> Dict[str, Any]:
         elif score < 0.50:
             mismatches.append(question_key)
     
-    # Calculate category scores
+    # Calculate category scores with enhanced weighting
     category_scores = {}
     total_weighted = 0
     total_weight = 0
     
     for category, data in category_data.items():
         if data['weight_sum'] > 0:
+            # Raw score is weighted average for this category
             raw_score = sum(data['scores']) / data['weight_sum']
+            
+            # Apply category weight (importance of this category type)
             cat_weight = CATEGORY_WEIGHTS.get(category, 1.0)
             weighted_score = raw_score * cat_weight
             
             category_scores[category] = {
                 'score': round(raw_score, 2),
                 'percentage': round(raw_score * 100, 1),
+                'weight': round(cat_weight, 2),  # Add weight for transparency
             }
             
             total_weighted += weighted_score
             total_weight += cat_weight
     
-    # Calculate final overall score
-    overall_score = (total_weighted / total_weight * 100) if total_weight > 0 else 0
+    # Calculate final overall score with better scaling
+    if total_weight > 0:
+        # Scale to 0-100 range
+        overall_score = (total_weighted / total_weight * 100)
+    else:
+        overall_score = 0
+    
+    # Clamp to valid range
     overall_score = max(0, min(100, overall_score))
     
-    # Determine compatibility level
+    # Determine compatibility level with refined thresholds
     if overall_score >= 85:
         level = 'Excellent'
     elif overall_score >= 70:
@@ -932,38 +1133,66 @@ def find_top_matches(answers: Dict, limit: int = 5) -> List[Dict]:
     """
     Find the top N most compatible breeds for user answers.
     
+    Enhanced Filtering Logic:
+    - Pet Preference (pet_preference): STRICT - only breeds with matching species icon
+    - Pet Size Preference (pet_size_preference): STRICT - only breeds with matching size categories
+    - If no filters specified, scores all active breeds
+    - Scoring emphasizes personality, energy, household safety over appearance
+    
     Multi-preference Logic:
     - If user selected 2+ pet preferences, distribute results intelligently
     - More than 5 preferences: Top 5 overall by score
     - Exactly 2 preferences: Top 2 per preference + 1 from 3rd highest across all
     - 3-5 preferences: Distribute slots evenly + fill with 3rd highest
     
-    Single Preference:
-    - ONLY breeds matching that species icon are recommended
-    - Recommendations are ranked by overall compatibility score
+    Scoring includes:
+    - Weighted category scores (safety, experience, household weighted highest)
+    - Question-specific importance (personality/energy heavily weighted)
+    - Penalty curve for gaps (steeper for larger mismatches)
     
     Args:
-        answers: Dictionary of user answers
+        answers: Dictionary of user answers {question_key: answer_value}
         limit: Number of breeds to return (default 5)
     
     Returns:
-        List of breed matches with scores (pre-filtered by pet preference if provided)
+        List of breed matches sorted by compatibility score (highest first)
     """
     if not answers or not isinstance(answers, dict):
         return []
     
-    # Extract pet preference from answers (used for filtering, not scoring)
-    pet_preference_str = answers.get('pet_preference', '')
+    # Extract and validate pet preference from answers
+    pet_preference_str = answers.get('pet_preference', '').strip()
     preferences = []
-    preferred_icons = {}  # Map icon to pet type name
+    preferred_icons = {}
     
     if pet_preference_str:
-        # Parse comma-separated preferences and map to icons
+        # Parse comma-separated preferences and validate against known mappings
         preferences = [p.strip() for p in pet_preference_str.split(',') if p.strip()]
         for pref in preferences:
-            icon = PET_PREFERENCE_TO_ICON.get(pref.strip())
+            pref_normalized = pref.strip()
+            icon = PET_PREFERENCE_TO_ICON.get(pref_normalized)
             if icon:
-                preferred_icons[icon] = pref.strip()
+                preferred_icons[icon] = pref_normalized
+    
+    # Extract and validate pet size preference from answers
+    pet_size_preference_str = answers.get('pet_size_preference', '').strip()
+    size_preferences = []
+    
+    if pet_size_preference_str:
+        # Parse comma-separated size preferences and map to breed categories
+        sizes = [s.strip() for s in pet_size_preference_str.split(',') if s.strip()]
+        for size in sizes:
+            size_normalized = size.strip()
+            # First try exact match
+            if size_normalized in PET_SIZE_PREFERENCE_TO_CATEGORY:
+                size_preferences.append(PET_SIZE_PREFERENCE_TO_CATEGORY[size_normalized])
+            else:
+                # Try partial match (handle with/without weight ranges)
+                for key, val in PET_SIZE_PREFERENCE_TO_CATEGORY.items():
+                    if size_normalized.lower() in key.lower() or key.lower() in size_normalized.lower():
+                        if val not in size_preferences:
+                            size_preferences.append(val)
+                        break
     
     # Get all active breeds
     breeds = Breed.query.filter(
@@ -974,60 +1203,78 @@ def find_top_matches(answers: Dict, limit: int = 5) -> List[Dict]:
     if not breeds:
         return []
     
-    # If multiple preferences (2+), use intelligent distribution
+    # If multiple pet preferences (2+), use intelligent distribution
     if len(preferences) >= 2:
-        return _find_top_matches_multipreference(answers, breeds, preferred_icons, limit, preferences)
+        return _find_top_matches_multipreference(answers, breeds, preferred_icons, limit, preferences, size_preferences)
     
-    # Single preference: use standard filtering
+    # Single or no preference: use standard filtering
     matches = []
+    
     for breed in breeds:
-        # STRICT filtering: if user specified pet_preference, enforce exact icon match
+        # STRICT FILTER: if user specified pet_preference, breed MUST match
         if preferred_icons:
-            # If preferences are specified, breed MUST have species with matching icon
             if not breed.species:
-                continue  # Skip breeds without species info
+                continue  # Skip breeds without species
             
             species_icon = (breed.species.icon or '').strip()
             if not species_icon or species_icon not in preferred_icons:
-                continue  # Skip breeds that don't match user's pet preferences
+                continue  # Skip non-matching species
         
+        # STRICT FILTER: if user specified pet_size_preference, breed MUST match
+        if size_preferences:
+            breed_size = (breed.size_category or '').strip()
+            if not breed_size or breed_size not in size_preferences:
+                continue  # Skip non-matching sizes
+        
+        # Calculate compatibility for this breed
         score_data = calculate_compatibility(answers, breed)
         suggestions = generate_suggestions(answers, breed)
         reasons = generate_match_reasons(answers, breed)
         
-        matches.append({
-            'breed': {
-                'id': breed.id,
-                'name': breed.name,
-                'summary': breed.summary,
-                'image_url': breed.image_url,
-                'species_id': breed.species_id,
-                'species': {
-                    'id': breed.species.id,
-                    'name': breed.species.name,
-                } if breed.species else {}
-            },
-            'score': score_data.get('overall_score', 0),
-            'level': score_data.get('compatibility_level', 'Unknown'),
-            'suggestions': suggestions,
-            'matched_reasons': reasons.get('matched_reasons', []),
-            'mismatch_reasons': reasons.get('mismatch_reasons', []),
-        })
+        # Only include if score meets minimum threshold (40+)
+        # This filters out very poor matches
+        if score_data.get('overall_score', 0) >= 40:
+            matches.append({
+                'breed': {
+                    'id': breed.id,
+                    'name': breed.name,
+                    'summary': breed.summary,
+                    'image_url': breed.image_url,
+                    'species_id': breed.species_id,
+                    'species': {
+                        'id': breed.species.id,
+                        'name': breed.species.name,
+                    } if breed.species else {}
+                },
+                'score': score_data.get('overall_score', 0),
+                'level': score_data.get('compatibility_level', 'Unknown'),
+                'suggestions': suggestions,
+                'matched_reasons': reasons.get('matched_reasons', []),
+                'mismatch_reasons': reasons.get('mismatch_reasons', []),
+            })
     
     # Sort by score (highest first)
     matches.sort(key=lambda x: x['score'], reverse=True)
     
+    # Return top N results
     return matches[:limit]
 
 
-def _find_top_matches_multipreference(answers: Dict, all_breeds: List, preferred_icons: Dict, limit: int, preferences: List) -> List[Dict]:
+def _find_top_matches_multipreference(answers: Dict, all_breeds: List, preferred_icons: Dict, limit: int, preferences: List, size_preferences: List = None) -> List[Dict]:
     """
     Find top matches when user has 2+ pet preferences.
     
+    Enhanced Features:
+    - Validates pet preference and size filtering
+    - Applies both filters when specified
+    - Uses improved scoring with penalty curve
+    - Filters results by minimum threshold (40+ score)
+    - Intelligent result distribution across preferences
+    
     Distribution logic:
-    - More than 5 preferences: Top 5 overall by score
+    - More than 5 preferences: Top 5 overall by score (winner takes all)
     - Exactly 2 preferences: Top 2 per preference + 1 from 3rd highest
-    - 3-5 preferences: Distribute evenly + fill with 3rd highest from each
+    - 3-5 preferences: Distribute slots evenly + fill with 3rd highest
     
     Args:
         answers: User answers dict
@@ -1035,17 +1282,145 @@ def _find_top_matches_multipreference(answers: Dict, all_breeds: List, preferred
         preferred_icons: Dict mapping icons to pet type names
         limit: Number of results to return (default 5)
         preferences: List of selected pet preference names
+        size_preferences: List of selected size category values (optional)
     
     Returns:
-        List of breed matches with intelligent distribution
+        List of breed matches sorted by compatibility score (highest first)
     """
-    # Group breeds by their species icon
+    if size_preferences is None:
+        size_preferences = []
+    
+    # Group and validate breeds by their species icon
     breeds_by_icon = {}
+    
     for breed in all_breeds:
-        if breed.species and breed.species.icon and breed.species.icon in preferred_icons:
-            if breed.species.icon not in breeds_by_icon:
-                breeds_by_icon[breed.species.icon] = []
-            breeds_by_icon[breed.species.icon].append(breed)
+        # Validate breed has required data
+        if not breed.species or not breed.species.icon:
+            continue
+        
+        species_icon = (breed.species.icon or '').strip()
+        
+        # Apply pet preference filter
+        if species_icon not in preferred_icons:
+            continue
+        
+        # Apply size preference filter if specified
+        if size_preferences:
+            breed_size = (breed.size_category or '').strip()
+            if not breed_size or breed_size not in size_preferences:
+                continue
+        
+        # Group breed by icon
+        if species_icon not in breeds_by_icon:
+            breeds_by_icon[species_icon] = []
+        breeds_by_icon[species_icon].append(breed)
+    
+    # Score all breeds and group by icon
+    scored_breeds_by_icon = {}
+    
+    for icon, breeds_list in breeds_by_icon.items():
+        scored_breeds_by_icon[icon] = []
+        
+        for breed in breeds_list:
+            score_data = calculate_compatibility(answers, breed)
+            
+            # Filter out very poor matches (below 40% threshold)
+            if score_data.get('overall_score', 0) < 40:
+                continue
+            
+            suggestions = generate_suggestions(answers, breed)
+            reasons = generate_match_reasons(answers, breed)
+            
+            breed_result = {
+                'breed': {
+                    'id': breed.id,
+                    'name': breed.name,
+                    'summary': breed.summary,
+                    'image_url': breed.image_url,
+                    'species_id': breed.species_id,
+                    'species': {
+                        'id': breed.species.id,
+                        'name': breed.species.name,
+                    } if breed.species else {}
+                },
+                'score': score_data.get('overall_score', 0),
+                'level': score_data.get('compatibility_level', 'Unknown'),
+                'suggestions': suggestions,
+                'matched_reasons': reasons.get('matched_reasons', []),
+                'mismatch_reasons': reasons.get('mismatch_reasons', []),
+                'icon': icon,
+            }
+            scored_breeds_by_icon[icon].append(breed_result)
+        
+        # Sort by score (highest first) for this icon group
+        scored_breeds_by_icon[icon].sort(key=lambda x: x['score'], reverse=True)
+    
+    # Distribution logic based on number of preferences
+    matches = []
+    num_prefs = len(preferences)
+    
+    if num_prefs > 5:
+        # More than 5 preferences: Top 5 overall by score (winner takes all)
+        all_scored = []
+        for icon_list in scored_breeds_by_icon.values():
+            all_scored.extend(icon_list)
+        all_scored.sort(key=lambda x: x['score'], reverse=True)
+        matches = all_scored[:limit]
+    
+    elif num_prefs == 2:
+        # 2 preferences: 2 per preference + 1 from 3rd highest
+        for icon in list(preferred_icons.keys())[:2]:
+            breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+            # Take top 2 from each preference
+            matches.extend(breeds_for_icon[:2])
+        
+        # Fill 5th slot with 3rd highest from each preference
+        if len(matches) < limit:
+            third_place_candidates = []
+            for icon in preferred_icons.keys():
+                breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+                if len(breeds_for_icon) > 2:
+                    third_place_candidates.append(breeds_for_icon[2])
+            
+            # Sort third place candidates by score and add top one
+            third_place_candidates.sort(key=lambda x: x['score'], reverse=True)
+            if third_place_candidates:
+                matches.append(third_place_candidates[0])
+    
+    else:
+        # 3-5 preferences: Distribute slots evenly, then fill with 3rd highest
+        breeds_per_pref = limit // num_prefs
+        remainder = limit % num_prefs
+        
+        # First pass: distribute main slots
+        for i, icon in enumerate(list(preferred_icons.keys())[:num_prefs]):
+            breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+            # Determine how many to take from this preference
+            num_to_take = breeds_per_pref + (1 if i < remainder else 0)
+            matches.extend(breeds_for_icon[:num_to_take])
+        
+        # Second pass: fill remaining slots with 3rd highest from each preference
+        if len(matches) < limit:
+            third_place_candidates = []
+            for icon in preferred_icons.keys():
+                breeds_for_icon = scored_breeds_by_icon.get(icon, [])
+                if len(breeds_for_icon) > breeds_per_pref:
+                    # Collect 3rd highest and beyond from each preference
+                    for j in range(breeds_per_pref, len(breeds_for_icon)):
+                        third_place_candidates.append(breeds_for_icon[j])
+            
+            # Sort by score and fill remaining slots
+            third_place_candidates.sort(key=lambda x: x['score'], reverse=True)
+            for candidate in third_place_candidates:
+                if len(matches) < limit:
+                    matches.append(candidate)
+                else:
+                    break
+    
+    # Final sort by score to ensure top performers are shown
+    matches.sort(key=lambda x: x['score'], reverse=True)
+    
+    return matches[:limit]
     
     # Score all breeds and group by icon
     scored_breeds_by_icon = {}

@@ -231,6 +231,7 @@ def save_breed():
     track_change("exercise_needs", request.form.get('exercise_needs', 'Medium'))
     track_change("grooming_needs", request.form.get('grooming_needs', 'Medium'))
     track_change("space_needs", request.form.get('space_needs', 'Medium'))
+    track_change("size_category", request.form.get('size_category') or None)
     track_change("trainability", request.form.get('trainability', 'Moderate'))
     track_change("care_level", request.form.get('care_level', 'Beginner'))
     track_change("care_intensity", request.form.get('care_intensity', 'Medium'))

@@ -714,6 +714,10 @@
       grid-template-columns: 1fr;
     }
   }
+
+  [x-cloak] {
+    display: none !important;
+  }
 </style>
 
 <!-- Parent Alpine for View Modal + Add/Edit Breed Modal -->
@@ -1028,6 +1032,7 @@
 
   <!-- 🔷 VIEW BREED MODAL -->
   <div x-show="viewModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       x-cloak
        class="modal-overlay"
        @click.self="viewModal=false; selectedBreed=null">
     <div class="modal-content-wrapper" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
@@ -1459,6 +1464,7 @@
 
   <!-- 🔷 ADD / EDIT BREED MODAL -->
   <div x-show="breedModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       x-cloak
        class="modal-overlay"
        @click.self="breedModal=false; resetBreedForm()">
     <div class="modal-content-wrapper" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"

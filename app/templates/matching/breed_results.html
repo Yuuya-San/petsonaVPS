@@ -139,7 +139,7 @@ body {
   }
 }
 
-..top-card-left {
+.top-card-left {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -147,9 +147,14 @@ body {
   width: 100%;
 }
 
-.top-card-left h2,
+.top-card-left h2 {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
 .top-card-left .subtitle {
   text-align: center;
+  margin-bottom: 16px;
 }
 
 .image-summary-row {
@@ -346,10 +351,15 @@ body {
   border-radius: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  display: inline-flex;
+  display: flex;
   justify-content: center;
+  align-items: center;
   text-align: center;
   margin: 16px auto 0;
+  width: max-content;
+}
+.top-card-left {
+  text-align: center;
 }
 
 .score-label.excellent {
@@ -744,7 +754,10 @@ body {
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   margin-bottom: 12px;
 }
 

@@ -112,17 +112,24 @@ body {
 
   /* Make the main card internal layout stable and prevent stretching */
   .top-grid .main-card .grid-2 {
-    grid-template-columns: 1fr 360px;
-    align-items: center;
+    grid-template-columns: 1fr !important;
+    align-items: start;
     gap: 28px;
   }
 
-  /* Ensure the score column centers vertically within the right card */
+  .top-card-left {
+    align-items: stretch;
+  }
+
+  .top-card-right {
+    width: 100%;
+  }
+
   .top-grid .main-card .grid-2 > div:last-child {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     min-height: 100%;
   }
 
@@ -132,7 +139,56 @@ body {
   }
 }
 
-/* GRID */
+..top-card-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.top-card-left h2,
+.top-card-left .subtitle {
+  text-align: center;
+}
+
+.image-summary-row {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.summary-box {
+  width: 100%;
+}
+
+.top-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-card-left .breed-about {
+  width: 100%;
+}
+
+@media (min-width: 1281px) {
+  .image-summary-row {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .summary-box {
+    max-width: 520px;
+  }
+
+  .breed-img {
+    max-width: 360px;
+    width: 100%;
+  }
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr;
@@ -261,6 +317,12 @@ body {
 .score-circle-text {
   width: 100%;
   text-align: center;
+  display: block;
+}
+
+.score-circle {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .score-circle-value {
@@ -284,8 +346,10 @@ body {
   border-radius: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  display: inline-block;
-  margin-top: 16px;
+  display: inline-flex;
+  justify-content: center;
+  text-align: center;
+  margin: 16px auto 0;
 }
 
 .score-label.excellent {
@@ -771,31 +835,26 @@ body {
     <div class="grid-2">
 
       <!-- LEFT -->
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+      <div class="top-card-left">
         <h2>{{ breed.name }}</h2>
 
         {% if breed.species %}
         <p class="subtitle">{{ breed.species.name }}</p>
         {% endif %}
 
-        {% if breed.image_url %}
-        <img src="{{ url_for('static', filename=breed.image_url) }}" class="breed-img">
-        {% endif %}
+        <div class="image-summary-row">
+          {% if breed.image_url %}
+          <img src="{{ url_for('static', filename=breed.image_url) }}" class="breed-img">
+          {% endif %}
 
-        <!-- ABOUT BREED -->
-        {% if breed.summary %}
-        <div class="breed-about">
-          <p>{{ breed.summary }}</p>
+          <div class="breed-about summary-box">
+            {% if breed.summary %}
+              <p>{{ breed.summary }}</p>
+            {% else %}
+              <p>No description available for this breed.</p>
+            {% endif %}
+          </div>
         </div>
-        {% else %}
-        <div class="breed-about">
-          <p>No description available for this breed.</p>
-        </div>
-        {% endif %}
-      </div>
-
-      <!-- RIGHT -->
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
 
         {% if score >= 80 %}
           {% set status_class = "excellent" %}
@@ -824,6 +883,10 @@ body {
         </div>
 
         <div class="score-label {{ status_class }}">{{ status_label }}</div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="top-card-right">
 
         <div class="flex flex-wrap justify-center gap-3">
 

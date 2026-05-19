@@ -671,6 +671,50 @@
       margin: 1rem 0;
     }
   }
+
+  .modal-footer--single {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+
+    padding: 1.5rem;
+    box-sizing: border-box;
+
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(249, 250, 251, 0.8) 100%
+    );
+  }
+
+  .modal-footer--single .modal-footer__form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .modal-footer--single .modal-footer__btn {
+    width: min(95%, 520px); /* responsive, not viewport-breaking */
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    border: none;
+    cursor: pointer;
+
+    box-sizing: border-box;
+  }
+
+  .modal-footer--single .modal-footer__btn--danger {
+    background: #ef4444;
+    color: white;
+    border-radius: 10px;
+  }
 </style>
 
 <div x-data="{
@@ -962,16 +1006,19 @@
         </div>
       </div>
 
-      <!-- MODAL FOOTER -->
-      <div class="modal-footer">
+      <!-- MODAL FOOTER (SINGLE ACTION) -->
+      <div class="modal-footer modal-footer--single">
         <form method="POST"
               :action="'/pets/species/' + (deletingSpecies?.id || '') + '/delete'"
-              class="flex w-full">
+              class="modal-footer__form">
+              
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <button type="submit" class="modal-btn modal-btn-delete">
+
+          <button type="submit" class="modal-footer__btn modal-footer__btn--danger">
             <i class="fa-regular fa-trash-can"></i>
             Remove
           </button>
+
         </form>
       </div>
 

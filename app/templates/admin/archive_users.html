@@ -401,22 +401,49 @@
     max-height: calc(100vh - 16rem);
   }
   .modal-footer {
-    flex-shrink: 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    padding: 1.5rem;
+    box-sizing: border-box;
+
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(249, 250, 251, 0.8) 100%
+    );
+  }
+
+  .modal-footer > * {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .modal-footer form {
     display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
   }
 
   .modal-footer .btn {
-    min-width: 120px;
-    font-size: 0.82rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    text-align: center;
+    gap: 0.5rem;
   }
 
-  .modal-footer .btn span {
-    width: 100%;
+  .modal-footer .btn-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    line-height: 1;
     text-align: center;
   }
 
@@ -693,7 +720,10 @@
         <form id="restoreUserForm" method="POST">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success"><i class="fas fa-check me-1"></i> Restore User</button>
+          <button type="submit" class="btn btn-success btn-restore">
+            <i class="fas fa-check me-1"></i>
+            <span class="btn-label">Restore User</span>
+          </button>
         </form>
       </div>
     </div>

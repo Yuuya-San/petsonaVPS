@@ -173,6 +173,9 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer glass-modal-footer border-0" id="setupFooter" style="display: none;">
+        <button type="button" class="btn glass-btn-secondary glass-footer-btn-wide" onclick="cancelSetup()">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
         <button type="button" class="btn btn-primary glass-btn-primary glass-footer-btn-wide" id="confirmSetupBtn">
           <i class="fas fa-check mr-2"></i>Verify & Enable
         </button>
@@ -230,8 +233,43 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer glass-modal-footer border-0">
+        <button type="button" class="btn glass-btn-secondary glass-footer-btn-wide" data-dismiss="modal">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
         <button type="button" class="btn glass-btn-danger glass-footer-btn-wide" id="confirmDisable2FABtn">
           <i class="fas fa-trash-alt mr-2"></i>Yes, Disable 2FA
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backup Codes Modal -->
+<div class="modal fade" id="backupCodesModal" tabindex="-1" role="dialog" aria-labelledby="backupCodesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered glass-modal-container" role="document">
+    <div class="modal-content glass-modal-content">
+      <div class="modal-header glass-modal-header border-0">
+        <div class="d-flex align-items-center">
+          <div class="glass-modal-icon-container glass-modal-icon-shield">
+            <i class="fas fa-key"></i>
+          </div>
+          <div class="ml-3">
+            <h5 class="modal-title glass-modal-title" id="backupCodesModalLabel">Your Backup Codes</h5>
+            <p class="glass-modal-subtitle">Use these codes if you lose access to your authenticator app.</p>
+          </div>
+        </div>
+        <button type="button" class="close glass-modal-close" aria-label="Close" data-dismiss="modal" onclick="closeBackupCodesModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body glass-modal-body">
+        <div id="backupCodesContainer">
+          <p class="glass-modal-subtext">Loading your backup codes...</p>
+        </div>
+      </div>
+      <div class="modal-footer glass-modal-footer border-0">
+        <button type="button" class="btn glass-btn-secondary glass-footer-btn-wide" data-dismiss="modal" onclick="closeBackupCodesModal()">
+          <i class="fas fa-times mr-2"></i>Close
         </button>
       </div>
     </div>
@@ -288,8 +326,8 @@
   #disable2FAConfirmModal .modal-footer.glass-modal-footer {
     display: flex;
     gap: 12px;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
+    align-items: stretch;
   }
 
   #disable2FAConfirmModal .glass-modal-icon-danger {
@@ -413,8 +451,8 @@
     flex-shrink: 0;
     display: flex;
     gap: 12px;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
+    align-items: stretch;
   }
 
   /* 2FA Status Card */
@@ -689,6 +727,25 @@
     margin: 0;
   }
 
+  .backup-codes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .backup-code-item {
+    background: rgba(102, 126, 234, 0.05);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #333;
+    text-align: center;
+    word-break: break-word;
+  }
+
   /* Warning Box */
   .glass-warning-box {
     display: flex;
@@ -742,14 +799,14 @@
   }
 
   .glass-footer-btn-wide {
-    width: 90%;
-    max-width: 95%;
-    min-height: 44px;
+    flex: 1 1 0;
+    min-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 10px 20px;
-    margin: 0 auto;
+    width: auto;
+    max-width: none;
   }
 
   .glass-btn-secondary {
@@ -1017,6 +1074,8 @@
     }
   }
 
+  // Global loader behavior has been removed for this modal; button spinner UI is used instead.
+
   // Generate QR Code with improved implementation
   function generateQRCode(totpUri, secret) {
     const container = document.getElementById('qrCodeCanvas');
@@ -1069,12 +1128,6 @@
       this.disabled = true;
       const enableBtn = this; // Store reference
       enableBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
-      
-      // Show global loader
-      const loader = document.getElementById('loader-overlay');
-      if (loader) {
-        loader.style.display = 'flex';
-      }
 
       // Get CSRF token from meta tag
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -1087,11 +1140,6 @@
           'X-CSRFToken': csrfToken
         }
       });
-
-      // Hide global loader
-      if (loader) {
-        loader.style.display = 'none';
-      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -1110,12 +1158,6 @@
       document.getElementById('defaultFooter').style.display = 'none';
       
     } catch (error) {
-      
-      // Hide global loader on error
-      const loader = document.getElementById('loader-overlay');
-      if (loader) {
-        loader.style.display = 'none';
-      }
       
       showFlashMessage('Error: ' + error.message, 'error');
       this.disabled = false;
@@ -1151,12 +1193,6 @@
       const confirmBtn = this; // Store reference
       confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
       
-      // Show global loader
-      const loader = document.getElementById('loader-overlay');
-      if (loader) {
-        loader.style.display = 'flex';
-      }
-
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
       const response = await fetch('/api/account/enable-2fa', {
@@ -1172,11 +1208,6 @@
       });
 
       const data = await response.json();
-      
-      // Hide global loader
-      if (loader) {
-        loader.style.display = 'none';
-      }
 
       if (response.ok) {
         showFlashMessage('✓ 2FA enabled successfully! Save your backup codes in a secure location.', 'success');
@@ -1201,15 +1232,53 @@
       }
     } catch (error) {
       
-      // Hide global loader on error
-      const loader = document.getElementById('loader-overlay');
-      if (loader) {
-        loader.style.display = 'none';
-      }
-      
       showFlashMessage('Error: ' + error.message, 'error');
       this.disabled = false;
       this.innerHTML = '<i class="fas fa-check mr-2"></i>Verify & Enable';
+    }
+  });
+
+  document.getElementById('viewBackupCodesBtn').addEventListener('click', async function() {
+    const button = this;
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const response = await fetch('/api/account/backup-codes', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
+      });
+
+      const data = await response.json();
+      const container = document.getElementById('backupCodesContainer');
+
+      if (!response.ok) {
+        container.innerHTML = `<p class="glass-modal-subtext">${data.message || 'Unable to load backup codes.'}</p>`;
+        showFlashMessage(data.message || 'Unable to load backup codes.', 'error');
+      } else if (!data.backup_codes || data.backup_codes.length === 0) {
+        container.innerHTML = '<p class="glass-modal-subtext">No unused backup codes are currently available.</p>';
+      } else {
+        container.innerHTML = `
+          <p class="glass-modal-subtext mb-3">These backup codes are still unused. Save them securely.</p>
+          <div class="backup-codes-grid">
+            ${data.backup_codes.map(code => `<div class="backup-code-item">${code}</div>`).join('')}
+          </div>
+        `;
+      }
+
+      if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
+        $('#backupCodesModal').modal('show');
+      }
+    } catch (error) {
+      showFlashMessage('Error loading backup codes: ' + error.message, 'error');
+    } finally {
+      button.disabled = false;
+      button.innerHTML = originalText;
     }
   });
 
@@ -1230,12 +1299,6 @@
       const confirmBtn = this; // Store reference
       confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Disabling...';
       
-      // Show global loader
-      const loader = document.getElementById('loader-overlay');
-      if (loader) {
-        loader.style.display = 'flex';
-      }
-      
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
       const response = await fetch('/api/account/disable-2fa', {
@@ -1246,13 +1309,7 @@
         }
       });
       
-      // Hide global loader
-      if (loader) {
-        loader.style.display = 'none';
-      }
-      
       const data = await response.json();
-
       if (response.ok) {
         showFlashMessage('✓ 2FA has been disabled', 'success');
         
@@ -1276,12 +1333,6 @@
         confirmBtn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Yes, Disable 2FA';
       }
     } catch (error) {
-      
-      // Hide global loader on error
-      const loader = document.getElementById('loader-overlay');
-      if (loader) {
-        loader.style.display = 'none';
-      }
       
       showFlashMessage('Error: ' + error.message, 'error');
       this.disabled = false;
@@ -1394,6 +1445,24 @@
       $('#disable2FAConfirmModal').modal('show');
     } else {
       showFlashMessage('Modal system not ready', 'error');
+    }
+  }
+
+  // Helper function to close backup codes modal
+  function closeBackupCodesModal() {
+    if (typeof $ !== 'undefined' && typeof jQuery !== 'undefined') {
+      $('#backupCodesModal').modal('hide');
+      return;
+    }
+
+    const modal = document.getElementById('backupCodesModal');
+    if (modal) {
+      modal.style.display = 'none';
+      document.body.classList.remove('modal-open');
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      if (backdrops.length) {
+        backdrops[backdrops.length - 1].remove();
+      }
     }
   }
 

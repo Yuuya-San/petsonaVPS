@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
 <div class="min-h-screen bg-gradient-to-b from-white via-purple-50/20 to-white py-6 sm:py-8 px-3 sm:px-4 lg:px-6">
-  <div class="w-full max-w-7xl mx-auto">
+  <div class="w-full mx-auto" style="min-width: 80vw; max-width: 90vw;">
     
     <!-- Back Navigation -->
     <div class="mb-6">
@@ -116,6 +116,7 @@
                 <input type="tel" name="customer_phone" id="customer_phone" 
                        placeholder="Enter your phone number"
                        class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm\"
+                       inputmode="numeric" pattern="[0-9]*" maxlength="11"
                        required>
                 <small class="text-gray-500 text-xs mt-1 block\">Required for confirmation</small>
               </div>
@@ -149,7 +150,7 @@
                       Pet Name *
                       <span class="pet-name-check"></span>
                     </label>
-                    <input type="text" name="pets[0][pet_name]" class="pet_name w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Max, Whiskers" required>
+                    <input type="text" name="pets[0][pet_name]" maxlength="50" class="pet_name w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Max, Whiskers" required>
                   </div>
                   <!-- Species -->
                   <div>
@@ -165,13 +166,13 @@
                   <!-- Breed -->
                   <div>
                     <label class="block text-gray-700 font-semibold mb-2">Breed</label>
-                    <input type="text" name="pets[0][pet_breed]" class="pet_breed w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Labrador, Siamese">
+                    <input type="text" name="pets[0][pet_breed]" maxlength="50" class="pet_breed w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Labrador, Siamese">
                     <small class="text-gray-500">Optional</small>
                   </div>
                   <!-- Age -->
                   <div>
                     <label class="block text-gray-700 font-semibold mb-2">Age (years)</label>
-                    <input type="number" name="pets[0][pet_age]" class="pet_age w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" min="0" max="50" step="0.5" placeholder="e.g., 3">
+                    <input type="number" name="pets[0][pet_age]" maxlength="3" inputmode="numeric" pattern="\d*" class="pet_age w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" min="0" max="999" step="1" placeholder="e.g., 3">
                     <small class="text-gray-500">Optional</small>
                   </div>
                   <!-- Weight -->
@@ -181,15 +182,15 @@
                       <span class="pet-weight-check"></span>
                     </label>
                     <div class="flex items-center gap-3">
-                      <input type="number" name="pets[0][pet_weight]" class="pet_weight w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" min="0" max="200" step="0.1" placeholder="e.g., 20" required>
+                      <input type="number" name="pets[0][pet_weight]" class="pet_weight w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" min="0" max="200" step="0.1" placeholder="e.g., 20" inputmode="decimal" maxlength="3" required>
                       <span class="pet-size-category text-xs font-bold px-3 py-2 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg border border-purple-200 min-w-max">--</span>
                     </div>
-                    <small class="text-gray-500">Required for price calculation</small>
+                    <small class="text-gray-500">Required for price calculation. Max 3 digits.</small>
                   </div>
                   <!-- Medical Notes -->
                   <div class="sm:col-span-2">
                     <label class="block text-gray-700 font-semibold mb-2">Medical Notes & Special Care</label>
-                    <textarea name="pets[0][pet_medical_conditions]" class="pet_medical_conditions w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none transition-all text-sm" rows="3" placeholder="Allergies, medications, conditions, behavioral notes..."></textarea>
+                    <textarea name="pets[0][pet_medical_conditions]" maxlength="500" class="pet_medical_conditions w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none transition-all text-sm" rows="3" placeholder="Allergies, medications, conditions, behavioral notes..."></textarea>
                     <small class="text-gray-500">Optional - helps the merchant provide better care</small>
                   </div>
                 </div>
@@ -272,7 +273,7 @@
                   <i class="fas fa-heart text-red-500"></i>
                   Special Medical & Care Notes
                 </label>
-                <textarea name="pet_special_notes" id="pet_special_notes" 
+                <textarea name="pet_special_notes" id="pet_special_notes" maxlength="500"
                           rows="4"
                           placeholder="Important medical information, dietary requirements, medications, behavioral notes, or special requests..."
                           class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all text-sm"></textarea>
@@ -285,7 +286,7 @@
                   <i class="fas fa-star text-yellow-500"></i>
                   Additional Requests or Special Instructions
                 </label>
-                <textarea name="special_requests" id="special_requests" 
+                <textarea name="special_requests" id="special_requests" maxlength="500"
                           rows="3"
                           placeholder="Any other special requests, preferences, or information the merchant should know?"
                           class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all text-sm"></textarea>
@@ -905,6 +906,43 @@
   // Pricing structure: { small: 500, medium: 800, large: 1200, xlarge: 1500 }
   let sizePricing = {};
 
+  function normalizeDigitsOnly(input, maxLen) {
+    if (!input) return;
+    const sanitized = input.value.replace(/\D/g, '');
+    input.value = sanitized.slice(0, maxLen);
+  }
+
+  function normalizeDecimalInput(input) {
+    if (!input) return;
+    input.value = input.value.replace(/[^0-9.]/g, '');
+  }
+
+  function normalizeWeightInput(input, maxDigits) {
+    if (!input) return;
+    let value = input.value.replace(/[^0-9.]/g, '');
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    const normalized = value.split('.');
+    const integerPart = normalized[0].slice(0, maxDigits);
+    const decimalPart = normalized[1] ? normalized[1].slice(0, 2) : '';
+    input.value = decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+  }
+
+  function enforceFieldLimits(el) {
+    if (!el) return;
+    if (el.matches('#customer_phone')) {
+      normalizeDigitsOnly(el, 11);
+    }
+    if (el.matches('.pet_age')) {
+      normalizeDigitsOnly(el, 3);
+    }
+    if (el.matches('.pet_weight')) {
+      normalizeWeightInput(el, 3);
+    }
+  }
+
   // Check if Step 1 is complete
   function isStep1Complete() {
     const customerPhone = document.getElementById('customer_phone').value.trim();
@@ -1336,11 +1374,13 @@
   function attachPetFormListeners(formElement) {
     formElement.querySelectorAll('input, textarea, select').forEach(el => {
       el.addEventListener('change', () => {
+        enforceFieldLimits(el);
         validatePetForm(formElement);
         updateSummary();
         updateStepIndicator();
       });
       el.addEventListener('input', () => {
+        enforceFieldLimits(el);
         validatePetForm(formElement);
         updateSummary();
         updateStepIndicator();
@@ -1465,14 +1505,18 @@
       updateStepIndicator();
     });
     
-    document.getElementById('customer_phone').addEventListener('input', () => {
-      validateForm();
-      updateStepIndicator();
-    });
-
-    document.getElementById('customer_phone').addEventListener('change', () => {
-      updateStepIndicator();
-    });
+    const customerPhoneInput = document.getElementById('customer_phone');
+    if (customerPhoneInput) {
+      customerPhoneInput.addEventListener('input', () => {
+        normalizeDigitsOnly(customerPhoneInput, 11);
+        validateForm();
+        updateStepIndicator();
+      });
+      customerPhoneInput.addEventListener('change', () => {
+        normalizeDigitsOnly(customerPhoneInput, 11);
+        updateStepIndicator();
+      });
+    }
     
     document.getElementById('agreeTerms').addEventListener('change', () => {
       validateForm();

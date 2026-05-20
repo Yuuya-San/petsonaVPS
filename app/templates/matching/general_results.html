@@ -5,273 +5,1218 @@
 {% endif %}
 {% block content %}
 
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+:root {
+  --purple: #7c3aed;
+  --purple-dark: #6d28d9;
+  --purple-light: #f5f3ff;
+  --white: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-600: #4b5563;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+  --success: #10b981;
+  --info: #3b82f6;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--white);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text-dark);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Responsive Container */
+.page-container {
+  width: 100%;
+  max-width: 90vw;
+  margin: 0 auto;
+  padding: 16px 0;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    max-width: 90vw;
+    padding: 24px 0;
   }
-  
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-out;
+}
+
+@media (min-width: 1280px) {
+  .page-container {
+    max-width: 85vw;
+    padding: 40px 0;
+  }
+}
+
+@media (min-width: 1536px) {
+  .page-container {
+    max-width: 80vw;
+    padding: 40px 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header Section */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .header-section {
+    margin-bottom: 32px;
+  }
+}
+
+.header-left {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* Ensure the header button stacks below title on small screens */
+.header-section .btn {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+.header-buttons-group {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 420px;
+}
+
+@media (max-width: 640px) {
+  .header-buttons-group {
+    flex-direction: column;
+    width: 100%;
   }
 
-  @keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+  .header-buttons-group .btn {
+    width: 100%;
+    align-self: stretch;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 641px) {
+  .header-buttons-group {
+    width: auto;
   }
 
-  .result-card { animation: slideUp 0.5s ease-out; }
+  .header-buttons-group .btn {
+    align-self: flex-start;
+  }
+}
 
-  .results-grid {
-    display: grid;
+/* BOTH BUTTONS SAME SIZE */
+.header-buttons-group .btn {
+  flex: 1 1 0;
+  min-height: 52px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+/* BACK BUTTON - DARK GREY */
+.header-buttons-group .btn:first-child {
+  background: #374151;
+  color: white;
+  border: 1px solid #374151;
+}
+
+.header-buttons-group .btn:first-child:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
+
+/* RETAKE BUTTON */
+.header-buttons-group .btn:last-child {
+  background: #5B23FF;
+  color: white;
+  border: 1px solid #5B23FF;
+}
+
+.header-buttons-group .btn:last-child:hover {
+  background: #9929EA;
+  border-color: #9929EA;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-buttons-group {
+    max-width: 100%;
+  }
+
+  .header-buttons-group .btn {
+    width: 100%;
+  }
+}
+
+.page-title {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.page-subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+/* Card Styling */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 18px;
+  }
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 24px;
+  }
+}
+
+.card:hover {
+  border-color: var(--purple);
+  box-shadow: var(--shadow-md);
+}
+
+/* Top Match Card */
+.top-match-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 90vw;
+}
+
+@media (min-width: 640px) {
+  .top-match-card {
+    margin-bottom: 28px;
+  }
+}
+
+@media (min-width: 768px) {
+  .top-match-card {
+    grid-template-columns: 240px 1fr;
+    align-items: stretch;
+    margin-bottom: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .top-match-card {
+    grid-template-columns: 280px 1fr;
+  }
+}
+
+@media (min-width: 1280px) {
+  .top-match-card {
+    max-width: 85vw;
+  }
+}
+
+@media (min-width: 1536px) {
+  .top-match-card {
+    max-width: 80vw;
+  }
+}
+
+.match-image {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 14px 0 0 14px;
+}
+
+@media (min-width: 640px) {
+  .match-image {
+    height: 280px;
+  }
+}
+
+@media (max-width: 767px) {
+  .match-image {
+    height: 200px;
+    border-radius: 14px 14px 0 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .match-image {
+    height: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .match-image {
+    height: 100%;
+  }
+}
+
+/* Match Header */
+.match-header {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media (min-width: 640px) {
+  .match-header {
+    padding: 18px;
+  }
+}
+
+@media (min-width: 768px) {
+  .match-header {
+    padding: 20px;
+  }
+}
+
+.match-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .match-title {
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+}
+
+@media (min-width: 768px) {
+  .match-title {
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .match-title {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+}
+
+.match-species {
+  display: inline-block;
+  background: var(--purple-light);
+  color: var(--purple);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .match-species {
+    padding: 5px 12px;
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+}
+
+.match-summary {
+  font-size: 11px;
+  color: var(--text-light);
+  line-height: 1.4;
+  margin-bottom: 10px;
+  display: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .match-summary {
+    display: block;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+}
+
+.match-strengths {
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .match-strengths {
+    display: block;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+.match-strengths-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #15803d;
+  margin-bottom: 4px;
+}
+
+@media (min-width: 768px) {
+  .match-strengths-title {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+}
+
+.match-strengths-text {
+  font-size: 11px;
+  color: #15803d;
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  .match-strengths-text {
+    font-size: 12px;
+  }
+}
+
+/* Score Section */
+.score-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  margin-top: auto;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .score-section {
+    gap: 12px;
+  }
+}
+
+.score-display {
+  text-align: center;
+  padding: 12px;
+  background: var(--gray-50);
+  border-radius: 10px;
+}
+
+@media (min-width: 768px) {
+  .score-display {
+    padding: 16px;
+  }
+}
+
+.score-label-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+
+@media (min-width: 768px) {
+  .score-label-text {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+}
+
+.score-value {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  margin-top: 4px;
+  line-height: 1;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .score-value {
+    font-size: 40px;
+    margin-bottom: 8px;
+    margin-top: 4px;
+    text-align: center;
+  }
+}
+
+.score-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 18px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+@media (min-width: 768px) {
+  .score-badge {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+}
+
+.score-badge.excellent {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.score-badge.good {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.score-badge.fair {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.score-badge.poor {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.progress-fill.excellent {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.progress-fill.good {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.progress-fill.fair {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.progress-fill.poor {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .btn {
+    padding: 12px 20px;
+    font-size: 14px;
+    gap: 8px;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--text-dark);
+  border: 1px solid var(--gray-200);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-200);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* More Matches Section */
+.matches-section {
+  margin-bottom: 32px;
+}
+
+@media (min-width: 768px) {
+  .matches-section {
+    margin-bottom: 40px;
+  }
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .section-header {
+    margin-bottom: 20px;
+  }
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 3px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (min-width: 640px) {
+  .section-title {
+    font-size: 19px;
+  }
+}
+
+@media (min-width: 768px) {
+  .section-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+}
+
+.section-subtitle {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .section-subtitle {
+    font-size: 13px;
+  }
+}
+
+.matches-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .matches-grid {
+    gap: 15px;
+  }
+}
+
+@media (min-width: 900px) {
+  .matches-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .matches-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* Match Card */
+.match-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: grid;
+  grid-template-columns: 1fr;
+  height: auto;
+  max-width: 100%;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .match-card {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
   }
+}
 
-  .other-matches-cards {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
+@media (min-width: 768px) {
+  .match-card {
+    grid-template-columns: 200px 1fr;
+    align-items: stretch;
+    max-width: 100%;
   }
+}
 
-  @media (max-width: 640px) {
-    .other-matches-cards {
-      grid-template-columns: 1fr;
-    }
+@media (min-width: 900px) {
+  .match-card {
+    grid-template-columns: 200px 1fr;
+    max-width: 420px;
   }
+}
 
-  @media (min-width: 1281px) {
-    .results-grid {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
-      align-items: start;
-    }
+@media (min-width: 1024px) {
+  .match-card {
+    max-width: 100%;
   }
+}
 
-  @keyframes shimmer {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+.match-card:hover {
+  border-color: var(--purple);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.match-card-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .match-card-image {
+    height: 170px;
   }
+}
 
-  .pulse-shimmer { animation: shimmer 2s ease-in-out infinite; }
+@media (min-width: 768px) {
+  .match-card-image {
+    height: 100%;
+    min-height: 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .match-card-image {
+    height: 100%;
+  }
+}
+
+.match-card:hover .match-card-image {
+  transform: scale(1.08);
+}
+
+.match-card-content {
+  padding: 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .match-card-content {
+    padding: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  .match-card-content {
+    padding: 16px;
+  }
+}
+
+.match-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 3px;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (min-width: 640px) {
+  .match-card-title {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .match-card-title {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .match-card-title {
+    font-size: 18px;
+  }
+}
+
+.match-card-species {
+  font-size: 11px;
+  color: var(--text-light);
+  font-weight: 500;
+  margin-bottom: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .match-card-species {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+.match-card-summary {
+  font-size: 11px;
+  color: var(--text-light);
+  line-height: 1.4;
+  margin-bottom: 10px;
+  display: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .match-card-summary {
+    display: block;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+}
+
+.match-card-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .match-card-score {
+    margin-bottom: 10px;
+  }
+}
+
+.match-card-score-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .match-card-score-label {
+    font-size: 11px;
+  }
+}
+
+.match-card-score-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--purple);
+}
+
+@media (min-width: 768px) {
+  .match-card-score-value {
+    font-size: 20px;
+  }
+}
+
+.match-card-progress {
+  margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+  .match-card-progress {
+    margin-bottom: 12px;
+  }
+}
+
+.match-card-link {
+  color: var(--purple);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .match-card-link {
+    font-size: 12px;
+    gap: 6px;
+  }
+}
+
+.match-card-link:hover {
+  color: var(--purple-dark);
+  transform: translateX(4px);
+}
+
+/* No Results State */
+.no-results {
+  text-align: center;
+  padding: 40px 16px;
+}
+
+@media (min-width: 640px) {
+  .no-results {
+    padding: 50px 20px;
+  }
+}
+
+@media (min-width: 768px) {
+  .no-results {
+    padding: 60px 24px;
+  }
+}
+
+.no-results-icon {
+  font-size: 48px;
+  color: var(--gray-300);
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .no-results-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+}
+
+.no-results-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+  .no-results-title {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+}
+
+.no-results-text {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 20px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 768px) {
+  .no-results-text {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+}
 </style>
 
-<div class="w-full min-h-screen" style="background-color: rgba(249, 250, 251, 0.5);">
-  <div class="w-[90vw] mx-auto py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
+<div class="page-container">
 
-    <!-- HEADER WITH BACK BUTTON -->
-    <div class="animate-fadeIn flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
-      <div class="flex-1">
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-          Your Perfect Pet Matches
-        </h1>
-        <p class="text-sm sm:text-base text-gray-600 max-w-2xl">Based on your lifestyle and preferences, we've identified the top breeds that align with your living situation and care capabilities.</p>
-      </div>
-
-      <!-- BACK BUTTON -->
-      {% if current_user.is_authenticated %}
-        {% if from_history %}
-          <a href="{{ url_for('matching.history') }}"
-            class="flex items-center justify-center gap-2 h-12 w-full max-w-xs sm:w-auto px-3 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
-            <i class="fa-solid fa-arrow-left text-sm"></i>
-            <span>Back to History</span>
-          </a>
-        {% elif current_user.role == "admin" %}
-          <a href="{{ url_for('pets.species_index') }}"
-            class="flex items-center justify-center gap-2 h-12 w-full max-w-xs sm:w-auto px-3 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
-            <i class="fa-solid fa-arrow-left text-sm"></i>
-            <span>Back to Pet Database</span>
-          </a>
-        {% elif current_user.role == "merchant" %}
-          <a href="{{ url_for('merchant.species_index') }}"
-            class="flex items-center justify-center gap-2 h-12 w-full max-w-xs sm:w-auto px-3 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
-            <i class="fa-solid fa-arrow-left text-sm"></i>
-            <span>Back to Pet Database</span>
-          </a>
-        {% elif current_user.role == "user" %}
-          <a href="{{ url_for('user.species_index') }}"
-            class="flex items-center justify-center gap-2 h-12 w-full max-w-xs sm:w-auto px-3 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
-            <i class="fa-solid fa-arrow-left text-sm"></i>
-            <span>Back to Pet Database</span>
-          </a>
-        {% else %}
-          <a href="{{ url_for('auth.home') }}"
-            class="flex items-center justify-center gap-2 h-12 w-full max-w-xs sm:w-auto px-3 sm:px-6 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:bg-indigo-700 active:scale-95 whitespace-nowrap">
-            <i class="fa-solid fa-arrow-left text-sm"></i>
-            <span>Back to Home</span>
-          </a>
-        {% endif %}
-      {% endif %}
+  <!-- HEADER -->
+  <header class="header-section">
+    <div class="header-left">
+      <h1 class="page-title">Your Perfect Pet Matches</h1>
+      <p class="page-subtitle">Based on your lifestyle and preferences</p>
     </div>
 
-    {% if matches|length > 0 %}
+    <!-- BACK AND RETAKE BUTTONS -->
+    <div class="header-buttons-group">
+      <a href="{{ url_for('matching.history') }}"
+        class="btn btn-primary">
+        <span>Back to History</span>
+      </a>
+      <a href="{{ url_for('matching.quiz') }}"
+        class="btn btn-primary">
+        <span>Retake Match</span>
+      </a>
+    </div>
+  </header>
 
-      <!-- MAIN CONTAINER - GRID FOR LARGE SCREENS -->
-      <div class="results-grid">
+  {% if matches|length > 0 %}
 
-        <!-- LEFT COLUMN: TOP MATCH SHOWCASE -->
-        {% set first_match = matches[0] %}
-        {% set first_score = first_match.score %}
-        
-        <div class="bg-white rounded-3xl shadow-lg overflow-hidden result-card border border-gray-100 transition-smooth hover:shadow-xl">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-0">
-          
-            <!-- IMAGE SECTION -->
-            <div class="relative h-64 sm:h-80 md:h-auto bg-gray-200 overflow-hidden md:rounded-l-3xl">
-              <img src="{% if first_match.breed.image_url %}{{ url_for('static', filename=first_match.breed.image_url) }}{% else %}{{ url_for('static', filename='images/breeds/default.jpg') }}{% endif %}" 
-                   alt="{{ first_match.breed.name }}" 
-                   class="w-full h-full object-cover transition-smooth hover:scale-105 duration-500">
-              <div class="absolute inset-0" style="background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);"></div>
-              
-              <!-- CROWN BADGE -->
-              <div class="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
-                <span class="inline-block bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg flex items-center gap-1.5">
-                  <i class="fa-solid fa-crown text-sm"></i> Top Match
-                </span>
-              </div>
-            </div>
-
-            <!-- CONTENT SECTION -->
-            <div class="md:col-span-2 p-6 sm:p-8 flex flex-col justify-between">
-              <div>
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">{{ first_match.breed.name }}</h2>
-                <span class="inline-block bg-indigo-100 text-indigo-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
-                  <i class="fa-solid fa-leaf mr-1.5"></i> {{ first_match.breed.species.name if first_match.breed.species else 'Unknown' }}
-                </span>
-
-                {% if first_match.breed.summary %}
-                <p class="text-gray-700 text-sm sm:text-base leading-relaxed mb-4">{{ first_match.breed.summary }}</p>
-                {% endif %}
-                
-                <!-- KEY STRENGTHS PREVIEW -->
-                {% if first_match.strengths %}
-                <div class="mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p class="text-xs sm:text-sm font-semibold text-green-800 mb-2 flex items-center gap-1">
-                    <i class="fa-solid fa-check text-green-600"></i> Your Best Matches
-                  </p>
-                  <p class="text-xs sm:text-sm text-green-700">{{ first_match.strengths|first }}</p>
-                </div>
-                {% endif %}
-              </div>
-
-              <!-- SCORE DISPLAY -->
-              <div class="space-y-3 sm:space-y-4">
-                <div class="flex justify-between items-end gap-4">
-                  <div>
-                    <p class="text-xs sm:text-sm font-semibold text-gray-600 mb-1">Compatibility Score</p>
-                    <p class="text-4xl sm:text-5xl font-bold" style="background: linear-gradient(to right, #4f46e5, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{{ first_score|round|int }}%</p>
-                  </div>
-                  {% if first_score >= 80 %}
-                    <span class="inline-block bg-green-100 text-green-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold">
-                      <i class="fa-solid fa-star text-green-600 mr-1"></i> Excellent
-                    </span>
-                  {% elif first_score >= 60 %}
-                    <span class="inline-block bg-blue-100 text-blue-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold">
-                      <i class="fa-solid fa-check-circle text-blue-600 mr-1"></i> Very Good
-                    </span>
-                  {% else %}
-                    <span class="inline-block bg-yellow-100 text-yellow-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold">
-                      <i class="fa-solid fa-circle-exclamation text-yellow-600 mr-1"></i> Good
-                    </span>
-                  {% endif %}
-                </div>
-
-                <!-- PROGRESS BAR -->
-                <div class="w-full bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden">
-                  {% if first_score >= 80 %}
-                    <div class="h-full rounded-full transition-all duration-700" style="--bar-width: {{ first_score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #10b981, #059669);"></div>
-                  {% elif first_score >= 60 %}
-                    <div class="h-full rounded-full transition-all duration-700" style="--bar-width: {{ first_score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #3b82f6, #4f46e5);"></div>
-                  {% else %}
-                    <div class="h-full rounded-full transition-all duration-700" style="--bar-width: {{ first_score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #eab308, #ea580c);"></div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- ACTION BUTTON -->
-              <a href="{{ url_for('matching.breed_match', breed_id=first_match.breed.id, from_results=1) }}" 
-                 class="mt-6 sm:mt-8 w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition-smooth active:scale-95 hover:shadow-lg inline-flex items-center justify-center gap-2">
-                <i class="fa-solid fa-arrow-right"></i> Detailed Analysis
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- RIGHT COLUMN: OTHER MATCHES SECTION -->
-        {% if matches|length > 1 %}
-        <div class="animate-fadeIn" style="animation-delay: 0.2s;">
-          <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-            <i class="fa-solid fa-list text-indigo-600"></i> Other Great Matches
-          </h3>
-
-          <div class="other-matches-cards">
-          {% for match in matches[1:5] %}
-            {% set score = match.score %}
-            
-            <div class="bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg hover:border-indigo-200 transition-smooth result-card overflow-hidden">
-              <div class="flex flex-col sm:flex-row h-full">
-                <!-- Image -->
-                <div class="w-full sm:w-32 h-48 sm:h-40 flex-shrink-0 overflow-hidden">
-                  <img src="{% if match.breed.image_url %}{{ url_for('static', filename=match.breed.image_url) }}{% else %}{{ url_for('static', filename='images/breeds/default.jpg') }}{% endif %}" 
-                       alt="{{ match.breed.name }}" 
-                       class="w-full h-full object-cover transition-smooth hover:scale-110 duration-500">
-                </div>
-
-                <!-- Content -->
-                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-1">{{ match.breed.name }}</h4>
-                    <span class="inline-block bg-gray-100 text-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs font-medium mb-3 sm:mb-4">
-                      {{ match.breed.species.name if match.breed.species else 'Unknown' }}
-                    </span>
-                  </div>
-
-                  <div class="space-y-2">
-                    <div class="flex justify-between items-center">
-                      <span class="text-gray-700 font-semibold text-xs sm:text-sm">Match Score</span>
-                      <span class="text-xl sm:text-2xl font-bold text-indigo-600">{{ score|round|int }}%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                      {% if score >= 80 %}
-                        <div class="h-full" style="--bar-width: {{ score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #10b981, #059669);"></div>
-                      {% elif score >= 60 %}
-                        <div class="h-full" style="--bar-width: {{ score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #3b82f6, #4f46e5);"></div>
-                      {% else %}
-                        <div class="h-full" style="--bar-width: {{ score|round|int }}%; width: var(--bar-width); background: linear-gradient(to right, #eab308, #ea580c);"></div>
-                      {% endif %}
-                    </div>
-                    <a href="{{ url_for('matching.breed_match', breed_id=match.breed.id, from_results=1) }}" 
-                       class="text-indigo-600 hover:text-indigo-700 font-semibold text-xs sm:text-sm mt-3 inline-flex items-center gap-1 transition-smooth">
-                      View Details <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-      </div>
-
+    <!-- TOP MATCH -->
+    {% set first_match = matches[0] %}
+    {% set first_score = first_match.score %}
+    
+    {% if first_score >= 80 %}
+      {% set status_class = "excellent" %}
+      {% set status_label = "Excellent Match" %}
+    {% elif first_score >= 60 %}
+      {% set status_class = "good" %}
+      {% set status_label = "Great Match" %}
+    {% elif first_score >= 40 %}
+      {% set status_class = "fair" %}
+      {% set status_label = "Fair Match" %}
     {% else %}
-
-      <!-- NO RESULTS -->
-      <div class="bg-white rounded-3xl shadow-lg p-8 sm:p-12 border border-gray-100 text-center result-card transition-smooth hover:shadow-xl">
-        <i class="fa-solid fa-search text-5xl sm:text-6xl text-gray-300 mb-4 sm:mb-6"></i>
-        <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">No Matches Found</h3>
-        <p class="text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base max-w-md mx-auto">It appears we couldn't find suitable matches. Try retaking the quiz to get fresh results.</p>
-        <a href="{{ url_for('matching.quiz') }}" 
-           class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base transition active:scale-95">
-          <i class="fa-solid fa-redo mr-1"></i> Take Quiz Again
-        </a>
-      </div>
-
+      {% set status_class = "poor" %}
+      {% set status_label = "Challenging" %}
     {% endif %}
 
-  </div>
+    <div class="card top-match-card">
+      <!-- Image Section -->
+      <div style="overflow: hidden; border-radius: 14px 0 0 14px;">
+        <img src="{% if first_match.breed.image_url %}{{ url_for('static', filename=first_match.breed.image_url) }}{% else %}{{ url_for('static', filename='images/breeds/default.jpg') }}{% endif %}" 
+             alt="{{ first_match.breed.name }}" 
+             class="match-image">
+      </div>
+
+      <!-- Content Section -->
+      <div class="match-header">
+        <h2 class="match-title">{{ first_match.breed.name }}</h2>
+        <span class="match-species">
+          <i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>
+          {{ first_match.breed.species.name if first_match.breed.species else 'Unknown' }}
+        </span>
+
+        {% if first_match.breed.summary %}
+        <p class="match-summary">{{ first_match.breed.summary }}</p>
+        {% endif %}
+
+        {% if first_match.strengths %}
+        <div class="match-strengths">
+          <p class="match-strengths-title">
+            <i class="fa-solid fa-check" style="margin-right: 6px;"></i> Best For You
+          </p>
+          <p class="match-strengths-text">{{ first_match.strengths|first }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Score Display -->
+        <div class="score-section">
+          <div class="score-display">
+            <div class="score-label-text">Compatibility Score</div>
+            <div class="score-value">{{ first_score|round|int }}%</div>
+            <div class="score-badge {{ status_class }}">{{ status_label }}</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill {{ status_class }}" style="width: {{ first_score }}%"></div>
+          </div>
+
+          <!-- Action Button -->
+          <a href="{{ url_for('matching.breed_match', breed_id=first_match.breed.id, from_results=1) }}" 
+             class="btn btn-primary">
+            <i class="fa-solid fa-arrow-right"></i>
+            <span>Detailed Analysis</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- MORE MATCHES SECTION -->
+    {% if matches|length > 1 %}
+    <section class="matches-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fa-solid fa-list" style="color: var(--purple); margin-right: 8px;"></i> More Great Matches
+        </h2>
+        <p class="section-subtitle">Explore other compatible breeds for your lifestyle</p>
+      </div>
+
+      <div class="matches-grid">
+        {% for match in matches[1:5] %}
+          {% set score = match.score %}
+          
+          {% if score >= 80 %}
+            {% set score_class = "excellent" %}
+          {% elif score >= 60 %}
+            {% set score_class = "good" %}
+          {% elif score >= 40 %}
+            {% set score_class = "fair" %}
+          {% else %}
+            {% set score_class = "poor" %}
+          {% endif %}
+
+          <div class="match-card">
+            <img src="{% if match.breed.image_url %}{{ url_for('static', filename=match.breed.image_url) }}{% else %}{{ url_for('static', filename='images/breeds/default.jpg') }}{% endif %}" 
+                 alt="{{ match.breed.name }}" 
+                 class="match-card-image">
+
+            <div class="match-card-content">
+              <div>
+                <h3 class="match-card-title">{{ match.breed.name }}</h3>
+                <p class="match-card-species">{{ match.breed.species.name if match.breed.species else 'Unknown' }}</p>
+                {% if match.breed.summary %}
+                <p class="match-card-summary">{{ match.breed.summary }}</p>
+                {% endif %}              </div>
+              <div>
+                <div class="match-card-score">
+                  <span class="match-card-score-label">Compatibility</span>
+                  <span class="match-card-score-value">{{ score|round|int }}%</span>
+                </div>
+                <div class="match-card-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill {{ score_class }}" style="width: {{ score }}%"></div>
+                  </div>
+                </div>
+                <a href="{{ url_for('matching.breed_match', breed_id=match.breed.id, from_results=1) }}" 
+                   class="match-card-link">
+                  View Details <i class="fa-solid fa-arrow-right"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+  {% else %}
+
+    <!-- NO RESULTS -->
+    <div class="card" style="text-align: center;">
+      <div class="no-results">
+        <i class="fa-solid fa-search no-results-icon"></i>
+        <h3 class="no-results-title">No Matches Found</h3>
+        <p class="no-results-text">Try retaking the quiz to get fresh results based on your preferences.</p>
+        <a href="{{ url_for('matching.quiz') }}" 
+           class="btn btn-primary">
+          <i class="fa-solid fa-redo"></i>
+          <span>Take Quiz Again</span>
+        </a>
+      </div>
+    </div>
+
+  {% endif %}
+
 </div>
 
 {% endblock %}

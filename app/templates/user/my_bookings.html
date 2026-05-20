@@ -995,10 +995,21 @@
     flex-shrink: 0;
   }
 
+  .modal-footer form {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .modal-footer .btn {
-    flex: 0 1 auto;
-    min-width: 120px;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 48px;
     text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   @media (max-width: 640px) {
@@ -1007,11 +1018,17 @@
       padding: 1rem;
     }
 
+    .modal-footer form {
+      flex-direction: column;
+      width: 100%;
+    }
+
     .modal-footer .btn {
-      flex: 0 1 auto;
-      min-width: 100px;
+      flex: 1 1 0;
+      width: 100%;
+      min-width: 0;
       font-size: 0.8125rem;
-      padding: 0.65rem 1rem;
+      padding: 0.75rem 1rem;
     }
   }
 

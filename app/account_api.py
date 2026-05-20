@@ -2,6 +2,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.extensions import csrf
+from app.models import BackupCode
 from app.utils.account_api import (
     generate_2fa_setup,
     change_password,
@@ -142,6 +143,23 @@ def api_2fa_status():
     except Exception as e:
         current_app.logger.error(f"2FA status check error: {str(e)}")
         return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
+
+@bp.route('/backup-codes', methods=['GET'])
+@login_required
+@csrf.exempt
+def api_backup_codes():
+    """Get unused backup codes for current user."""
+    try:
+        if not current_user.is_2fa_enabled:
+            return jsonify({'message': 'Two-factor authentication is not enabled.'}), 400
+        
+        backup_codes = BackupCode.query.filter_by(user_id=current_user.id, is_used=False).all()
+        codes = [code.code for code in backup_codes]
+        
+        return jsonify({'backup_codes': codes}), 200
+    except Exception as e:
+        current_app.logger.error(f"Backup codes fetch error: {str(e)}")
+        return jsonify({'message': 'Failed to retrieve backup codes.'}), 500
 
 @bp.route('/reset-2fa', methods=['POST'])
 @login_required

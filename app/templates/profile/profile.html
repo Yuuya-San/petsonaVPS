@@ -840,31 +840,48 @@
 // Custom animations on page load and mode switching
 // relocated to scripts block so jQuery is available before page scripts run
 window.addEventListener('DOMContentLoaded', function() {
-    const viewMode = document.getElementById('view-mode');
-    const editMode = document.getElementById('edit-mode');
-    const editToggleBtn = document.getElementById('edit-toggle-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
-    const avatarChoiceSelect = document.getElementById('avatar_choice_hidden');
-    const avatarOptions = document.querySelectorAll('.avatar-option');
-    const avatarUpload = document.getElementById('{{ form.avatar_upload.id }}');
-    const uploadPreview = document.getElementById('upload-preview');
-    const previewImg = document.getElementById('preview-img');
+    try {
+        const viewMode = document.getElementById('view-mode');
+        const editMode = document.getElementById('edit-mode');
+        let editToggleBtn = document.getElementById('edit-toggle-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const avatarChoiceSelect = document.getElementById('avatar_choice_hidden');
+        const avatarOptions = document.querySelectorAll('.avatar-option') || [];
+        const avatarUpload = document.getElementById('{{ form.avatar_upload.id }}');
+        const uploadPreview = document.getElementById('upload-preview');
+        const previewImg = document.getElementById('preview-img');
 
-    // Trigger animations on page load
-    window.addEventListener('load', function() {
-        const profileContent = document.querySelectorAll('.profile-content .info-card');
-        profileContent.forEach((card, index) => {
-            card.style.animation = `slideUpIn 0.8s ease-out ${0.2 + (index * 0.1)}s forwards`;
-            card.style.opacity = '0';
+        function log() {
+            if (window && window.console && console.debug) console.debug.apply(console, ['[profile]'].concat(Array.from(arguments)));
+        }
+
+        function triggerProfileCardsAnimation() {
+            const profileContent = document.querySelectorAll('.profile-content .info-card');
+            profileContent.forEach((card, index) => {
+                card.style.animation = 'none';
+                card.offsetHeight; // trigger reflow
+                card.style.animation = `slideUpIn 0.8s ease-out ${0.2 + (index * 0.1)}s forwards`;
+                card.style.opacity = '0';
+            });
+        }
+
+        // Safe load animations
+        window.addEventListener('load', function() {
+            triggerProfileCardsAnimation();
         });
-    });
 
-    // Toggle view/edit mode
-    editToggleBtn.addEventListener('click', function() {
-        viewMode.classList.toggle('hidden');
-        editMode.classList.toggle('hidden');
-        // Retrigger animations when switching to edit mode
-        if (!editMode.classList.contains('hidden')) {
+        // Fallback: find toggle by common selectors if ID isn't present
+        if (!editToggleBtn) {
+            editToggleBtn = document.querySelector('.btn-edit') || document.querySelector('[data-edit-toggle]');
+            if (editToggleBtn) log('Found edit toggle with fallback selector');
+        }
+
+        function enterEditMode() {
+            if (!viewMode || !editMode) return;
+            viewMode.classList.add('hidden');
+            editMode.classList.remove('hidden');
+
+            // Retrigger animations when switching to edit mode
             const formSections = editMode.querySelectorAll('.edit-form-section');
             formSections.forEach((section, index) => {
                 section.style.animation = 'none';
@@ -872,96 +889,142 @@ window.addEventListener('DOMContentLoaded', function() {
                 section.style.animation = `slideUpIn 0.8s ease-out ${0.2 + (index * 0.1)}s forwards`;
                 section.style.opacity = '0';
             });
-        }
-    });
 
-    cancelBtn.addEventListener('click', function() {
-        viewMode.classList.remove('hidden');
-        editMode.classList.add('hidden');
-        document.getElementById('edit-form').reset();
-        // Retrigger animations when switching back to view mode
-        const profileContent = document.querySelectorAll('.profile-content .info-card');
-        profileContent.forEach((card, index) => {
-            card.style.animation = 'none';
-            card.offsetHeight; // Trigger reflow
-            card.style.animation = `slideUpIn 0.8s ease-out ${0.2 + (index * 0.1)}s forwards`;
-            card.style.opacity = '0';
-        });
-    });
+            // Scroll edit mode into view for small screens
+            try { editMode.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
 
-    // Avatar selection
-    avatarOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const avatarPath = this.dataset.avatar;
-            avatarChoiceSelect.value = avatarPath;
-            
-            // Update UI
-            avatarOptions.forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
-        });
-    });
-
-    // Set initial avatar selection
-    const currentValue = avatarChoiceSelect.value;
-    if (currentValue) {
-        const selected = document.querySelector(`[data-avatar="${currentValue}"]`);
-        if (selected) selected.classList.add('selected');
-    }
-
-    // File upload preview
-    if (avatarUpload) {
-        avatarUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    previewImg.src = event.target.result;
-                    uploadPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+            // Autofocus first visible input
+            try {
+                const firstInput = editMode.querySelector('input:not([type=hidden]), textarea, select');
+                if (firstInput && typeof firstInput.focus === 'function') {
+                    firstInput.focus({ preventScroll: true });
+                }
+            } catch (e) {
+                // ignore focus errors
             }
-        });
-    }
-
-    // Page visibility - retrigger animations when page becomes visible
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            // Retrigger animations
+            log('enterEditMode triggered');
         }
-    });
 
-    // Drag and drop
-    const uploadArea = document.querySelector('.upload-area');
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-    });
+        function exitEditMode() {
+            if (!viewMode || !editMode) return;
+            viewMode.classList.remove('hidden');
+            editMode.classList.add('hidden');
+            const formEl = document.getElementById('edit-form');
+            if (formEl) formEl.reset();
+            triggerProfileCardsAnimation();
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+            log('exitEditMode triggered');
+        }
 
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+        // Attach click handler or use delegation as fallback
+        if (editToggleBtn) {
+            editToggleBtn.addEventListener('click', function(e) {
+                try { e.preventDefault(); } catch (ee) {}
+                enterEditMode();
+            });
+        } else {
+            // Delegated handler covers cases where markup is updated later
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest && e.target.closest('.btn-edit, #edit-toggle-btn, [data-edit-toggle]');
+                if (btn) {
+                    try { e.preventDefault(); } catch (ee) {}
+                    enterEditMode();
+                }
+            });
+            log('delegation attached for edit toggle');
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function(e) {
+                try { e.preventDefault(); } catch (ee) {}
+                exitEditMode();
+            });
+        }
+
+        // Avatar selection - safe binding
+        if (avatarOptions && avatarOptions.length > 0 && avatarChoiceSelect) {
+            avatarOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const avatarPath = this.dataset.avatar;
+                    avatarChoiceSelect.value = avatarPath || '';
+                    avatarOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    log('avatar selected', avatarPath);
+                });
+            });
+
+            // Set initial avatar selection if present
+            try {
+                const currentValue = avatarChoiceSelect.value;
+                if (currentValue) {
+                    const selected = document.querySelector(`[data-avatar="${currentValue}"]`);
+                    if (selected) selected.classList.add('selected');
+                }
+            } catch (e) {
+                // ignore selection errors
+            }
+        }
+
+        // File upload preview - safe binding
+        if (avatarUpload && previewImg && uploadPreview) {
+            avatarUpload.addEventListener('change', function(e) {
+                const file = e.target.files && e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImg.src = event.target.result;
+                        uploadPreview.style.display = 'block';
+                        log('preview ready');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Drag and drop - safe binding
+        const uploadArea = document.querySelector('.upload-area');
+        if (uploadArea) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.style.background = 'rgba(102, 126, 234, 0.15)';
+                    uploadArea.style.borderColor = '#7c3aed';
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.style.background = 'rgba(102, 126, 234, 0.05)';
+                    uploadArea.style.borderColor = '#8b5cf6';
+                });
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (avatarUpload) {
+                    try {
+                        // Some browsers do not allow assigning FileList; try and fall back
+                        avatarUpload.files = files;
+                        const event = new Event('change', { bubbles: true });
+                        avatarUpload.dispatchEvent(event);
+                    } catch (err) {
+                        console.warn('Unable to assign dropped files programmatically', err);
+                    }
+                }
+            });
+        }
+
+        function preventDefaults(e) {
+            try { e.preventDefault(); e.stopPropagation(); } catch (ee) {}
+        }
+
+    } catch (err) {
+        console.error('Error initializing profile scripts', err);
     }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => {
-            uploadArea.style.background = 'rgba(102, 126, 234, 0.15)';
-            uploadArea.style.borderColor = '#7c3aed';
-        });
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => {
-            uploadArea.style.background = 'rgba(102, 126, 234, 0.05)';
-            uploadArea.style.borderColor = '#8b5cf6';
-        });
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        avatarUpload.files = files;
-        const event = new Event('change', { bubbles: true });
-        avatarUpload.dispatchEvent(event);
-    });
 });
 </script>
 {% endblock %}

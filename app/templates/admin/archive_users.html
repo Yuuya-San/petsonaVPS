@@ -402,15 +402,13 @@
   }
   .modal-footer {
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    align-items: stretch;
     padding: 1.5rem;
     box-sizing: border-box;
-
     border-top: 1px solid rgba(168, 85, 247, 0.15);
-
     background: linear-gradient(
       135deg,
       rgba(255, 255, 255, 1) 0%,
@@ -426,16 +424,20 @@
 
   .modal-footer form {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
+    align-items: stretch;
     width: 100%;
   }
 
   .modal-footer .btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+    height: 48px;
+    min-height: 48px;
     justify-content: center;
-    gap: 0.5rem;
+    text-align: center;
+    padding: 0 1rem;
   }
 
   .modal-footer .btn-label {

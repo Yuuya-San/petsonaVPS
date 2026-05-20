@@ -3,54 +3,8 @@
 {% block title %}Partner Applications - Admin{% endblock %}
 
 {% block content %}
-<style>
-  /* Fade-in for merchant applications page */
-  @keyframes merchantAppsFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  .merchant-apps-fade { animation: merchantAppsFadeIn 0.45s ease-out both; will-change: opacity, transform; padding-left: 0 !important; padding-right: 0 !important; overflow-x: hidden !important; }
-  @media (prefers-reduced-motion: reduce) { .merchant-apps-fade { animation: none !important; } }
-
-  :root {
-    --page-card-min-width: 85vw;
-    --page-card-max-width: 95vw;
-    --page-card-width: min(var(--page-card-max-width), calc(100% - 1.5rem));
-  }
-
-  .merchant-apps-container {
-    width: var(--page-card-width) !important;
-    min-width: var(--page-card-min-width) !important;
-    max-width: var(--page-card-max-width) !important;
-    /* center and ensure equal side spacing */
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-    padding: 0 0.75rem !important;
-    overflow-x: hidden !important;
-  }
-
-  /* Prevent inner elements from causing horizontal overflow */
-  .merchant-apps-container .table-container,
-  .merchant-apps-container .applications-card,
-  .merchant-apps-container .stats-grid {
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .merchant-apps-container .applications-table {
-    width: 100% !important;
-    min-width: 0 !important;
-    table-layout: auto !important;
-    overflow-wrap: anywhere !important;
-    word-break: break-word !important;
-  }
-  /* Prevent images or logos from widening the layout */
-  .merchant-apps-container img,
-  .merchant-apps-container .logo-img {
-    max-width: 100% !important;
-    height: auto !important;
-    display: block !important;
-  }
-</style>
-<div x-data="merchantApplications()" @mount="init()" x-cloak class="min-h-screen py-8 px-3 sm:px-5 lg:px-6 relative overflow-hidden merchant-apps-fade">
-    <div class="mx-auto relative z-10 merchant-apps-container">
+<div x-data="merchantApplications()" @mount="init()" x-cloak class="min-h-screen py-8 px-3 sm:px-5 lg:px-6 relative overflow-hidden">
+    <div class="mx-auto relative z-10" style="width: 85vw; max-width: 85vw; margin: 0 auto;">
         <!-- Header Section -->
         <div class="mb-12">
             <div class="flex items-center gap-4 mb-3">
@@ -286,7 +240,7 @@
     <!-- Premium Detail Modal with Modern Design -->
     <template x-if="selectedApp">
         <div class="modal-overlay" @click.self="selectedApp = null">
-            <div class="modal-content-wrapper w-[95vw] lg:max-w-[580px]" @click.stop>
+            <div class="modal-content-wrapper" style="width: 580px; max-width: 95vw; min-height: 80vh;" @click.stop>
                 
                 <!-- Modal Header -->
                 <div class="modal-header">
@@ -698,7 +652,7 @@
                 </div>
 
                 <!-- Modal Footer with Actions -->
-                <div class="modal-footer">
+                <div class="modal-footer no-stack">
                     
                     <template x-if="selectedApp.status === 'pending'">
                         <div class="flex gap-2 w-full">
@@ -741,10 +695,10 @@
 
     <!-- Confirmation Modal - Modern Clean Design -->
     <template x-if="showConfirmModal">
-        <div class="modal-overlay" @click.self="cancelConfirm()">
-            <div class="modal-content-wrapper" style="max-width: 28rem;" @click.stop>
+      <div class="modal-overlay" @click.self="cancelConfirm()">
+        <div class="modal-content-wrapper" :style="confirmAction === 'reject' ? 'max-width: 28rem; min-height: 400px; max-height: 480px;' : 'max-width: 28rem; min-height: 300px; max-height: 320px;'" @click.stop>
                 
-                <!-- Modal Header -->
+          <!-- Modal Header -->
                 <div class="modal-header" :style="confirmAction === 'reject' ? 'border-bottom-color: rgba(239, 68, 68, 0.2);' : 'border-bottom-color: rgba(34, 197, 94, 0.2);'">
                     <h3 class="modal-header-title">
                         <i class="fa-solid fa-question-circle" :style="confirmAction === 'reject' ? 'color: #ef4444;' : 'color: #22c55e;'"></i>
@@ -782,7 +736,7 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="modal-footer">
+                <div class="modal-footer no-stack">
                     
                     <button 
                         @click="cancelConfirm()"
@@ -919,7 +873,6 @@ function merchantApplications() {
         searchTerm: '',
         statusFilter: 'all',
         isLoading: true,
-        searchTimeout: null,
         showConfirmModal: false,
         confirmAction: null,
         confirmTitle: '',
@@ -950,19 +903,12 @@ function merchantApplications() {
                     rejected: 0
                 };
                 
-                const params = new URLSearchParams(window.location.search);
-                this.searchTerm = params.get('search') || '';
-                this.statusFilter = params.get('status') || 'all';
-                this.currentPage = parseInt(params.get('page'), 10) || 1;
-
-                // Watch for search/filter changes and load server-backed results
+                // Watch for search/filter changes
                 this.$watch('searchTerm', () => {
-                    this.currentPage = 1;
-                    this.debouncedLoadApplications();
+                    this.filterApplications();
                 });
                 this.$watch('statusFilter', () => {
-                    this.currentPage = 1;
-                    this.loadApplications();
+                    this.filterApplications();
                 });
                 
                 this.loadApplications();
@@ -1007,15 +953,7 @@ function merchantApplications() {
         async loadApplications() {
             this.isLoading = true;
             try {
-                const url = new URL('/admin/api/merchants', window.location.origin);
-                if (this.statusFilter) {
-                    url.searchParams.set('status', this.statusFilter);
-                }
-                if (this.searchTerm) {
-                    url.searchParams.set('search', this.searchTerm);
-                }
-
-                const response = await fetch(url.href);
+                const response = await fetch('/admin/api/merchants?status=all');
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -1027,7 +965,6 @@ function merchantApplications() {
                 if (data.error) {
                     alert('Error loading applications: ' + data.error);
                     this.applications = [];
-                    this.filteredApplications = [];
                     this.updateStats();
                     this.isLoading = false;
                     return;
@@ -1035,7 +972,17 @@ function merchantApplications() {
                 
                 const merchants = data.merchants || [];
                 
+                if (merchants.length === 0) {
+                    this.applications = [];
+                    this.updateStats();
+                    this.filterApplications();
+                    this.isLoading = false;
+                    return;
+                }
+                
+                // Normalize field names to match template expectations
                 this.applications = merchants.map((m, idx) => {
+                    
                     return {
                         id: m.id,
                         year: m.created_at ? m.created_at.split('T')[0].split('-')[0] : 'N/A',
@@ -1078,14 +1025,11 @@ function merchantApplications() {
                     };
                 });
                 
-                this.filteredApplications = [...this.applications];
                 this.updateStats();
-                this.currentPage = Math.min(this.currentPage, this.getTotalPages());
-                this.updateUrl();
+                this.filterApplications();
             } catch (error) {
                 alert('Failed to load applications. Please check the console for errors. Error: ' + error.message);
                 this.applications = [];
-                this.filteredApplications = [];
                 this.updateStats();
             } finally {
                 this.isLoading = false;
@@ -1103,34 +1047,30 @@ function merchantApplications() {
         },
 
         filterApplications() {
-            this.filteredApplications = [...this.applications];
+            
+            this.filteredApplications = this.applications.filter(app => {
+                const matchesStatus = this.statusFilter === 'all' || app.status === this.statusFilter;
+                const searchLower = this.searchTerm.toLowerCase();
+                const matchesSearch = !this.searchTerm || 
+                    (app.business_name && app.business_name.toLowerCase().includes(searchLower)) ||
+                    (app.owner_name && app.owner_name.toLowerCase().includes(searchLower)) ||
+                    (app.user_name && app.user_name.toLowerCase().includes(searchLower)) ||
+                    (app.contact_email && app.contact_email.toLowerCase().includes(searchLower)) ||
+                    (app.user_email && app.user_email.toLowerCase().includes(searchLower)) ||
+                    (app.phone && app.phone.toLowerCase().includes(searchLower)) ||
+                    (app.city && app.city.toLowerCase().includes(searchLower)) ||
+                    (app.province && app.province.toLowerCase().includes(searchLower)) ||
+                    (app.barangay && app.barangay.toLowerCase().includes(searchLower)) ||
+                    app.id.toString().includes(searchLower);
+                
+                return matchesStatus && matchesSearch;
+            });
+            
             this.currentPage = 1;
-        },
-
-        debouncedLoadApplications() {
-            clearTimeout(this.searchTimeout);
-            this.searchTimeout = setTimeout(() => {
-                this.currentPage = 1;
-                this.loadApplications();
-            }, 300);
-        },
-
-        updateUrl() {
-            const params = new URLSearchParams();
-            if (this.searchTerm) {
-                params.set('search', this.searchTerm);
-            }
-            if (this.statusFilter && this.statusFilter !== 'all') {
-                params.set('status', this.statusFilter);
-            }
-            params.set('page', this.currentPage);
-            const query = params.toString();
-            const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-            window.history.replaceState({}, '', newUrl);
+            
         },
 
         getFilteredApplications() {
-            this.filterApplications();
             return this.filteredApplications;
         },
 
@@ -1141,8 +1081,7 @@ function merchantApplications() {
         },
 
         getTotalPages() {
-            const pages = Math.ceil(this.filteredApplications.length / this.itemsPerPage);
-            return pages === 0 ? 1 : pages;
+            return Math.ceil(this.filteredApplications.length / this.itemsPerPage);
         },
 
         goToPage(page) {
@@ -1361,28 +1300,23 @@ function merchantApplications() {
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  animation: fadeIn 0.25s ease-out;
 }
 
 .modal-content-wrapper {
   background: white;
   border-radius: 2rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
-  width: 95vw;
+  width: 100%;
   max-width: 95vw;
-  min-width: 95vw;
+  min-width: auto;
+  min-height: 80vh;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(168, 85, 247, 0.1);
-}
-
-@media (min-width: 1024px) {
-  .modal-content-wrapper {
-    width: 580px;
-    max-width: 580px;
-    min-width: 580px;
-  }
+  animation: fadeIn 0.25s ease-out;
 }
 
 .modal-header {
@@ -1573,6 +1507,17 @@ function merchantApplications() {
   .modal-btn {
     width: 100%;
   }
+}
+
+/* Keep action buttons side-by-side when parent has .no-stack */
+.modal-footer.no-stack {
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: center;
+}
+.modal-footer.no-stack .modal-btn {
+  width: auto !important;
+  min-width: 140px;
 }
 
 [x-cloak] { 

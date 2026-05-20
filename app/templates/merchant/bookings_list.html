@@ -572,6 +572,37 @@
     display: none;
   }
 
+  .modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .modal-footer form {
+    flex: 1 1 0;
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .modal-footer .btn,
+  .modal-footer button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.75rem 1.1rem;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .modal-footer .btn i,
+  .modal-footer button i {
+    margin-right: 0;
+  }
+
   @media (max-width: 576px) {
     .btn-label-full {
       display: none !important;
@@ -582,19 +613,8 @@
     }
 
     .modal-footer {
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .modal-footer .btn,
-    .modal-footer button {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .modal-footer .btn i,
-    .modal-footer button i {
-      margin-right: 0;
+      flex-wrap: nowrap;
+      justify-content: space-between;
     }
   }
 </style>

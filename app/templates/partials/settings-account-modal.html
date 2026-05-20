@@ -93,6 +93,12 @@
       <!-- Modal Footer -->
       <div class="modal-footer glass-modal-footer border-0">
         <button type="button"
+                class="btn btn-secondary glass-btn-secondary glass-footer-btn-wide"
+                data-dismiss="modal"
+                id="cancelPasswordBtn">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
+        <button type="button"
                 class="btn btn-primary glass-btn-primary glass-footer-btn-wide"
                 id="savePasswordBtn">
           <i class="fas fa-check mr-2"></i>Save Changes
@@ -394,18 +400,23 @@
     }
   }
 
-  /* Footer Wide Button */
-  .glass-footer-btn-wide {
-    width: 92%;
-    max-width: 95%;
-    min-height: 46px;
+  /* Footer Wide Buttons */
+  .glass-modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    align-items: stretch;
+  }
 
+  .glass-footer-btn-wide {
+    flex: 1 1 0;
+    width: 100%;
+    max-width: none;
+    min-height: 46px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    margin: 0 auto;
-
+    margin: 0;
     border-radius: 10px;
   }
 

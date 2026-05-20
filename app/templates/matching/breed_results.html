@@ -7,8 +7,10 @@
 {% block content %}
 
 <!-- Fonts + Icons -->
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
@@ -16,44 +18,78 @@
   --purple: #7c3aed;
   --purple-dark: #6d28d9;
   --purple-light: #f5f3ff;
-  --bg: #f8fafc;
-  --glass: rgba(255, 255, 255, 0.85);
-  --border: rgba(139, 92, 246, 0.15);
-  --text: #1e293b;
-  --text-light: #475569;
-  --muted: #78716c;
-  --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --white: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-600: #4b5563;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+  --success: #10b981;
+  --info: #3b82f6;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-/* RESET */
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* BASE */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  background: linear-gradient(135deg, var(--bg) 0%, #f1f5f9 100%);
-  font-family: 'Inter', sans-serif;
-  color: var(--text);
-  min-height: 100vh;
+  background: var(--white);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text-dark);
+  font-size: 16px;
+  line-height: 1.6;
 }
 
-/* CONTAINER */
+/* Responsive Container */
 .page-container {
-  width: 90vw;
-  min-width: 90vw;
+  width: 100%;
   max-width: 90vw;
   margin: 0 auto;
-  padding: 32px 20px;
-  opacity: 0;
-  animation: pageFadeIn 0.45s ease-out 0.1s forwards;
+  padding: 24px 0;
+  animation: fadeInUp 0.5s ease-out;
 }
 
-@keyframes pageFadeIn {
+@media (min-width: 640px) {
+  .page-container {
+    max-width: 90vw;
+    padding: 32px 0;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page-container {
+    max-width: 85vw;
+    padding: 40px 0;
+  }
+}
+
+@media (min-width: 1536px) {
+  .page-container {
+    max-width: 80vw;
+    padding: 40px 0;
+  }
+}
+
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -61,305 +97,201 @@ body {
   }
 }
 
-/* GLASS */
-.glass {
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: var(--shadow);
-  transition: all 0.3s ease;
+/* Header Section */
+.header-section {
+  margin-bottom: 32px;
 }
 
-.glass:hover {
-  border-color: rgba(139, 92, 246, 0.25);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-}
-
-/* TYPOGRAPHY */
-.title {
-  font-size: 32px;
+.page-title {
+  font-size: 28px;
   font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 8px;
   letter-spacing: -0.5px;
-  margin: 0;
 }
 
-.subtitle {
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 36px;
+  }
+}
+
+.page-subtitle {
+  font-size: 14px;
   color: var(--text-light);
-  margin-top: 8px;
-  font-size: 15px;
   font-weight: 500;
 }
 
-/* MAIN CARD */
-.main-card {
-  padding: 28px;
-  margin-top: 28px;
+.page-subtitle strong {
+  color: var(--purple);
+  font-weight: 700;
 }
 
-/* TOP GRID: combine main card + breakdown on very large screens */
-.top-grid {
-  display: block;
+/* Main Content Grid */
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  margin-bottom: 40px;
 }
 
-@media (min-width: 1281px) {
-  .top-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 28px;
+@media (min-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr 1fr;
     align-items: start;
   }
+}
 
-  /* Make the main card internal layout stable and prevent stretching */
-  .top-grid .main-card .grid-2 {
-    grid-template-columns: 1fr !important;
-    align-items: start;
-    gap: 28px;
-  }
-
-  .top-card-left {
-    align-items: stretch;
-  }
-
-  .top-card-right {
-    width: 100%;
-  }
-
-  .top-grid .main-card .grid-2 > div:last-child {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100%;
-  }
-
-  /* Lock breakdown column to behave as a column of cards */
-  .top-grid > .section {
-    margin-top: 0;
+@media (min-width: 1280px) {
+  .main-content {
+    grid-template-columns: 1.2fr 1fr;
   }
 }
 
-.top-card-left {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
+/* Card Styling */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
 }
 
-.top-card-left h2 {
-  text-align: center;
-  margin-bottom: 8px;
+.card:hover {
+  border-color: var(--purple);
+  box-shadow: var(--shadow-md);
 }
 
-.top-card-left .subtitle {
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-.image-summary-row {
+/* Breed Card */
+.breed-card {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 100%;
 }
 
-.summary-box {
-  width: 100%;
+.breed-header {
+  text-align: center;
 }
 
-.top-card-right {
+.breed-name {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+@media (min-width: 768px) {
+  .breed-name {
+    font-size: 28px;
+  }
+}
+
+.breed-species {
+  font-size: 14px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.breed-image-wrapper {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--gray-100);
+}
+
+.breed-image {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.breed-image-wrapper:hover .breed-image {
+  transform: scale(1.05);
+}
+
+.breed-description {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 14px;
+  color: var(--text-light);
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* Score Circle */
+.score-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  padding: 24px;
+  background: var(--gray-50);
+  border-radius: 12px;
 }
 
-.top-card-left .breed-about {
-  width: 100%;
-}
-
-@media (min-width: 1281px) {
-  .image-summary-row {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 24px;
-  }
-
-  .summary-box {
-    max-width: 520px;
-  }
-
-  .breed-img {
-    max-width: 360px;
-    width: 100%;
-  }
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
-}
-
-@media (min-width: 768px) {
-  .grid-2 {
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-  }
-}
-
-/* GRID 3 COLUMNS - Responsive with auto-fit */
-.grid-3 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-}
-
-@media (min-width: 980px) {
-  .grid-3 {
-    grid-template-columns: repeat(3, minmax(280px, 1fr));
-  }
-}
-
-/* BREAKDOWN GRID: force 4 + 3 layout on large screens */
-.breakdown-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-@media (min-width: 640px) {
-  .breakdown-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .breakdown-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-}
-
-@media (min-width: 1281px) {
-  .breakdown-grid {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-  }
-}
-
-.breakdown-card {
-  min-width: 280px;
-}
-
-/* IMAGE */
-.breed-img {
-  width: 100%;
-  height: 420px;
-  max-width: 320px;
-  margin: 0 auto;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 20px;
-  box-shadow: var(--shadow);
-  transition: transform 0.3s ease;
-  aspect-ratio: 3/4;
-}
-
-.breed-img:hover {
-  transform: scale(1.03);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
-}
-
-.main-card h2 {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-  color: var(--text);
-}
-
-/* SCORE */
 .score-circle {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 160px;
+  height: 160px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-/* Circular background */
 .score-circle-bg {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   border-radius: 50%;
   background: conic-gradient(
     var(--score-color, var(--purple)) 0deg,
     var(--score-color, var(--purple)) calc(var(--score-percent, 75) * 3.6deg),
-    #e2e8f0 calc(var(--score-percent, 75) * 3.6deg),
-    #e2e8f0 360deg
+    var(--gray-300) calc(var(--score-percent, 75) * 3.6deg),
+    var(--gray-300) 360deg
   );
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  border-radius: 50%;
-  transition: all 0.4s ease;
+  box-shadow: var(--shadow-md);
 }
 
-/* Inner circle (white center) */
 .score-circle-inner {
   position: absolute;
-  width: 88%;
-  height: 88%;
+  inset: 8px;
   border-radius: 50%;
-  background: white;
+  background: var(--white);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  text-align: center;
+  gap: 2px;
 }
 
-.score-circle-value,
-.score-circle-text {
-  width: 100%;
-  text-align: center;
-  display: block;
-}
-
-.score-circle {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.score-circle-value {
-  font-size: 52px;
+.score-value {
+  font-size: 48px;
   font-weight: 900;
   color: var(--score-color, var(--purple));
   line-height: 1;
 }
 
-.score-circle-text {
+.score-unit {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-light);
 }
 
-/* STATUS LABEL */
 .score-label {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  margin: 16px auto 0;
-  width: max-content;
-}
-.top-card-left {
-  text-align: center;
 }
 
 .score-label.excellent {
@@ -382,643 +314,507 @@ body {
   color: #991b1b;
 }
 
-/* ABOUT SECTION */
-.breed-about {
-  margin-top: 16px;
-  padding-top: 16px;
-  padding: 16px;
-  border-top: 2px solid #e2e8f0;
+/* Right Side Card */
+.side-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
-  text-align: center;
-  background: #f9fafb;
-  border-radius: 12px;
 }
 
-.breed-about p {
-  font-size: 14px;
-  color: var(--text-light);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.score-progress-label-text {
-  font-size: 12px;
-  color: var(--text);
-  font-weight: 700;
-}
-
-/* BADGES */
-.badge {
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  box-shadow: var(--shadow-sm);
-}
-
-.badge.good { background: #dbeafe; color: #1e40af; }
-.badge.excellent { background: #dcfce7; color: #15803d; }
-.badge.fair { background: #fed7aa; color: #9a3412; }
-.badge.poor { background: #fecaca; color: #991b1b; }
-
-/* BUTTONS */
 .btn {
-  padding: 11px 20px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
-  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-  color: white;
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
 }
 
 .btn-primary:active {
   transform: translateY(0);
 }
 
-.btn-outline {
-  border: 2px solid var(--purple);
-  color: var(--purple);
-  background: transparent;
+.btn-secondary {
+  background: #1f2937 !important;
+  color: var(--white);
+  border: 2px solid #1f2937 !important;
+  box-shadow: var(--shadow-sm);
 }
 
-.btn-outline:hover {
-  background: var(--purple-light);
+.btn-secondary:hover {
+  background: #1f2937 !important;
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
-.btn-outline:active {
+.btn-secondary:active {
   transform: translateY(0);
 }
 
-/* SECTION */
-.section {
-  margin-top: 40px;
+/* Breakdown Section */
+.breakdown-section {
+  margin-bottom: 40px;
+}
+
+.section-header {
+  margin-bottom: 20px;
 }
 
 .section-title {
-  font-weight: 800;
   font-size: 20px;
-  margin: 0 0 8px 0;
-  color: var(--text);
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 4px;
 }
 
-.section-sub {
-  font-size: 14px;
+.section-subtitle {
+  font-size: 13px;
   color: var(--text-light);
   font-weight: 500;
 }
 
-/* CARD */
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 18px;
-  border: 1px solid #e2e8f0;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-.card:hover {
-  border-color: var(--border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+@media (min-width: 640px) {
+  .breakdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.card > div:first-child {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 600;
-  color: var(--text);
+@media (min-width: 1024px) {
+  .breakdown-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-.card > div:first-child span:last-child {
-  color: var(--purple);
-  font-weight: 700;
+@media (min-width: 1280px) {
+  .breakdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-/* PROGRESS */
-.progress {
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 999px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--purple) 0%, #c084fc 100%);
-  transition: width 0.4s ease;
-  border-radius: 999px;
-}
-
-/* INSIGHTS */
-.insight {
-  padding: 14px 16px;
-  border-radius: 12px;
-  border-left: 4px solid;
-  background: white;
-  font-size: 14px;
-  line-height: 1.6;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.insight i {
-  margin-top: 2px;
-  flex-shrink: 0;
-  font-size: 16px;
-}
-
-.insight:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.insight.good {
-  border-color: #10b981;
-  background: #f0fdf4;
-}
-
-.insight.bad {
-  border-color: #ef4444;
-  background: #fef2f2;
-}
-
-.insight.neutral {
-  border-color: #8b5cf6;
-  background: var(--purple-light);
-}
-
-/* INSIGHT CARD */
-.insight-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  border: 1px solid #e2e8f0;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.insight-card:hover {
-  border-color: var(--border);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px);
-}
-
-.insight-card-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.insight-card-header-icon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.insight-card-header-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0;
-  flex: 1;
-}
-
-.insight-card.good .insight-card-header {
-  border-bottom-color: #d1fae5;
-}
-
-.insight-card.good .insight-card-header-icon {
-  color: #10b981;
-}
-
-.insight-card.bad .insight-card-header {
-  border-bottom-color: #fee2e2;
-}
-
-.insight-card.bad .insight-card-header-icon {
-  color: #ef4444;
-}
-
-.insight-card.neutral .insight-card-header {
-  border-bottom-color: #ede9fe;
-}
-
-.insight-card.neutral .insight-card-header-icon {
-  color: #8b5cf6;
-}
-
-.insight-card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.insight-card-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.insight-card-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.insight-card-content::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-.insight-card-content::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-.insight-card-item {
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.5;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  transition: all 0.2s ease;
-  border-left: 2px solid transparent;
-}
-
-.insight-card-item i {
-  margin-top: 3px;
-  flex-shrink: 0;
-  font-size: 14px;
-}
-
-.insight-card-item:hover {
-  transform: translateX(4px);
-  border-left-color: currentColor;
-}
-
-.insight-card.good .insight-card-item {
-  background: #f0fdf4;
-  color: #15803d;
-}
-
-.insight-card.bad .insight-card-item {
-  background: #fef2f2;
-  color: #991b1b;
-}
-
-.insight-card.neutral .insight-card-item {
-  background: var(--purple-light);
-  color: #5b21b6;
-}
-
-/* FOOTER */
-.footer-actions {
-  margin-top: 40px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  padding-top: 20px;
-}
-
-/* BREAKDOWN CARD */
+/* Breakdown Card */
 .breakdown-card {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  border: 1px solid #e2e8f0;
-  box-shadow: var(--shadow-sm);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 18px;
   transition: all 0.3s ease;
 }
 
 .breakdown-card:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-color: var(--purple);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
-.breakdown-card-header {
+.breakdown-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  gap: 12px;
 }
 
-.breakdown-card-title {
+.breakdown-title {
+  font-size: 14px;
   font-weight: 700;
-  font-size: 15px;
-  color: var(--text);
+  color: var(--text-dark);
   text-transform: capitalize;
-  margin: 0;
+  flex: 1;
 }
 
-.breakdown-card-percentage {
+.breakdown-percentage {
+  font-size: 22px;
   font-weight: 800;
-  font-size: 20px;
   color: var(--purple);
+  min-width: 50px;
+  text-align: right;
 }
 
-.breakdown-card-label {
-  font-size: 12px;
-  font-weight: 700;
+.breakdown-badge {
+  display: inline-block;
   padding: 4px 10px;
   border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+  margin-bottom: 10px;
 }
 
-.breakdown-card-label.excellent {
+.breakdown-badge.excellent {
   background: #dcfce7;
   color: #15803d;
 }
 
-.breakdown-card-label.good {
+.breakdown-badge.good {
   background: #dbeafe;
   color: #1e40af;
 }
 
-.breakdown-card-label.fair {
+.breakdown-badge.fair {
   background: #fed7aa;
   color: #9a3412;
 }
 
-.breakdown-card-label.needs-improvement {
+.breakdown-badge.needs-improvement {
   background: #fce7f3;
   color: #831843;
 }
 
-.breakdown-card-label.critical {
+.breakdown-badge.critical {
   background: #fecaca;
   color: #991b1b;
 }
 
-.breakdown-card-description {
-  font-size: 12px;
+.breakdown-description {
+  font-size: 13px;
   color: var(--text-light);
   margin-bottom: 12px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.breakdown-progress {
-  height: 10px;
-  background: #e2e8f0;
-  border-radius: 999px;
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 10px;
   overflow: hidden;
-  margin-top: 8px;
 }
 
-.breakdown-progress-fill {
+.progress-fill {
   height: 100%;
+  border-radius: 10px;
   transition: width 0.4s ease;
-  border-radius: 999px;
 }
 
-.breakdown-progress-fill.excellent {
+.progress-fill.excellent {
   background: linear-gradient(90deg, #10b981 0%, #059669 100%);
 }
 
-.breakdown-progress-fill.good {
+.progress-fill.good {
   background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
 }
 
-.breakdown-progress-fill.fair {
+.progress-fill.fair {
   background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
 }
 
-.breakdown-progress-fill.needs-improvement {
+.progress-fill.needs-improvement {
   background: linear-gradient(90deg, #ec4899 0%, #db2777 100%);
 }
 
-.breakdown-progress-fill.critical {
+.progress-fill.critical {
   background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Insights Section */
+.insights-section {
+  margin-bottom: 40px;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 1024px) {
+  .insights-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Insight Card */
+.insight-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.insight-card:hover {
+  border-color: var(--purple);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.insight-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.insight-card.good .insight-icon {
+  color: var(--success);
+}
+
+.insight-card.bad .insight-icon {
+  color: var(--danger);
+}
+
+.insight-card.neutral .insight-icon {
+  color: var(--purple);
+}
+
+.insight-card.good .insight-header {
+  border-bottom-color: #d1fae5;
+}
+
+.insight-card.bad .insight-header {
+  border-bottom-color: #fee2e2;
+}
+
+.insight-card.neutral .insight-header {
+  border-bottom-color: #ede9fe;
+}
+
+.insight-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.insight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.insight-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.insight-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.insight-list::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 2px;
+}
+
+.insight-list::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+.insight-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.insight-item i {
+  flex-shrink: 0;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.insight-card.good .insight-item {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.insight-card.bad .insight-item {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.insight-card.neutral .insight-item {
+  background: var(--purple-light);
+  color: #5b21b6;
+}
+
+.insight-item:hover {
+  transform: translateX(4px);
+}
+
+/* Empty State */
+.empty-insight {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-light);
+  font-size: 13px;
+}
+
+/* Footer */
+.footer-section {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--gray-200);
+  color: var(--text-light);
+  font-size: 12px;
 }
 </style>
 
 <div class="page-container">
 
   <!-- HEADER -->
+  <header class="header-section">
+    <h1 class="page-title">Compatibility Result</h1>
+    <p class="page-subtitle">Based on your lifestyle for <strong>{{ breed.name }}</strong></p>
+  </header>
 
-  <div>
-    <div class="title">Compatibility Result</div>
-    <div class="subtitle">
-      Based on your lifestyle for <strong>{{ breed.name }}</strong>
-    </div>
-  </div>
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
 
-  <!-- MAIN CARD -->
-
-  <div class="top-grid">
-
-  <div class="glass main-card">
-
-    <div class="grid-2">
-
-      <!-- LEFT -->
-      <div class="top-card-left">
-        <h2>{{ breed.name }}</h2>
-
+    <!-- LEFT CARD: Breed Info -->
+    <div class="card breed-card">
+      <div class="breed-header">
+        <h2 class="breed-name">{{ breed.name }}</h2>
         {% if breed.species %}
-        <p class="subtitle">{{ breed.species.name }}</p>
+        <p class="breed-species">{{ breed.species.name }}</p>
         {% endif %}
+      </div>
 
-        <div class="image-summary-row">
-          {% if breed.image_url %}
-          <img src="{{ url_for('static', filename=breed.image_url) }}" class="breed-img">
-          {% endif %}
+      {% if breed.image_url %}
+      <div class="breed-image-wrapper">
+        <img src="{{ url_for('static', filename=breed.image_url) }}" alt="{{ breed.name }}" class="breed-image">
+      </div>
+      {% endif %}
 
-          <div class="breed-about summary-box">
-            {% if breed.summary %}
-              <p>{{ breed.summary }}</p>
-            {% else %}
-              <p>No description available for this breed.</p>
-            {% endif %}
-          </div>
-        </div>
-
-        {% if score >= 80 %}
-          {% set status_class = "excellent" %}
-          {% set status_label = "Excellent Match" %}
-          {% set score_color = "#10b981" %}
-        {% elif score >= 60 %}
-          {% set status_class = "good" %}
-          {% set status_label = "Good Match" %}
-          {% set score_color = "#3b82f6" %}
-        {% elif score >= 40 %}
-          {% set status_class = "fair" %}
-          {% set status_label = "Fair Match" %}
-          {% set score_color = "#f59e0b" %}
+      <div class="breed-description">
+        {% if breed.summary %}
+          <p>{{ breed.summary }}</p>
         {% else %}
-          {% set status_class = "poor" %}
-          {% set status_label = "Challenging" %}
-          {% set score_color = "#ef4444" %}
+          <p>No description available for this breed.</p>
         {% endif %}
+      </div>
+    </div>
 
+    <!-- RIGHT CARD: Score & Actions -->
+    <div class="side-card">
+      
+      <!-- Score Section -->
+      {% if score >= 80 %}
+        {% set status_class = "excellent" %}
+        {% set status_label = "Excellent Match" %}
+        {% set score_color = "#10b981" %}
+      {% elif score >= 60 %}
+        {% set status_class = "good" %}
+        {% set status_label = "Good Match" %}
+        {% set score_color = "#3b82f6" %}
+      {% elif score >= 40 %}
+        {% set status_class = "fair" %}
+        {% set status_label = "Fair Match" %}
+        {% set score_color = "#f59e0b" %}
+      {% else %}
+        {% set status_class = "poor" %}
+        {% set status_label = "Challenging" %}
+        {% set score_color = "#ef4444" %}
+      {% endif %}
+
+      <div class="card score-section">
         <div class="score-circle" style="--score-percent: {{ score }}; --score-color: {{ score_color }};">
           <div class="score-circle-bg"></div>
           <div class="score-circle-inner">
-            <div class="score-circle-value">{{ score|round|int }}</div>
-            <div class="score-circle-text">%</div>
+            <div class="score-value">{{ score|round|int }}</div>
+            <div class="score-unit">%</div>
           </div>
         </div>
-
         <div class="score-label {{ status_class }}">{{ status_label }}</div>
       </div>
 
-      <!-- RIGHT -->
-      <div class="top-card-right">
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}" class="btn btn-primary">
+          Retake Matching
+        </a>
 
-        <div class="flex flex-wrap justify-center gap-3">
-
-          <!-- Retake -->
-          <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
-            class="flex items-center justify-center gap-2
-                    h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
-                    rounded-2xl
-                    border border-indigo-500 text-indigo-600 bg-white/70 backdrop-blur
-                    text-sm font-semibold
-                    shadow-sm hover:shadow-md
-                    transition-all duration-200
-                    hover:-translate-y-[1px] active:scale-95">
-            <i class="fas fa-redo text-indigo-500"></i>
-            <span class="w-full text-center">Retake Matching</span>
+        {% if from_history %}
+          <a href="{{ url_for('matching.history') }}" class="btn btn-secondary">
+            Back to History
           </a>
-
-          {% if from_history %}
-            <!-- Back to History -->
-            <a href="{{ url_for('matching.history') }}"
-              class="flex items-center justify-center gap-2
-                      h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
-                      rounded-2xl
-                      bg-indigo-600 text-white
-                      text-sm font-semibold
-                      shadow-sm hover:shadow-lg
-                      transition-all duration-200
-                      hover:bg-indigo-700 hover:-translate-y-[1px] active:scale-95">
-              <i class="fa-solid fa-arrow-left"></i>
-              <span class="w-full text-center">Back to History</span>
+        {% elif request.args.get('from_results') %}
+          <a href="{{ url_for('matching.general_results') }}" class="btn btn-secondary">
+            Back to Results
+          </a>
+        {% elif current_user.is_authenticated %}
+          {% if current_user.role == "admin" and breed.species_id %}
+            <a href="{{ url_for('pets.view_species', id=breed.species_id) }}" class="btn btn-secondary">
+              Back to Breeds
             </a>
-          {% elif request.args.get('from_results') %}
-            <!-- Back to Results -->
-            <a href="{{ url_for('matching.general_results') }}"
-              class="flex items-center justify-center gap-2
-                      h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
-                      rounded-2xl
-                      bg-indigo-600 text-white
-                      text-sm font-semibold
-                      shadow-sm hover:shadow-lg
-                      transition-all duration-200
-                      hover:bg-indigo-700 hover:-translate-y-[1px] active:scale-95">
-              <i class="fa-solid fa-arrow-left"></i>
-              <span class="w-full text-center">Back to Results</span>
+          {% elif current_user.role == "merchant" and breed.species_id %}
+            <a href="{{ url_for('merchant.view_species', id=breed.species_id) }}" class="btn btn-secondary">
+              Back to Breeds
             </a>
-          {% elif current_user.is_authenticated %}
-            {% if current_user.role == "admin" and breed.species_id %}
-              <a href="{{ url_for('pets.view_species', id=breed.species_id) }}"
-                class="flex items-center justify-center gap-2
-                        h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
-                        rounded-2xl
-                        bg-indigo-600 text-white
-                        text-sm font-semibold
-                        shadow-sm hover:shadow-lg
-                        transition-all duration-200
-                        hover:bg-indigo-700 hover:-translate-y-[1px] active:scale-95">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span class="w-full text-center">Back to Breed Management</span>
-              </a>
-
-            {% elif current_user.role == "merchant" and breed.species_id %}
-              <a href="{{ url_for('merchant.view_species', id=breed.species_id) }}"
-                class="flex items-center justify-center gap-2
-                        h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
-                        rounded-2xl
-                        bg-indigo-600 text-white
-                        text-sm font-semibold
-                        shadow-sm hover:shadow-lg
-                        transition-all duration-200
-                        hover:bg-indigo-700 hover:-translate-y-[1px] active:scale-95">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span class="w-full text-center">Back to Breeds</span>
-              </a>
-
-            {% elif current_user.role == "user" and breed.species_id %}
-              <a href="{{ url_for('user.view_species', id=breed.species_id) }}"
-                class="flex items-center justify-center gap-2
-                        h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
-                        rounded-2xl
-                        bg-indigo-600 text-white
-                        text-sm font-semibold
-                        shadow-sm hover:shadow-lg
-                        transition-all duration-200
-                        hover:bg-indigo-700 hover:-translate-y-[1px] active:scale-95">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span class="w-full text-center">Back to Breeds</span>
-              </a>
-
-            {% else %}
-              <a href="{{ url_for('auth.home') }}"
-                class="flex items-center justify-center gap-2
-                        h-12 px-6 min-w-[220px] max-w-[320px] w-full sm:w-auto
-                        rounded-2xl
-                        bg-indigo-600 text-white
-                        text-sm font-semibold
-                        shadow-sm hover:shadow-lg
-                        transition-all duration-200
-                        hover:bg-indigo-700 hover:-translate-y-[1px] active:scale-95">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span class="w-full text-center">Back to Home</span>
-              </a>
-            {% endif %}
+          {% elif current_user.role == "user" and breed.species_id %}
+            <a href="{{ url_for('user.view_species', id=breed.species_id) }}" class="btn btn-secondary">
+              Back to Breeds
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.home') }}" class="btn btn-secondary">
+              Back to Home
+            </a>
           {% endif %}
-
-        </div>
-
+        {% endif %}
       </div>
 
     </div>
 
   </div>
 
-  <!-- BREAKDOWN -->
+  <!-- BREAKDOWN SECTION -->
+  <section class="breakdown-section">
+    <div class="section-header">
+      <h2 class="section-title">Compatibility Breakdown</h2>
+      <p class="section-subtitle">Category-by-category analysis of your compatibility</p>
+    </div>
 
-  <div class="section">
-    <div class="section-title">Breakdown</div>
-    <div class="section-sub">Category compatibility analysis</div>
-
-    <div class="grid-3 breakdown-grid" style="margin-top: 20px;">
+    <div class="breakdown-grid">
       {% for category, data in category_scores.items() %}
         {% set percentage = data.percentage %}
         {% if percentage >= 80 %}
@@ -1044,88 +840,101 @@ body {
         {% endif %}
 
         <div class="breakdown-card">
-          <div class="breakdown-card-header">
-            <h4 class="breakdown-card-title">{{ category|replace('_', ' ') }}</h4>
-            <span class="breakdown-card-percentage">{{ percentage|int }}%</span>
+          <div class="breakdown-header">
+            <h4 class="breakdown-title">{{ category|replace('_', ' ') }}</h4>
+            <div class="breakdown-percentage">{{ percentage|int }}%</div>
           </div>
 
-          <div class="breakdown-card-label {{ label_class }}">{{ label }}</div>
-          <p class="breakdown-card-description">{{ description }}</p>
+          <div class="breakdown-badge {{ label_class }}">{{ label }}</div>
+          <p class="breakdown-description">{{ description }}</p>
 
-          <div class="breakdown-progress">
-            <div class="breakdown-progress-fill {{ label_class }}" style="width: {{ percentage }}%"></div>
+          <div class="progress-bar">
+            <div class="progress-fill {{ label_class }}" style="width: {{ percentage }}%"></div>
           </div>
         </div>
       {% endfor %}
+    </div>
+  </section>
 
+  <!-- INSIGHTS SECTION -->
+  <section class="insights-section">
+    <div class="section-header">
+      <h2 class="section-title">Detailed Insights</h2>
+      <p class="section-subtitle">In-depth analysis of your compatibility match</p>
     </div>
 
-  </div>
+    <div class="insights-grid">
 
-  </div>
-
-  <!-- INSIGHTS GRID -->
-
-  <div style="margin-top: 40px;">
-    <div class="section-title" style="margin-bottom: 12px;">Detailed Insights</div>
-    <div class="grid-3">
-
-      <!-- MATCH CARD -->
+      <!-- Why You Match -->
       {% if matched_reasons %}
       <div class="insight-card good">
-        <div class="insight-card-header">
-          <i class="fas fa-check-circle insight-card-header-icon"></i>
-          <h3 class="insight-card-header-title">Why You Match</h3>
+        <div class="insight-header">
+          <i class="fas fa-check-circle insight-icon"></i>
+          <h3 class="insight-title">Why You Match</h3>
         </div>
-        <div class="insight-card-content">
+        <div class="insight-list">
           {% for r in matched_reasons %}
-          <div class="insight-card-item">
+          <div class="insight-item">
             <i class="fas fa-check"></i>
             <span>{{ r }}</span>
           </div>
           {% endfor %}
         </div>
       </div>
+      {% else %}
+      <div class="insight-card good">
+        <div class="insight-header">
+          <i class="fas fa-check-circle insight-icon"></i>
+          <h3 class="insight-title">Why You Match</h3>
+        </div>
+        <div class="empty-insight">No compatibility reasons available.</div>
+      </div>
       {% endif %}
 
-      <!-- MISMATCH CARD -->
+      <!-- Concerns -->
       {% if mismatch_reasons %}
       <div class="insight-card bad">
-        <div class="insight-card-header">
-          <i class="fas fa-exclamation-circle insight-card-header-icon"></i>
-          <h3 class="insight-card-header-title">Concerns</h3>
+        <div class="insight-header">
+          <i class="fas fa-exclamation-circle insight-icon"></i>
+          <h3 class="insight-title">Concerns</h3>
         </div>
-        <div class="insight-card-content">
+        <div class="insight-list">
           {% for r in mismatch_reasons %}
-          <div class="insight-card-item">
+          <div class="insight-item">
             <i class="fas fa-warning"></i>
             <span>{{ r }}</span>
           </div>
           {% endfor %}
         </div>
       </div>
+      {% else %}
+      <div class="insight-card bad">
+        <div class="insight-header">
+          <i class="fas fa-exclamation-circle insight-icon"></i>
+          <h3 class="insight-title">Concerns</h3>
+        </div>
+        <div class="empty-insight">No significant concerns found.</div>
+      </div>
       {% endif %}
 
-      <!-- SUGGESTIONS CARD -->
+      <!-- Suggestions -->
       {% if suggestions %}
       <div class="insight-card neutral">
-        <div class="insight-card-header">
-          <i class="fas fa-lightbulb insight-card-header-icon"></i>
-          <h3 class="insight-card-header-title">Suggestions</h3>
+        <div class="insight-header">
+          <i class="fas fa-lightbulb insight-icon"></i>
+          <h3 class="insight-title">Suggestions</h3>
         </div>
-        <div class="insight-card-content">
+        <div class="insight-list">
           {% if suggestions is mapping %}
-            <!-- If suggestions is a dict with all_suggestions -->
             {% for s in suggestions.get('all_suggestions', suggestions.get('suggestions', [])) %}
-            <div class="insight-card-item">
+            <div class="insight-item">
               <i class="fas fa-arrow-right"></i>
               <span>{{ s }}</span>
             </div>
             {% endfor %}
           {% else %}
-            <!-- If suggestions is a list -->
             {% for s in suggestions %}
-            <div class="insight-card-item">
+            <div class="insight-item">
               <i class="fas fa-arrow-right"></i>
               <span>{{ s }}</span>
             </div>
@@ -1133,10 +942,18 @@ body {
           {% endif %}
         </div>
       </div>
+      {% else %}
+      <div class="insight-card neutral">
+        <div class="insight-header">
+          <i class="fas fa-lightbulb insight-icon"></i>
+          <h3 class="insight-title">Suggestions</h3>
+        </div>
+        <div class="empty-insight">No suggestions available at this time.</div>
+      </div>
       {% endif %}
 
     </div>
-  </div>
+  </section>
 
 </div>
 

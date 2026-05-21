@@ -11,6 +11,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class Message(db.Model):
     __tablename__ = "messages"
@@ -55,8 +59,8 @@ class Message(db.Model):
     report_reason = db.Column(db.String(255))
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_utc_now, index=True)
+    updated_at = db.Column(db.DateTime, default=get_utc_now, onupdate=get_utc_now)
     
     @property
     def is_visible_to_sender(self):
@@ -151,8 +155,8 @@ class Conversation(db.Model):
     is_archived_by_user2 = db.Column(db.Boolean, default=False)
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_utc_now, index=True)
+    updated_at = db.Column(db.DateTime, default=get_utc_now, onupdate=get_utc_now)
     
     def get_other_user(self, user_id):
         """Get the other user in the conversation."""

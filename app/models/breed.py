@@ -9,6 +9,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class Breed(db.Model):
     __tablename__ = 'breed'
@@ -63,8 +67,8 @@ class Breed(db.Model):
     # --------------------------
     is_active = db.Column(db.Boolean, default=True)
     deleted_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=get_ph_datetime)
-    updated_at = db.Column(db.DateTime, onupdate=get_ph_datetime)
+    created_at = db.Column(db.DateTime, default=get_utc_now)
+    updated_at = db.Column(db.DateTime, onupdate=get_utc_now)
 
     def soft_delete(self):
         self.deleted_at = get_ph_datetime()

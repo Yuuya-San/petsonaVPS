@@ -804,7 +804,7 @@
                 <td class="td-dates" data-label="Appointment">
                   <div class="dates-info">
                     <span class="date-label">Date:</span>
-                    <span class="date-value">{{ booking.appointment_date.strftime('%b %d, %Y') if booking.appointment_date else 'N/A' }}</span>
+                    <span class="date-value">{{ booking.appointment_date_ph.strftime('%b %d, %Y') if booking.appointment_date_ph else 'N/A' }}</span>
                     <br>
                     <span class="date-label">Time:</span>
                     <span class="date-value">{{ booking.appointment_time if booking.appointment_time else 'N/A' }}</span>
@@ -843,7 +843,7 @@
                             data-customer-name="{{ booking.customer_name }}"
                             data-customer-email="{{ booking.customer_email }}"
                             data-customer-phone="{{ booking.customer_phone }}"
-                            data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') if booking.appointment_date else 'N/A' }}"
+                            data-appointment-date="{{ booking.appointment_date_ph.strftime('%b %d, %Y') if booking.appointment_date_ph else 'N/A' }}"
                             data-appointment-time="{{ booking.appointment_time }}"
                             data-service-type="{{ booking.service_type }}"
                             data-business-category="{{ booking.business_category }}"

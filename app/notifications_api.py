@@ -93,10 +93,7 @@ def mark_notification_read(notification_id):
         # Mark as read
         if not notification.is_read:
             notification.is_read = True
-            from datetime import datetime
-            import pytz
-            PH_TZ = pytz.timezone('Asia/Manila')
-            notification.read_at = datetime.now(PH_TZ)
+            notification.read_at = get_ph_datetime()
             db.session.commit()
             
             logger.info(f"✅ Notification {notification_id} marked as read for user {current_user.id}")

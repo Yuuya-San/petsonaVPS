@@ -3,6 +3,17 @@ from app.extensions import db
 import json
 import pytz
 
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
+
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class MatchHistory(db.Model):
     __tablename__ = "match_history"
@@ -40,8 +51,8 @@ class MatchHistory(db.Model):
     source = db.Column(db.String(100), nullable=True)  # 'direct', 'species_page', 'breed_page'
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_utc_now, index=True)
+    updated_at = db.Column(db.DateTime, onupdate=get_utc_now)
     
     # Relationships
     user = db.relationship('User', backref='match_histories')

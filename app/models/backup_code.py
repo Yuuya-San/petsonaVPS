@@ -9,6 +9,10 @@ def get_ph_now():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class BackupCode(db.Model):
     __tablename__ = "backup_codes"
@@ -18,7 +22,7 @@ class BackupCode(db.Model):
     code = db.Column(db.String(20), nullable=False)  # XXXX-XXXX-XXXX format (14 chars) + buffer
     is_used = db.Column(db.Boolean, default=False)
     used_at = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=get_ph_now)
+    created_at = db.Column(db.DateTime, default=get_utc_now)
 
     # Relationship
     user = db.relationship('User', backref=db.backref('backup_codes', lazy='dynamic', cascade='all, delete-orphan'))

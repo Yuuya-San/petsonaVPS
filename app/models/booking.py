@@ -11,6 +11,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class Booking(db.Model):
     """
@@ -70,8 +74,8 @@ class Booking(db.Model):
     special_requests = db.Column(LONGTEXT, nullable=True)
 
     # ========== SECTION 10: TIMESTAMPS & TRACKING ==========
-    created_at = db.Column(db.DateTime, default=get_ph_datetime, index=True)
-    updated_at = db.Column(db.DateTime, default=get_ph_datetime, onupdate=get_ph_datetime)
+    created_at = db.Column(db.DateTime, default=get_utc_now, index=True)
+    updated_at = db.Column(db.DateTime, default=get_utc_now, onupdate=get_utc_now)
     deleted_at = db.Column(db.DateTime, nullable=True)
     
     # ========== SECTION 11: NO-SHOW APPEAL ==========
@@ -205,6 +209,14 @@ class Booking(db.Model):
         if not self.merchant_confirmed_at:
             return None
         tz_aware = self.merchant_confirmed_at.replace(tzinfo=pytz.UTC) if self.merchant_confirmed_at.tzinfo is None else self.merchant_confirmed_at
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def appointment_date_ph(self):
+        """Get appointment_date converted to Philippine timezone for display"""
+        if not self.appointment_date:
+            return None
+        tz_aware = self.appointment_date.replace(tzinfo=pytz.UTC) if self.appointment_date.tzinfo is None else self.appointment_date
         return tz_aware.astimezone(PH_TZ)
 
     def to_dict(self):

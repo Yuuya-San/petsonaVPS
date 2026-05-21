@@ -646,7 +646,7 @@
             <tr>
               <td data-label="Booking ID"><span class="booking-id">#{{ booking.booking_number }}</span></td>
               <td data-label="Customer"><span class="customer-name">{{ booking.user.first_name }} {{ booking.user.last_name }}</span></td>
-              <td data-label="Date & Time"><span class="booking-date">{{ booking.appointment_date.strftime('%b %d, %Y') }}<br>
+              <td data-label="Date & Time"><span class="booking-date">{{ booking.appointment_date_ph.strftime('%b %d, %Y') if booking.appointment_date_ph else 'N/A' }}<br>
               {% if booking.appointment_time %}
                 {% set time_parts = booking.appointment_time.split(':') if booking.appointment_time is string else none %}
                 {% if time_parts and time_parts|length >= 2 %}

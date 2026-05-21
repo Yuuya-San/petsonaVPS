@@ -11,6 +11,10 @@ def get_ph_now():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class User(db.Model, UserMixin):
     __tablename__ = "users"
@@ -23,9 +27,9 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
 
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=get_ph_now)
+    created_at = db.Column(db.DateTime, default=get_utc_now)
     deleted_at = db.Column(db.DateTime)
-    last_seen = db.Column(db.DateTime, default=get_ph_now)
+    last_seen = db.Column(db.DateTime, default=get_utc_now)
 
     failed_login_attempts = db.Column(db.Integer, default=0)
     lockout_until = db.Column(db.DateTime)

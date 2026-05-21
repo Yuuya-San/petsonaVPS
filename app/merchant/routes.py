@@ -779,7 +779,8 @@ def update_store_status():
             actor_id=current_user.id,
             actor_email=current_user.email,
             ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent')
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
         )
         audit_log.set_details({
             'merchant_id': merchant.id,
@@ -1676,13 +1677,19 @@ def create_booking(merchant_id):
         
         # Log the booking creation
         audit_log = AuditLog(
-            user_id=current_user.id,
-            action='booking_created',
-            resource_type='Booking',
-            resource_id=booking.id,
-            details=f'Booking {booking.booking_number} created for merchant {merchant.business_name}',
-            ip_address=request.remote_addr
+            event='booking_created',
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            timestamp=get_ph_datetime()
         )
+        audit_log.set_details({
+            'booking_id': booking.id,
+            'booking_number': booking.booking_number,
+            'merchant_id': merchant.id,
+            'merchant_name': merchant.business_name
+        })
         db.session.add(audit_log)
         db.session.commit()
         

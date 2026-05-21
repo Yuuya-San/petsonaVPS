@@ -10,6 +10,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class Notification(db.Model):
     """
@@ -45,8 +49,8 @@ class Notification(db.Model):
     read_at = db.Column(db.DateTime, nullable=True)
 
     # Timestamps (Philippines timezone)
-    created_at = db.Column(db.DateTime, default=get_ph_datetime, index=True)
-    updated_at = db.Column(db.DateTime, default=get_ph_datetime, onupdate=get_ph_datetime)
+    created_at = db.Column(db.DateTime, default=get_utc_now, index=True)
+    updated_at = db.Column(db.DateTime, default=get_utc_now, onupdate=get_utc_now)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
     __table_args__ = (

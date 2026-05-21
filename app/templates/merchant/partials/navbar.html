@@ -51,7 +51,7 @@
             {% for conv in recent_conversations %}
               {% set other_user = conv.get_other_user(current_user.id) %}
               {% set unread_count = conv.get_unread_count(current_user.id) %}
-              <a href="{{ url_for('messages.conversation', conversation_id=conv.id) }}" class="dropdown-item message-item {% if unread_count > 0 %}has-unread{% endif %}">
+              <a href="{{ url_for('messages.conversation', conversation_id=conv.id) }}" class="dropdown-item message-item">
                 <div class="d-flex align-items-center justify-content-between" style="width: 100%;">
                   <div class="d-flex align-items-center" style="min-width: 0; flex: 1;">
                     {% if other_user.photo_url %}

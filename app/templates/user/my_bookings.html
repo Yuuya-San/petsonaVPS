@@ -2599,7 +2599,7 @@
               </td>
 
               <td class="td-date" data-label="Appointment">
-                <span class="appointment-date">{{ booking.appointment_date.strftime('%b %d, %Y') }}</span>
+                <span class="appointment-date">{{ booking.appointment_date_ph.strftime('%b %d, %Y') if booking.appointment_date_ph else 'N/A' }}</span>
                 <span class="appointment-time">{{ booking.appointment_time }}</span>
               </td>
 
@@ -2640,7 +2640,7 @@
                           data-merchant-email="{{ booking.merchant.contact_email }}"
                           data-merchant-phone="{{ booking.merchant.contact_phone }}"
                           data-business-category="{{ booking.business_category }}"
-                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          data-appointment-date="{{ booking.appointment_date_ph.strftime('%b %d, %Y') if booking.appointment_date_ph else 'N/A' }}"
                           data-appointment-time="{{ booking.appointment_time }}"
                           data-total-pets="{{ booking.total_pets }}"
                           data-service-type="{{ booking.service_type }}"
@@ -2661,7 +2661,7 @@
                           data-merchant-email="{{ booking.merchant.contact_email }}"
                           data-merchant-phone="{{ booking.merchant.contact_phone }}"
                           data-business-category="{{ booking.business_category }}"
-                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          data-appointment-date="{{ booking.appointment_date_ph.strftime('%b %d, %Y') if booking.appointment_date_ph else 'N/A' }}"
                           data-appointment-time="{{ booking.appointment_time }}"
                           data-total-pets="{{ booking.total_pets }}"
                           data-service-type="{{ booking.service_type }}"
@@ -2696,7 +2696,7 @@
                   <button class="action-btn appeal" title="Appeal"
                           data-booking-id="{{ booking.id }}"
                           data-merchant-name="{{ booking.merchant.business_name }}"
-                          data-appointment-date="{{ booking.appointment_date.strftime('%b %d, %Y') }}"
+                          data-appointment-date="{{ booking.appointment_date_ph.strftime('%b %d, %Y') if booking.appointment_date_ph else 'N/A' }}"
                           onclick="showAppealModal(this)">
                     <i class="fas fa-exclamation-circle"></i>
                   </button>

@@ -32,6 +32,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 def log_event(event: str, details: dict = None, commit: bool = True, actor_id: int = None, actor_email: str = None):
     """
@@ -81,7 +85,7 @@ def log_event(event: str, details: dict = None, commit: bool = True, actor_id: i
             actor_email=final_actor_email,
             ip_address=request.remote_addr if request else None,
             user_agent=request.headers.get('User-Agent') if request else None,
-            timestamp=get_ph_datetime()
+            timestamp=get_utc_now()
         )
 
         if details:

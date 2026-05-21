@@ -10,6 +10,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class Merchant(db.Model):
     """Merchant model for partner businesses applying to the platform"""
@@ -68,12 +72,12 @@ class Merchant(db.Model):
 
     # ========== SECTION 10: SYSTEM FIELDS ==========
     application_status = db.Column(db.String(50), default='pending')  # pending, approved, rejected, under_review
-    submitted_at = db.Column(db.DateTime, default=get_ph_datetime, nullable=False)
+    submitted_at = db.Column(db.DateTime, default=get_utc_now, nullable=False)
     reviewed_at = db.Column(db.DateTime, nullable=True)
     rejection_reason = db.Column(LONGTEXT, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=get_ph_datetime)
-    updated_at = db.Column(db.DateTime, default=get_ph_datetime, onupdate=get_ph_datetime)
+    created_at = db.Column(db.DateTime, default=get_utc_now)
+    updated_at = db.Column(db.DateTime, default=get_utc_now, onupdate=get_utc_now)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
     is_verified = db.Column(db.Boolean, default=False)

@@ -10,6 +10,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class Vote(db.Model):
     """Track which users have voted for which species and breeds"""
@@ -26,8 +30,8 @@ class Vote(db.Model):
         db.UniqueConstraint('user_id', 'breed_id', name='unique_user_breed_vote'),
     )
     
-    created_at = db.Column(db.DateTime, default=get_ph_datetime)
-    updated_at = db.Column(db.DateTime, onupdate=get_ph_datetime)
+    created_at = db.Column(db.DateTime, default=get_utc_now)
+    updated_at = db.Column(db.DateTime, onupdate=get_utc_now)
 
     # Relationships
     user = db.relationship('User', backref=db.backref('votes', cascade='all, delete-orphan', lazy='dynamic'))

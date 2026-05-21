@@ -32,7 +32,7 @@ class PasswordResetToken(db.Model):
     @classmethod
     def create_token(cls, user_id, token_hash, expiry_seconds=1800):
         """Create a new password reset token (30 mins default)"""
-        expires_at = get_utc_now()
+        expires_at = get_ph_now()
         expires_at = expires_at.replace(microsecond=0) + \
                     __import__('datetime').timedelta(seconds=expiry_seconds)
         
@@ -56,7 +56,7 @@ class PasswordResetToken(db.Model):
         if token.is_used:
             return None  # Already used
         
-        if get_utc_now() > token.expires_at:
+        if get_ph_now() > token.expires_at:
             return None  # Expired
         
         return token
@@ -64,7 +64,7 @@ class PasswordResetToken(db.Model):
     def mark_as_used(self):
         """Mark token as used"""
         self.is_used = True
-        self.used_at = get_utc_now()
+        self.used_at = get_ph_now()
         db.session.commit()
 
     @classmethod
@@ -78,7 +78,7 @@ class PasswordResetToken(db.Model):
         if token.is_used:
             return 'already_used'
         
-        if get_utc_now() > token.expires_at:
+        if get_ph_now() > token.expires_at:
             return 'expired'
         
         return None  # Token is valid

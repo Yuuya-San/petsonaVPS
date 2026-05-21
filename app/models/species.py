@@ -10,6 +10,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class Species(db.Model):
     __tablename__ = "species"
@@ -33,8 +37,8 @@ class Species(db.Model):
     heart_vote_count = db.Column(db.Integer, default=0, comment="Total heart votes from all users")
 
     deleted_at = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=get_ph_datetime)
-    updated_at = db.Column(db.DateTime, onupdate=get_ph_datetime)
+    created_at = db.Column(db.DateTime, default=get_utc_now)
+    updated_at = db.Column(db.DateTime, onupdate=get_utc_now)
 
     breeds = db.relationship("Breed", backref="species", lazy="dynamic")
 

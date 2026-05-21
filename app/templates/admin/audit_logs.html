@@ -966,7 +966,7 @@
               <tr class="audit-row" 
                   data-event="{{ log.event }}" 
                   data-actor="{{ log.actor_email or (log.actor_id if log.actor_id else 'System') }}"
-                  data-timestamp="{{ log.ph_timestamp.strftime('%Y-%m-%d') if log.ph_timestamp else '' }}">
+                  data-timestamp="{{ log.timestamp_ph.strftime('%Y-%m-%d') if log.timestamp_ph else '' }}">
                 <td data-label="ID">{{ log.id }}</td>
                 <td data-label="Event"><span class="fw-semibold">{{ log.event }}</span></td>
                 <td data-label="Actor">
@@ -979,8 +979,8 @@
                   {% endif %}
                 </td>
                 <td data-label="Timestamp" class="text-nowrap">
-                  {{ log.ph_timestamp.strftime('%Y-%m-%d') if log.ph_timestamp else '' }}<br>
-                  <small class="text-muted">{{ log.ph_timestamp.strftime('%H:%M:%S') if log.ph_timestamp else '' }}</small>
+                  {{ log.timestamp_ph.strftime('%Y-%m-%d') if log.timestamp_ph else '' }}<br>
+                  <small class="text-muted">{{ log.timestamp_ph.strftime('%H:%M:%S') if log.timestamp_ph else '' }}</small>
                 </td>
                 <td class="td-actions text-center" data-label="Actions">
                   <div class="action-group">
@@ -994,7 +994,7 @@
                             data-log-actor="{% if log.actor_email %}{{ log.actor_email }}{% elif log.actor_id %}User #{{ log.actor_id }}{% else %}System{% endif %}"
                             data-log-ip="{{ log.ip_address or '-' }}"
                             data-log-useragent="{{ log.user_agent or '-' }}"
-                            data-log-date="{{ log.ph_timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.ph_timestamp else '' }}"
+                            data-log-date="{{ log.timestamp_ph.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp_ph else '' }}"
                             data-log-details='{{ log.get_details() | tojson(indent=2) | safe }}'>
                       <i class="fas fa-eye"></i>
                     </button>
@@ -1006,7 +1006,7 @@
                             data-log-id="{{ log.id }}"
                             data-log-event="{{ log.event }}"
                             data-log-actor="{% if log.actor_email %}{{ log.actor_email }}{% elif log.actor_id %}User #{{ log.actor_id }}{% else %}System{% endif %}"
-                            data-log-date="{{ log.ph_timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.ph_timestamp else '' }}">
+                            data-log-date="{{ log.timestamp_ph.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp_ph else '' }}">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>

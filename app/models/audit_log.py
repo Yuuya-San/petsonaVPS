@@ -10,6 +10,10 @@ def get_ph_datetime():
     """Get current datetime in Philippine timezone"""
     return datetime.now(PH_TZ)
 
+def get_utc_now():
+    """Get current UTC datetime for database storage"""
+    return datetime.utcnow()
+
 
 class AuditLog(db.Model):
     __tablename__ = "audit_logs"
@@ -20,7 +24,7 @@ class AuditLog(db.Model):
     actor_email = db.Column(db.String(255))
     ip_address = db.Column(db.String(100))
     user_agent = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime, default=get_ph_datetime, index=True)
+    timestamp = db.Column(db.DateTime, default=get_utc_now, index=True)
     details = db.Column(db.Text)
     deleted_at = db.Column(db.DateTime)
 

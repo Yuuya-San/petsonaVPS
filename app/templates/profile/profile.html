@@ -716,7 +716,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label"><i class="fas fa-calendar"></i> Member Since</span>
-                    <span class="info-value">{{ user.created_at.strftime('%b %d, %Y') }}</span>
+                    <span class="info-value">{{ user.created_at_ph.strftime('%b %d, %Y') if user.created_at_ph else 'N/A' }}</span>
                 </div>
             </div>
         </div>

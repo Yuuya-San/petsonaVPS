@@ -23,7 +23,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
 
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_ph_now)
     deleted_at = db.Column(db.DateTime)
     last_seen = db.Column(db.DateTime, default=get_ph_now)
 
@@ -100,6 +100,43 @@ class User(db.Model, UserMixin):
             'timestamp': None,
             'is_online': False
         }
+
+    def update_last_seen(self):
+        """Update user's last seen timestamp using Philippine timezone"""
+        self.last_seen = datetime.now(PH_TZ)
+        db.session.commit()
+    
+    @property
+    def created_at_ph(self):
+        """Get created_at converted to Philippine timezone for display"""
+        if not self.created_at:
+            return None
+        tz_aware = self.created_at.replace(tzinfo=pytz.UTC) if self.created_at.tzinfo is None else self.created_at
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def deleted_at_ph(self):
+        """Get deleted_at converted to Philippine timezone for display"""
+        if not self.deleted_at:
+            return None
+        tz_aware = self.deleted_at.replace(tzinfo=pytz.UTC) if self.deleted_at.tzinfo is None else self.deleted_at
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def last_seen_ph(self):
+        """Get last_seen converted to Philippine timezone for display"""
+        if not self.last_seen:
+            return None
+        tz_aware = self.last_seen.replace(tzinfo=pytz.UTC) if self.last_seen.tzinfo is None else self.last_seen
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def lockout_until_ph(self):
+        """Get lockout_until converted to Philippine timezone for display"""
+        if not self.lockout_until:
+            return None
+        tz_aware = self.lockout_until.replace(tzinfo=pytz.UTC) if self.lockout_until.tzinfo is None else self.lockout_until
+        return tz_aware.astimezone(PH_TZ)
 
     def update_last_seen(self):
         """Update user's last seen timestamp using Philippine timezone"""

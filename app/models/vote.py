@@ -1,6 +1,14 @@
 """Vote model for tracking user votes on species and breeds"""
 from datetime import datetime
 from app.extensions import db
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 class Vote(db.Model):
@@ -18,8 +26,8 @@ class Vote(db.Model):
         db.UniqueConstraint('user_id', 'breed_id', name='unique_user_breed_vote'),
     )
     
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_ph_datetime)
+    updated_at = db.Column(db.DateTime, onupdate=get_ph_datetime)
 
     # Relationships
     user = db.relationship('User', backref=db.backref('votes', cascade='all, delete-orphan', lazy='dynamic'))

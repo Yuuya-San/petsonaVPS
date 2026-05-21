@@ -894,7 +894,7 @@
               <tr class="audit-row" 
                   data-event="{{ log.event }}" 
                   data-actor="{{ log.actor_email or (log.actor_id if log.actor_id else 'System') }}"
-                  data-timestamp="{{ log.deleted_at.strftime('%Y-%m-%d') }}">
+                  data-timestamp="{{ log.deleted_at_ph.strftime('%Y-%m-%d') if log.deleted_at_ph else '' }}">
                 <td data-label="ID">{{ log.id }}</td>
                 <td data-label="Event"><span class="fw-semibold">{{ log.event }}</span></td>
                 <td data-label="Actor">
@@ -907,8 +907,8 @@
                   {% endif %}
                 </td>
                 <td data-label="Deleted At" class="text-nowrap">
-                  {{ log.deleted_at.strftime('%Y-%m-%d') }}<br>
-                  <small class="text-muted">{{ log.deleted_at.strftime('%H:%M:%S') }}</small>
+                  {{ log.deleted_at_ph.strftime('%Y-%m-%d') if log.deleted_at_ph else 'N/A' }}<br>
+                  <small class="text-muted">{{ log.deleted_at_ph.strftime('%H:%M:%S') if log.deleted_at_ph else '' }}</small>
                 </td>
                 <td class="td-actions text-center" data-label="Actions">
                   <div class="action-group">
@@ -922,7 +922,7 @@
                             data-log-actor="{% if log.actor_email %}{{ log.actor_email }}{% elif log.actor_id %}User #{{ log.actor_id }}{% else %}System{% endif %}"
                             data-log-ip="{{ log.ip_address or '-' }}"
                             data-log-useragent="{{ log.user_agent or '-' }}"
-                            data-log-date="{{ log.deleted_at.strftime('%Y-%m-%d %H:%M:%S') }}"
+                            data-log-date="{{ log.deleted_at_ph.strftime('%Y-%m-%d %H:%M:%S') if log.deleted_at_ph else '' }}"
                             data-log-details='{{ log.get_details() | tojson(indent=2) | safe }}'>
                       <i class="fas fa-eye"></i>
                     </button>
@@ -934,7 +934,7 @@
                             data-log-id="{{ log.id }}"
                             data-log-event="{{ log.event }}"
                             data-log-actor="{% if log.actor_email %}{{ log.actor_email }}{% elif log.actor_id %}User #{{ log.actor_id }}{% else %}System{% endif %}"
-                            data-log-date="{{ log.deleted_at.strftime('%Y-%m-%d %H:%M:%S') }}">
+                            data-log-date="{{ log.deleted_at_ph.strftime('%Y-%m-%d %H:%M:%S') if log.deleted_at_ph else '' }}">
                       <i class="fas fa-undo"></i>
                     </button>
                   </div>

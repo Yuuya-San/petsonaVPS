@@ -127,7 +127,7 @@ def get_daily_user_stats(days=7):
 
 def get_online_users_count():
     """Get count of currently online users (last seen within last 5 minutes)"""
-    now = datetime.utcnow()
+    now = datetime.now(PH_TZ)
     five_mins_ago = now - timedelta(minutes=5)
     
     return db.session.query(func.count(User.id)).filter(
@@ -153,7 +153,7 @@ def get_avg_session_duration():
 
 def get_monthly_active_users():
     """Get count of users active in the last 30 days"""
-    now = datetime.utcnow()
+    now = datetime.now(PH_TZ)
     thirty_days_ago = now - timedelta(days=30)
     
     return db.session.query(func.count(User.id)).filter(
@@ -163,7 +163,7 @@ def get_monthly_active_users():
 
 def get_active_users_count(days=30):
     """Get count of active users in the last N days"""
-    now = datetime.utcnow()
+    now = datetime.now(PH_TZ)
     days_ago = now - timedelta(days=days)
     
     return db.session.query(func.count(User.id)).filter(
@@ -173,7 +173,7 @@ def get_active_users_count(days=30):
 
 def get_inactive_users_count(days=30):
     """Get count of inactive users (not active in last N days)"""
-    now = datetime.utcnow()
+    now = datetime.now(PH_TZ)
     days_ago = now - timedelta(days=days)
     
     return db.session.query(func.count(User.id)).filter(
@@ -209,7 +209,7 @@ def get_user_growth_trend(days=7):
 
 def get_peak_activity_hour():
     """Determine the peak activity hour based on last_seen timestamps"""
-    now = datetime.utcnow()
+    now = datetime.now(PH_TZ)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     try:

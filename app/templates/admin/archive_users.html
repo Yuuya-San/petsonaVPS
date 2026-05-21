@@ -610,8 +610,8 @@
                   {% endif %}
                 </td>
                 <td data-label="Deleted At">
-                  {% if user.deleted_at_manila %}
-                    {{ user.deleted_at_manila.strftime('%Y-%m-%d %H:%M') }}
+                  {% if user.deleted_at_ph %}
+                    {{ user.deleted_at_ph.strftime('%Y-%m-%d %H:%M') }}
                   {% else %}-{% endif %}
                 </td>
                 <td class="td-actions" data-label="Actions">
@@ -625,7 +625,7 @@
                             data-user-name="{{ (user.first_name ~ ' ' ~ user.last_name).strip() or '(No Name)' }}"
                             data-user-email="{{ user.email }}"
                             data-user-role="{{ user.role | capitalize }}"
-                            data-user-deleted="{{ user.deleted_at.strftime('%Y-%m-%d %H:%M') if user.deleted_at else '-' }}">
+                            data-user-deleted="{{ user.deleted_at_ph.strftime('%Y-%m-%d %H:%M') if user.deleted_at_ph else '-' }}">
                       <i class="fas fa-undo"></i>
                     </button>
                   </div>

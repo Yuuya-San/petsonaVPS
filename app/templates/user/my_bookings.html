@@ -2648,7 +2648,7 @@
                           data-status="{{ booking.status }}"
                           data-confirmation-code="{{ booking.confirmation_code }}"
                           data-qr-code-url="{{ booking.qr_code_url or '' }}"
-                          data-updated-at="{{ booking.updated_at.strftime('%B %d, %Y at %I:%M:%S %p') if booking.updated_at else '' }}"
+                          data-updated-at="{{ booking.updated_at_ph.strftime('%B %d, %Y at %I:%M:%S %p') if booking.updated_at_ph else '' }}"
                           onclick="showDetailsModal(this)">
                     <i class="fas fa-eye"></i>
                   </button>
@@ -2669,7 +2669,7 @@
                           data-status="{{ booking.status }}"
                           data-confirmation-code="{{ booking.confirmation_code }}"
                           data-qr-code-url="{{ booking.qr_code_url or '' }}"
-                          data-updated-at="{{ booking.updated_at.strftime('%B %d, %Y at %I:%M:%S %p') if booking.updated_at else '' }}"
+                          data-updated-at="{{ booking.updated_at_ph.strftime('%B %d, %Y at %I:%M:%S %p') if booking.updated_at_ph else '' }}"
                           onclick="downloadReceiptDirectly(this)">
                     <i class="fas fa-download"></i>
                   </button>

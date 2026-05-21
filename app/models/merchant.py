@@ -1,6 +1,14 @@
 from datetime import datetime
 from app.extensions import db
 from sqlalchemy.dialects.mysql import JSON, LONGTEXT
+import pytz
+
+# Philippine timezone helper
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def get_ph_datetime():
+    """Get current datetime in Philippine timezone"""
+    return datetime.now(PH_TZ)
 
 
 class Merchant(db.Model):
@@ -60,12 +68,12 @@ class Merchant(db.Model):
 
     # ========== SECTION 10: SYSTEM FIELDS ==========
     application_status = db.Column(db.String(50), default='pending')  # pending, approved, rejected, under_review
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    submitted_at = db.Column(db.DateTime, default=get_ph_datetime, nullable=False)
     reviewed_at = db.Column(db.DateTime, nullable=True)
     rejection_reason = db.Column(LONGTEXT, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_ph_datetime)
+    updated_at = db.Column(db.DateTime, default=get_ph_datetime, onupdate=get_ph_datetime)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
     is_verified = db.Column(db.Boolean, default=False)
@@ -90,6 +98,46 @@ class Merchant(db.Model):
 
     def __repr__(self):
         return f'<Merchant {self.business_name}>'
+
+    @property
+    def submitted_at_ph(self):
+        """Get submitted_at converted to Philippine timezone for display"""
+        if not self.submitted_at:
+            return None
+        tz_aware = self.submitted_at.replace(tzinfo=pytz.UTC) if self.submitted_at.tzinfo is None else self.submitted_at
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def reviewed_at_ph(self):
+        """Get reviewed_at converted to Philippine timezone for display"""
+        if not self.reviewed_at:
+            return None
+        tz_aware = self.reviewed_at.replace(tzinfo=pytz.UTC) if self.reviewed_at.tzinfo is None else self.reviewed_at
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def created_at_ph(self):
+        """Get created_at converted to Philippine timezone for display"""
+        if not self.created_at:
+            return None
+        tz_aware = self.created_at.replace(tzinfo=pytz.UTC) if self.created_at.tzinfo is None else self.created_at
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def updated_at_ph(self):
+        """Get updated_at converted to Philippine timezone for display"""
+        if not self.updated_at:
+            return None
+        tz_aware = self.updated_at.replace(tzinfo=pytz.UTC) if self.updated_at.tzinfo is None else self.updated_at
+        return tz_aware.astimezone(PH_TZ)
+    
+    @property
+    def deleted_at_ph(self):
+        """Get deleted_at converted to Philippine timezone for display"""
+        if not self.deleted_at:
+            return None
+        tz_aware = self.deleted_at.replace(tzinfo=pytz.UTC) if self.deleted_at.tzinfo is None else self.deleted_at
+        return tz_aware.astimezone(PH_TZ)
 
     @property
     def is_approved(self):

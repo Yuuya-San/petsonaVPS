@@ -854,7 +854,7 @@
                             data-special-requests="{{ booking.special_requests or '' | replace('"', '&quot;') }}"
                             data-pet-special-notes="{{ booking.pet_special_notes or '' | replace('"', '&quot;') }}"
                             data-merchant-confirmed="{{ 'Yes' if booking.merchant_confirmed else 'No' }}"
-                            data-created-at="{{ booking.created_at.strftime('%b %d, %Y at %I:%M %p') if booking.created_at else 'N/A' }}"
+                            data-created-at="{{ booking.created_at_ph.strftime('%b %d, %Y at %I:%M %p') if booking.created_at_ph else 'N/A' }}"
                             data-price-breakdown='{{ booking.price_breakdown | tojson | safe }}'
                             onclick="showBookingDetails(this)">
                       <i class="fas fa-eye"></i>

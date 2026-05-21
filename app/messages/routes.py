@@ -22,7 +22,7 @@ from app.utils.messaging import (
     format_time_ago,
     is_user_blocked
 )
-from app.utils.audit import log_event
+from app.utils.audit import log_event, log_action_with_changes, log_data_access
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,9 @@ def inbox():
     """Display user's message inbox."""
     page = request.args.get('page', 1, type=int)
     tab = request.args.get('tab', 'all', type=str)
+    
+    # Log inbox access
+    log_data_access('inbox', current_user.id, access_type='view')
     
     if tab == 'archived':
         pagination = get_user_inbox(current_user.id, page=page, per_page=20, include_archived=True)

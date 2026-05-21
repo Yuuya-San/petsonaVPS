@@ -8,7 +8,7 @@ from .forms import ProfileForm
 from ..models import User, AuditLog
 from ..extensions import db
 from datetime import datetime
-from app.utils.audit import log_event
+from app.utils.audit import log_event, user_snapshot, log_action_with_changes
 import pytz
 
 # Philippine timezone helper
@@ -171,16 +171,23 @@ def profile():
         # Commit changes
         db.session.commit()
         
-        # Log audit event only if there were changes
+        # Log audit event with comprehensive change tracking
         if changes:
-            log_event(
-                event=f"user.updated",
-                details={
-                    'changes': changes,
-                    'user_role': current_user.role
+            log_action_with_changes(
+                event_name='user.profile_updated',
+                entity_id=current_user.id,
+                old_values={k: v['old'] for k, v in changes.items()},
+                new_values={k: v['new'] for k, v in changes.items()},
+                entity_type='user',
+                metadata={
+                    'user_role': current_user.role,
+                    'avatar_upload_type': 'custom' if any(v.get('type') == 'custom_upload' for v in changes.values() if isinstance(v, dict)) else 'predefined'
                 }
             )
             flash('Profile updated successfully!', 'success')
+        else:
+            # Log view action even if no changes were made
+            log_event('user.profile_viewed', details={'user_id': current_user.id, 'user_role': current_user.role})
         
         return redirect(url_for('profile.profile'))
     

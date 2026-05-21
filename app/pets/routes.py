@@ -9,7 +9,7 @@ from flask_login import login_required, current_user # pyright: ignore[reportMis
 
 from app import db
 from app.models import Species, Breed
-from app.utils.audit import log_event
+from app.utils.audit import log_event, log_action_with_changes
 from . import bp
 from sqlalchemy import func, or_ # pyright: ignore[reportMissingImports]
 from app.decorators import admin_required, user_required, merchant_required
@@ -145,13 +145,13 @@ def save_species():
 
     # ---- AUDIT LOG ----
     if changes or not is_update:
-        log_event(
-            event=f"species.{ 'updated' if is_update else 'created' }",
-            details={
-                "changes": changes,
-                "species_id": species.id,
-                "name": species.name,
-            }
+        log_action_with_changes(
+            event_name=f"species.{'updated' if is_update else 'created'}",
+            entity_id=species.id,
+            old_values={k: v["old"] for k, v in changes.items()},
+            new_values={k: v["new"] for k, v in changes.items()},
+            entity_type='species',
+            metadata={'species_name': species.name, 'is_update': is_update}
         )
 
     flash(f"Species {'updated' if is_update else 'added'} successfully.", "success")
@@ -166,9 +166,11 @@ def delete_species(id):
     species.deleted_at = get_ph_datetime()
     db.session.commit()
 
-    log_event(
-        event='species.deleted',
-        details={'species_id': species.id, 'name': species.name}
+    log_action_with_changes(
+        event_name='species.deleted',
+        entity_id=species.id,
+        entity_type='species',
+        metadata={'species_name': species.name, 'soft_delete': True}
     )
 
     flash('Species deleted.', 'warning')
@@ -300,14 +302,17 @@ def save_breed():
         db.session.commit()
 
     # --- AUDIT LOG ---
-    if changes:
-        log_event(
-            event=f"breed.{ 'updated' if is_update else 'created' }",
-            details={
-                "changes": changes,
-                "species_id": breed.species_id,
-                "breed_id": breed.id,
-                "breed_name": breed.name
+    if changes or not is_update:
+        log_action_with_changes(
+            event_name=f"breed.{'updated' if is_update else 'created'}",
+            entity_id=breed.id,
+            old_values={k: v["old"] for k, v in changes.items()},
+            new_values={k: v["new"] for k, v in changes.items()},
+            entity_type='breed',
+            metadata={
+                'breed_name': breed.name,
+                'species_id': breed.species_id,
+                'is_update': is_update
             }
         )
 
@@ -328,6 +333,15 @@ def save_breed():
 @admin_required
 def delete_breed(id):
     breed = Breed.query.get_or_404(id)
+    species_id = breed.species_id
+    
+    log_action_with_changes(
+        event_name='breed.deleted',
+        entity_id=breed.id,
+        entity_type='breed',
+        metadata={'breed_name': breed.name, 'species_id': species_id, 'soft_delete': True}
+    )
+    
     breed.soft_delete()
 
     # Update active breed count after soft delete
@@ -335,7 +349,7 @@ def delete_breed(id):
     db.session.add(breed.species)
     db.session.commit()
     flash("Breed deleted successfully.", "success")
-    return redirect(url_for('pets.view_species', id=breed.species_id))
+    return redirect(url_for('pets.view_species', id=species_id))
 
 # -----------------------------
 # VIEW ARCHIVED SPECIES & BREEDS
@@ -441,7 +455,12 @@ def restore_species(id):
     species.deleted_at = None
     db.session.commit()
 
-    log_event('species.restored', {'species_id': species.id, 'name': species.name})
+    log_action_with_changes(
+        event_name='species.restored',
+        entity_id=species.id,
+        entity_type='species',
+        metadata={'species_name': species.name, 'restore_action': True}
+    )
     flash(f"Species '{species.name}' restored successfully.", 'success')
     return redirect(url_for('pets.archived_items'))
 
@@ -457,6 +476,11 @@ def restore_breed(id):
     breed.is_active = True
     db.session.commit()
 
-    log_event('breed.restored', {'breed_id': breed.id, 'name': breed.name})
+    log_action_with_changes(
+        event_name='breed.restored',
+        entity_id=breed.id,
+        entity_type='breed',
+        metadata={'breed_name': breed.name, 'species_id': breed.species_id, 'restore_action': True}
+    )
     flash(f"Breed '{breed.name}' restored successfully.", 'success')
     return redirect(url_for('pets.archived_items'))

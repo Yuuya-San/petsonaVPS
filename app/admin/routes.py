@@ -14,7 +14,7 @@ from app import db
 from sqlalchemy import func, or_, cast # pyright: ignore[reportMissingImports]
 import random
 from app.auth.emails import send_temp_credentials
-from app.utils.audit import log_event, user_snapshot
+from app.utils.audit import log_event, user_snapshot, log_action_with_changes
 import csv
 import json
 from io import StringIO
@@ -23,8 +23,10 @@ from pytz import timezone, UTC # pyright: ignore[reportMissingModuleSource]
 from app.utils.activity_formatter import format_activity
 from app.utils.activity_config import RECENT_ACTIVITY_EVENTS
 from app.utils.dashboard_stats import get_dashboard_stats
+from app.utils.admin_security_monitor import AdminSecurityMonitor, get_user_security_report
 from app.decorators import admin_required
 import pytz
+import logging
 
 # Philippine timezone helper
 PH_TZ = pytz.timezone('Asia/Manila')
@@ -73,20 +75,12 @@ def dashboard():
     # Retrieve aggregated dashboard statistics
     stats = get_dashboard_stats()
 
-    # Define trackable event types for recent activity dashboard
-    RECENT_ACTIVITY_EVENTS = [
-        "species.created", "species.updated", "species.deleted", "species.restored",
-        "breed.created", "breed.updated", "breed.deleted", "breed.restored",
-        "user.registered", "user.updated",
-    ]
-
-    # Fetch 5 most recent undeleted audit logs matching tracked events
+    # Fetch 15 most recent audit logs showing all system activities
     logs = (
         AuditLog.query
         .filter(AuditLog.deleted_at.is_(None))
-        .filter(AuditLog.event.in_(RECENT_ACTIVITY_EVENTS))
         .order_by(AuditLog.timestamp.desc())
-        .limit(5)
+        .limit(15)
         .all()
     )
 
@@ -222,8 +216,18 @@ def restore_user(id):
     # Capture user state after restoration for audit trail
     after = user_snapshot(user)
 
-    # Record restoration action in audit log
-    log_event(event="user.restored", details={"before": before, "after": after})
+    # Record restoration action in audit log with comprehensive tracking
+    log_action_with_changes(
+        event_name='user.restored',
+        entity_id=user.id,
+        old_values=before,
+        new_values=after,
+        entity_type='user',
+        metadata={
+            'restored_by_admin': current_user.id,
+            'restoration_type': 'soft_delete_reversal'
+        }
+    )
 
     flash(f"User {user.first_name} restored successfully.", "success")
     return redirect(url_for("admin.archive_users"))
@@ -255,13 +259,17 @@ def admin_add_user():
         db.session.add(user)
         db.session.commit()
 
-        # Record user creation in audit log
-        log_event(
-            event='user.created',
-            details={
-                'created_user_id': user.id,
-                'created_user_email': user.email,
-                'assigned_role': user.role
+        # Record user creation in audit log with comprehensive details
+        log_action_with_changes(
+            event_name='user.created',
+            entity_id=user.id,
+            new_values=user_snapshot(user),
+            entity_type='user',
+            metadata={
+                'created_by_admin': current_user.id,
+                'email': user.email,
+                'role': user.role,
+                'temporary_password_set': True
             }
         )
 
@@ -308,14 +316,14 @@ def edit_user(id):
         # Only commit and log if changes exist
         if changes:
             db.session.commit()
-            # Record changes in audit log
-            log_event(
-                event="user.updated",
-                details={
-                    "changes": changes,
-                    "user_id": user.id,
-                    "user_email": user.email
-                }
+            # Record changes in audit log with comprehensive tracking
+            log_action_with_changes(
+                event_name='user.updated',
+                entity_id=user.id,
+                old_values={k: v['old'] for k, v in changes.items()},
+                new_values={k: v['new'] for k, v in changes.items()},
+                entity_type='user',
+                metadata={'updated_by_admin': current_user.id}
             )
             flash("User updated successfully.", "success")
         else:
@@ -356,7 +364,16 @@ def delete_user(id):
 
     # Capture user state and record deletion in audit log
     snapshot = user_snapshot(user)
-    log_event(event="user.deleted", details=snapshot)
+    log_action_with_changes(
+        event_name='user.deleted',
+        entity_id=user.id,
+        old_values=snapshot,
+        entity_type='user',
+        metadata={
+            'deleted_by_admin': current_user.id,
+            'deletion_type': 'soft_delete'
+        }
+    )
     flash("User deleted successfully (soft delete).", "success")
     return redirect(url_for("admin.users"))
 
@@ -803,4 +820,85 @@ def merchant_applications():
         abort(403)
     
     return render_template("admin/merchant_applications.html")
+
+
+# ====== SECURITY MONITORING & ADMIN ALERTS ======
+
+@bp.route('/api/security/scan', methods=['POST'])
+@login_required
+@admin_required
+@csrf.exempt
+def security_scan():
+    """Trigger comprehensive security scan for suspicious activities
+    
+    This endpoint manually triggers the suspicious activity detector
+    and sends alerts to all admins if threats are detected.
+    
+    Can also be called periodically via background task/scheduler
+    """
+    try:
+        if current_user.role != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        
+        # Perform security scan
+        alerts_created = AdminSecurityMonitor.scan_and_alert_on_suspicious_activities()
+        
+        # Log the security scan action
+        log_event('admin.security_scan_triggered', details={
+            'triggered_by': current_user.email,
+            'alerts_created': alerts_created,
+            'timestamp': get_ph_datetime().isoformat()
+        })
+        
+        return jsonify({
+            'success': True,
+            'alerts_created': alerts_created,
+            'message': f'Security scan complete. {alerts_created} alerts created.' if alerts_created > 0 else 'Security scan complete. No threats detected.'
+        }), 200
+    
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Security scan error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/api/security/user-report/<int:user_id>', methods=['GET'])
+@login_required
+@admin_required
+def get_user_security_report_api(user_id):
+    """Get comprehensive security report for specific user
+    
+    Used by admins to assess if a user account has been compromised
+    or if there are suspicious activity patterns
+    """
+    try:
+        if current_user.role != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        
+        report = get_user_security_report(user_id)
+        
+        if 'error' in report:
+            return jsonify(report), 404
+        
+        # Log the security report access
+        log_event('admin.security_report_accessed', details={
+            'accessed_by': current_user.email,
+            'user_id': user_id,
+            'risk_score': report.get('activity_summary', {}).get('risk_score', 0)
+        })
+        
+        return jsonify(report), 200
+    
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Security report error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/audit-logs')
+@login_required
+@admin_required
+def audit_logs_redirect():
+    """Redirect to audit logs view"""
+    return redirect(url_for('admin.audit_logs'))
 

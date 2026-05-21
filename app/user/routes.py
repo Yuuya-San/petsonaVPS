@@ -6,6 +6,7 @@ from app.models import Species, Breed, Merchant, MatchHistory, Vote
 from app import db
 from app.extensions import csrf
 from app.utils.notification_manager import NotificationManager
+from app.utils.audit import log_event, log_action_with_changes, log_data_access
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from datetime import datetime, timedelta
 import pytz
@@ -93,6 +94,8 @@ def dashboard():
     from app.models.booking import Booking
     from datetime import datetime, timedelta
     
+    # Log dashboard access
+    log_data_access('user_dashboard', current_user.id, access_type='view')
     # ======================== STATS SECTION ========================
     # Count total species (non-deleted)
     species_count = Species.query.filter(
@@ -157,6 +160,9 @@ def dashboard():
 @login_required
 @user_required
 def species_index():
+    # Log species list access
+    log_data_access('species_list', current_user.id, access_type='view')
+    
     page = request.args.get('page', 1, type=int)
 
     # Paginate active species
@@ -188,6 +194,9 @@ def species_index():
 @login_required
 @user_required
 def view_species(id):
+    # Log species detail access
+    log_data_access('species_detail', id, access_type='view')
+    
     species = Species.query.get_or_404(id)
 
     # Only fetch active breeds (not soft-deleted)
@@ -218,6 +227,9 @@ def view_species(id):
 @user_required
 def nearby_services():
     """Display nearby pet services based on user location"""
+    # Log nearby services access
+    log_data_access('nearby_services', current_user.id, access_type='view')
+    
     return render_template(
         'user/nearby_services.html',
         page_title='Nearby Pet Services'
@@ -229,6 +241,8 @@ def nearby_services():
 @user_required
 def location_picker():
     """Allow user to pick a location using OpenStreetMap"""
+    # Log location picker access
+    log_event('location_picker.opened', details={'user_id': current_user.id})
     return render_template(
         'user/location_picker.html',
         page_title='Pick Location'
@@ -242,6 +256,9 @@ def get_nearby_merchants():
     """Get nearby merchants based on user location and filters"""
     try:
         data = request.get_json() or {}
+        
+        # Log merchant search access
+        log_data_access('merchant_search', current_user.id, access_type='search')
         
         # Extract parameters
         user_lat = float(data.get('latitude', 14.5995))
@@ -427,6 +444,10 @@ def reverse_geocode():
     try:
         data = request.get_json() or {}
         
+        # Log location access if user is authenticated
+        if current_user.is_authenticated:
+            log_data_access('location_reverse_geocode', current_user.id, access_type='geocode')
+        
         lat = data.get('latitude')
         lon = data.get('longitude')
         
@@ -509,6 +530,8 @@ def my_bookings():
     from app.utils.qr_generator import qr_generator
     from sqlalchemy import or_
     
+    log_data_access('user_bookings', current_user.id, access_type='view')
+    
     page = request.args.get('page', 1, type=int)
     status_filter = request.args.get('status', 'all')
     search = request.args.get('search', '', type=str).strip()
@@ -565,6 +588,7 @@ def my_bookings():
 @user_required
 def booking_details(booking_id):
     """Display booking details"""
+    log_data_access('booking_details', booking_id, access_type='view')
     from app.models.booking import Booking
     
     booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
@@ -583,6 +607,9 @@ def booking_receipt(booking_id):
     """Display booking receipt as digital receipt (can be printed/saved as PNG or PDF)"""
     from app.models.booking import Booking
     from app.utils.qr_generator import qr_generator
+    
+    # Log receipt access
+    log_data_access('booking_receipt', booking_id, access_type='view')
     
     booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
     
@@ -638,22 +665,17 @@ def cancel_booking(booking_id):
         db.session.commit()
         logger.info(f"[STEP 1] ✓ Booking status updated to 'cancelled'")
         
-        # Step 2: Log the action
-        audit_log = AuditLog(
-            event='booking_cancelled_by_customer',
-            actor_id=current_user.id,
-            actor_email=current_user.email,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            timestamp=get_ph_datetime()
+        # Step 2: Log the action using audit utility
+        log_action_with_changes(
+            event_name='booking.cancelled_by_customer',
+            entity_id=booking.id,
+            new_values={'status': 'cancelled', 'cancellation_reason': cancellation_reason},
+            entity_type='booking',
+            metadata={
+                'booking_number': booking.booking_number,
+                'merchant_id': booking.merchant_id
+            }
         )
-        audit_log.set_details({
-            'booking_id': booking.id,
-            'booking_number': booking.booking_number,
-            'cancelled_at': get_ph_datetime().isoformat()
-        })
-        db.session.add(audit_log)
-        db.session.commit()
         logger.info(f"[STEP 2] ✓ Audit log created and committed")
         
         # Step 3: Send notification to merchant about booking cancellation
@@ -705,6 +727,9 @@ def cancel_booking(booking_id):
 def appeal_no_show(booking_id):
     """Submit an appeal for a no-show booking status"""
     from app.models.booking import Booking
+    
+    # Log appeal submission
+    log_event('booking.appeal_submitted', details={'booking_id': booking_id})
     from app.models.audit_log import AuditLog
     
     booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
@@ -733,23 +758,13 @@ def appeal_no_show(booking_id):
         
         db.session.commit()
         
-        # Log the action
-        audit_log = AuditLog(
-            event='booking_no_show_appeal_submitted',
-            actor_id=current_user.id,
-            actor_email=current_user.email,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            timestamp=get_ph_datetime()
-        )
-        audit_log.set_details({
+        # Log the action using audit utility
+        log_event('booking.no_show_appeal_submitted', details={
             'booking_id': booking.id,
             'booking_number': booking.booking_number,
             'merchant_id': booking.merchant_id,
-            'appeal_submitted_at': get_ph_datetime().isoformat()
+            'appeal_reason': appeal_reason
         })
-        db.session.add(audit_log)
-        db.session.commit()
         
         # TODO: Send notification to merchant about the appeal
         
@@ -784,22 +799,12 @@ def delete_booking(booking_id):
         
         db.session.commit()
         
-        # Log the action
-        audit_log = AuditLog(
-            event='booking_deleted_by_customer',
-            actor_id=current_user.id,
-            actor_email=current_user.email,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            timestamp=get_ph_datetime()
-        )
-        audit_log.set_details({
+        # Log booking deletion
+        log_event('booking.deleted_by_customer', details={
             'booking_id': booking.id,
             'booking_number': booking.booking_number,
-            'deleted_at': get_ph_datetime().isoformat()
+            'previous_status': booking.status
         })
-        db.session.add(audit_log)
-        db.session.commit()
         
         flash('Booking deleted successfully.', 'success')
     except Exception as e:
@@ -816,6 +821,9 @@ def download_receipt(booking_id):
     from app.models.booking import Booking
     from io import BytesIO
     from flask import make_response
+    
+    # Log receipt download
+    log_event('booking_receipt.downloaded', details={'booking_id': booking_id})
     
     booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first()
     
@@ -878,22 +886,11 @@ Thank you for choosing Petsona!
         response.headers['Content-Type'] = 'text/plain; charset=utf-8'
         
         # Log the download
-        from app.models.audit_log import AuditLog
-        audit_log = AuditLog(
-            event='booking_receipt_downloaded',
-            actor_id=current_user.id,
-            actor_email=current_user.email,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            timestamp=get_ph_datetime()
-        )
-        audit_log.set_details({
+        log_event('booking.receipt_downloaded', details={
             'booking_id': booking.id,
             'booking_number': booking.booking_number,
             'booking_status': booking.status
         })
-        db.session.add(audit_log)
-        db.session.commit()
         
         return response
         
@@ -910,6 +907,9 @@ Thank you for choosing Petsona!
 def get_review_form(booking_id):
     """Get review form for a completed booking"""
     from app.models.booking import Booking
+    
+    # Log review form access
+    log_event('booking_review.form_accessed', details={'booking_id': booking_id})
     
     try:
         booking = Booking.query.filter_by(
@@ -953,6 +953,9 @@ def submit_review(booking_id):
     """Submit a review for a completed booking"""
     from app.models.booking import Booking
     from app.models.review import Review
+    
+    # Log review submission
+    log_event('booking_review.submitted', details={'booking_id': booking_id})
     
     try:
         booking = Booking.query.filter_by(
@@ -1033,24 +1036,21 @@ def submit_review(booking_id):
         
         db.session.commit()
         
-        # Log the review submission
-        from app.models.audit_log import AuditLog
-        audit_log = AuditLog(
-            event='review_submitted',
-            actor_id=current_user.id,
-            actor_email=current_user.email,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            timestamp=get_ph_datetime()
-        )
-        audit_log.set_details({
+        # Log review submission
+        log_event('booking.review_submitted', details={
             'review_id': review.id,
             'booking_id': booking_id,
             'merchant_id': booking.merchant_id,
             'rating': overall_rating
         })
-        db.session.add(audit_log)
-        db.session.commit()
+        
+        # Notify: Alert merchant that they received a new review
+        NotificationManager.notify_review_received(
+            merchant_user_id=booking.merchant.user_id,
+            reviewer_name=current_user.first_name,
+            rating=overall_rating,
+            related_booking_id=booking_id
+        )
         
         flash('Review submitted successfully! Thank you for your feedback.', 'success')
         
@@ -1077,6 +1077,9 @@ def delete_review(booking_id):
     """Delete a review (soft delete)"""
     from app.models.booking import Booking
     from app.models.review import Review
+    
+    # Log review deletion
+    log_event('booking_review.deleted', details={'booking_id': booking_id})
     
     try:
         booking = Booking.query.filter_by(
@@ -1124,6 +1127,8 @@ def delete_review(booking_id):
 @user_required
 def get_merchant_reviews(merchant_id):
     """Get all reviews for a merchant"""
+    # Log merchant reviews access
+    log_data_access('merchant_reviews', merchant_id, access_type='view')
     from app.models.merchant import Merchant
     from app.models.review import Review
     

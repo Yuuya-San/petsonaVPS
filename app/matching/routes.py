@@ -10,7 +10,7 @@ from app.utils.compatibility_engine import (
     generate_suggestions,
     generate_match_reasons
 )
-from app.utils.audit import log_event
+from app.utils.audit import log_event, log_action_with_changes, log_data_access
 from . import bp
 import pytz
 from app.extensions import limiter
@@ -78,6 +78,9 @@ def normalize_quiz_answers(answers: dict) -> dict:
 @login_required
 def quiz():
     """Display global quiz page accessible to all users"""
+    # Log quiz access
+    log_data_access('quiz_page', current_user.id, access_type='view')
+    
     # Clear any previous quiz data to ensure fresh session
     session.pop('last_answers', None)
     session.pop('last_matches', None)
@@ -95,6 +98,9 @@ def quiz():
 @login_required
 def quiz_specific(breed_id):
     """Display breed-specific quiz for compatibility assessment"""
+    # Log breed-specific quiz access
+    log_data_access('quiz_specific', breed_id, access_type='view')
+    
     breed = Breed.query.get_or_404(breed_id)
     
     # Clear any previous quiz data to ensure fresh session for this specific breed quiz
@@ -114,6 +120,9 @@ def quiz_specific(breed_id):
 @login_required
 def general_results():
     """Display top 5 breed matches from previous quiz submission"""
+    # Log results view
+    log_data_access('quiz_results_general', current_user.id, access_type='view')
+    
     # Get last stored matches from session
     matches = session.get('last_matches', [])
     answers = session.get('last_answers', {})
@@ -169,6 +178,9 @@ def general_results():
 @login_required
 def api_get_results():
     """Fetch results from session as JSON (for dashboard integration)"""
+    # Log API results access
+    log_event('quiz.results_accessed', details={'user_id': current_user.id})
+    
     matches = session.get('last_matches', [])
     
     if not matches:
@@ -188,6 +200,9 @@ def api_get_results():
 @login_required
 def breed_match(breed_id):
     """Display compatibility assessment for specific breed"""
+    # Log breed match results view
+    log_data_access('breed_match_results', breed_id, access_type='view')
+    
     breed = Breed.query.get_or_404(breed_id)
     
     # Get quiz answers from session
@@ -270,6 +285,9 @@ def breed_match(breed_id):
 @login_required
 def history():
     """Display paginated match history for current user"""
+    # Log history access
+    log_data_access('match_history', current_user.id, access_type='view')
+    
     if not current_user.is_authenticated:
         return redirect(url_for('matching.quiz'))
 
@@ -302,6 +320,9 @@ def history():
 @login_required
 def view_result(result_id):
     """View a specific past match result from history"""
+    # Log specific result view
+    log_data_access('match_result_view', result_id, access_type='view')
+    
     match = MatchHistory.query.get_or_404(result_id)
 
     # Check authorization
@@ -411,6 +432,9 @@ def view_result(result_id):
 @login_required
 def delete_history():
     """Delete a match history record"""
+    # Log history deletion
+    log_event('match_history.deleted', details={'user_id': current_user.id})
+    
     if not current_user.is_authenticated:
         return jsonify({'error': 'Unauthorized'}), 401
     
@@ -440,6 +464,9 @@ def api_quiz_submit():
     """
     try:
         data = request.get_json(silent=True) or {}
+        
+        # Log quiz submission
+        log_event('quiz.submitted', details={'user_id': current_user.id if current_user.is_authenticated else None})
 
         if not isinstance(data, dict) or not data:
             return jsonify({'error': 'No quiz data provided', 'success': False}), 400
@@ -549,8 +576,11 @@ def api_breed_match():
     """
     try:
         data = request.get_json(silent=True) or {}
-
+        
+        # Log breed match calculation
         breed_id = data.get("breed_id")
+        if breed_id:
+            log_event('breed_match.calculated', details={'breed_id': breed_id, 'user_id': current_user.id})
         answers = data.get("answers")
 
         if not breed_id:
@@ -627,6 +657,9 @@ def api_breed_match():
 @login_required
 def api_match_score(breed_id):
     """Get match score for a specific breed based on session answers"""
+    # Log match score access
+    log_event('match_score.calculated', details={'breed_id': breed_id})
+    
     answers = session.get("last_answers")
 
     if not isinstance(answers, dict) or not answers:
@@ -662,6 +695,9 @@ def api_question_scores(breed_id):
         - overall_score: Overall compatibility score
     """
     try:
+        # Log question scores access
+        log_event('question_scores.accessed', details={'breed_id': breed_id})
+        
         breed = Breed.query.get_or_404(breed_id)
         
         # Try to get answers from request body first, then from session
@@ -705,6 +741,9 @@ def api_question_scores(breed_id):
 def api_analytics_stats():
     """Get matching system statistics."""
     try:
+        # Log analytics access
+        log_event('analytics.accessed', details={'user_id': current_user.id})
+        
         # Get basic stats
         total_matches = MatchHistory.query.count()
         general_matches = MatchHistory.query.filter_by(match_type='general').count()

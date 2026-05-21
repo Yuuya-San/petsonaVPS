@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from ..extensions import limiter
 from .emails import send_password_reset_email, send_backup_codes_email, send_registration_otp_email, send_email
 from app.utils.audit import log_event, user_snapshot
+from app.utils.notification_manager import NotificationManager
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 import pyotp # pyright: ignore[reportMissingImports]
 import secrets
@@ -88,6 +89,15 @@ def get_serializer():
 
 @bp.route('/home')
 def home():
+    # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+    
     # Get dynamic stats from database
     from app.models import Breed, Merchant, MatchHistory
     
@@ -109,16 +119,43 @@ def home():
 
 @bp.route('/feature')
 def feature():
+    # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        
     return render_template('auth/feature.html')
 
 @bp.route('/about')
 def about():
+   # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        
     return render_template('auth/about.html')
 
 
 @bp.route('/contact', methods=['GET', 'POST'])
 @limiter.limit("3 per hour")
 def contact():
+   # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -151,6 +188,15 @@ def contact():
 @bp.route('/register', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def register():
+   # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        
     form = RegisterForm()
     if form.validate_on_submit():
         # Verify reCAPTCHA
@@ -231,6 +277,7 @@ def verify_otp():
             user.set_password(reg['password'])
             db.session.add(user)
             db.session.commit()
+            # Audit: Log successful user registration with complete user snapshot
             log_event(event='user.register', details={'user': user_snapshot(user)})
             # Clear session
             session.pop('registration', None)
@@ -335,6 +382,7 @@ def google_callback():
             user.set_password(secrets.token_urlsafe(32))
             db.session.add(user)
             db.session.commit()
+            # Audit: Log new account registration via Google OAuth with full user snapshot
             log_event('user.register_google', details={'user': user_snapshot(user)})
             flash(f'✓ Account created with {email}. Welcome to Petsona!', 'success')
         else:
@@ -344,8 +392,11 @@ def google_callback():
                 log_event('user.login_google_failed', details={'email': email, 'reason': 'wrong_registration_method', 'registration_method': user.registration_method})
                 return redirect(url_for('auth.login'))
             
-            # User exists and registered via Google - just login
+            # Audit: Log successful Google OAuth login
             log_event('user.login_google', details={'email': email})
+        
+        # Set session as permanent (8-hour inactivity timeout) - critical for persistent login
+        session.permanent = True
         
         # Log in the user
         login_user(user)
@@ -366,12 +417,22 @@ def google_callback():
 @bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
 def login():
+   # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+
     form = LoginForm()
 
     if form.validate_on_submit():
         # Verify reCAPTCHA
         recaptcha_valid, recaptcha_message = verify_recaptcha(form.recaptcha_token.data)
         if not recaptcha_valid:
+            # Audit: Log failed login due to reCAPTCHA failure (bot detection)
             log_event('user.login_failed', details={'email': form.email.data.lower(), 'reason': 'recaptcha_failed', 'message': recaptcha_message})
             flash('reCAPTCHA verification failed. Please try again.', 'danger')
             return redirect(url_for('auth.login'))
@@ -379,11 +440,6 @@ def login():
         email = form.email.data.lower()
         user = User.query.filter_by(email=email).first()
         base_meta = {'email': email}
-
-        # Always log out any existing user before a new login attempt
-        if current_user.is_authenticated:
-            logout_user()
-            session.clear()
 
         # Clear session to ensure no old user data remains
         session.clear()
@@ -393,6 +449,7 @@ def login():
         session_token = secrets.token_urlsafe(32)
 
         if not user:
+            # Audit: Log failed login attempt - email not found in system
             log_event('user.login_failed', details={**base_meta, 'reason': 'no_user'})
             flash('Invalid email or password.', 'danger')
             return redirect(url_for('auth.login'))
@@ -436,7 +493,12 @@ def login():
             user.session_token = session_token
             db.session.commit()
             session['session_token'] = session_token
+            
+            # Set session as permanent (8-hour inactivity timeout) - critical for persistent login
+            session.permanent = True
+            
             login_user(user)
+            # Audit: Log successful user login with complete snapshot and IP address
             log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr})
 
             # Redirect based on role
@@ -458,10 +520,14 @@ def login():
             if user.failed_login_attempts >= max_attempts:
                 user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
                 db.session.commit()
+                # Audit: Log account lockout after maximum failed login attempts (security)
                 log_event('user.account_locked', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts})
+                # Notify: Alert user that their account has been locked
+                NotificationManager.notify_account_locked(user.id, user.failed_login_attempts)
                 flash('Account locked due to many failed attempts. Please try again later.', 'danger')
             else:
                 db.session.commit()
+                # Audit: Log failed login attempt with attempt counter
                 log_event('user.login_failed', details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts})
                 flash('Invalid email or password.', 'danger')
 
@@ -493,6 +559,15 @@ def debug_session():
 @bp.route('/admin-login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def admin_login():
+   # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        
     from .forms import AdminLoginForm
 
     form = AdminLoginForm()
@@ -501,6 +576,7 @@ def admin_login():
         # Verify reCAPTCHA
         recaptcha_valid, recaptcha_message = verify_recaptcha(form.recaptcha_token.data)
         if not recaptcha_valid:
+            # Audit: Log failed admin login due to reCAPTCHA failure
             log_event('admin.login_failed', details={'email': form.email.data.lower(), 'reason': 'recaptcha_failed', 'message': recaptcha_message})
             flash('reCAPTCHA verification failed. Please try again.', 'danger')
             return redirect(url_for('auth.admin_login'))
@@ -521,6 +597,7 @@ def admin_login():
 
         # No admin found
         if not user:
+            # Audit: Log failed admin login attempt - invalid email
             log_event(
                 'admin.login_failed', details={**base_meta, 'reason': 'no_admin'})
             flash('Invalid admin credentials.', 'danger')
@@ -528,6 +605,7 @@ def admin_login():
 
         # Account locked
         if user.lockout_until and user.lockout_until > get_ph_datetime():
+            # Audit: Log admin login attempt on locked account
             log_event(
                 'admin.login_locked',
                 details={'locked_until': user.lockout_until.isoformat()}
@@ -551,6 +629,9 @@ def admin_login():
             user.lockout_until = None
             db.session.commit()
 
+            # Set session as permanent (8-hour inactivity timeout) - critical for persistent login
+            session.permanent = True
+
             # Perform login and verify it worked
             login_success = login_user(user)
             if not login_success:
@@ -564,6 +645,7 @@ def admin_login():
             current_app.logger.info(f"Session cookie name: {current_app.config.get('SESSION_COOKIE_NAME', 'session')}")
             current_app.logger.info(f"Session permanent: {session.permanent}")
 
+            # Audit: Log successful admin login with complete snapshot and IP address
             log_event(
                 'admin.login_success',
                 details={'user': user_snapshot(user), 'ip': request.remote_addr}
@@ -583,16 +665,20 @@ def admin_login():
             user.lockout_until = get_ph_datetime() + timedelta(seconds=lockout_time)
             db.session.commit()
 
+            # Audit: Log admin account lockout after maximum failed attempts (security)
             log_event(
                 'admin.account_locked',
                 details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}
             )
+            # Notify: Alert admin that their account has been locked
+            NotificationManager.notify_account_locked(user.id, user.failed_login_attempts)
             flash(
                 'Account locked due to many failed attempts. Please try again later.',
                 'danger'
             )
         else:
             db.session.commit()
+            # Audit: Log failed admin login attempt with attempt counter
             log_event(
                 'admin.login_failed',
                 details={'user': user_snapshot(user), 'failed_attempts': user.failed_login_attempts}
@@ -655,7 +741,11 @@ def verify_2fa():
                 session.pop('pending_2fa_user_id', None)
                 session.pop('pending_2fa_login_type', None)
                 
+                # Set session as permanent (8-hour inactivity timeout) - critical for persistent login
+                session.permanent = True
+                
                 login_user(user)
+                # Audit: Log successful login with 2FA TOTP verification
                 log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr, '2fa': 'verified'})
                 flash('✓ Login successful!', 'success')
                 
@@ -687,7 +777,11 @@ def verify_2fa():
                 session.pop('pending_2fa_user_id', None)
                 session.pop('pending_2fa_login_type', None)
                 
+                # Set session as permanent (8-hour inactivity timeout) - critical for persistent login
+                session.permanent = True
+                
                 login_user(user)
+                # Audit: Log successful login with 2FA backup code verification
                 log_event('user.login_success', details={'user': user_snapshot(user), 'ip': request.remote_addr, '2fa': 'backup_code'})
                 flash('✓ Login successful! (Backup code used)', 'success')
                 
@@ -701,6 +795,7 @@ def verify_2fa():
                 else:
                     return redirect(url_for('auth.login'))
             else:
+                # Audit: Log failed 2FA backup code verification attempt
                 log_event('user.login_failed_2fa', details={'email': user.email, 'reason': 'backup_code_invalid'})
                 flash('Invalid code. Use your 6-digit authenticator code or a backup code.', 'danger')
                 return render_template('auth/verify_2fa.html', email=user.email)
@@ -711,7 +806,7 @@ def verify_2fa():
 @bp.route('/logout')
 @login_required
 def logout():
-    # Audit logout event (capture actor before logout)
+    # Audit: Log user logout with complete snapshot and IP address
     log_event('user.logout', details={'user': user_snapshot(current_user), 'ip': request.remote_addr})
     logout_user()
     flash('You have been logged out.', 'info')
@@ -720,6 +815,15 @@ def logout():
 @bp.route('/forgot-password', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def forgot_password():
+   # Redirect already-logged-in users to their dashboard
+    if current_user.is_authenticated:
+        if current_user.role == 'user':
+            return redirect(url_for('user.dashboard'))
+        elif current_user.role == 'merchant':
+            return redirect(url_for('merchant.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+
     form = ForgotPasswordForm()
     if form.validate_on_submit():
         email = form.email.data.lower()
@@ -727,6 +831,7 @@ def forgot_password():
         if user:
             # Check if account was created with Google OAuth
             if user.registration_method == 'google':
+                # Audit: Log password reset attempt on Google OAuth account (not permitted)
                 log_event('user.password_reset_google_account', details={'user': user_snapshot(user)})
                 flash('Your account is linked with Google. You cannot reset your password through this method. Please sign in with Google.', 'info')
                 return redirect(url_for('auth.login'))
@@ -740,7 +845,7 @@ def forgot_password():
             # Store token in database with 30-minute expiry
             PasswordResetToken.create_token(user.id, token_hash, expiry_seconds=1800)
 
-            # Audit: reset requested
+            # Audit: Log password reset request initiated (before email sent)
             log_event('user.password_reset_requested', details={'user': user_snapshot(user)})
 
             # send email (prefer background worker in production)
@@ -748,13 +853,13 @@ def forgot_password():
                 send_password_reset_email(user, token)
                 flash(f'A password reset link has been sent to {email}.', 'success')
             except Exception as e:
-                # Audit mail-send failure
+                # Audit: Log email send failure for password reset (will need manual retry)
                 log_event('email.send_failed', details={'user': user_snapshot(user), 'error': str(e)})
                 flash('Failed to send password reset email. Please try again later.', 'danger')
             
             return redirect(url_for('auth.login'))
         else:
-            # Audit unknown email reset request
+            # Audit: Log password reset request for unregistered email (potential user enumeration attempt)
             log_event('user.password_reset_requested_unknown', details={'email': email})
             flash(f'The email {email} is not registered.', 'warning')
             return redirect(url_for('auth.login'))
@@ -780,16 +885,19 @@ def reset_password(token):
     
     if token_status == 'already_used':
         flash('This password reset link has already been used. Please request a new one.', 'warning')
+        # Audit: Log attempted reuse of password reset token (security violation)
         log_event('user.password_reset_link_already_used', details={'token_excerpt': token[:32]})
         return redirect(url_for('auth.forgot_password'))
     
     if token_status == 'expired':
         flash('Your password reset link has expired. Please request a new one.', 'warning')
+        # Audit: Log use of expired password reset token
         log_event('user.password_reset_expired', details={'token_excerpt': token[:32]})
         return redirect(url_for('auth.forgot_password'))
     
     if token_status == 'not_found':
         flash('Invalid password reset link. Please request a new one.', 'danger')
+        # Audit: Log attempted use of invalid/non-existent password reset token
         log_event('user.password_reset_invalid_token', details={'token_excerpt': token[:32]})
         return redirect(url_for('auth.forgot_password'))
     
@@ -799,12 +907,14 @@ def reset_password(token):
         user_id = data.get('user_id')
     except Exception:
         flash('Invalid or expired password reset token.', 'danger')
+        # Audit: Log failed token validation (invalid signature or expiration)
         log_event('user.password_reset_invalid_token', details={'token_excerpt': token[:32]})
         return redirect(url_for('auth.forgot_password'))
 
     user = User.query.get(user_id)
     if not user:
         flash('Invalid user for this reset token.', 'danger')
+        # Audit: Log password reset token for non-existent user (potential tampering)
         log_event('user.password_reset_invalid_user', details={'token_excerpt': token[:32]})
         return redirect(url_for('auth.forgot_password'))
 
@@ -819,6 +929,7 @@ def reset_password(token):
         if reset_token:
             reset_token.mark_as_used()
         
+        # Audit: Log successful password reset completion
         log_event('user.password_reset_success', details={'user': user_snapshot(user)})
         flash('Your password has been reset. You can now log in.', 'success')
         return redirect(url_for('auth.login'))
@@ -868,6 +979,10 @@ def change_temp_password():
         user.session_token = session_token
         db.session.commit()
         session['session_token'] = session_token
+        
+        # Set session as permanent (8-hour inactivity timeout) - critical for persistent login
+        session.permanent = True
+        
         login_user(user)
         
         log_event('user.temp_password_changed', details={'user': user_snapshot(user)})

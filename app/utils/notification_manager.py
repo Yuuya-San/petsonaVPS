@@ -65,6 +65,66 @@ class NotificationManager:
                 'icon': 'fas fa-lock',
                 'type': 'info',
                 'color': 'info'
+            },
+            'account_locked': {
+                'icon': 'fas fa-lock-slash',
+                'type': 'warning',
+                'color': 'danger'
+            },
+            '2fa_enabled': {
+                'icon': 'fas fa-shield-alt',
+                'type': 'info',
+                'color': 'success'
+            },
+            '2fa_disabled': {
+                'icon': 'fas fa-shield-alt',
+                'type': 'info',
+                'color': 'warning'
+            },
+            '2fa_reset': {
+                'icon': 'fas fa-shield-alt',
+                'type': 'warning',
+                'color': 'danger'
+            },
+            'security_alert': {
+                'icon': 'fas fa-exclamation-triangle',
+                'type': 'danger',
+                'color': 'danger'
+            },
+            'review_received': {
+                'icon': 'fas fa-star',
+                'type': 'info',
+                'color': 'success'
+            },
+            'review_responded': {
+                'icon': 'fas fa-reply',
+                'type': 'info',
+                'color': 'info'
+            },
+            'pet_match_found': {
+                'icon': 'fas fa-heart',
+                'type': 'info',
+                'color': 'info'
+            },
+            'suspicious_activity': {
+                'icon': 'fas fa-exclamation-circle',
+                'type': 'warning',
+                'color': 'danger'
+            },
+            'unusual_login': {
+                'icon': 'fas fa-sign-in-alt',
+                'type': 'warning',
+                'color': 'warning'
+            },
+            'email_changed': {
+                'icon': 'fas fa-envelope',
+                'type': 'info',
+                'color': 'warning'
+            },
+            'role_changed': {
+                'icon': 'fas fa-user-tag',
+                'type': 'info',
+                'color': 'info'
             }
         }
         return config.get(notification_type, {
@@ -356,3 +416,206 @@ class NotificationManager:
             link=None,
             related_type='message'
         )
+    
+    # ====== SECURITY & ACCOUNT NOTIFICATIONS ======
+    
+    @staticmethod
+    def notify_account_locked(user_id, failed_attempts=5):
+        """Notify user when account is locked due to failed login attempts"""
+        title = "🔒 Account Locked"
+        message = f"Your account has been locked after {failed_attempts} failed login attempts for security. Please reset your password or contact support to unlock it."
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='account_locked',
+            link=None,
+            related_type='security'
+        )
+    
+    @staticmethod
+    def notify_2fa_enabled(user_id):
+        """Notify user when 2FA is enabled"""
+        title = "🛡️ Two-Factor Authentication Enabled"
+        message = "Two-factor authentication is now active on your account. You'll need to verify your identity on each login."
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='2fa_enabled',
+            link=None,
+            related_type='security'
+        )
+    
+    @staticmethod
+    def notify_2fa_disabled(user_id):
+        """Notify user when 2FA is disabled"""
+        title = "⚠️ Two-Factor Authentication Disabled"
+        message = "Two-factor authentication has been disabled on your account. Your account is now less secure. Consider re-enabling it."
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='2fa_disabled',
+            link=None,
+            related_type='security'
+        )
+    
+    @staticmethod
+    def notify_2fa_reset_suspicious(user_id):
+        """Notify user when 2FA is reset due to suspicious activity"""
+        title = "🚨 Two-Factor Authentication Reset"
+        message = "Your 2FA has been reset due to suspicious activity. Please set up a new authenticator. If this wasn't you, contact support immediately."
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='2fa_reset',
+            link=None,
+            related_type='security'
+        )
+    
+    @staticmethod
+    def notify_unusual_login_detected(user_id, location_info='', device_info=''):
+        """Notify user of unusual login activity"""
+        title = "⚠️ Unusual Login Detected"
+        message = f"We detected an unusual login to your account."
+        if location_info:
+            message += f" Location: {location_info}."
+        if device_info:
+            message += f" Device: {device_info}."
+        message += " If this wasn't you, change your password immediately."
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='unusual_login',
+            link=None,
+            related_type='security'
+        )
+    
+    @staticmethod
+    def notify_email_changed(user_id, new_email):
+        """Notify user when email is changed"""
+        title = "✉️ Email Address Changed"
+        message = f"Your account email has been changed to {new_email}. If you didn't make this change, verify your account immediately."
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='email_changed',
+            link=None,
+            related_type='account'
+        )
+    
+    @staticmethod
+    def notify_role_changed(user_id, new_role):
+        """Notify user when their role is changed by admin"""
+        title = "👤 Account Role Updated"
+        message = f"Your account role has been changed to: {new_role.title()}"
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='role_changed',
+            link=None,
+            related_type='account'
+        )
+    
+    # ====== REVIEW NOTIFICATIONS ======
+    
+    @staticmethod
+    def notify_review_received(merchant_user_id, reviewer_name, rating, related_booking_id=None):
+        """Notify merchant when they receive a review"""
+        title = f"⭐ New {rating}-Star Review"
+        message = f"{reviewer_name} left you a review. Check it out to see what they thought of your service!"
+        return NotificationManager.create_and_emit(
+            user_id=merchant_user_id,
+            title=title,
+            message=message,
+            notification_type='review_received',
+            link=None,
+            related_id=related_booking_id,
+            related_type='review'
+        )
+    
+    @staticmethod
+    def notify_review_response_received(user_id, merchant_name, related_booking_id=None):
+        """Notify customer when merchant responds to their review"""
+        title = f"💬 Response to Your Review"
+        message = f"{merchant_name} responded to your review. Check out their reply!"
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='review_responded',
+            link=None,
+            related_id=related_booking_id,
+            related_type='review'
+        )
+    
+    # ====== MATCHING & RECOMMENDATIONS ======
+    
+    @staticmethod
+    def notify_pet_match_found(user_id, pet_name, compatibility_percentage, match_type='breed'):
+        """Notify user when a compatible pet match is found"""
+        title = f"💕 New Pet Match Found!"
+        message = f"We found a {compatibility_percentage}% compatible {match_type} match for {pet_name}. Check it out!"
+        return NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='pet_match_found',
+            link=None,
+            related_type='match'
+        )
+    
+    # ====== ADMIN SECURITY ALERTS ======
+    
+    @staticmethod
+    def notify_admin_suspicious_activity(admin_user_id, activity_type, description, affected_users_count=1):
+        """Notify admin of suspicious activity that may affect system"""
+        title = f"🚨 {activity_type.upper()}: SUSPICIOUS ACTIVITY DETECTED"
+        message = f"{description} Affected users: {affected_users_count}. Review audit logs immediately."
+        return NotificationManager.create_and_emit(
+            user_id=admin_user_id,
+            title=title,
+            message=message,
+            notification_type='security_alert',
+            link='/admin/audit-logs',
+            related_type='security_alert'
+        )
+    
+    @staticmethod
+    def notify_admin_security_event(admin_user_id, event_type, user_email, details=''):
+        """Notify admin of important security events"""
+        title = f"⚠️ SECURITY EVENT: {event_type}"
+        message = f"Account: {user_email}. {details} Check audit logs for full details."
+        return NotificationManager.create_and_emit(
+            user_id=admin_user_id,
+            title=title,
+            message=message,
+            notification_type='security_alert',
+            link='/admin/audit-logs',
+            related_type='security_event'
+        )
+    
+    @staticmethod
+    def notify_admin_mass_alert(admin_user_ids, alert_title, alert_message, severity='high'):
+        """Notify multiple admins of a critical security issue"""
+        if not isinstance(admin_user_ids, list):
+            admin_user_ids = [admin_user_ids]
+        
+        notifications = []
+        for admin_id in admin_user_ids:
+            notif = NotificationManager.create_and_emit(
+                user_id=admin_id,
+                title=alert_title,
+                message=alert_message,
+                notification_type='security_alert',
+                link='/admin/audit-logs'
+            )
+            notifications.append(notif)
+        
+        return notifications
+

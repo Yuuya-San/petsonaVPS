@@ -12,6 +12,7 @@ from app.utils.account_api import (
     reset_2fa_start
 )
 from app.utils.audit import log_event, user_snapshot
+from app.utils.notification_manager import NotificationManager
 
 bp = Blueprint('api', __name__, url_prefix='/api/account')
 
@@ -37,6 +38,8 @@ def api_change_password():
         
         if success:
             log_event('user.password_changed', details={'user': user_snapshot(current_user)})
+            # Notify: Alert user that password was changed
+            NotificationManager.notify_password_changed(current_user.id)
             return jsonify({'message': message}), 200
         else:
             log_event('user.password_change_failed', details={'reason': message})
@@ -88,6 +91,8 @@ def api_enable_2fa():
         
         if success:
             log_event('user.2fa_enabled', details={'user': user_snapshot(current_user)})
+            # Notify: Alert user that 2FA is now enabled
+            NotificationManager.notify_2fa_enabled(current_user.id)
             current_app.logger.info(f"✓ 2FA enabled for user {current_user.id}")
             return jsonify(result), 200
         else:
@@ -109,6 +114,8 @@ def api_disable_2fa():
         
         if success:
             log_event('user.2fa_disabled', details={'user': user_snapshot(current_user)})
+            # Notify: Alert user that 2FA is now disabled
+            NotificationManager.notify_2fa_disabled(current_user.id)
             current_app.logger.info(f"✓ 2FA disabled for user {current_user.id}")
             return jsonify({'message': message}), 200
         else:

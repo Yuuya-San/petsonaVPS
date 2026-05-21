@@ -20,6 +20,7 @@ from app.models.review import Review
 from app.extensions import db, csrf
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
 from app.models.audit_log import AuditLog
+from app.utils.audit import log_event, log_action_with_changes
 from sqlalchemy import func, and_ # pyright: ignore[reportMissingImports]
 from app.utils.notification_manager import NotificationManager
 import logging
@@ -383,18 +384,18 @@ def upload_logo():
         db.session.add(merchant)
         db.session.commit()
         
-        # Record upload action in audit log
-        audit_log = AuditLog(
-            event='merchant_logo_uploaded',
-            actor_id=current_user.id,
-            actor_email=current_user.email,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            timestamp=get_ph_datetime()
+        # Record upload action in comprehensive audit log
+        log_action_with_changes(
+            event_name='merchant.logo_uploaded',
+            entity_id=merchant.id,
+            new_values={'logo_path': merchant.logo_path, 'filename': filename},
+            entity_type='merchant',
+            metadata={
+                'merchant_user_id': current_user.id,
+                'file_size': file_size,
+                'file_extension': file_extension
+            }
         )
-        audit_log.set_details({'merchant_id': merchant.id, 'filename': filename})
-        db.session.add(audit_log)
-        db.session.commit()
         
         # Build public URL for the uploaded logo
         logo_url = url_for('static', filename=f'uploads/merchants/{merchant.id}/{filename}')

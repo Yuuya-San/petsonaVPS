@@ -866,18 +866,27 @@ body {
     <div class="insights-grid">
 
       <!-- Why You Match -->
-      {% if matched_reasons %}
+      {% if match_reasons and match_reasons.by_category %}
       <div class="insight-card good">
         <div class="insight-header">
           <i class="fas fa-check-circle insight-icon"></i>
           <h3 class="insight-title">Why You Match</h3>
         </div>
         <div class="insight-list">
-          {% for r in matched_reasons %}
-          <div class="insight-item">
-            <i class="fas fa-check"></i>
-            <span>{{ r }}</span>
-          </div>
+          {% for category, data in match_reasons.by_category.items() %}
+            {% if data.questions %}
+              {% for question in data.questions %}
+                {% if question.is_match %}
+                <div class="insight-item">
+                  <i class="fas fa-check"></i>
+                  <div>
+                    <strong>{{ question.question_key|replace('_', ' ')|title }}</strong><br>
+                    <span style="font-size: 12px; opacity: 0.8;">{{ question.reason }}</span>
+                  </div>
+                </div>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
           {% endfor %}
         </div>
       </div>
@@ -892,17 +901,28 @@ body {
       {% endif %}
 
       <!-- Concerns -->
-      {% if mismatch_reasons %}
+      {% if concerns %}
       <div class="insight-card bad">
         <div class="insight-header">
           <i class="fas fa-exclamation-circle insight-icon"></i>
           <h3 class="insight-title">Concerns</h3>
         </div>
         <div class="insight-list">
-          {% for r in mismatch_reasons %}
+          {% for concern in concerns %}
           <div class="insight-item">
             <i class="fas fa-warning"></i>
-            <span>{{ r }}</span>
+            <div>
+              <strong>{{ concern.concern }}</strong>
+              <span style="display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+              {% if concern.severity == 'Critical' %}
+              background: #fecaca; color: #991b1b;
+              {% elif concern.severity == 'Important' %}
+              background: #fed7aa; color: #9a3412;
+              {% else %}
+              background: #fce7f3; color: #831843;
+              {% endif %}">{{ concern.severity }}</span><br>
+              <span style="font-size: 12px; opacity: 0.8;">{{ concern.reason }}</span>
+            </div>
           </div>
           {% endfor %}
         </div>
@@ -925,21 +945,21 @@ body {
           <h3 class="insight-title">Suggestions</h3>
         </div>
         <div class="insight-list">
-          {% if suggestions is mapping %}
-            {% for s in suggestions.get('all_suggestions', suggestions.get('suggestions', [])) %}
-            <div class="insight-item">
-              <i class="fas fa-arrow-right"></i>
-              <span>{{ s }}</span>
+          {% for suggestion in suggestions %}
+          <div class="insight-item">
+            <i class="fas fa-arrow-right"></i>
+            <div>
+              <strong>{{ suggestion.concern_area }}</strong>
+              <span style="display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+              {% if suggestion.priority == 'Critical' or suggestion.priority == 'High' %}
+              background: #fed7aa; color: #9a3412;
+              {% else %}
+              background: #fce7f3; color: #831843;
+              {% endif %}">{{ suggestion.priority }}</span><br>
+              <span style="font-size: 12px; opacity: 0.8;">{{ suggestion.suggestion }}</span>
             </div>
-            {% endfor %}
-          {% else %}
-            {% for s in suggestions %}
-            <div class="insight-item">
-              <i class="fas fa-arrow-right"></i>
-              <span>{{ s }}</span>
-            </div>
-            {% endfor %}
-          {% endif %}
+          </div>
+          {% endfor %}
         </div>
       </div>
       {% else %}

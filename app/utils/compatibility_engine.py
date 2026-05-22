@@ -895,18 +895,24 @@ def calculate_compatibility(answers: Dict, breed) -> Dict[str, Any]:
 # SUGGESTIONS - Improvement recommendations
 # ============================================================================
 
-def generate_suggestions(answers: Dict, breed) -> List[str]:
+def generate_suggestions(answers: Dict, breed) -> List[Dict[str, str]]:
     """
-    Generate suggestions to improve compatibility score.
+    Generate actionable suggestions to address compatibility concerns.
     
-    Analyzes low-scoring questions and provides actionable recommendations.
+    Provides specific, actionable steps to address each mismatch and improve
+    compatibility between user and pet. Suggestions are prioritized by concern
+    severity and provide concrete actions the user can take.
     
     Args:
         answers: Dictionary of user answers
         breed: Breed object
     
     Returns:
-        List of suggestion strings (max 5)
+        List of suggestion dictionaries with:
+        - question_key: Question being addressed
+        - concern_area: What needs to be addressed
+        - suggestion: Specific actionable recommendation
+        - priority: High/Medium/Low based on impact
     """
     suggestions = []
     
@@ -973,120 +979,161 @@ def generate_suggestions(answers: Dict, breed) -> List[str]:
     
     for question_key, score, user_answer, breed_value in problem_questions:
         if question_key in suggestion_map:
-            suggestions.append(suggestion_map[question_key])
+            suggestion_detail = {
+                'question_key': question_key,
+                'concern_area': 'Compatibility Issue',
+                'suggestion': suggestion_map[question_key],
+                'priority': 'Medium',
+                'score': round(score, 2),
+            }
+            suggestions.append(suggestion_detail)
+    
+    # Sort by concern severity
+    priority_order = {'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3}
+    suggestions.sort(key=lambda x: (priority_order.get(x.get('priority', 'Medium'), 4), -x['score']))
     
     return suggestions
 
 
 # ============================================================================
-# MATCH REASONS - Explain compatibility
+# CONCERNS - Explain specific compatibility concerns
 # ============================================================================
 
-def generate_match_reasons(answers: Dict, breed) -> Dict[str, List[str]]:
+def generate_concerns(answers: Dict, breed) -> List[Dict[str, str]]:
     """
-    Generate reasons explaining why user and pet are (or aren't) compatible.
+    Generate specific concerns about compatibility based on question mismatches.
+    
+    Organizes concerns by severity and provides:
+    - The specific concern
+    - Why it's a concern for this pet and owner
+    - Severity level (Critical, Important, Moderate)
     
     Args:
         answers: Dictionary of user answers
         breed: Breed object
     
     Returns:
-        Dictionary with:
-        - matched_reasons: Why they ARE compatible
-        - mismatch_reasons: Why they AREN'T compatible
+        List of concern dictionaries with:
+        - question_key: The question that has a concern
+        - concern: The specific concern
+        - reason: Why this is a concern
+        - severity: Critical/Important/Moderate
     """
-    matched_reasons = []
-    mismatch_reasons = []
+    concerns = []
     
     if not answers or not breed:
-        return {'matched_reasons': matched_reasons, 'mismatch_reasons': mismatch_reasons}
+        return concerns
     
-    reason_map = {
-        'energy_level': {
-            'match': "Great! Your activity level matches well with this pet's energy requirements.",
-            'mismatch': "This pet's energy level differs from your lifestyle—consider if you can adapt your routine or find ways to keep the pet stimulated.",
-        },
-        'pet_allergies': {
-            'match': "Excellent! This pet is a great fit for your health considerations.",
-            'mismatch': "This pet may not be the best fit for your health needs—consider if there are ways to manage allergies or other concerns.",
-        },
-        'exercise_needs': {
-            'match': "Perfect! You're well-equipped to provide the exercise this pet needs.",
-            'mismatch': "This pet thrives with regular activity—finding small ways to add playtime or walks could make a big difference.",
-        },
-        'noise_level': {
-            'match': "Excellent! Your noise tolerance aligns well with this pet's vocalizations.",
-            'mismatch': "This pet can be a bit vocal at times—consider how that fits with your living environment and daily routine.",
-        },
-        'social_needs': {
-            'match': "Great match! Your socialization style suits this pet's needs.",
-            'mismatch': "This pet has specific social needs—dedicating quality interaction time could strengthen your bond.",
-        },
-        'handling_tolerance': {
-            'match': "Perfect! Your household environment is ideal for this pet's comfort.",
-            'mismatch': "This pet may be sensitive to your current household activity level—creating calm spaces could help.",
-        },
-        'daily_care_time': {
-            'match': "Excellent! You have the time to provide proper daily care.",
-            'mismatch': "Caring for this pet may take a bit more time each day, so planning a flexible routine could help you stay consistent.",
-        },
-        'experience_required': {
-            'match': "Perfect! Your experience level is ideal for this pet.",
-            'mismatch': "This pet may benefit from more specialized knowledge—consider resources or mentorship to support your care.",
-        },
-        'trainability': {
-            'match': "Great! You're well-suited to handle this pet's training needs.",
-            'mismatch': "Training may take a little extra patience, but with consistency, it can be a rewarding experience.",
-        },
-        'temperament_tolerance': {
-            'match': "Excellent! You can handle this pet's temperament traits well.",
-            'mismatch': "This pet's personality type may require extra understanding—learning about their behavior could help.",
-        },
-        'space_needs': {
-            'match': "Perfect! Your living space is well-suited for this pet.",
-            'mismatch': "A slightly more spacious or enriched environment would help this pet feel more comfortable and relaxed.",
-        },
-        'environment_complexity': {
-            'match': "Great! Your home environment matches this pet's complexity needs.",
-            'mismatch': "This pet benefits from environmental enrichment—adding variety to their space could improve wellbeing.",
-        },
-        'min_enclosure_size': {
-            'match': "Excellent! You can provide the enclosure size this pet requires.",
-            'mismatch': "Providing a larger or more enriched enclosure can greatly improve this pet's wellbeing.",
-        },
-        'monthly_cost_level': {
-            'match': "Perfect! Your budget aligns well with this pet's costs.",
-            'mismatch': "This pet may come with higher ongoing costs, so a bit of budgeting ahead can help you feel more prepared.",
-        },
-        'emergency_care_risk': {
-            'match': "Great! You're prepared for potential emergency care needs.",
-            'mismatch': "Unexpected vet visits can happen, so having a small emergency fund could give you peace of mind.",
-        },
-        'child_friendly': {
-            'match': "Excellent! This pet fits perfectly with your household situation.",
-            'mismatch': "This pet may need gentle and supervised interactions around children to feel safe and comfortable.",
-        },
-        'other_pets_friendly': {
-            'match': "Perfect! This pet should integrate well with your other pets.",
-            'mismatch': "Introducing this pet to others may take time and careful management to ensure a smooth adjustment.",
-        },
+    concern_map = {
         'prey_drive': {
-            'match': "Great! This pet's prey drive aligns well with your household.",
-            'mismatch': "This pet has a strong prey drive—extra caution and management will be important for safety.",
+            'concern': 'Strong Prey Drive Safety Risk',
+            'reason': 'This pet has a strong natural hunting instinct that could pose a safety risk to small animals or fast-moving objects in your home.',
+            'severity': 'Critical',
         },
         'okay_fragile': {
-            'match': "Good! You're comfortable handling delicate species.",
-            'mismatch': "This pet is more delicate than most, so gentle handling and a calm environment will help keep it safe.",
+            'concern': 'Delicate Species Handling',
+            'reason': 'This pet is physically delicate and requires gentle handling. Without proper care and technique, the pet could be easily injured.',
+            'severity': 'Critical',
         },
         'okay_special_vet': {
-            'match': "Excellent! You're prepared for specialized veterinary care.",
-            'mismatch': "This pet may benefit from specialized veterinary care, so checking availability in your area is a good idea.",
+            'concern': 'Specialized Veterinary Care Required',
+            'reason': 'This pet needs specialized veterinary care that may not be available in all areas or may require higher expertise and costs.',
+            'severity': 'Important',
+        },
+        'child_friendly': {
+            'concern': 'Child Safety and Pet Welfare',
+            'reason': 'This pet may not be suitable for households with children, risking harm to the pet or creating stress for the animal.',
+            'severity': 'Critical',
+        },
+        'other_pets_friendly': {
+            'concern': 'Compatibility with Existing Pets',
+            'reason': 'This pet may not be compatible with the pets you currently have, potentially leading to stress, injuries, or behavioral issues.',
+            'severity': 'Important',
+        },
+        'energy_level': {
+            'concern': 'Activity Level Mismatch',
+            'reason': 'Your activity level differs significantly from what this pet needs. Under-stimulation can lead to behavioral problems and reduced wellbeing.',
+            'severity': 'Important',
+        },
+        'exercise_needs': {
+            'concern': 'Insufficient Exercise Capability',
+            'reason': 'This pet requires regular exercise that you may not be able to provide, which can lead to obesity, frustration, and behavioral issues.',
+            'severity': 'Important',
+        },
+        'pet_allergies': {
+            'concern': 'Pet Allergy Health Risk',
+            'reason': 'You have pet allergies, which could affect your health and comfort living with this pet long-term.',
+            'severity': 'Moderate',
+        },
+        'noise_level': {
+            'concern': 'Noise Tolerance Mismatch',
+            'reason': 'This pet can be vocal or noisy, which may conflict with your need for a quiet environment.',
+            'severity': 'Moderate',
+        },
+        'handling_tolerance': {
+            'concern': 'Stressful Environment Sensitivity',
+            'reason': 'This pet is sensitive to noise and activity. Your busy or loud household may cause chronic stress to the animal.',
+            'severity': 'Important',
+        },
+        'space_needs': {
+            'concern': 'Insufficient Living Space',
+            'reason': 'Your living space is smaller than what this pet ideally needs, which could impact their physical health and comfort.',
+            'severity': 'Important',
+        },
+        'min_enclosure_size': {
+            'concern': 'Inadequate Enclosure Size',
+            'reason': 'This pet requires a larger enclosure than you can provide, which could limit their movement and natural behaviors.',
+            'severity': 'Important',
+        },
+        'environment_complexity': {
+            'concern': 'Limited Environmental Enrichment',
+            'reason': 'This pet needs a complex, enriched environment. A simple setup may lead to boredom, stress, and behavioral problems.',
+            'severity': 'Moderate',
+        },
+        'daily_care_time': {
+            'concern': 'Insufficient Daily Care Time',
+            'reason': 'This pet requires more daily care time than you can dedicate, which could affect their health and your ability to maintain consistent care.',
+            'severity': 'Important',
+        },
+        'experience_required': {
+            'concern': 'Lack of Required Experience',
+            'reason': 'This pet requires more experience than you have, which could lead to mistakes in care, training, or handling.',
+            'severity': 'Moderate',
+        },
+        'trainability': {
+            'concern': 'Training Patience Requirements',
+            'reason': 'This pet requires more patience during training than you may have available, which could lead to frustration on both sides.',
+            'severity': 'Moderate',
+        },
+        'temperament_tolerance': {
+            'concern': 'Personality Type Compatibility',
+            'reason': 'This pet has a personality type you may not be equipped to handle, which could lead to behavioral or management challenges.',
+            'severity': 'Moderate',
+        },
+        'monthly_cost_level': {
+            'concern': 'Budget-to-Cost Mismatch',
+            'reason': 'This pet has higher ongoing costs than your budget allows, which could cause financial stress over time.',
+            'severity': 'Moderate',
+        },
+        'emergency_care_risk': {
+            'concern': 'Limited Emergency Care Preparedness',
+            'reason': 'Unexpected veterinary emergencies can be costly. Your budget limitations might prevent you from providing emergency care if needed.',
+            'severity': 'Moderate',
+        },
+        'social_needs': {
+            'concern': 'Socialization Needs Mismatch',
+            'reason': 'This pet has social needs that dont match your available interaction time, which could lead to loneliness or behavioral issues.',
+            'severity': 'Moderate',
         },
     }
     
-    # Analyze each question
+    # Analyze each question for concerns
     for question_key, user_answer in answers.items():
         if user_answer is None or question_key not in QUESTION_TO_ATTRIBUTE:
+            continue
+        
+        # Skip preference questions - no concerns
+        if question_key in ['pet_preference', 'pet_size_preference']:
             continue
         
         attr_name, attr_source = QUESTION_TO_ATTRIBUTE[question_key]
@@ -1094,15 +1141,220 @@ def generate_match_reasons(answers: Dict, breed) -> Dict[str, List[str]]:
         
         score = score_question(question_key, user_answer, breed_value)
         
-        if question_key in reason_map:
-            if score >= 0.85:
-                matched_reasons.append(reason_map[question_key]['match'])
+        # Only add concerns for mismatches (score < 0.50)
+        if score < 0.50 and question_key in concern_map:
+            concerns.append({
+                'question_key': question_key,
+                'concern': concern_map[question_key]['concern'],
+                'reason': concern_map[question_key]['reason'],
+                'severity': concern_map[question_key]['severity'],
+                'score': round(score, 2),
+                'score_percentage': round(score * 100, 1),
+            })
+    
+    # Sort by severity (Critical > Important > Moderate)
+    severity_order = {'Critical': 0, 'Important': 1, 'Moderate': 2}
+    concerns.sort(key=lambda x: (severity_order.get(x['severity'], 3), -x['score']))
+    
+    return concerns
+
+
+# ============================================================================
+# MATCH REASONS - Explain compatibility by category
+# ============================================================================
+
+def generate_match_reasons(answers: Dict, breed) -> Dict[str, Any]:
+    """
+    Generate detailed match reasons organized by category.
+    
+    Organizes matches and mismatches by category (Lifestyle, Safety, Household, etc.)
+    providing category-level summary and question-by-question details.
+    
+    Args:
+        answers: Dictionary of user answers
+        breed: Breed object
+    
+    Returns:
+        Dictionary with:
+        - by_category: Matches organized by category with reasons
+        - strengths: Top compatibility areas (score >= 0.95)
+        - areas_of_concern: Weak compatibility areas (score < 0.50)
+    """
+    by_category = {}
+    strengths = []
+    areas_of_concern = []
+    
+    if not answers or not breed:
+        return {
+            'by_category': by_category,
+            'strengths': strengths,
+            'areas_of_concern': areas_of_concern,
+        }
+    
+    reason_map = {
+        'energy_level': {
+            'match': "Your relaxed home routine is perfect for this pet's moderate energy needs.",
+            'mismatch': "This pet needs an active lifestyle that differs from your routine.",
+        },
+        'pet_allergies': {
+            'match': "Great news! You don't have allergies, so this pet is a good fit for your health.",
+            'mismatch': "Your pet allergies may make living with this pet challenging long-term.",
+        },
+        'exercise_needs': {
+            'match': "Perfect! Your available time for exercise matches what this pet needs.",
+            'mismatch': "This pet requires regular exercise that you may struggle to provide.",
+        },
+        'noise_level': {
+            'match': "Excellent! Your noise tolerance is well-matched to this pet's vocal tendencies.",
+            'mismatch': "This pet can be noisy, which may conflict with your quiet living preference.",
+        },
+        'social_needs': {
+            'match': "Great match! Your interaction style suits this pet's social requirements.",
+            'mismatch': "This pet's social needs may require more interaction than you can provide.",
+        },
+        'handling_tolerance': {
+            'match': "Perfect! Your calm household is ideal for this pet's comfort.",
+            'mismatch': "This pet's sensitivity to activity doesn't match your household environment.",
+        },
+        'daily_care_time': {
+            'match': "Excellent! You have sufficient time for this pet's daily care routine.",
+            'mismatch': "This pet requires more daily care time than you currently have available.",
+        },
+        'experience_required': {
+            'match': "Perfect! Your experience level is ideal for caring for this pet.",
+            'mismatch': "This pet would benefit from more experience than you currently have.",
+        },
+        'trainability': {
+            'match': "Great! You have the patience needed for this pet's training.",
+            'mismatch': "Training this pet requires more patience than you indicated you have.",
+        },
+        'temperament_tolerance': {
+            'match': "Excellent! You can handle this pet's personality traits well.",
+            'mismatch': "This pet's personality requires understanding and skills you may need to develop.",
+        },
+        'space_needs': {
+            'match': "Perfect! Your living space meets this pet's requirements.",
+            'mismatch': "Your living space is smaller than what this pet ideally needs.",
+        },
+        'environment_complexity': {
+            'match': "Great! Your home can provide the environmental complexity this pet enjoys.",
+            'mismatch': "This pet thrives with complex environments that you're not set up for.",
+        },
+        'min_enclosure_size': {
+            'match': "Excellent! You can provide an appropriately sized enclosure.",
+            'mismatch': "This pet needs a larger enclosure than you can accommodate.",
+        },
+        'monthly_cost_level': {
+            'match': "Perfect! Your budget accommodates this pet's ongoing costs.",
+            'mismatch': "This pet's monthly costs exceed your current budget.",
+        },
+        'emergency_care_risk': {
+            'match': "Great! You're financially prepared for unexpected veterinary needs.",
+            'mismatch': "You may face financial strain if unexpected veterinary care is needed.",
+        },
+        'child_friendly': {
+            'match': "Excellent! This pet is suitable for your household composition.",
+            'mismatch': "This pet's temperament may not be suitable for your household with children.",
+        },
+        'other_pets_friendly': {
+            'match': "Perfect! This pet should integrate well with your other pets.",
+            'mismatch': "This pet may not be compatible with the pets you already have.",
+        },
+        'prey_drive': {
+            'match': "Great! This pet's prey drive is manageable in your household.",
+            'mismatch': "This pet's strong prey drive poses potential safety risks in your home.",
+        },
+        'okay_fragile': {
+            'match': "Good! You're comfortable with the care needs of delicate species.",
+            'mismatch': "This delicate pet requires careful handling you may not be equipped for.",
+        },
+        'okay_special_vet': {
+            'match': "Excellent! You're prepared for this pet's specialized veterinary needs.",
+            'mismatch': "This pet requires specialized veterinary care you may not have access to.",
+        },
+    }
+    
+    # Initialize categories
+    categories = [
+        'lifestyle', 'safety', 'experience', 'household', 'space', 'care', 'financial', 'health'
+    ]
+    for cat in categories:
+        by_category[cat] = {
+            'category_name': cat.capitalize(),
+            'questions': [],
+            'overall_match': True,
+            'summary': '',
+        }
+    
+    # Analyze each question
+    for question_key, user_answer in answers.items():
+        if user_answer is None or question_key not in QUESTION_TO_ATTRIBUTE:
+            continue
+        
+        # Skip preference questions
+        if question_key in ['pet_preference', 'pet_size_preference']:
+            continue
+        
+        attr_name, attr_source = QUESTION_TO_ATTRIBUTE[question_key]
+        breed_value = getattr(breed.species, attr_name, None) if attr_source == 'species' and breed.species else getattr(breed, attr_name, None)
+        
+        score = score_question(question_key, user_answer, breed_value)
+        category = QUESTION_CATEGORIES.get(question_key, 'lifestyle')
+        
+        # Determine if match or mismatch
+        is_match = score >= 0.85
+        reason = reason_map.get(question_key, {})
+        reason_text = reason.get('match') if is_match else reason.get('mismatch')
+        
+        if reason_text:
+            question_detail = {
+                'question_key': question_key,
+                'is_match': is_match,
+                'score': round(score, 2),
+                'score_percentage': round(score * 100, 1),
+                'reason': reason_text,
+            }
+            by_category[category]['questions'].append(question_detail)
+            
+            # Track overall category match
+            if not is_match and score < 0.85:
+                by_category[category]['overall_match'] = False
+            
+            # Track strengths and areas of concern
+            if score >= 0.95:
+                strengths.append({
+                    'question_key': question_key,
+                    'category': category,
+                    'reason': reason_text,
+                })
             elif score < 0.50:
-                mismatch_reasons.append(reason_map[question_key]['mismatch'])
+                areas_of_concern.append({
+                    'question_key': question_key,
+                    'category': category,
+                    'reason': reason_text,
+                    'score': round(score, 2),
+                })
+    
+    # Generate category summaries
+    category_summaries = {
+        'lifestyle': 'How well your daily habits match the pet\'s needs',
+        'safety': 'Potential safety concerns and risk factors',
+        'experience': 'Your expertise level for this pet type',
+        'household': 'Compatibility with your family and existing pets',
+        'space': 'Whether you have adequate space and environment setup',
+        'care': 'Your available time for daily care',
+        'financial': 'Your budget alignment with pet costs',
+        'health': 'Health-related compatibility factors',
+    }
+    
+    for cat in categories:
+        if by_category[cat]['questions']:
+            by_category[cat]['summary'] = category_summaries.get(cat, '')
     
     return {
-        'matched_reasons': matched_reasons,
-        'mismatch_reasons': mismatch_reasons,
+        'by_category': by_category,
+        'strengths': strengths,
+        'areas_of_concern': areas_of_concern,
     }
 
 

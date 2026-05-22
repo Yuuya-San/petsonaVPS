@@ -8,7 +8,8 @@ from app.models.match_history import MatchHistory
 from app.utils.compatibility_engine import (
     CompatibilityEngine,
     generate_suggestions,
-    generate_match_reasons
+    generate_match_reasons,
+    generate_concerns
 )
 from app.utils.audit import log_event, log_action_with_changes, log_data_access
 from . import bp
@@ -226,9 +227,10 @@ def breed_match(breed_id):
     # Calculate compatibility using exact same answers
     match_data = CompatibilityEngine.calculate_match_score(answers, breed)
     
-    # Generate suggestions and reasons
+    # Generate suggestions, reasons, and concerns
     suggestions = generate_suggestions(answers, breed)
-    reasons = generate_match_reasons(answers, breed)
+    match_reasons = generate_match_reasons(answers, breed)
+    concerns = generate_concerns(answers, breed)
     
     # Save to history if authenticated AND this is a breed-specific quiz (from breed page, not general quiz)
     # Only save if the route source is breed_page, not from general quiz redirects
@@ -270,8 +272,8 @@ def breed_match(breed_id):
         category_scores=category_display,
         strength_areas=match_data.get('strengths', []),
         question_scores=match_data.get('question_scores', []),
-        matched_reasons=reasons.get('matched_reasons', []),
-        mismatch_reasons=reasons.get('mismatch_reasons', []),
+        match_reasons=match_reasons,
+        concerns=concerns,
         suggestions=suggestions,
         total_questions=match_data.get('total_questions_answered', 0)
     )
@@ -385,12 +387,14 @@ def view_result(result_id):
                     'mismatches': match.mismatches or []
                 }
             
-            # Generate suggestions and reasons
+            # Generate suggestions, reasons, and concerns
             suggestions = generate_suggestions(answers, match.breed) if answers else (match.improvement_suggestions or [])
-            reasons = generate_match_reasons(answers, match.breed) if answers else {
-                'matched_reasons': [],
-                'mismatch_reasons': []
+            match_reasons = generate_match_reasons(answers, match.breed) if answers else {
+                'by_category': {},
+                'strengths': [],
+                'areas_of_concern': []
             }
+            concerns = generate_concerns(answers, match.breed) if answers else []
             
             # Prepare category scores for display
             category_display = {}
@@ -409,8 +413,8 @@ def view_result(result_id):
                 category_scores=category_display,
                 strength_areas=match_data.get('strengths', []),
                 question_scores=match_data.get('question_scores', []),
-                matched_reasons=reasons.get('matched_reasons', []),
-                mismatch_reasons=reasons.get('mismatch_reasons', []),
+                match_reasons=match_reasons,
+                concerns=concerns,
                 suggestions=suggestions,
                 total_questions=1,
                 from_history=True

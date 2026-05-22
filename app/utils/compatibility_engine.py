@@ -570,19 +570,94 @@ def score_child_friendly(user_answer: str, breed_value: Any) -> float:
     return 1.0 if breed_is_child_friendly else 0.0
 
 
-def score_household_pets(user_answer: str, breed_value: Any) -> float:
+def check_diet_pet_compatibility(breed_diet: str, user_pets: List[str]) -> float:
     """
-    Score household pets compatibility with enhanced logic.
+    Check if the matching pet's diet is compatible with user's existing pets.
     
-    Logic: Check if breed is compatible with pets user currently has
+    Diet Compatibility Rules:
+    - Herbivore: Always compatible (1.0) - eats only plants
+    - Granivore: Always compatible (1.0) - eats only seeds/grains
+    - Insectivore: Safe unless user has insects (0.7 if insects, 1.0 otherwise)
+    - Omnivore: Potentially risky with small pets (0.7 for small animals, birds, fish; 1.0 for dogs/cats)
+    - Carnivore: HIGH RISK with small animals, fish, birds, rodents (0.0), safe with dogs/cats (0.7)
+    - Piscivore: Incompatible with fish (0.0), compatible with others (1.0)
+    
+    Args:
+        breed_diet: The diet type of the matching breed ('Carnivore', 'Herbivore', etc.)
+        user_pets: List of user's existing pets (lowercase strings)
+    
+    Returns:
+        Score (0.0-1.0) indicating compatibility level
+    """
+    if not breed_diet or not user_pets:
+        return 1.0
+    
+    diet_lower = str(breed_diet).strip().lower()
+    
+    # Herbivore and Granivore are always safe
+    if diet_lower in ['herbivore', 'granivore']:
+        return 1.0
+    
+    # Insectivore - only issue if user has insects
+    if diet_lower == 'insectivore':
+        for pet in user_pets:
+            if 'insect' in pet.lower():
+                return 0.7  # Reduced compatibility if user has insects
+        return 1.0  # Safe otherwise
+    
+    # Piscivore - incompatible with fish
+    if diet_lower == 'piscivore':
+        for pet in user_pets:
+            if 'fish' in pet.lower():
+                return 0.0  # Complete incompatibility with fish
+        return 1.0  # Safe with other pets
+    
+    # Omnivore - potentially risky with small animals
+    if diet_lower == 'omnivore':
+        for pet in user_pets:
+            pet_lower = pet.lower().strip()
+            # High risk with small animals, birds, rodents
+            if any(x in pet_lower for x in ['small', 'bird', 'rodent', 'hamster', 'mouse', 'rabbit', 'guinea', 'fish']):
+                return 0.7  # Reduced compatibility with small animals
+            # Lower risk with dogs/cats
+            elif pet_lower in ['dog', 'dogs', 'cat', 'cats']:
+                return 0.8  # Slightly reduced but manageable
+        return 1.0  # Safe if no small animals
+    
+    # Carnivore - HIGH RISK with most animals except large dogs/cats
+    if diet_lower == 'carnivore':
+        for pet in user_pets:
+            pet_lower = pet.lower().strip()
+            # CRITICAL incompatibility with small animals, birds, fish, rodents
+            if any(x in pet_lower for x in ['small', 'bird', 'rodent', 'hamster', 'mouse', 'rabbit', 'guinea', 'fish', 'reptile']):
+                return 0.0  # Complete incompatibility - predator/prey risk
+            # Risky but potentially manageable with cats/dogs (depends on size)
+            elif pet_lower in ['cat', 'cats', 'small dog', 'small dogs']:
+                return 0.3  # High risk - carnivores may view these as prey
+            elif pet_lower in ['dog', 'dogs', 'large dog', 'large dogs']:
+                return 0.7  # Moderate risk - large dogs can defend themselves
+        return 0.5  # Unknown pets with carnivore = risky default
+    
+    # Unknown diet type - assume moderate risk
+    return 0.8
+
+
+def score_household_pets(user_answer: str, breed_value: Any, breed_species: Any = None) -> float:
+    """
+    Score household pets compatibility with diet-aware logic.
+    
+    Enhanced Logic: Check if breed is compatible with pets user currently has
     - No pets → Always perfect (1.0)
     - Has pets → Check breed compatibility with each pet type
-    - Missing compatibility data → Assume compatible (1.0)
+    - Diet compatibility → Check if matching pet's diet is safe with user's existing pets
+    - Existing pet attributes → Check breed.dog_friendly, breed.cat_friendly, etc.
+    - Missing data → Assume compatible (1.0)
     - Pet incompatible → Significant penalty (0.0)
     
     Args:
         user_answer: User's pets (comma-separated or single value, "None" for no pets)
         breed_value: Breed object with pet compatibility attributes
+        breed_species: Species object with diet_type information
     
     Returns:
         Score (0.0-1.0)
@@ -599,40 +674,57 @@ def score_household_pets(user_answer: str, breed_value: Any) -> float:
     
     # Parse user's current pets (handle both comma-separated and single values)
     if ',' in user_answer_str:
-        pets = [p.strip() for p in user_answer_str.split(',')]
-        pets = [p for p in pets if p.lower() != 'none']
+        pets = [p.strip().lower() for p in user_answer_str.split(',')]
+        pets = [p for p in pets if p != 'none']
     else:
-        pets = [user_answer_str] if user_answer_str else []
+        pets = [user_answer_str.lower()] if user_answer_str else []
     
     # No pets listed
     if not pets or len(pets) == 0:
         return 1.0
     
-    # Check breed compatibility with each pet type
+    # ========================================================================
+    # STEP 1: Check diet compatibility if breed_species provided
+    # ========================================================================
+    diet_score = 1.0
+    if breed_species and hasattr(breed_species, 'diet_type'):
+        diet_type = breed_species.diet_type
+        diet_score = check_diet_pet_compatibility(diet_type, pets)
+        
+        # If diet score is 0.0 (critical incompatibility like carnivore + small animals), return immediately
+        if diet_score == 0.0:
+            return 0.0
+    
+    # ========================================================================
+    # STEP 2: Check breed compatibility attributes with each pet type
+    # ========================================================================
+    attribute_score = 1.0
     for pet in pets:
-        pet_lower = pet.lower().strip()
         compatible = True
         
         # Check breed attributes for specific pet types
-        if 'dog' in pet_lower:
-            # Check dog_friendly attribute if it exists
+        if 'dog' in pet:
             compatible = getattr(breed_value, 'dog_friendly', True)
-        elif 'cat' in pet_lower:
-            # Check cat_friendly attribute if it exists
+        elif 'cat' in pet:
             compatible = getattr(breed_value, 'cat_friendly', True)
-        elif 'bird' in pet_lower or 'small' in pet_lower:
-            # Check small pet/bird compatibility
+        elif any(x in pet for x in ['bird', 'small', 'rodent', 'hamster', 'mouse', 'rabbit', 'guinea']):
             compatible = getattr(breed_value, 'small_pet_friendly', True)
-        elif 'rodent' in pet_lower or 'hamster' in pet_lower or 'mouse' in pet_lower:
-            # Check rodent compatibility
-            compatible = getattr(breed_value, 'small_pet_friendly', True)
+        elif 'fish' in pet or 'aquatic' in pet:
+            compatible = getattr(breed_value, 'aquatic_pet_friendly', True)
         
-        # If any pet is incompatible, return failure
+        # If any pet is incompatible, significant penalty
         if not compatible:
-            return 0.0
+            attribute_score = 0.0
+            break
     
-    # All pets are compatible
-    return 1.0
+    # ========================================================================
+    # STEP 3: Combine diet and attribute scores
+    # ========================================================================
+    # Take the minimum of both scores (strictest compatibility)
+    # This ensures we catch both diet incompatibilities and attribute mismatches
+    final_score = min(diet_score, attribute_score)
+    
+    return final_score
 
 
 def score_pet_allergies(user_answer: str) -> float:
@@ -670,7 +762,7 @@ def score_pet_allergies(user_answer: str) -> float:
 # MAIN QUESTION SCORING FUNCTION
 # ============================================================================
 
-def score_question(question_key: str, user_answer: str, breed_value: Any) -> float:
+def score_question(question_key: str, user_answer: str, breed_value: Any, breed_species: Any = None) -> float:
     """
     Score a single question by applying appropriate logic.
     
@@ -679,11 +771,13 @@ def score_question(question_key: str, user_answer: str, breed_value: Any) -> flo
     - Special case handlers for critical questions
     - Standard scoring with gap analysis for others
     - Better handling of missing data
+    - Diet-aware household pet compatibility checking
     
     Args:
         question_key: The question identifier
         user_answer: User's answer text
         breed_value: Breed's requirement value
+        breed_species: Species object containing diet_type for diet compatibility checking
     
     Returns:
         Score (0.0-1.0)
@@ -729,9 +823,9 @@ def score_question(question_key: str, user_answer: str, breed_value: Any) -> flo
     if question_key in ['okay_fragile', 'okay_special_vet']:
         return score_binary_safety(user_answer)
     
-    # Household Pets - compatibility check
+    # Household Pets - compatibility check with diet awareness
     if question_key == 'other_pets_friendly':
-        return score_household_pets(user_answer, breed_value)
+        return score_household_pets(user_answer, breed_value, breed_species)
     
     # Pet Allergies - informational, doesn't eliminate
     if question_key == 'pet_allergies':
@@ -807,8 +901,8 @@ def calculate_compatibility(answers: Dict, breed) -> Dict[str, Any]:
         else:
             breed_value = getattr(breed, attr_name, None)
         
-        # Score the question
-        score = score_question(question_key, user_answer, breed_value)
+        # Score the question (pass breed.species for diet-aware pet compatibility)
+        score = score_question(question_key, user_answer, breed_value, breed.species if breed else None)
         
         # Get metadata
         category = QUESTION_CATEGORIES.get(question_key, 'lifestyle')
@@ -929,7 +1023,7 @@ def generate_suggestions(answers: Dict, breed) -> List[Dict[str, str]]:
         attr_name, attr_source = QUESTION_TO_ATTRIBUTE[question_key]
         breed_value = getattr(breed.species, attr_name, None) if attr_source == 'species' and breed.species else getattr(breed, attr_name, None)
         
-        score = score_question(question_key, user_answer, breed_value)
+        score = score_question(question_key, user_answer, breed_value, breed.species if breed else None)
         
         if score < 0.70:
             problem_questions.append((question_key, score, user_answer, breed_value))
@@ -1139,7 +1233,7 @@ def generate_concerns(answers: Dict, breed) -> List[Dict[str, str]]:
         attr_name, attr_source = QUESTION_TO_ATTRIBUTE[question_key]
         breed_value = getattr(breed.species, attr_name, None) if attr_source == 'species' and breed.species else getattr(breed, attr_name, None)
         
-        score = score_question(question_key, user_answer, breed_value)
+        score = score_question(question_key, user_answer, breed_value, breed.species if breed else None)
         
         # Only add concerns for mismatches (score < 0.50)
         if score < 0.50 and question_key in concern_map:
@@ -1298,7 +1392,7 @@ def generate_match_reasons(answers: Dict, breed) -> Dict[str, Any]:
         attr_name, attr_source = QUESTION_TO_ATTRIBUTE[question_key]
         breed_value = getattr(breed.species, attr_name, None) if attr_source == 'species' and breed.species else getattr(breed, attr_name, None)
         
-        score = score_question(question_key, user_answer, breed_value)
+        score = score_question(question_key, user_answer, breed_value, breed.species if breed else None)
         category = QUESTION_CATEGORIES.get(question_key, 'lifestyle')
         
         # Determine if match or mismatch

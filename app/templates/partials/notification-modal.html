@@ -1,4 +1,4 @@
-<!-- Notification Detail Modal -->
+<!-- Notification Modal -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 420px !important; width: 100% !important;">
         <div class="modal-content" style="border: none; border-radius: 16px; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15); background: #ffffff; overflow: hidden;">
@@ -68,7 +68,7 @@
 
             <!-- Modal Footer - Centered & Aligned Buttons -->
             <div style="padding: 24px 30px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.01) 100%); border-top: 1px solid rgba(102, 126, 234, 0.1); display: flex; gap: 12px; justify-content: center; align-items: center;">
-                <button type="button" id="notifCloseBtn" class="btn" style="min-width: 120px; padding: 12px 24px; background: #f0f4ff; color: #667eea; border: 1.5px solid #e0e7ff; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;">
+                <button type="button" id="notifCloseBtn" class="btn" style="min-width: 120px; padding: 12px 24px; background: #f0f4ff; color: #667eea; border: 1.5px solid #e0e7ff; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;" data-dismiss="modal">
                     <i class="fas fa-times"></i> Close
                 </button>
                 <button type="button" id="notificationMarkReadBtn" class="btn" style="min-width: 140px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);">
@@ -92,6 +92,13 @@
     animation: notifFadeIn 0.35s cubic-bezier(0.23, 1, 0.320, 1) forwards !important;
     max-width: 420px !important;
     width: 100% !important;
+}
+
+/* Ensure notification items remain fully clickable */
+[data-notification-id] {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
 }
 
 @keyframes notifFadeIn {

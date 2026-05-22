@@ -126,6 +126,12 @@ def save_species():
 
     # ---- TEXT FIELDS ----
     track_change("ethical_notes", request.form.get("ethical_notes", "").strip())
+    
+    # ---- DIET TYPE ----
+    diet_type = request.form.get("diet_type", "").strip()
+    valid_diets = ['Carnivore', 'Herbivore', 'Omnivore', 'Granivore', 'Insectivore', 'Piscivore']
+    if diet_type in valid_diets or diet_type == '':
+        track_change("diet_type", diet_type if diet_type else None)
 
     # ---- IMAGE HANDLING ----
     file = request.files.get("image")

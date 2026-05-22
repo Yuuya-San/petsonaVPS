@@ -28,6 +28,7 @@ class Species(db.Model):
     requires_grooming = db.Column(db.Boolean, default=False)
     requires_enclosure = db.Column(db.Boolean, default=False)
     predatory_species = db.Column(db.Boolean, default=False)
+    diet_type = db.Column(db.Enum("Carnivore", "Herbivore", "Omnivore", "Granivore", "Insectivore", "Piscivore"), nullable=True, comment="Diet classification: Carnivore, Herbivore, Omnivore, Granivore, Insectivore, Piscivore")
     fragile_species = db.Column(db.Boolean, default=False)
     beginner_friendly = db.Column(db.Boolean,default=True,comment="False if most breeds require advanced care")
     abandonment_risk_level = db.Column(db.Enum("Low", "Medium", "High"),default="Medium",comment="Species-level abandonment trends")
@@ -89,6 +90,7 @@ class Species(db.Model):
             "requires_enclosure": self.requires_enclosure,
 
             "predatory_species": self.predatory_species,
+            "diet_type": self.diet_type,
             "fragile_species": self.fragile_species,
 
             "beginner_friendly": self.beginner_friendly,

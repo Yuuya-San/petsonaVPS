@@ -252,6 +252,33 @@ function handleNotificationItemClick(e) {
     }
 }
 
+// === ENSURE NOTIFICATION ITEMS REMAIN CLICKABLE ===
+function makeNotificationItemsClickable() {
+    const container = document.querySelector('.notifications-scroll-container');
+    if (!container) return;
+    
+    // Get all notification items
+    const items = container.querySelectorAll('[data-notification-id]');
+    
+    items.forEach(item => {
+        // Ensure they're fully clickable
+        item.style.pointerEvents = 'auto !important';
+        item.style.cursor = 'pointer !important';
+        
+        // Remove any potentially restrictive styles
+        item.style.opacity = '1 !important';
+        item.style.userSelect = 'none !important';
+        
+        // Make sure the entire item is clickable
+        if (!item.hasAttribute('data-clickable-setup')) {
+            item.addEventListener('click', function(e) {
+                handleNotificationItemClick(e);
+            }, false);
+            item.setAttribute('data-clickable-setup', 'true');
+        }
+    });
+}
+
 // === HANDLE NOTIFICATION ITEM HOVER ===
 document.addEventListener('mouseenter', function(e) {
     if (!e.target.closest) return;
@@ -348,6 +375,9 @@ function displayNotifications(notifications, unreadCount) {
     container.removeEventListener('click', handleNotificationItemClick);
     container.addEventListener('click', handleNotificationItemClick);
     
+    // Make sure all items remain clickable even after being read
+    makeNotificationItemsClickable();
+    
     // Update badge
     updateNotificationBadge(unreadCount);
 }
@@ -383,6 +413,36 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize Socket.IO when page loads
     initializeNotificationSocket();
+    
+    // Setup notification modal close button
+    const closeNotifBtn = document.getElementById('notifCloseBtn');
+    if (closeNotifBtn) {
+        closeNotifBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof $ !== 'undefined' && $.fn.modal) {
+                $('#notificationModal').modal('hide');
+            } else {
+                const modal = document.getElementById('notificationModal');
+                if (modal) modal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Setup close icon button
+    const closeIcon = document.querySelector('.close-notif-modal');
+    if (closeIcon) {
+        closeIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof $ !== 'undefined' && $.fn.modal) {
+                $('#notificationModal').modal('hide');
+            } else {
+                const modal = document.getElementById('notificationModal');
+                if (modal) modal.style.display = 'none';
+            }
+        });
+    }
     
     // Find the notifications dropdown trigger
     const notificationsDropdown = document.querySelector('[data-toggle="dropdown"][href="#"]');
@@ -427,6 +487,86 @@ document.addEventListener('DOMContentLoaded', function() {
             notificationSocket.emit('get_unread_count');
         }
     }, 30000);
+    
+    // === CONFIRM DELETE NOTIFICATION ===
+    const confirmDeleteBtn = document.getElementById('confirmDeleteNotifBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', async function() {
+            if (!notificationToDelete) return;
+            setButtonLoading(confirmDeleteBtn, true, 'Delete');
+            
+            try {
+                const response = await fetch(`/api/notifications/${notificationToDelete}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    if (typeof $ !== 'undefined' && $.fn.modal) {
+                        $('#deleteNotificationConfirmModal').modal('hide');
+                        setTimeout(function() {
+                            $('#notificationModal').modal('hide');
+                        }, 200);
+                    }
+                    if (notificationSocket) {
+                        notificationSocket.emit('get_notifications');
+                        notificationSocket.emit('get_unread_count');
+                    }
+                    showFlashMessage('Notification deleted successfully', 'success');
+                } else {
+                    showFlashMessage('Failed to delete notification', 'danger');
+                }
+            } catch (error) {
+                showFlashMessage('Error deleting notification', 'danger');
+            } finally {
+                setButtonLoading(confirmDeleteBtn, false, 'Delete');
+            }
+        });
+    }
+    
+    // === DELETE ALL NOTIFICATIONS ===
+    const deleteAllBtn = document.getElementById('deleteAllNotificationsBtn');
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', function() {
+            if (typeof $ !== 'undefined' && $.fn.modal) {
+                $('#deleteAllNotificationsModal').modal('show');
+            }
+        });
+    }
+    
+    const confirmDeleteAllBtn = document.getElementById('confirmDeleteAllNotifBtn');
+    if (confirmDeleteAllBtn) {
+        confirmDeleteAllBtn.addEventListener('click', async function() {
+            setButtonLoading(confirmDeleteAllBtn, true, 'Delete all');
+
+            try {
+                const response = await fetch('/api/notifications/delete-all', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    if (typeof $ !== 'undefined' && $.fn.modal) {
+                        $('#deleteAllNotificationsModal').modal('hide');
+                        setTimeout(function() {
+                            $('#notificationModal').modal('hide');
+                        }, 200);
+                    }
+                    if (notificationSocket) {
+                        notificationSocket.emit('get_notifications');
+                        notificationSocket.emit('get_unread_count');
+                    }
+                    showFlashMessage('All notifications deleted successfully', 'success');
+                } else {
+                    showFlashMessage('Failed to delete notifications', 'danger');
+                }
+            } catch (error) {
+                showFlashMessage('Error deleting notifications', 'danger');
+            } finally {
+                setButtonLoading(confirmDeleteAllBtn, false, 'Delete all');
+            }
+        });
+    }
 });
 
 // === MARK NOTIFICATION AS READ ===
@@ -605,24 +745,41 @@ function displayNotificationModal(notificationData) {
     // Handle View button
     const markReadBtn = document.getElementById('notificationMarkReadBtn');
     if (markReadBtn) {
+        // Remove any previous event listeners by cloning the element
+        const newMarkReadBtn = markReadBtn.cloneNode(true);
+        markReadBtn.parentNode.replaceChild(newMarkReadBtn, markReadBtn);
+        const updatedMarkReadBtn = document.getElementById('notificationMarkReadBtn');
+        
         if (viewUrl) {
-            markReadBtn.style.display = 'inline-flex';
-            markReadBtn.disabled = false;
-            markReadBtn.style.opacity = '1';
-            markReadBtn.innerHTML = '<i class="fas fa-eye"></i> View';
-            markReadBtn.onclick = function() {
+            updatedMarkReadBtn.style.display = 'inline-flex';
+            updatedMarkReadBtn.disabled = false;
+            updatedMarkReadBtn.style.opacity = '1';
+            updatedMarkReadBtn.innerHTML = '<i class="fas fa-eye"></i> View';
+            updatedMarkReadBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Mark as read if not already read
                 if (!isRead) {
                     markNotificationAsRead(notificationId);
                 }
+                // Navigate to the related resource
                 window.location.href = viewUrl;
+                return false;
             };
         } else {
-            markReadBtn.innerHTML = '<i class="fas fa-eye"></i> View';
-            markReadBtn.disabled = true;
-            markReadBtn.style.opacity = '0.6';
-            markReadBtn.style.display = 'inline-flex';
-            markReadBtn.onclick = null;
+            updatedMarkReadBtn.innerHTML = '<i class="fas fa-eye"></i> View';
+            updatedMarkReadBtn.disabled = true;
+            updatedMarkReadBtn.style.opacity = '0.6';
+            updatedMarkReadBtn.style.display = 'inline-flex';
+            updatedMarkReadBtn.onclick = null;
         }
+    }
+    
+    // Ensure close button works properly for reopening
+    const closeNotifModal = document.querySelector('.close-notif-modal');
+    if (closeNotifModal) {
+        const newCloseBtn = closeNotifModal.cloneNode(true);
+        closeNotifModal.parentNode.replaceChild(newCloseBtn, closeNotifModal);
     }
     
     // Set notification ID for delete operations
@@ -665,93 +822,6 @@ function displayNotificationModal(notificationData) {
 if (typeof notificationToDelete === 'undefined') {
     var notificationToDelete = null;
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Confirm delete notification from modal
-    const confirmDeleteBtn = document.getElementById('confirmDeleteNotifBtn');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', async function() {
-            if (!notificationToDelete) return;
-            setButtonLoading(confirmDeleteBtn, true, 'Delete');
-            
-            try {
-                const response = await fetch(`/api/notifications/${notificationToDelete}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    if (typeof $ !== 'undefined' && $.fn.modal) {
-                        $('#deleteNotificationConfirmModal').modal('hide');
-                        // Delay main modal close slightly to allow confirmation to close first
-                        setTimeout(function() {
-                            $('#notificationModal').modal('hide');
-                        }, 200);
-                    }
-                    // Refresh notifications via socket update
-                    if (notificationSocket) {
-                        notificationSocket.emit('get_notifications');
-                        notificationSocket.emit('get_unread_count');
-                    }
-                    showFlashMessage('Notification deleted successfully', 'success');
-                } else {
-                    showFlashMessage('Failed to delete notification', 'danger');
-                }
-            } catch (error) {
-                showFlashMessage('Error deleting notification', 'danger');
-            } finally {
-                setButtonLoading(confirmDeleteBtn, false, 'Delete');
-            }
-        });
-    }
-    
-    // Delete all notifications
-    const deleteAllBtn = document.getElementById('deleteAllNotificationsBtn');
-    if (deleteAllBtn) {
-        deleteAllBtn.addEventListener('click', function() {
-            if (typeof $ !== 'undefined' && $.fn.modal) {
-                $('#deleteAllNotificationsModal').modal('show');
-            }
-        });
-    }
-    
-    // Confirm delete all notifications
-    const confirmDeleteAllBtn = document.getElementById('confirmDeleteAllNotifBtn');
-    if (confirmDeleteAllBtn) {
-        confirmDeleteAllBtn.addEventListener('click', async function() {
-            setButtonLoading(confirmDeleteAllBtn, true, 'Delete all');
-
-            try {
-                const response = await fetch('/api/notifications/delete-all', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    if (typeof $ !== 'undefined' && $.fn.modal) {
-                        $('#deleteAllNotificationsModal').modal('hide');
-                        // Delay main modal close slightly to allow confirmation to close first
-                        setTimeout(function() {
-                            $('#notificationModal').modal('hide');
-                        }, 200);
-                    }
-                    // Refresh notifications via socket update
-                    if (notificationSocket) {
-                        notificationSocket.emit('get_notifications');
-                        notificationSocket.emit('get_unread_count');
-                    }
-                    showFlashMessage('All notifications deleted successfully', 'success');
-                } else {
-                    showFlashMessage('Failed to delete notifications', 'danger');
-                }
-            } catch (error) {
-                showFlashMessage('Error deleting notifications', 'danger');
-            } finally {
-                setButtonLoading(confirmDeleteAllBtn, false, 'Delete all');
-            }
-        });
-    }
-});
 
 // Store notification ID when delete is clicked (called from modal)
 function setNotificationToDelete(notificationId) {

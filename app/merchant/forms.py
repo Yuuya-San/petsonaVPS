@@ -221,6 +221,13 @@ class MerchantApplicationForm(FlaskForm):
         render_kw={'class': 'space-y-2'}
     )
 
+    custom_pets = HiddenField('Custom Pets')
+
+    def validate_pets_accepted(self, field):
+        custom_pets = request.form.getlist('custom_pets')
+        if not field.data and not any(pet.strip() for pet in custom_pets):
+            raise ValidationError('Please select at least one pet type')
+
 
     # Hidden field for service pricing JSON structure
     service_pricing_json = HiddenField('Service Pricing', validators=[Optional()])
@@ -325,7 +332,71 @@ class MerchantApplicationForm(FlaskForm):
         ]
     )
 
-    # ========== SUBMIT ==========
+    # ========== SECTION 10: MERCHANT ACCOUNT DETAILS ==========
+    merchant_fname = StringField(
+        'First Name',
+        validators=[
+            DataRequired(message='First name is required'),
+            Length(min=2, max=100, message='First name must be between 2 and 100 characters')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors',
+            'placeholder': 'First Name',
+        }
+    )
+
+    merchant_lname = StringField(
+        'Last Name',
+        validators=[
+            DataRequired(message='Last name is required'),
+            Length(min=2, max=100, message='Last name must be between 2 and 100 characters')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors',
+            'placeholder': 'Last Name',
+        }
+    )
+
+    merchant_email = StringField(
+        'Merchant Account Email',
+        validators=[
+            DataRequired(message='Email is required'),
+            Email(message='Please provide a valid email address')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors',
+            'placeholder': 'merchant@example.com',
+            'type': 'email'
+        }
+    )
+
+    merchant_password = StringField(
+        'Password',
+        validators=[
+            DataRequired(message='Password is required'),
+            Length(min=8, max=255, message='Password must be at least 8 characters')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors',
+            'placeholder': 'Min 8 chars, upper, number & special char',
+            'type': 'password'
+        }
+    )
+
+    merchant_password_confirm = StringField(
+        'Confirm Password',
+        validators=[
+            DataRequired(message='Password confirmation is required'),
+            Length(min=8, max=255, message='Password must be at least 8 characters')
+        ],
+        render_kw={
+            'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors',
+            'placeholder': 'Re-enter password',
+            'type': 'password'
+        }
+    )
+
+    # ========== TERMS & CONDITIONS ==========
     agree_terms = BooleanField(
         'I agree to the terms and conditions',
         validators=[DataRequired(message='You must agree to the terms and conditions')],
@@ -367,12 +438,34 @@ class MerchantApplicationForm(FlaskForm):
                 raise ValidationError('Please select at least one operating day')
 
     def validate_province(self, field):
-        """Require province unless NCR / Metro Manila is selected."""
-        region_value = self.region.data if hasattr(self, 'region') else ''
-        if region_value and str(region_value).strip().upper().startswith('NCR'):
-            return
+        """Require province selection for all regions (including NCR)."""
         if not field.data or not str(field.data).strip():
             raise ValidationError('Please select a province')
+
+    def validate_merchant_password_confirm(self, field):
+        """Ensure passwords match and meet complexity requirements"""
+        password = self.merchant_password.data
+        
+        # Check password complexity
+        if not any(c.isupper() for c in password):
+            raise ValidationError('Password must contain at least one uppercase letter')
+        
+        if not any(c.isdigit() for c in password):
+            raise ValidationError('Password must contain at least one number')
+        
+        if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in password):
+            raise ValidationError('Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)')
+        
+        # Check if passwords match
+        if password != field.data:
+            raise ValidationError('Passwords do not match')
+
+    def validate_merchant_email(self, field):
+        """Ensure merchant email is unique in User table"""
+        from app.models.user import User
+        existing_user = User.query.filter_by(email=field.data).first()
+        if existing_user:
+            raise ValidationError('This email is already registered. Please use a different email.')
 
 class MerchantStoreUpdateForm(FlaskForm):
     """Form for updating merchant store information - mirrors MerchantApplicationForm for editing"""
@@ -643,6 +736,13 @@ class MerchantStoreUpdateForm(FlaskForm):
         ]
     )
 
+    # ========== TERMS & CONDITIONS ==========
+    agree_terms = BooleanField(
+        'I agree to the terms and conditions',
+        validators=[DataRequired(message='You must agree to the terms and conditions')],
+        render_kw={'class': 'w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500'}
+    )
+
     # ========== SUBMIT ==========
     submit = SubmitField(
         'Save Changes',
@@ -679,9 +779,6 @@ class MerchantStoreUpdateForm(FlaskForm):
                 raise ValidationError('Please select at least one operating day')
 
     def validate_province(self, field):
-        """Require province unless NCR / Metro Manila is selected."""
-        region_value = self.region.data if hasattr(self, 'region') else ''
-        if region_value and str(region_value).strip().upper().startswith('NCR'):
-            return
+        """Require province selection for all regions (including NCR)."""
         if not field.data or not str(field.data).strip():
             raise ValidationError('Please select a province')

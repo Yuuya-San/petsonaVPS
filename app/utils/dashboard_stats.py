@@ -43,6 +43,16 @@ def get_dashboard_stats():
     # Monthly analytics
     one_month_ago = now_ph - timedelta(days=30)
     new_users_month = count(User, User.created_at >= one_month_ago, User.deleted_at.is_(None))
+    completed_bookings_month = db.session.query(func.count(Booking.id)).filter(
+        Booking.status == 'completed',
+        Booking.updated_at >= one_month_ago
+    ).scalar() or 0
+    avg_store_rating = db.session.query(func.avg(Merchant.average_rating)).filter(
+        Merchant.is_verified == True,
+        Merchant.is_open == True,
+        Merchant.deleted_at.is_(None),
+        Merchant.total_reviews > 0
+    ).scalar() or 0.0
     new_bookings_week = db.session.query(func.count(Booking.id)).filter(
         Booking.created_at >= one_week_ago
     ).scalar() or 0
@@ -65,6 +75,13 @@ def get_dashboard_stats():
     
     # Peak hours analysis
     peak_activity_hour = get_peak_activity_hour()
+    
+    # Store analytics
+    best_store_month = get_best_store_of_month()
+    top_stores_bookings = get_top_stores_by_bookings(5)
+    top_stores_ratings = get_top_stores_by_rating(5)
+    store_performance_data = get_store_performance_trends(7)
+    total_active_stores = count(Merchant, Merchant.is_open == True, Merchant.is_verified == True, Merchant.deleted_at.is_(None))
     
     return {
         # Basic counts
@@ -103,6 +120,15 @@ def get_dashboard_stats():
         "daily_users": daily_users,
         "user_growth_trend": user_growth_trend,
         "peak_activity_hour": peak_activity_hour,
+        
+        # Store analytics
+        "best_store_month": best_store_month,
+        "top_stores_bookings": top_stores_bookings,
+        "top_stores_ratings": top_stores_ratings,
+        "store_performance_data": store_performance_data,
+        "total_active_stores": total_active_stores,
+        "completed_bookings_month": completed_bookings_month,
+        "avg_store_rating": f"{avg_store_rating:.1f}",
     }
 
 def get_daily_user_stats(days=7):
@@ -241,3 +267,179 @@ def get_peak_activity_hour():
         display_hour = hour if hour <= 12 else hour - 12
         display_hour = 12 if display_hour == 0 else display_hour
         return f"{display_hour}:00 - {display_hour}:59 {period}"
+
+# ============================================================================
+# STORE ANALYTICS FUNCTIONS
+# ============================================================================
+
+def get_best_store_of_month():
+    """Get the best performing store of the month based on completed bookings and ratings"""
+    now_ph = datetime.now(PH_TZ)
+    month_start = now_ph.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    try:
+        # Get stores with completed bookings this month, sorted by bookings then rating
+        best_store = db.session.query(
+            Merchant.id,
+            Merchant.business_name,
+            Merchant.average_rating,
+            Merchant.total_reviews,
+            func.count(Booking.id).label('completed_bookings')
+        ).outerjoin(
+            Booking,
+            (Booking.merchant_id == Merchant.id) & 
+            (Booking.status == 'completed') & 
+            (Booking.updated_at >= month_start)
+        ).filter(
+            Merchant.is_verified == True,
+            Merchant.is_open == True,
+            Merchant.deleted_at.is_(None)
+        ).group_by(
+            Merchant.id,
+            Merchant.business_name,
+            Merchant.average_rating,
+            Merchant.total_reviews
+        ).having(
+            func.count(Booking.id) > 0
+        ).order_by(
+            func.count(Booking.id).desc(),
+            Merchant.average_rating.desc()
+        ).first()
+        
+        if best_store:
+            return {
+                "id": best_store[0],
+                "name": best_store[1],
+                "rating": float(best_store[2] or 0.0),
+                "reviews": best_store[3] or 0,
+                "completed_bookings": best_store[4] or 0,
+            }
+    except Exception as e:
+        print(f"Error getting best store of month: {e}")
+    
+    return None
+
+def get_top_stores_by_bookings(limit=5):
+    """Get top stores by number of completed bookings in the current month"""
+    now_ph = datetime.now(PH_TZ)
+    month_start = now_ph.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    try:
+        stores = db.session.query(
+            Merchant.id,
+            Merchant.business_name,
+            Merchant.average_rating,
+            Merchant.total_reviews,
+            func.count(Booking.id).label('completed_bookings')
+        ).outerjoin(
+            Booking,
+            (Booking.merchant_id == Merchant.id) & 
+            (Booking.status == 'completed') & 
+            (Booking.updated_at >= month_start)
+        ).filter(
+            Merchant.is_verified == True,
+            Merchant.is_open == True,
+            Merchant.deleted_at.is_(None)
+        ).group_by(
+            Merchant.id,
+            Merchant.business_name,
+            Merchant.average_rating,
+            Merchant.total_reviews
+        ).having(
+            func.count(Booking.id) > 0
+        ).order_by(
+            func.count(Booking.id).desc()
+        ).limit(limit).all()
+        
+        result = []
+        for rank, store in enumerate(stores, 1):
+            result.append({
+                "rank": rank,
+                "id": store[0],
+                "name": store[1],
+                "rating": float(store[2] or 0.0),
+                "reviews": store[3] or 0,
+                "completed_bookings": store[4] or 0,
+            })
+        return result
+    except Exception as e:
+        print(f"Error getting top stores by bookings: {e}")
+    
+    return []
+
+def get_top_stores_by_rating(limit=5):
+    """Get top stores by customer rating with minimum reviews"""
+    try:
+        # Only include stores with at least 1 review
+        stores = db.session.query(
+            Merchant.id,
+            Merchant.business_name,
+            Merchant.average_rating,
+            Merchant.total_reviews,
+            func.count(Booking.id).label('total_bookings')
+        ).outerjoin(
+            Booking,
+            Booking.merchant_id == Merchant.id
+        ).filter(
+            Merchant.is_verified == True,
+            Merchant.is_open == True,
+            Merchant.deleted_at.is_(None),
+            Merchant.total_reviews > 0  # Only stores with reviews
+        ).group_by(
+            Merchant.id,
+            Merchant.business_name,
+            Merchant.average_rating,
+            Merchant.total_reviews
+        ).order_by(
+            Merchant.average_rating.desc(),
+            Merchant.total_reviews.desc()
+        ).limit(limit).all()
+        
+        result = []
+        for rank, store in enumerate(stores, 1):
+            result.append({
+                "rank": rank,
+                "id": store[0],
+                "name": store[1],
+                "rating": float(store[2] or 0.0),
+                "reviews": store[3] or 0,
+                "total_bookings": store[4] or 0,
+            })
+        return result
+    except Exception as e:
+        print(f"Error getting top stores by rating: {e}")
+    
+    return []
+
+def get_store_performance_trends(days=7):
+    """Get store performance data for the last N days"""
+    now_ph = datetime.now(PH_TZ)
+    stats = {}
+    
+    try:
+        for i in range(days - 1, -1, -1):
+            date = now_ph - timedelta(days=i)
+            date_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+            date_end = date.replace(hour=23, minute=59, second=59, microsecond=999999)
+            
+            completed_bookings = db.session.query(func.count(Booking.id)).filter(
+                Booking.status == 'completed',
+                Booking.updated_at >= date_start,
+                Booking.updated_at <= date_end
+            ).scalar() or 0
+            
+            total_bookings = db.session.query(func.count(Booking.id)).filter(
+                Booking.created_at >= date_start,
+                Booking.created_at <= date_end
+            ).scalar() or 0
+            
+            stats[date.strftime('%b %d')] = {
+                "completed": completed_bookings,
+                "total": total_bookings,
+            }
+        
+        return stats
+    except Exception as e:
+        print(f"Error getting store performance trends: {e}")
+    
+    return stats

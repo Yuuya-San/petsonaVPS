@@ -420,11 +420,12 @@ document.addEventListener('DOMContentLoaded', function() {
         closeNotifBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            if (typeof $ !== 'undefined' && $.fn.modal) {
-                $('#notificationModal').modal('hide');
-            } else {
-                const modal = document.getElementById('notificationModal');
-                if (modal) modal.style.display = 'none';
+            const modal = document.getElementById('notificationModal');
+            if (modal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal);
+                bsModal.hide();
+            } else if (modal) {
+                modal.style.display = 'none';
             }
         });
     }
@@ -435,11 +436,12 @@ document.addEventListener('DOMContentLoaded', function() {
         closeIcon.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            if (typeof $ !== 'undefined' && $.fn.modal) {
-                $('#notificationModal').modal('hide');
-            } else {
-                const modal = document.getElementById('notificationModal');
-                if (modal) modal.style.display = 'none';
+            const modal = document.getElementById('notificationModal');
+            if (modal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal);
+                bsModal.hide();
+            } else if (modal) {
+                modal.style.display = 'none';
             }
         });
     }
@@ -502,10 +504,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 if (response.ok) {
-                    if (typeof $ !== 'undefined' && $.fn.modal) {
-                        $('#deleteNotificationConfirmModal').modal('hide');
+                    const confirmModal = document.getElementById('deleteNotificationConfirmModal');
+                    const notifModal = document.getElementById('notificationModal');
+                    if (confirmModal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const bsConfirmModal = bootstrap.Modal.getInstance(confirmModal) || new bootstrap.Modal(confirmModal);
+                        bsConfirmModal.hide();
                         setTimeout(function() {
-                            $('#notificationModal').modal('hide');
+                            if (notifModal) {
+                                const bsNotifModal = bootstrap.Modal.getInstance(notifModal) || new bootstrap.Modal(notifModal);
+                                bsNotifModal.hide();
+                            }
                         }, 200);
                     }
                     if (notificationSocket) {
@@ -528,8 +536,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteAllBtn = document.getElementById('deleteAllNotificationsBtn');
     if (deleteAllBtn) {
         deleteAllBtn.addEventListener('click', function() {
-            if (typeof $ !== 'undefined' && $.fn.modal) {
-                $('#deleteAllNotificationsModal').modal('show');
+            const deleteAllModal = document.getElementById('deleteAllNotificationsModal');
+            if (deleteAllModal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const bsModal = bootstrap.Modal.getInstance(deleteAllModal) || new bootstrap.Modal(deleteAllModal);
+                bsModal.show();
             }
         });
     }
@@ -546,10 +556,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 if (response.ok) {
-                    if (typeof $ !== 'undefined' && $.fn.modal) {
-                        $('#deleteAllNotificationsModal').modal('hide');
+                    const deleteAllModal = document.getElementById('deleteAllNotificationsModal');
+                    const notifModal = document.getElementById('notificationModal');
+                    if (deleteAllModal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const bsDeleteAllModal = bootstrap.Modal.getInstance(deleteAllModal) || new bootstrap.Modal(deleteAllModal);
+                        bsDeleteAllModal.hide();
                         setTimeout(function() {
-                            $('#notificationModal').modal('hide');
+                            if (notifModal) {
+                                const bsNotifModal = bootstrap.Modal.getInstance(notifModal) || new bootstrap.Modal(notifModal);
+                                bsNotifModal.hide();
+                            }
                         }, 200);
                     }
                     if (notificationSocket) {
@@ -787,15 +803,14 @@ function displayNotificationModal(notificationData) {
     
     // Show modal with proper Bootstrap handling
     try {
-        if (typeof $ !== 'undefined' && $.fn.modal) {
-            // Ensure modal is properly set up
-            const $modal = $('#notificationModal');
-            $modal.modal({
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            // Use Bootstrap 5 native API
+            const bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal, {
                 backdrop: 'static',
                 keyboard: true,
                 focus: true
             });
-            $modal.modal('show');
+            bsModal.show();
         } else {
             // Fallback for non-Bootstrap environments
             modal.style.display = 'block';
@@ -810,8 +825,10 @@ function displayNotificationModal(notificationData) {
     const deleteBtn = document.getElementById('notifDeleteBtn');
     if (deleteBtn) {
         deleteBtn.onclick = function() {
-            if (typeof $ !== 'undefined' && $.fn.modal) {
-                $('#deleteNotificationConfirmModal').modal('show');
+            const deleteConfirmModal = document.getElementById('deleteNotificationConfirmModal');
+            if (deleteConfirmModal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const bsModal = bootstrap.Modal.getInstance(deleteConfirmModal) || new bootstrap.Modal(deleteConfirmModal);
+                bsModal.show();
             }
         };
     }

@@ -1003,7 +1003,7 @@
             </button>
 
             <!-- MATCH BUTTON -->
-            <a href="{{ url_for('matching.quiz_specific', breed_id=breed.id) }}"
+            <a href="{% if current_user.is_authenticated and current_user.is_basic_plan and not current_user.is_admin %}{{ url_for('user.subscription') }}{% else %}{{ url_for('matching.quiz_specific', breed_id=breed.id) }}{% endif %}"
             class="flex-1 text-center
                     bg-white/20 backdrop-blur-md
                     border border-purple-200/40
@@ -1521,10 +1521,14 @@
           </div>
         </template>
 
-        <!-- INFO ALERT -->
-        <div class="info-alert">
-          <i class="fa-solid fa-circle-info"></i>
-          <span class="text-sm">Review all information above for complete breed details.</span>
+        <div class="mt-4">
+          <div class="font-semibold text-sm text-blue-800 mb-2">Disclaimer Notice</div>
+          <div class="info-alert bg-blue-50 border-blue-200 text-blue-900">
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-info mt-0.5 text-blue-600"></i>
+              <span class="text-sm">This profile reflects recent research and general guidance; it may not be fully accurate for every pet. Please review additional sources and study further to confirm details.</span>
+            </div>
+          </div>
         </div>
 
       </div>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Application Approved - Petsona</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background-color: #f9fafb;
+        }
+        .email-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .email-container {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 13px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background: #ffffff;
+            padding: 32px 40px;
+            text-align: center;
+            border-bottom: 3px solid #7c3aed;
+        }
+        .logo-container {
+            margin-bottom: 16px;
+        }
+        .logo-container img {
+            width: 48px;
+            height: 48px;
+            display: inline-block;
+        }
+        .header h1 {
+            margin: 12px 0 0 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #7c3aed;
+            letter-spacing: -0.5px;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        .message {
+            font-size: 15px;
+            color: #4b5563;
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+        .notification-badge {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #047857;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        .notification-badge.success {
+            background: #ecfdf5;
+            color: #047857;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #7c3aed;
+            color: #ffffff !important;
+            padding: 14px 48px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cta-button:hover {
+            background: #6d28d9;
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+            transform: translateY(-2px);
+        }
+        .info-box {
+            background: #f3f4f6;
+            border-left: 4px solid #7c3aed;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 24px 0;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        .info-box strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 32px 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer-logo {
+            margin-bottom: 16px;
+        }
+        .footer-logo img {
+            width: 32px;
+            height: 32px;
+            display: inline-block;
+        }
+        .footer-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 12px 0;
+        }
+        .footer-links {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 16px;
+        }
+        .footer-links a {
+            color: #7c3aed;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .timestamp {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <div class="header">
+                <div class="logo-container">
+                    <img src="https://cdn.jsdelivr.net/gh/RealPeachy/petsona-assets/logo.png" alt="Petsona Logo">
+                </div>
+                <h1>Petsona</h1>
+                <p class="header-subtitle">Your merchant application is approved</p>
+            </div>
+            <div class="content">
+                <p class="greeting">Hi there,</p>
+                <div class="notification-badge success">Merchant Application Approved</div>
+                <p class="message">Great news — your merchant application for <strong>{{ business_name }}</strong> has been approved. Your merchant account is now ready, and you can log in using the button below to manage your merchant dashboard.</p>
+                <div class="info-box">
+                    <strong>Application Details</strong>
+                    Business Name: {{ business_name }}<br>
+                    Contact Email: {{ contact_email }}<br>
+                    Review Date: {{ current_time }}
+                </div>
+                <div class="cta-section">
+                    <a href="{{ login_url }}" class="cta-button">Go to Merchant Login</a>
+                </div>
+                <p class="message">If you have any questions, reply to this email or reach out to our support team for assistance.</p>
+            </div>
+            <div class="footer">
+                <div class="footer-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/RealPeachy/petsona-assets/logo.png" alt="Petsona">
+                </div>
+                <p class="footer-text">Petsona Support Team</p>
+                <p class="footer-text">Need help? Email us at <a href="mailto:petsona.helpcare@gmail.com">petsona.helpcare@gmail.com</a></p>
+                <div class="footer-links">
+                    <a href="https://petsona.app">Visit Petsona</a>
+                </div>
+                <p class="timestamp">Sent on {{ current_time }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

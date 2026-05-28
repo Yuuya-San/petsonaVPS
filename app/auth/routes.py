@@ -1003,3 +1003,13 @@ def change_temp_password():
     
     return render_template('auth/change_temp_password.html', form=form)
 
+
+@bp.route('/apply', methods=['GET', 'POST'])
+def apply():
+    """Public apply page - redirects to merchant.apply form
+    Accessible to both authenticated and unauthenticated users
+    """
+    # Redirect all users to the merchant apply form
+    return redirect(url_for('merchant.apply'))
+
+

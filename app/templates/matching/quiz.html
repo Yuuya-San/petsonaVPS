@@ -77,7 +77,245 @@
   .loading-text {
     animation: pulse 1.5s ease-in-out infinite;
   }
+
+  .modal {
+    display: none;
+    position: fixed !important;
+    inset: 0;
+    width: 100vw;
+    min-height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 999999;
+    animation: fadeIn 0.3s ease;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2rem 1rem;
+  }
+
+  .modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background: #ffffff;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 520px;
+    width: min(520px, 90vw);
+    max-height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin: auto;
+    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+    animation: slideUp 0.4s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+  }
+
+  .modal-header h2 {
+    color: #36064D;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #36064D;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .modal-close:hover {
+    color: #6366f1;
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    color: #36064D;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding-right: 0.25rem;
+  }
+
+  .modal-body h3 {
+    color: #6366f1;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.2rem 0 0.6rem 0;
+  }
+
+  .modal-body p {
+    margin: 0.8rem 0;
+    color: #36064D;
+  }
+
+  .modal-body ul {
+    margin: 0.8rem 0;
+    padding-left: 1.2rem;
+  }
+
+  .modal-body li {
+    margin: 0.5rem 0;
+    color: #36064D;
+  }
+
+  .modal-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid rgba(99, 102, 241, 0.2);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+
+  .modal-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+
+  .modal-btn-close {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  .modal-btn-close:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  }
+
+  .disclaimer-btn {
+    background: none;
+    border: none;
+    color: #6366f1;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+
+  .disclaimer-btn:hover {
+    color: #4f46e5;
+  }
+
+  @media (max-width: 480px) {
+    .modal-content {
+      padding: 1.5rem;
+      max-height: calc(100vh - 4rem);
+    }
+
+    .modal-header h2 {
+      font-size: 1.2rem;
+    }
+
+    .modal-body {
+      font-size: 0.85rem;
+    }
+
+    .modal-body h3 {
+      font-size: 1rem;
+    }
+
+    .modal-footer {
+      flex-direction: column;
+    }
+
+    .modal-btn {
+      width: 100%;
+    }
+  }
 </style>
+
+<div id="disclaimerModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Results Disclaimer</h2>
+      <button class="modal-close" onclick="closeDisclaimerModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h3>Informational Nature of Recommendations</h3>
+      <p>PetSona's recommendation systems provide informational guidance based on compatibility indicators, personality assessments, lifestyle preferences, and automated analysis. Recommendations are estimates only and should not be interpreted as guarantees.</p>
+      <h3>No Guarantee of Compatibility</h3>
+      <p>PetSona does not guarantee:</p>
+      <ul>
+        <li>Behavioral compatibility</li>
+        <li>Health outcomes</li>
+        <li>Temperament consistency</li>
+        <li>Adoption success</li>
+        <li>Long-term owner satisfaction</li>
+        <li>Training outcomes</li>
+      </ul>
+      <p>Every animal possesses unique traits, behaviors, and needs that may differ from generalized breed or species characteristics.</p>
+      <h3>Independent Research</h3>
+      <p>Users are strongly encouraged to:</p>
+      <ul>
+        <li>Conduct independent research</li>
+        <li>Consult veterinarians and professionals</li>
+        <li>Personally interact with animals</li>
+        <li>Evaluate financial and long-term responsibilities before making adoption or ownership decisions</li>
+      </ul>
+      <h3>No Professional Advice</h3>
+      <p>PetSona does not provide veterinary, medical, behavioral, legal, or professional certifications or advice.</p>
+      <h3>User Responsibility</h3>
+      <p>Users remain fully responsible for:</p>
+      <ul>
+        <li>Adoption decisions</li>
+        <li>Ownership responsibilities</li>
+        <li>Animal welfare</li>
+        <li>Healthcare decisions</li>
+        <li>Training and long-term care</li>
+      </ul>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-close" onclick="closeDisclaimerModal()">I Understand</button>
+    </div>
+  </div>
+</div>
 
 <div class="min-h-screen flex justify-center petsona-page-fade" style="background-color: rgba(249, 250, 251, 0.5);">
   <div class="w-[95vw] md:w-[90vw] max-w-[95vw] md:max-w-[90vw] mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6 space-y-6 sm:space-y-8">
@@ -85,9 +323,6 @@
     <!-- Quiz Introduction -->
     <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-3xl p-6 sm:p-8 border border-indigo-100">
       <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div class="flex-shrink-0">
-          <i class="fa-solid fa-heart text-2xl text-indigo-600"></i>
-        </div>
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Find Your Perfect Pet Match</h1>
           <p class="text-gray-700 text-sm sm:text-base leading-relaxed">
@@ -95,6 +330,16 @@
             This quiz measures real compatibility: how well your daily life matches what a pet actually needs. 
             We prioritize pet welfare first, so you get honest guidance about which pets are right for you.
           </p>
+          <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-xs sm:text-sm text-blue-900">
+              <i class="fa-solid fa-info-circle mr-2"></i>
+              <strong>Honest assessment:</strong> We'll tell you if this is a great fit, a decent match, or if there are challenges you should consider.
+            </p>
+            <button class="disclaimer-btn mt-3 inline-flex items-center gap-2" onclick="openDisclaimerModal()">
+              <i class="fa-solid fa-info-circle" style="margin-right: 0.4rem;"></i>
+              View Disclaimer
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -215,6 +460,37 @@
 
   </div>
 </div>
+
+<script>
+  function openDisclaimerModal() {
+    const modal = document.getElementById('disclaimerModal');
+    if (modal) {
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeDisclaimerModal() {
+    const modal = document.getElementById('disclaimerModal');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.addEventListener('click', function(event) {
+    const modal = document.getElementById('disclaimerModal');
+    if (modal && modal.classList.contains('show') && event.target === modal) {
+      closeDisclaimerModal();
+    }
+  });
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeDisclaimerModal();
+    }
+  });
+</script>
 
 <script>
   function quizApp() {

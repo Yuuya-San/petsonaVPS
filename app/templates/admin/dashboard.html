@@ -579,6 +579,257 @@
 }
 
 /* ================================
+   STORE ANALYTICS STYLES
+================================ */
+
+/* Best Store of the Month Container */
+.best-store-container {
+  margin-bottom: 2.5rem;
+  animation: bestStoreSlideIn 0.6s ease-out;
+}
+
+@keyframes bestStoreSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.best-store-card {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  border-radius: 18px;
+  padding: 3rem 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.3);
+  color: white;
+}
+
+.best-store-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.best-store-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -5%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+}
+
+.best-store-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3rem;
+}
+
+.best-store-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.best-store-badge i {
+  margin-right: 0.5rem;
+}
+
+.best-store-name {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  margin-bottom: 1.5rem;
+}
+
+.best-store-stats {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.best-store-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.best-store-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.best-store-stat-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.best-store-divider {
+  width: 2px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.best-store-decoration {
+  font-size: 6rem;
+  opacity: 0.15;
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.star-rating {
+  display: flex;
+  gap: 0.3rem;
+  font-size: 1.2rem;
+}
+
+/* Top Stores Grid */
+.top-stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.store-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.8rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.store-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: #8b5cf6;
+}
+
+.store-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.store-rank {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.store-rank-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.store-card:hover .store-rank-number {
+  transform: scale(1.05);
+}
+
+.store-rank-icon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 1.5rem;
+  display: none;
+}
+
+.store-card:first-child .store-rank-icon,
+.store-card:nth-child(2) .store-rank-icon,
+.store-card:nth-child(3) .store-rank-icon {
+  display: block;
+}
+
+.store-name {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.store-card-metrics {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.store-metric {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex: 1;
+  min-width: 120px;
+}
+
+.store-metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  color: #8b5cf6;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.store-metric-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.store-metric-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* ================================
    ACTIVITY SECTION
 ================================ */
 .activity-card {
@@ -875,6 +1126,16 @@
     grid-template-columns: 1fr; /* Single column for system records */
   }
 
+  .top-stores-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .best-store-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
   .section-container {
     padding: 1.8rem;
   }
@@ -965,6 +1226,30 @@
 
   .engagement-metrics-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .top-stores-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .best-store-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .best-store-name {
+    font-size: 2rem;
+  }
+
+  .best-store-stats {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .best-store-divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
   }
 }
 
@@ -1818,6 +2103,243 @@
       </div>
     </div>
 
+    <!-- ============================================================================ -->
+    <!-- STORE ANALYTICS SECTION -->
+    <!-- ============================================================================ -->
+
+    <!-- BEST STORE OF THE MONTH BADGE -->
+    {% if stats.best_store_month %}
+    <div class="best-store-container">
+      <div class="best-store-card">
+        <div class="best-store-badge">
+          <i class="fas fa-crown"></i> BEST STORE OF THE MONTH
+        </div>
+        
+        <div class="best-store-content">
+          <div class="best-store-info">
+            <h2 class="best-store-name">{{ stats.best_store_month.name }}</h2>
+            
+            <div class="best-store-stats">
+              <div class="best-store-stat">
+                <div class="best-store-stat-value">{{ stats.best_store_month.completed_bookings }}</div>
+                <div class="best-store-stat-label">Completed Bookings</div>
+              </div>
+              
+              <div class="best-store-divider"></div>
+              
+              <div class="best-store-stat">
+                <div class="best-store-stat-value">
+                  <span class="star-rating">
+                    {% for i in range(5) %}
+                      <i class="fas fa-star" style="color: {% if i < stats.best_store_month.rating|round %}#fbbf24{% else %}#e5e7eb{% endif %};"></i>
+                    {% endfor %}
+                  </span>
+                  {{ "%.1f"|format(stats.best_store_month.rating) }}
+                </div>
+                <div class="best-store-stat-label">{{ stats.best_store_month.reviews }} Reviews</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="best-store-decoration">
+            <i class="fas fa-certificate"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- STORE PERFORMANCE METRICS -->
+    <div class="section-container">
+      <div class="key-metrics-header">
+        <div class="section-title">
+          <i class="fas fa-store"></i>
+          Store Performance Overview
+        </div>
+        <span class="metric-period-badge">
+          <i class="fas fa-chart-bar"></i> This Month
+        </span>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon providers">
+            <lord-icon
+                src="https://cdn.lordicon.com/avpdkoem.json"
+                trigger="hover"
+                stroke="bold"
+                style="width:50px;height:50px">
+            </lord-icon>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Active Stores</span>
+            <span class="metric-value">{{ stats.total_active_stores | default(0, true) }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon bookings">
+            <lord-icon
+                src="https://cdn.lordicon.com/zapeeghn.json"
+                trigger="morph"
+                stroke="bold"
+                state="morph-fill"
+                style="width:50px;height:50px">
+            </lord-icon>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Total Bookings</span>
+            <span class="metric-value">{{ stats.bookings | default(0, true) }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+            <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Completed This Month</span>
+            <span class="metric-value" id="completedBookingsMonth">0</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+            <i class="fas fa-star" style="font-size: 2rem;"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Avg Store Rating</span>
+            <span class="metric-value" id="avgStoreRating">0.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STORE PERFORMANCE CHARTS -->
+    <div class="chart-card">
+      <div class="chart-display-container">
+        <div class="analytics-grid">
+          <!-- Stores by Completed Bookings Chart -->
+          <div class="chart-container">
+            <div class="chart-title">
+              <i class="fas fa-chart-bar"></i>
+              Bookings Completion Trend (Last 7 Days)
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="storePerformanceChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Top Stores by Bookings Chart -->
+          <div class="chart-container">
+            <div class="chart-title">
+              <i class="fas fa-trophy"></i>
+              Top 5 Stores by Completed Bookings
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="topStoresBookingsChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP STORES BY BOOKINGS -->
+    <div class="section-container">
+      <div class="section-title">
+        <i class="fas fa-fire"></i>
+        Top Performing Stores (by Bookings)
+      </div>
+
+      <div class="top-stores-grid">
+        {% for store in stats.top_stores_bookings %}
+        <div class="store-card">
+          <div class="store-card-header">
+            <div class="store-rank">
+              <span class="store-rank-number">{{ store.rank }}</span>
+              {% if store.rank == 1 %}
+                <span class="store-rank-icon"><i class="fas fa-crown"></i></span>
+              {% elif store.rank == 2 %}
+                <span class="store-rank-icon"><i class="fas fa-medal" style="color: #c0c0c0;"></i></span>
+              {% elif store.rank == 3 %}
+                <span class="store-rank-icon"><i class="fas fa-medal" style="color: #cd7f32;"></i></span>
+              {% endif %}
+            </div>
+            <div class="store-name">{{ store.name }}</div>
+          </div>
+
+          <div class="store-card-metrics">
+            <div class="store-metric">
+              <div class="store-metric-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div>
+                <div class="store-metric-value">{{ store.completed_bookings }}</div>
+                <div class="store-metric-label">Completed</div>
+              </div>
+            </div>
+
+            <div class="store-metric">
+              <div class="store-metric-icon" style="color: #f59e0b;">
+                <i class="fas fa-star"></i>
+              </div>
+              <div>
+                <div class="store-metric-value">{{ "%.1f"|format(store.rating) }}</div>
+                <div class="store-metric-label">{{ store.reviews }} Reviews</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- TOP STORES BY RATING -->
+    <div class="section-container">
+      <div class="section-title">
+        <i class="fas fa-star"></i>
+        Highest Rated Stores
+      </div>
+
+      <div class="top-stores-grid">
+        {% for store in stats.top_stores_ratings %}
+        <div class="store-card">
+          <div class="store-card-header">
+            <div class="store-rank">
+              <span class="store-rank-number">{{ store.rank }}</span>
+              {% if store.rank == 1 %}
+                <span class="store-rank-icon"><i class="fas fa-star" style="color: #fbbf24;"></i></span>
+              {% endif %}
+            </div>
+            <div class="store-name">{{ store.name }}</div>
+          </div>
+
+          <div class="store-card-metrics">
+            <div class="store-metric">
+              <div class="store-metric-icon" style="color: #f59e0b;">
+                <i class="fas fa-star"></i>
+              </div>
+              <div>
+                <div class="store-metric-value">{{ "%.1f"|format(store.rating) }}</div>
+                <div class="store-metric-label">{{ store.reviews }} Reviews</div>
+              </div>
+            </div>
+
+            <div class="store-metric">
+              <div class="store-metric-icon">
+                <i class="fas fa-shopping-cart"></i>
+              </div>
+              <div>
+                <div class="store-metric-value">{{ store.total_bookings }}</div>
+                <div class="store-metric-label">Total Bookings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
     <!-- Recent Activities -->
     <div class="dashboard-grid">
       <div class="section-container">
@@ -1859,7 +2381,11 @@
 {
   "daily_users": {{ stats.daily_users | tojson | safe }},
   "user_growth_trend": {{ stats.user_growth_trend | tojson | safe }},
-  "active_users": {{ stats.active_users | default(0, true) }}
+  "active_users": {{ stats.active_users | default(0, true) }},
+  "store_performance_data": {{ stats.store_performance_data | tojson | safe }},
+  "top_stores_bookings": {{ stats.top_stores_bookings | tojson | safe }},
+  "completed_bookings_month": {{ stats.completed_bookings_month | default(0, true) }},
+  "avg_store_rating": {{ stats.avg_store_rating | default('0.0', true) }}
 }
 </script>
 

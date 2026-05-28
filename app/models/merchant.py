@@ -20,7 +20,8 @@ class Merchant(db.Model):
     __tablename__ = "merchants"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True)
+    # Allow nullable user_id so applicants can submit without an account
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('merchant', uselist=False, cascade='all, delete-orphan'), primaryjoin='Merchant.user_id==User.id')
     
     reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -75,6 +76,12 @@ class Merchant(db.Model):
     submitted_at = db.Column(db.DateTime, default=get_utc_now, nullable=False)
     reviewed_at = db.Column(db.DateTime, nullable=True)
     rejection_reason = db.Column(LONGTEXT, nullable=True)
+    
+    # ========== MERCHANT ACCOUNT APPLICATION DATA (Temporary - for admin to create User account) ==========
+    # These fields store the credentials submitted during application
+    # They are used ONLY during the approval process to create the merchant User account
+    # After approval, these become empty as the actual merchant account is a User record
+    application_data = db.Column(JSON, nullable=True)  # Stores merchant_fname, merchant_lname, merchant_email, merchant_password_hash
 
     created_at = db.Column(db.DateTime, default=get_utc_now)
     updated_at = db.Column(db.DateTime, default=get_utc_now, onupdate=get_utc_now)
@@ -83,7 +90,7 @@ class Merchant(db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     is_open = db.Column(db.Boolean, default=True)  # Store open/closed status
 
-    # ========== SECTION 11: RATINGS & REVIEWS (Shopee-inspired) ==========
+    # ========== SECTION 12: RATINGS & REVIEWS (Shopee-inspired) ==========
     average_rating = db.Column(db.Float, default=0.0, nullable=False)  # 0-5 stars
     total_reviews = db.Column(db.Integer, default=0, nullable=False)  # Total review count
     
@@ -194,6 +201,10 @@ class Merchant(db.Model):
         """Returns accepted pets as list"""
         return self.pets_accepted if isinstance(self.pets_accepted, list) else []
 
+    def get_custom_pets_list(self):
+        """Returns custom pet names as list. Custom pets are merged into pets_accepted."""
+        return []
+
     def get_operating_days(self):
         """Returns operating days as list of integers (0-6, Monday-Sunday)"""
         day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -225,9 +236,60 @@ class Merchant(db.Model):
         """Returns facility photos as list"""
         return self.facility_photos_paths if isinstance(self.facility_photos_paths, list) else []
 
+    @property
+    def facility_photos_list(self):
+        """Property for template access to facility photos"""
+        return self.get_facility_photos()
+
     def get_service_pricing(self):
         """Returns service pricing configuration"""
         return self.service_pricing if isinstance(self.service_pricing, dict) else {}
+
+    @property
+    def service_pricing_json(self):
+        """Property for template access to service pricing as JSON-serializable object"""
+        return self.get_service_pricing()
+
+    @property
+    def merchant_fname(self):
+        """Get merchant first name from user relationship or application_data"""
+        if self.user:
+            return self.user.first_name
+        if self.application_data and isinstance(self.application_data, dict):
+            return self.application_data.get('merchant_fname', '')
+        return ''
+
+    @property
+    def merchant_lname(self):
+        """Get merchant last name from user relationship or application_data"""
+        if self.user:
+            return self.user.last_name
+        if self.application_data and isinstance(self.application_data, dict):
+            return self.application_data.get('merchant_lname', '')
+        return ''
+
+    @property
+    def merchant_email(self):
+        """Get merchant email from user relationship or application_data"""
+        if self.user:
+            return self.user.email
+        if self.application_data and isinstance(self.application_data, dict):
+            return self.application_data.get('merchant_email', '')
+        return ''
+
+    @property
+    def government_id_filename(self):
+        """Extract filename from government_id_path"""
+        if self.government_id_path and '/' in self.government_id_path:
+            return self.government_id_path.split('/')[-1]
+        return self.government_id_path or ''
+
+    @property
+    def business_permit_filename(self):
+        """Extract filename from business_permit_path"""
+        if self.business_permit_path and '/' in self.business_permit_path:
+            return self.business_permit_path.split('/')[-1]
+        return self.business_permit_path or ''
 
     def get_price_for_service(self, service_name, size=None, duration=None):
         """
@@ -280,7 +342,8 @@ class Merchant(db.Model):
         """Returns logo URL or placeholder"""
         from flask import url_for
         if self.logo_path:
-            return url_for('static', filename=f'uploads/merchants/{self.id}/{self.logo_path}')
+            # logo_path already contains the relative path (e.g., 'merchants/<user_id>/filename')
+            return url_for('static', filename=f'uploads/{self.logo_path}')
         # Return placeholder with business initials
         initials = ''.join([word[0].upper() for word in self.business_name.split()[:2]])
         return f"https://via.placeholder.com/300x300?text={initials}"

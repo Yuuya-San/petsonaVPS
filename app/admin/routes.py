@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, abort, jsonify, make_response # pyright: ignore[reportMissingImports]
+from flask import render_template, flash, redirect, url_for, abort, jsonify, make_response, current_app # pyright: ignore[reportMissingImports]
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.admin import bp
 from flask import request # pyright: ignore[reportMissingImports]
@@ -13,7 +13,7 @@ from app.models.notification import Notification
 from app import db
 from sqlalchemy import func, or_, cast # pyright: ignore[reportMissingImports]
 import random
-from app.auth.emails import send_temp_credentials
+from app.auth.emails import send_temp_credentials, send_email
 from app.utils.audit import log_event, user_snapshot, log_action_with_changes
 import csv
 import json
@@ -27,6 +27,8 @@ from app.utils.admin_security_monitor import AdminSecurityMonitor, get_user_secu
 from app.decorators import admin_required
 import pytz
 import logging
+
+logger = logging.getLogger(__name__)
 
 # Philippine timezone helper
 PH_TZ = pytz.timezone('Asia/Manila')
@@ -670,6 +672,7 @@ def get_merchants():
                     'reviewed_at': merchant.reviewed_at.isoformat() if merchant.reviewed_at else None,
                     'rejection_reason': merchant.rejection_reason or '',
                     'application_status': merchant.application_status or 'pending',
+                    'application_data': merchant.application_data or {},
                     'business_description': merchant.business_description or '',
                     'opening_time': merchant.opening_time or '',
                     'closing_time': merchant.closing_time or '',
@@ -696,56 +699,151 @@ def get_merchants():
 @login_required
 @admin_required
 def approve_merchant(merchant_id):
-    """Approve a pending merchant application and upgrade user role"""
+    """Approve a pending merchant application and create merchant User account"""
     try:
         merchant = Merchant.query.get_or_404(merchant_id)
         
         if merchant.application_status != 'pending':
+            flash('Application is not in pending status', 'danger')
             return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
         
-        # Update merchant status and verification info
+        # ========== EXTRACT MERCHANT ACCOUNT DETAILS FROM APPLICATION DATA ==========
+        if not merchant.application_data:
+            flash('No merchant account data found in application', 'danger')
+            return jsonify({'success': False, 'message': 'No merchant account data found in application'}), 400
+        
+        app_data = merchant.application_data
+        merchant_fname = app_data.get('merchant_fname')
+        merchant_lname = app_data.get('merchant_lname')
+        merchant_email = app_data.get('merchant_email')
+        merchant_password = app_data.get('merchant_password_hash')  # This may already be hashed
+        
+        if not all([merchant_fname, merchant_lname, merchant_email, merchant_password]):
+            flash('Incomplete merchant account data. Please verify the application information.', 'danger')
+            return jsonify({'success': False, 'message': 'Incomplete merchant account data'}), 400
+        
+        # ========== CHECK IF EMAIL ALREADY EXISTS ==========
+        existing_user = User.query.filter_by(email=merchant_email).first()
+        if existing_user:
+            flash(f'Email {merchant_email} is already registered. Cannot create merchant account.', 'danger')
+            return jsonify({
+                'success': False, 
+                'message': f'Email {merchant_email} is already registered. Cannot create merchant account.'
+            }), 400
+        
+        # ========== CREATE NEW MERCHANT USER ACCOUNT ==========
+        merchant_user = User(
+            first_name=merchant_fname,
+            last_name=merchant_lname,
+            email=merchant_email,
+            role='merchant',
+            is_active=True,
+            registration_method='merchant_application'
+        )
+        # Set merchant avatar: prefer supplied application avatar, otherwise pick a random default
+        try:
+            supplied_avatar = (merchant.application_data or {}).get('merchant_photo_url') if merchant.application_data else None
+            merchant_user.photo_url = supplied_avatar or random.choice(DEFAULT_AVATARS)
+        except Exception:
+            merchant_user.photo_url = random.choice(DEFAULT_AVATARS)
+        
+        # Use hashed password if already stored, otherwise hash plaintext
+        if merchant_password and merchant_password.startswith('$2'):
+            merchant_user.password_hash = merchant_password
+        else:
+            merchant_user.set_password(merchant_password)
+        
+        db.session.add(merchant_user)
+        db.session.flush()  # Flush to get the new user ID
+        
+        # ========== UPDATE MERCHANT RECORD ==========
+        original_applicant_id = merchant.user_id  # Keep track of who applied
+        merchant.user_id = merchant_user.id  # Point merchant to new merchant account
         merchant.application_status = 'approved'
         merchant.reviewed_at = get_ph_datetime()
         merchant.reviewed_by = current_user.id
         merchant.is_verified = True
         
-        # Upgrade associated user to merchant role
-        user = User.query.get(merchant.user_id)
-        if user:
-            user.role = 'merchant'
-        else:
-            return jsonify({'success': False, 'message': 'Associated user not found'}), 404
+        # Clear application data after successful approval
+        merchant.application_data = None
         
         db.session.commit()
         
-        # Notify merchant of approval and redirect them to store setup
+        # ========== SEND NOTIFICATIONS ==========
+        # 1. Notify the new merchant account
         Notification.create_notification(
-            user_id=user.id,
-            title='Application Approved!',
-            message=f'Congratulations! Your merchant application for "{merchant.business_name}" has been approved by the admin team. You can now start listing your services and accepting bookings!',
+            user_id=merchant_user.id,
+            title='Welcome to PetSona Merchant!',
+            message=f'Your merchant account for "{merchant.business_name}" has been created and approved! You can now log in with your merchant email and start managing your bookings.',
             notification_type='success',
-            icon='fas fa-check-circle',
+            icon='fas fa-store',
             link=f'/merchant/store',
             related_id=merchant.id,
             related_type='merchant_application',
             from_user_id=current_user.id
         )
         
-        # Record approval action in audit log
+        # 2. Notify the original applicant internally if they exist
+        original_applicant = User.query.get(original_applicant_id)
+        if original_applicant:
+            Notification.create_notification(
+                user_id=original_applicant.id,
+                title='Merchant Application Approved!',
+                message=f'Your merchant application for "{merchant.business_name}" has been approved! A separate merchant account has been created. Check your email for login details.',
+                notification_type='success',
+                icon='fas fa-check-circle',
+                link=f'/user/dashboard',
+                related_id=merchant.id,
+                related_type='merchant_application',
+                from_user_id=current_user.id
+            )
+        
+        # 3. Send email to the business contact email
+        recipient_email = merchant.contact_email or merchant_email or (original_applicant.email if original_applicant else None)
+        if recipient_email:
+            front_url = current_app.config.get('FRONTEND_URL')
+            if front_url:
+                login_url = f"{front_url.rstrip('/')}/auth/login"
+            else:
+                login_url = url_for('auth.login', _external=True)
+
+            html = render_template(
+                'auth/merchant_application_approved_email.html',
+                business_name=merchant.business_name,
+                contact_email=recipient_email,
+                login_url=login_url,
+                merchant=merchant,
+                approved_by=current_user,
+                current_time=get_ph_datetime().strftime('%B %d, %Y at %I:%M %p')
+            )
+            try:
+                send_email(
+                    f'Merchant Application Approved - {merchant.business_name}',
+                    [recipient_email],
+                    html
+                )
+            except Exception as email_error:
+                logger.exception(f"Failed to send merchant approval email to {recipient_email}: {email_error}")
+        
+        # ========== AUDIT LOG ==========
         log_event(
             event='merchant.approved',
             details={
                 'merchant_id': merchant.id,
                 'business_name': merchant.business_name,
+                'merchant_account_email': merchant_email,
+                'merchant_user_id': merchant_user.id,
                 'approved_by': current_user.email,
-                'user_id': user.id
+                'original_applicant_id': original_applicant_id
             }
         )
         
-        flash(f"Merchant '{merchant.business_name}' has been approved successfully!", 'success')
-        return jsonify({'success': True, 'message': 'Merchant approved successfully'})
+        logger.info(f"Merchant application {merchant_id} approved. Created merchant user account {merchant_user.id} with email {merchant_email}")
+        flash(f"Merchant '{merchant.business_name}' approved! Merchant account created for {merchant_email}", 'success')
+        return jsonify({'success': True, 'message': 'Merchant approved and account created successfully'})
     except Exception as e:
         db.session.rollback()
+        logger.exception(f'Error approving merchant {merchant_id}')
         flash(f'Error approving merchant: {str(e)}', 'danger')
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -762,11 +860,13 @@ def reject_merchant(merchant_id):
         reason = data.get('reason', '') if data else ''
         
         if not reason.strip():
+            flash('Rejection reason is required.', 'danger')
             return jsonify({'success': False, 'message': 'Rejection reason is required'}), 400
         
         merchant = Merchant.query.get_or_404(merchant_id)
         
         if merchant.application_status != 'pending':
+            flash('Application is not in pending status', 'danger')
             return jsonify({'success': False, 'message': 'Application is not in pending status'}), 400
         
         # Update merchant status with rejection details
@@ -777,6 +877,10 @@ def reject_merchant(merchant_id):
         
         # Retrieve user for notification
         user = User.query.get(merchant.user_id)
+        application_email = (merchant.application_data or {}).get('merchant_email')
+        application_user = None
+        if application_email:
+            application_user = User.query.filter_by(email=application_email).first()
         db.session.commit()
         
         # Notify merchant of rejection with reason
@@ -792,6 +896,39 @@ def reject_merchant(merchant_id):
                 related_type='merchant_application',
                 from_user_id=current_user.id
             )
+
+        if application_user and (not user or application_user.id != user.id):
+            Notification.create_notification(
+                user_id=application_user.id,
+                title='Merchant Application Rejected',
+                message=f'Your merchant application for "{merchant.business_name}" was rejected by admin. Reason: {reason.strip()}',
+                notification_type='danger',
+                icon='fas fa-times-circle',
+                link=f'/merchant/apply',
+                related_id=merchant.id,
+                related_type='merchant_application',
+                from_user_id=current_user.id
+            )
+
+        recipient_email = merchant.contact_email or application_email or (user.email if user else None)
+        if recipient_email:
+            html = render_template(
+                'auth/merchant_application_rejected_email.html',
+                business_name=merchant.business_name,
+                contact_email=recipient_email,
+                reason=reason.strip(),
+                merchant=merchant,
+                rejected_by=current_user,
+                current_time=get_ph_datetime().strftime('%B %d, %Y at %I:%M %p')
+            )
+            try:
+                send_email(
+                    f'Merchant Application Rejected - {merchant.business_name}',
+                    [recipient_email],
+                    html
+                )
+            except Exception as email_error:
+                logger.exception(f"Failed to send merchant rejection email to {recipient_email}: {email_error}")
         
         # Record rejection action in audit log
         log_event(

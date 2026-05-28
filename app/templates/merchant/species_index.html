@@ -758,11 +758,13 @@
   confirm: false,
   selectedBreed: null,
   searchQuery: '',
+  selectedCategory: '', // Filter by pet category
   formSubmitting: false,
   speciesName: '',
   speciesIcon: 'fa-solid fa-paw',
   speciesDescription: '',
   speciesEthicalNotes: '',
+  categories: [],
   getDietTypeLabel(dietType) {
     const labels = {
       'Carnivore': 'Carnivore',
@@ -784,8 +786,20 @@
       'Piscivore': 'fa-solid fa-fish text-blue-500'
     };
     return icons[dietType] || 'fa-solid fa-question text-gray-500';
+  },
+  // Load categories from species data
+  loadCategories() {
+    const specs = document.querySelectorAll('[data-species-name]');
+    const cats = new Set();
+    specs.forEach(spec => {
+      const cat = spec.getAttribute('data-pet-category') || '';
+      if (cat && cat.trim()) {
+        cats.add(cat);
+      }
+    });
+    this.categories = Array.from(cats).sort();
   }
-}" class="w-full min-h-screen">
+}" class="w-full min-h-screen" x-init="$nextTick(() => { loadCategories(); })">
   <div class="w-[95vw] mx-auto px-2 sm:px-4 lg:px-6 py-8 sm:py-8 lg:py-8 space-y-6 sm:space-y-8">
 
     <!-- HEADER -->
@@ -813,35 +827,64 @@
       </div>
     </div>
 
-    <!-- SEARCH BAR WITH GLASS EFFECT -->
-    <div class="animate-slideDown">
+    <!-- SEARCH BAR & FILTERS WITH GLASS EFFECT -->
+    <div class="animate-slideDown space-y-3 sm:space-y-4">
       <div class="glass-search rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-3 sm:py-4">
-        <div class="flex items-center gap-3 sm:gap-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3">
           <lord-icon
               src="https://cdn.lordicon.com/vgxjrbxm.json"
               trigger="morph"
               state="morph-check"
-              style="width:35px;height:35px">
+              style="width:35px;height:35px"
+              class="flex-shrink-0 hidden sm:block">
           </lord-icon>
-          <input 
-            type="text" 
-            x-model="searchQuery"
-            placeholder="Search by pet name..."
-            class="search-input w-full bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none text-sm sm:text-base font-medium"
-          >
-          <template x-if="searchQuery">
-            <button 
-              @click="searchQuery = ''"
-              class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
-              title="Clear search"
+          <!-- Search Input -->
+          <div class="flex-1 flex items-center gap-2 bg-white/30 backdrop-blur-sm rounded-xl px-3 sm:px-4 py-2 sm:py-3 border border-white/50 hover:border-white/70 transition">
+            <i class="fa-solid fa-search text-gray-600 text-sm flex-shrink-0 sm:hidden"></i>
+            <input 
+              type="text" 
+              x-model="searchQuery"
+              @input="performSearch($event.target.value, selectedCategory)"
+              placeholder="Search species..."
+              class="search-input flex-1 bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none text-sm sm:text-base font-medium"
             >
-              <i class="fa-solid fa-xmark text-lg"></i>
+          </div>
+          
+          <!-- Category Filter Dropdown -->
+          <div class="flex items-center gap-2 bg-white/30 backdrop-blur-sm rounded-xl px-3 sm:px-4 py-2 sm:py-3 border border-white/50 hover:border-white/70 transition">
+            <i class="fa-solid fa-filter text-gray-600 text-sm flex-shrink-0"></i>
+            <select 
+              x-model="selectedCategory"
+              @change="performSearch(searchQuery, $event.target.value)"
+              class="bg-transparent text-gray-900 focus:outline-none text-sm sm:text-base font-medium border-0 focus:ring-0 p-0 flex-1 min-w-[100px] sm:min-w-[140px] cursor-pointer">
+              <option value="">All Types</option>
+              <template x-for="category in categories" :key="category">
+                <option :value="category" x-text="category"></option>
+              </template>
+            </select>
+          </div>
+          
+          <!-- Clear Button -->
+          <template x-if="searchQuery || selectedCategory">
+            <button 
+              @click="searchQuery = ''; selectedCategory = ''; performSearch('', '')"
+              class="bg-white/30 backdrop-blur-sm hover:bg-white/50 text-gray-700 transition rounded-xl px-3 sm:px-4 py-2 sm:py-3 border border-white/50 hover:border-white/70 flex items-center justify-center gap-2 font-medium text-sm"
+              title="Clear all filters"
+            >
+              <i class="fa-solid fa-xmark"></i>
+              <span class="hidden sm:inline">Clear</span>
             </button>
           </template>
         </div>
       </div>
-      <div class="mt-2 text-xs sm:text-sm text-gray-600" x-show="searchQuery">
-        <span class="search-count">Found {{ species_list|length }} pet profiles</span>
+      <!-- Results Count -->
+      <div class="flex items-center justify-between px-2">
+        <span class="text-xs sm:text-sm text-gray-600 font-medium">
+          <span class="search-count">Found 0 species</span>
+        </span>
+        <template x-if="selectedCategory">
+          <span class="text-xs sm:text-sm text-purple-600 font-semibold" x-text="'Category: ' + selectedCategory"></span>
+        </template>
       </div>
     </div>
 
@@ -854,6 +897,7 @@
 
         <div x-data="{ menu: false }"
             data-species-name="{{ species.name.lower() }}"
+            data-pet-category="{{ species.pet_category or 'Uncategorized' }}"
             class="species-item w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
             style="height: 400px; min-height: 400px; max-height: 400px; max-width: 340px;
                     background-image: url('{{ image_url }}');
@@ -1193,10 +1237,15 @@
         </div>
       </template>
 
-      <!-- INFO ALERT -->
-      <div class="info-alert">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>This profile helps you make an informed decision about pet adoption. Think carefully before bringing any pet home!</span>
+      <!-- DISCLAIMER NOTE -->
+      <div class="mt-4">
+        <div class="font-semibold text-sm text-blue-800 mb-2">Disclaimer Notice</div>
+        <div class="info-alert bg-blue-50 border-blue-200 text-blue-900">
+          <div class="flex items-start gap-2">
+            <i class="fa-solid fa-circle-info mt-0.5 text-blue-600"></i>
+            <span>This profile reflects recent research and general guidance; it may not be fully accurate for every pet, so additional review and study are recommended.</span>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -1292,16 +1341,24 @@
     });
   }
 
-  function performSearch(query) {
+  function performSearch(query, selectedCategory = '') {
     const items = document.querySelectorAll('.species-item');
     let visibleCount = 0;
     const query_lower = (query || '').toLowerCase().trim();
+    const category_filter = (selectedCategory || '').trim();
 
     items.forEach(item => {
       const speciesName = item.getAttribute('data-species-name') || '';
-      const matches = speciesName.includes(query_lower) || !query_lower;
+      const petCategory = item.getAttribute('data-pet-category') || '';
       
-      if (matches) {
+      // Match by name
+      const nameMatches = speciesName.includes(query_lower) || !query_lower;
+      
+      // Match by category
+      const categoryMatches = !category_filter || petCategory === category_filter;
+      
+      // Both filters must pass
+      if (nameMatches && categoryMatches) {
         item.classList.remove('hidden');
         item.style.display = '';
         visibleCount++;
@@ -1323,8 +1380,18 @@
     const searchInput = document.querySelector('.search-input');
     if (!searchInput) return;
 
+    // Initialize categories on page load
+    const alpine = document.querySelector('[x-data*="selectedCategory"]');
+    if (alpine && alpine.__x && alpine.__x.loadCategories) {
+      alpine.__x.loadCategories();
+    }
+
+    // Initialize search count
+    performSearch('', '');
+
     searchInput.addEventListener('input', (e) => {
-      performSearch(e.target.value);
+      const selectedCat = alpine ? alpine.__x.selectedCategory : '';
+      performSearch(e.target.value, selectedCat);
     });
 
     initializeSpeciesVoteButtons();

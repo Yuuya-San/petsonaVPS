@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_login import current_user, login_required # pyright: ignore[reportMissingImports]
 from datetime import datetime
 import uuid
@@ -79,6 +79,10 @@ def normalize_quiz_answers(answers: dict) -> dict:
 @login_required
 def quiz():
     """Display global quiz page accessible to all users"""
+    if current_user.is_basic_plan and not current_user.is_admin and current_user.quiz_access_count >= 1:
+        flash('Your basic plan includes one pet match only. Upgrade to Premium or Pro to continue using matches.', 'warning')
+        return redirect(url_for('user.subscription'))
+
     # Log quiz access
     log_data_access('quiz_page', current_user.id, access_type='view')
     
@@ -99,6 +103,10 @@ def quiz():
 @login_required
 def quiz_specific(breed_id):
     """Display breed-specific quiz for compatibility assessment"""
+    if current_user.is_basic_plan and not current_user.is_admin:
+        flash('Breed-specific Match Me is available only for Premium and Pro users. Upgrade to unlock it.', 'warning')
+        return redirect(url_for('user.subscription'))
+
     # Log breed-specific quiz access
     log_data_access('quiz_specific', breed_id, access_type='view')
     
@@ -475,6 +483,13 @@ def api_quiz_submit():
         if not isinstance(data, dict) or not data:
             return jsonify({'error': 'No quiz data provided', 'success': False}), 400
 
+        if current_user.is_basic_plan and not current_user.is_admin and current_user.quiz_access_count >= 1:
+            return jsonify({
+                'error': 'Your free basic match has already been used. Upgrade to Premium or Pro to continue.',
+                'success': False,
+                'upgrade_url': url_for('user.subscription')
+            }), 403
+
         # Normalize quiz answers for compatibility engine
         normalized_data = normalize_quiz_answers(data)
 
@@ -516,6 +531,9 @@ def api_quiz_submit():
         # Save to database if authenticated (only as general, never as breed for top 5)
         if current_user.is_authenticated and enhanced_matches:
             try:
+                if current_user.is_basic_plan and not current_user.is_admin:
+                    current_user.increment_quiz_access()
+                    db.session.add(current_user)
                 match_record = MatchHistory(
                     user_id=current_user.id,
                     match_type='general',
@@ -603,6 +621,13 @@ def api_breed_match():
             match_data = CompatibilityEngine.calculate_match_score(normalized_answers, breed)
         except Exception as calc_error:
             return jsonify({'error': f'Calculation error: {str(calc_error)}', 'success': False}), 500
+
+        if current_user.is_basic_plan and not current_user.is_admin:
+            return jsonify({
+                'error': 'Breed-specific matches are available for Premium and Pro users only. Upgrade to access this feature.',
+                'success': False,
+                'upgrade_url': url_for('user.subscription')
+            }), 403
         
         # Store normalized answers in session for breed_match route
         session['last_answers'] = normalized_answers
@@ -612,7 +637,7 @@ def api_breed_match():
         # Do NOT save if this is just a user clicking on a breed from the general results page
         # Check if the API call came from a breed-specific quiz (indicated by API source param)
         save_as_breed = request.args.get('from_breed_quiz', 'false').lower() == 'true'
-        
+
         if current_user.is_authenticated and save_as_breed:
             try:
                 match_record = MatchHistory(

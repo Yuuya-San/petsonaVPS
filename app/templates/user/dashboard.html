@@ -548,6 +548,41 @@
     </div>
   </div>
 
+  <!-- Subscription Summary -->
+  <div class="w-full max-w-[90vw] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div class="species-glass-card p-6">
+        <p class="text-xs uppercase tracking-[0.25em] font-semibold text-purple-700">Current Plan</p>
+        {% if current_user.is_pending_subscription %}
+        <h3 class="mt-4 text-2xl font-bold text-slate-900">Pending {{ current_user.pending_subscription_plan | title }}</h3>
+        <p class="mt-3 text-slate-600">Payment is pending. Complete your GCash payment within 1 day and then confirm the subscription.</p>
+        {% if current_user.subscription_payment_due %}
+        <p class="mt-4 text-sm text-slate-600">Due by: {{ current_user.subscription_payment_due.strftime('%B %d, %Y') }}</p>
+        {% endif %}
+        {% else %}
+        <h3 class="mt-4 text-2xl font-bold text-slate-900">{{ current_user.subscription_plan | default('basic') | title }}</h3>
+        <p class="mt-3 text-slate-600">{{ 'Admin accounts have full access regardless of plan.' if current_user.is_admin else 'Basic users get one general quiz match. Upgrade to Premium or Pro for full access.' }}</p>
+        {% if current_user.subscription_renewal_date %}
+        <p class="mt-4 text-sm text-slate-600">Renewal: {{ current_user.subscription_renewal_date.strftime('%B %d, %Y') }}</p>
+        {% endif %}
+        {% endif %}
+      </div>
+      <div class="species-glass-card p-6">
+        <p class="text-xs uppercase tracking-[0.25em] font-semibold text-purple-700">Match Usage</p>
+        <h3 class="mt-4 text-3xl font-bold gradient-text">{{ current_user.quiz_access_count or 0 }} / {{ 1 if current_user.is_basic_plan and not current_user.is_admin else '∞' }}</h3>
+        <p class="mt-3 text-slate-600">{{ 'Your basic free match is consumed after one quiz submission.' if current_user.is_basic_plan and not current_user.is_admin else 'Unlimited access is enabled for Premium, Pro, and Admin accounts.' }}</p>
+      </div>
+      <div class="species-glass-card p-6 flex flex-col justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-[0.25em] font-semibold text-purple-700">Upgrade</p>
+          <h3 class="mt-4 text-2xl font-bold text-slate-900">Unlock full matching</h3>
+          <p class="mt-3 text-slate-600">Premium: ₱75/month · Pro: ₱500/year</p>
+        </div>
+        <a href="{{ url_for('user.subscription') }}" class="inline-flex items-center justify-center mt-6 rounded-2xl plan-action px-5 py-3 text-sm font-semibold">Manage Plan</a>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Species and Top Breeds Section -->
   <div class="top-cards-section mx-auto px-4 sm:px-6 lg:px-8 py-12" style="display: block !important;">
     <div class="mb-10 ">

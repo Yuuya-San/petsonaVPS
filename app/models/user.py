@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import UserMixin # pyright: ignore[reportMissingImports]
 from typing import Optional
 from app.extensions import db, bcrypt
@@ -35,6 +35,20 @@ class User(db.Model, UserMixin):
     lockout_until = db.Column(db.DateTime)
 
     role = db.Column(db.String(32), default="user", index=True)
+    subscription_plan = db.Column(db.String(32), default='basic', nullable=False, index=True)
+    subscription_status = db.Column(db.String(32), default='active', nullable=False)
+    subscription_renewal_date = db.Column(db.DateTime, nullable=True)
+    pending_subscription_plan = db.Column(db.String(32), nullable=True)
+    subscription_payment_due = db.Column(db.DateTime, nullable=True)
+    
+    # PayMongo payment tracking
+    paymongo_payment_id = db.Column(db.String(255), nullable=True, unique=True, index=True)
+    paymongo_intent_id = db.Column(db.String(255), nullable=True, unique=True, index=True)
+    paymongo_payment_status = db.Column(db.String(32), nullable=True)
+    paymongo_last_payment_update = db.Column(db.DateTime, nullable=True)
+    paymongo_payment_method = db.Column(db.String(32), nullable=True)  # 'card', 'ewallet', 'dob', etc.
+    
+    quiz_access_count = db.Column(db.Integer, default=0, nullable=False)
 
     totp_secret = db.Column(db.String(32))
     is_2fa_enabled = db.Column(db.Boolean, default=False)
@@ -55,6 +69,113 @@ class User(db.Model, UserMixin):
     @property
     def is_merchant(self):
         return self.role == "merchant"
+
+    @property
+    def plan(self):
+        return (self.subscription_plan or 'basic').lower()
+
+    @property
+    def is_basic_plan(self):
+        return self.plan == 'basic'
+
+    @property
+    def is_premium_plan(self):
+        return self.plan == 'premium'
+
+    @property
+    def is_pro_plan(self):
+        return self.plan == 'pro'
+
+    @property
+    def has_premium_access(self):
+        return self.is_admin or self.is_premium_plan or self.is_pro_plan
+
+    @property
+    def can_access_breed_specific(self):
+        return self.is_admin or self.has_premium_access
+
+    @property
+    def can_edit_store(self):
+        return self.is_admin or self.has_premium_access
+
+    @property
+    def has_available_quiz_slot(self):
+        return self.is_admin or self.has_premium_access or (self.quiz_access_count or 0) < 1
+
+    @property
+    def is_pending_subscription(self):
+        return self.subscription_status == 'pending' and bool(self.pending_subscription_plan)
+
+    def increment_quiz_access(self):
+        self.quiz_access_count = (self.quiz_access_count or 0) + 1
+
+    def set_subscription(self, plan: str, renewal_date=None):
+        self.subscription_plan = plan or 'basic'
+        self.subscription_status = 'active'
+        self.subscription_renewal_date = renewal_date
+        self.pending_subscription_plan = None
+        self.subscription_payment_due = None
+        # Clear PayMongo payment tracking
+        self.paymongo_payment_status = None
+        self.paymongo_last_payment_update = None
+
+    def set_free_basic(self):
+        self.set_subscription('basic', None)
+
+    def set_premium(self, renewal_date):
+        self.set_subscription('premium', renewal_date)
+
+    def set_pro(self, renewal_date):
+        self.set_subscription('pro', renewal_date)
+
+    def set_pending_subscription(self, plan: str, payment_due):
+        self.subscription_status = 'pending'
+        self.pending_subscription_plan = plan
+        self.subscription_payment_due = payment_due
+
+    def activate_pending_subscription(self):
+        if not self.pending_subscription_plan:
+            return
+
+        plan = self.pending_subscription_plan.lower()
+        if plan == 'premium':
+            renewal_date = get_ph_now() + timedelta(days=30)
+        elif plan == 'pro':
+            renewal_date = get_ph_now() + timedelta(days=365)
+        else:
+            renewal_date = None
+
+        self.subscription_plan = plan
+        self.subscription_status = 'active'
+        self.subscription_renewal_date = renewal_date
+        self.pending_subscription_plan = None
+        self.subscription_payment_due = None
+
+    def cancel_subscription(self):
+        self.set_free_basic()
+        self.subscription_status = 'active'
+        self.pending_subscription_plan = None
+        self.subscription_payment_due = None
+
+    def set_paymongo_payment(self, payment_id: str, intent_id: str, payment_method: str = None):
+        """Set PayMongo payment tracking details"""
+        self.paymongo_payment_id = payment_id
+        self.paymongo_intent_id = intent_id
+        self.paymongo_payment_method = payment_method or 'card'
+        self.paymongo_last_payment_update = get_utc_now()
+
+    def update_paymongo_status(self, status: str):
+        """Update PayMongo payment status"""
+        self.paymongo_payment_status = status
+        self.paymongo_last_payment_update = get_utc_now()
+
+    def clear_paymongo_payment(self):
+        """Clear PayMongo payment tracking"""
+        self.paymongo_payment_id = None
+        self.paymongo_intent_id = None
+        self.paymongo_payment_status = None
+        self.paymongo_payment_method = None
+        self.paymongo_last_payment_update = None
 
     def set_password(self, password: str):
         self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")

@@ -22,7 +22,7 @@ class Species(db.Model):
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.Text)
     image_url = db.Column(db.String(255), nullable=False)
-    icon = db.Column(db.String(100),nullable=False,default="fa-solid fa-paw",comment="Manual icon class selected for UI display")
+    pet_category = db.Column(db.String(100), nullable=False, default="Uncategorized", comment="Pet category (e.g., Cat, Dog, Bird)")
     requires_exercise = db.Column(db.Boolean, default=False)
     requires_training = db.Column(db.Boolean, default=False)
     requires_grooming = db.Column(db.Boolean, default=False)
@@ -69,9 +69,7 @@ class Species(db.Model):
 
     @property
     def display_icon(self):
-        """Returns the icon to display: manual icon if set, otherwise default"""
-        if self.icon:
-            return self.icon
+        """Returns a default icon since pet_category doesn't have specific icons"""
         return "fa-solid fa-paw"
 
     @property
@@ -82,7 +80,7 @@ class Species(db.Model):
             "name": escape(self.name) if self.name else "",
             "description": escape(self.description) if self.description else "",
             "image_url": escape(self.image_url) if self.image_url else "",
-            "icon": escape(self.icon) if self.icon else "",
+            "pet_category": escape(self.pet_category) if self.pet_category else "",
 
             "requires_exercise": self.requires_exercise,
             "requires_training": self.requires_training,

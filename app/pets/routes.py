@@ -99,7 +99,7 @@ def save_species():
     # ---- BASIC FIELDS ----
     track_change("name", request.form.get("name", "").strip())
     track_change("description", request.form.get("description", "").strip())
-    track_change("icon", request.form.get("icon", "").strip())
+    track_change("pet_category", request.form.get("pet_category", "").strip())
 
     # ---- BOOLEAN FIELDS ----
     boolean_fields = [

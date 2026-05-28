@@ -25,6 +25,9 @@
     updateActiveUsersCard(statsData);
     initializeDailyUsersChart(statsData);
     initializeGrowthTrendChart(statsData);
+    updateStorePerformanceMetrics(statsData);
+    initializeStorePerformanceChart(statsData);
+    initializeTopStoresBookingsChart(statsData);
     initializeOnlineIndicator();
     attachMetricCardHoverEffects();
     attachEngagementCardEffects();
@@ -32,7 +35,22 @@
   }
 
   /**
-   * Animate metric cards with staggered entrance
+   * Update store performance summary cards
+   */
+  function updateStorePerformanceMetrics(statsData) {
+    var completedElement = document.getElementById('completedBookingsMonth');
+    var avgRatingElement = document.getElementById('avgStoreRating');
+    if (completedElement && typeof statsData.completed_bookings_month !== 'undefined') {
+      completedElement.textContent = statsData.completed_bookings_month;
+    }
+    if (avgRatingElement && typeof statsData.avg_store_rating !== 'undefined') {
+      avgRatingElement.textContent = statsData.avg_store_rating;
+    }
+  }
+
+  /**
+   * Initialize daily users bar chart
+   * @param {Object} statsData - Statistics data object
    */
   function animateMetricCards() {
     var metricCards = document.querySelectorAll('.metric-card');
@@ -309,8 +327,228 @@
     }
   }
 
+  /**   * Initialize store performance trend chart
+   */
+  function initializeStorePerformanceChart(statsData) {
+    var performanceCtx = document.getElementById('storePerformanceChart');
+    if (!performanceCtx || typeof Chart === 'undefined') {
+      console.warn('Store performance chart: Canvas not found or Chart.js not loaded');
+      return;
+    }
+
+    try {
+      var performanceData = statsData.store_performance_data || {};
+      var performanceDates = Object.keys(performanceData);
+      var completedValues = performanceDates.map(function(date) {
+        return performanceData[date].completed || 0;
+      });
+      var totalValues = performanceDates.map(function(date) {
+        return performanceData[date].total || 0;
+      });
+
+      new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+          labels: performanceDates,
+          datasets: [
+            {
+              label: 'Completed Bookings',
+              data: completedValues,
+              backgroundColor: 'rgba(16, 185, 129, 0.85)',
+              borderColor: '#10b981',
+              borderWidth: 1,
+              borderRadius: 6,
+              order: 2
+            },
+            {
+              label: 'Total Bookings',
+              data: totalValues,
+              backgroundColor: 'rgba(56, 189, 248, 0.35)',
+              borderColor: '#38bdf8',
+              borderWidth: 1,
+              borderRadius: 6,
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 10,
+              right: 10,
+              bottom: 10,
+              left: 10
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: '#6b7280',
+                font: {
+                  size: window.innerWidth <= 768 ? 11 : 12
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              padding: window.innerWidth <= 768 ? 8 : 12,
+              titleFont: {
+                size: window.innerWidth <= 768 ? 11 : 13,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: window.innerWidth <= 768 ? 10 : 12
+              },
+              borderColor: '#10b981',
+              borderWidth: 1,
+              cornerRadius: 8,
+              displayColors: true
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#9ca3af',
+                font: {
+                  size: window.innerWidth <= 768 ? 10 : 12
+                }
+              },
+              grid: {
+                color: 'rgba(15, 23, 42, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9ca3af',
+                font: {
+                  size: window.innerWidth <= 768 ? 10 : 12
+                },
+                maxRotation: window.innerWidth <= 480 ? 45 : 0
+              },
+              grid: {
+                display: false
+              }
+            }
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing store performance chart:', error);
+    }
+  }
+
   /**
-   * Update active users card value from stats data
+   * Initialize top stores by completed bookings chart
+   */
+  function initializeTopStoresBookingsChart(statsData) {
+    var topStoresCtx = document.getElementById('topStoresBookingsChart');
+    if (!topStoresCtx || typeof Chart === 'undefined') {
+      console.warn('Top stores bookings chart: Canvas not found or Chart.js not loaded');
+      return;
+    }
+
+    try {
+      var stores = statsData.top_stores_bookings || [];
+      var labels = stores.map(function(store) {
+        return store.name;
+      });
+      var values = stores.map(function(store) {
+        return store.completed_bookings || 0;
+      });
+
+      new Chart(topStoresCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Completed Bookings',
+            data: values,
+            backgroundColor: labels.map(function(_, index) {
+              return index === 0 ? 'rgba(251, 191, 36, 0.9)' : 'rgba(139, 92, 246, 0.75)';
+            }),
+            borderColor: '#8b5cf6',
+            borderWidth: 1,
+            borderRadius: 8,
+            hoverBackgroundColor: 'rgba(139, 92, 246, 1)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 10,
+              right: 10,
+              bottom: 10,
+              left: 10
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              padding: window.innerWidth <= 768 ? 8 : 12,
+              titleFont: {
+                size: window.innerWidth <= 768 ? 11 : 13,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: window.innerWidth <= 768 ? 10 : 12
+              },
+              borderColor: '#8b5cf6',
+              borderWidth: 1,
+              cornerRadius: 8,
+              displayColors: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#9ca3af',
+                font: {
+                  size: window.innerWidth <= 768 ? 10 : 12
+                }
+              },
+              grid: {
+                color: 'rgba(15, 23, 42, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9ca3af',
+                font: {
+                  size: window.innerWidth <= 768 ? 10 : 12
+                },
+                maxRotation: window.innerWidth <= 480 ? 45 : 0
+              },
+              grid: {
+                display: false
+              }
+            }
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing top stores bookings chart:', error);
+    }
+  }
+
+  /**   * Update active users card value from stats data
    */
   function updateActiveUsersCard(statsData) {
     var activeUsersElement = document.getElementById('activeUsersValue');

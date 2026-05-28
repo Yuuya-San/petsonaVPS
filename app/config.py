@@ -59,6 +59,12 @@ class Config:
     RECAPTCHA_SITE_KEY = "6Le4c94sAAAAADh1YOljhLnxWDxvrMbGCDzSXcWT"
     RECAPTCHA_SECRET_KEY = "6Le4c94sAAAAAHVDiFrjrGYM6c6bdBs0KhnS72VN"
 
+    # PayMongo Configuration (Test Mode)
+    PAYMONGO_PUBLIC_KEY = "pk_test_k34NEtxjyjPvBXoMcdeNws73"
+    PAYMONGO_SECRET_KEY = "sk_test_QQ7GkqY7nYczLBBtzJ1Pn8jr"
+    PAYMONGO_MODE = "test"  # 'test' or 'live'
+    PAYMONGO_API_URL = "https://api.paymongo.com/v1"
+
     AUTHLIB_INSECURE_TRANSPORT = "False"
 
     # Uploads

@@ -70,6 +70,13 @@
           </a>
         </li>
 
+        <li class="nav-item">
+          <a href="{{ url_for('user.subscription') }}" class="nav-link {% if request.endpoint == 'user.subscription' %}active{% endif %}">
+            <i class="nav-icon fas fa-gem"></i>
+            <p>Subscription</p>
+          </a>
+        </li>
+
       </ul>
     </nav>
   </div>

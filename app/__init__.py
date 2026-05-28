@@ -245,6 +245,26 @@ def create_app(config_name='development'):
         flash(message, 'warning')
         return redirect(request.referrer or request.path)
 
+    # Global 404 error handler - redirect to frontend
+    @app.errorhandler(404)
+    def handle_not_found(error):
+        # If requesting JSON API, return 404 JSON response
+        if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+            return jsonify({
+                'error': 'not_found',
+                'message': 'The requested resource was not found.'
+            }), 404
+        
+        # Redirect to frontend URL based on environment
+        try:
+            frontend_url = app.config.get('FRONTEND_URL', 'https://petsona.online')
+            if not frontend_url.startswith(('http://', 'https://')):
+                frontend_url = f"https://{frontend_url}"
+            return redirect(frontend_url)
+        except Exception as e:
+            # Fallback to production URL if config fails
+            return redirect('https://petsona.online')
+
     # Root route
     @app.route("/")
     def index():

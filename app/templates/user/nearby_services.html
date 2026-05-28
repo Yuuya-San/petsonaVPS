@@ -413,7 +413,8 @@
     <!-- Premium Services Grid -->
     <div x-show="!isLoading && merchants.length > 0" class="grid gap-2.5 sm:gap-3 md:gap-3.5 lg:gap-4 2xl:gap-5 mb-12 w-full" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); justify-content: start;">
       <template x-for="merchant in merchants" :key="merchant.id">
-        <a :href="'/merchant/store-public/' + merchant.id" class="premium-card rounded-3xl lg:rounded-4xl overflow-hidden cursor-pointer group flex flex-col hover:no-underline transition-all border-2">
+        <template x-if="merchant.is_open">
+          <a :href="'/merchant/store-public/' + merchant.id" class="premium-card rounded-3xl lg:rounded-4xl overflow-hidden cursor-pointer group flex flex-col hover:no-underline transition-all border-2">
           
           <!-- Premium Image/Banner -->
           <div class="relative h-28 lg:h-44 bg-gradient-to-br from-purple-300 via-purple-200 to-purple-100 overflow-hidden flex items-center justify-center border-b-2 border-purple-200 group-hover:from-purple-400 group-hover:via-purple-300 transition-all duration-300">
@@ -493,104 +494,25 @@
                  x-text="formatPrice(merchant)"
                  @click="togglePricingDetail(merchant.id)"></p>
               
-              <!-- Expandable Pricing Details -->
-              <div :class="{'hidden': !expandedPricing[merchant.id]}" class="mt-3 pt-3 border-t border-purple-200/60 space-y-2 text-left text-xs">
-                <!-- Pet Hotel -->
-                <template x-if="merchant.service_pricing['Pet Hotel']">
+              <!-- Expandable Pricing Details - New Format -->
+              <div :class="{'hidden': !expandedPricing[merchant.id]}" class="mt-3 pt-3 border-t border-purple-200/60 space-y-3 text-left text-xs">
+                <template x-if="merchant.service_pricing && merchant.service_pricing.prices">
                   <div>
-                    <p class="font-bold text-blue-700 mb-1 flex items-center gap-1">
-                      <span>🏨</span> Pet Hotel
+                    <p class="font-bold text-purple-700 mb-2 flex items-center gap-2">
+                      <i class="fas fa-tag text-purple-600"></i>
+                      <span x-text="capitalizeFirst(merchant.service_pricing.basis || 'Pricing')"></span>
                     </p>
-                    <div class="space-y-1 ml-2">
-                      <!-- Per Hour -->
-                      <template x-if="merchant.service_pricing['Pet Hotel']['hour']">
-                        <div class="text-purple-700">
-                          <p class="text-xs font-semibold mb-0.5">Per Hour</p>
-                          <div class="grid grid-cols-2 gap-1">
-                            <template x-for="(price, size) in merchant.service_pricing['Pet Hotel']['hour']">
-                              <span class="text-purple-600 text-xs" x-text="capitalizeFirst(size) + ': ₱' + Number(price).toLocaleString('en-US')"></span>
-                            </template>
-                          </div>
-                        </div>
-                      </template>
-                      <!-- Per Night -->
-                      <template x-if="merchant.service_pricing['Pet Hotel']['night']">
-                        <div class="text-purple-700">
-                          <p class="text-xs font-semibold mb-0.5">Per Night</p>
-                          <div class="grid grid-cols-2 gap-1">
-                            <template x-for="(price, size) in merchant.service_pricing['Pet Hotel']['night']">
-                              <span class="text-purple-600 text-xs" x-text="capitalizeFirst(size) + ': ₱' + Number(price).toLocaleString('en-US')"></span>
-                            </template>
-                          </div>
+                    <div class="space-y-1.5 ml-2">
+                      <template x-for="(price, type) in merchant.service_pricing.prices" :key="type">
+                        <div class="flex justify-between items-center pb-1 border-b border-purple-100/40">
+                          <span class="text-purple-600 font-semibold" x-text="capitalizeFirst(type)"></span>
+                          <span class="text-purple-700 font-bold" x-text="'₱' + Number(price).toLocaleString('en-US')"></span>
                         </div>
                       </template>
                     </div>
-                  </div>
-                </template>
-
-                <!-- Pet Boarding -->
-                <template x-if="merchant.service_pricing['Pet Boarding']">
-                  <div>
-                    <p class="font-bold text-indigo-700 mb-1 flex items-center gap-1">
-                      <span>🚪</span> Pet Boarding
-                    </p>
-                    <div class="space-y-1 ml-2">
-                      <!-- Per Hour -->
-                      <template x-if="merchant.service_pricing['Pet Boarding']['hour']">
-                        <div class="text-indigo-600">
-                          <p class="text-xs font-semibold mb-0.5">Per Hour</p>
-                          <div class="grid grid-cols-2 gap-1">
-                            <template x-for="(price, size) in merchant.service_pricing['Pet Boarding']['hour']">
-                              <span class="text-xs" x-text="capitalizeFirst(size) + ': ₱' + Number(price).toLocaleString('en-US')"></span>
-                            </template>
-                          </div>
-                        </div>
-                      </template>
-                      <!-- Per Night -->
-                      <template x-if="merchant.service_pricing['Pet Boarding']['night']">
-                        <div class="text-indigo-600">
-                          <p class="text-xs font-semibold mb-0.5">Per Night</p>
-                          <div class="grid grid-cols-2 gap-1">
-                            <template x-for="(price, size) in merchant.service_pricing['Pet Boarding']['night']">
-                              <span class="text-xs" x-text="capitalizeFirst(size) + ': ₱' + Number(price).toLocaleString('en-US')"></span>
-                            </template>
-                          </div>
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-                </template>
-
-                <!-- Pet Daycare -->
-                <template x-if="merchant.service_pricing['Pet Daycare']">
-                  <div>
-                    <p class="font-bold text-amber-700 mb-1 flex items-center gap-1">
-                      <span>☀️</span> Pet Daycare
-                    </p>
-                    <div class="space-y-1 ml-2">
-                      <!-- Full Day -->
-                      <template x-if="merchant.service_pricing['Pet Daycare']['fullday']">
-                        <div class="text-amber-600">
-                          <p class="text-xs font-semibold mb-0.5">Full Day</p>
-                          <div class="grid grid-cols-2 gap-1">
-                            <template x-for="(price, size) in merchant.service_pricing['Pet Daycare']['fullday']">
-                              <span class="text-xs" x-text="capitalizeFirst(size) + ': ₱' + Number(price).toLocaleString('en-US')"></span>
-                            </template>
-                          </div>
-                        </div>
-                      </template>
-                      <!-- Half Day -->
-                      <template x-if="merchant.service_pricing['Pet Daycare']['halfday']">
-                        <div class="text-amber-600">
-                          <p class="text-xs font-semibold mb-0.5">Half Day</p>
-                          <div class="grid grid-cols-2 gap-1">
-                            <template x-for="(price, size) in merchant.service_pricing['Pet Daycare']['halfday']">
-                              <span class="text-xs" x-text="capitalizeFirst(size) + ': ₱' + Number(price).toLocaleString('en-US')"></span>
-                            </template>
-                          </div>
-                        </div>
-                      </template>
-                    </div>
+                    <template x-if="merchant.service_pricing.rate_type">
+                      <p class="text-xs text-slate-500 italic mt-2 pt-2 border-t border-purple-100/40" x-text="'Rate: ' + capitalizeFirst(merchant.service_pricing.rate_type)"></p>
+                    </template>
                   </div>
                 </template>
               </div>
@@ -612,6 +534,7 @@
               </button>
           </div>
         </a>
+        </template>
       </template>
     </div>
 
@@ -793,30 +716,8 @@ function premiumNearbyServices() {
     },
 
     formatPrice(merchant) {
-      // Extract all prices from nested service_pricing structure
-      const allPrices = [];
-      
-      if (merchant.service_pricing && typeof merchant.service_pricing === 'object') {
-        // Iterate through all services
-        Object.values(merchant.service_pricing).forEach(service => {
-          if (typeof service === 'object') {
-            // Iterate through all duration types (hour, night, fullday, halfday)
-            Object.values(service).forEach(durationData => {
-              if (typeof durationData === 'object') {
-                // Iterate through all pet sizes and extract prices
-                Object.values(durationData).forEach(price => {
-                  if (typeof price === 'number') {
-                    allPrices.push(price);
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-      
-      // Fallback to legacy fields if no prices found
-      if (allPrices.length === 0) {
+      // Handle new format with basis, prices object, and rate_type
+      if (!merchant.service_pricing || typeof merchant.service_pricing !== 'object') {
         if (merchant.min_price && merchant.max_price) {
           const minFormatted = parseFloat(merchant.min_price).toLocaleString('en-US', { maximumFractionDigits: 0 });
           const maxFormatted = parseFloat(merchant.max_price).toLocaleString('en-US', { maximumFractionDigits: 0 });
@@ -824,33 +725,41 @@ function premiumNearbyServices() {
         }
         return '₱ -';
       }
-      
-      // Get min and max from all extracted prices
-      const minPrice = Math.min(...allPrices);
-      const maxPrice = Math.max(...allPrices);
-      const minFormatted = minPrice.toLocaleString('en-US', { maximumFractionDigits: 0 });
-      const maxFormatted = maxPrice.toLocaleString('en-US', { maximumFractionDigits: 0 });
-      
-      return minPrice === maxPrice 
-        ? `₱ ${minFormatted}` 
-        : `₱ ${minFormatted} - ₱ ${maxFormatted}`;
+
+      // New format: has prices object and rate_type
+      if (merchant.service_pricing.prices && typeof merchant.service_pricing.prices === 'object') {
+        const priceValues = Object.values(merchant.service_pricing.prices).filter(p => typeof p === 'number');
+        
+        if (priceValues.length > 0) {
+          const minPrice = Math.min(...priceValues);
+          const maxPrice = Math.max(...priceValues);
+          const minFormatted = minPrice.toLocaleString('en-US', { maximumFractionDigits: 0 });
+          const maxFormatted = maxPrice.toLocaleString('en-US', { maximumFractionDigits: 0 });
+          const rateType = merchant.service_pricing.rate_type ? ` ${merchant.service_pricing.rate_type}` : '';
+
+          if (minPrice === maxPrice) {
+            return `₱ ${minFormatted}${rateType}`;
+          } else {
+            return `₱ ${minFormatted} - ₱ ${maxFormatted}${rateType}`;
+          }
+        }
+      }
+
+      // Fallback to legacy format
+      if (merchant.min_price && merchant.max_price) {
+        const minFormatted = parseFloat(merchant.min_price).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const maxFormatted = parseFloat(merchant.max_price).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        return `₱ ${minFormatted} - ₱ ${maxFormatted}`;
+      }
+      return '₱ -';
     },
 
     getDurationTypes(merchant) {
-      // Extract all unique duration types from service_pricing
-      const durationTypes = new Set();
-      
-      if (merchant.service_pricing && typeof merchant.service_pricing === 'object') {
-        Object.values(merchant.service_pricing).forEach(service => {
-          if (typeof service === 'object') {
-            Object.keys(service).forEach(durationType => {
-              durationTypes.add(durationType);
-            });
-          }
-        });
+      // Return basis from new format
+      if (merchant.service_pricing && merchant.service_pricing.basis) {
+        return [merchant.service_pricing.basis];
       }
-      
-      return Array.from(durationTypes);
+      return [];
     },
 
     getDurationTypesCount(merchant) {
@@ -858,14 +767,18 @@ function premiumNearbyServices() {
     },
 
     formatDuration(duration) {
-      // Convert duration keys to readable format
+      // Handle new format where duration is the basis
       const durationMap = {
         'hour': 'Per Hour',
         'night': 'Per Night',
         'fullday': 'Full Day',
-        'halfday': 'Half Day'
+        'halfday': 'Half Day',
+        'species': 'By Species',
+        'daily': 'Daily',
+        'weekly': 'Weekly',
+        'monthly': 'Monthly'
       };
-      return durationMap[duration] || duration;
+      return durationMap[duration] || (duration.charAt(0).toUpperCase() + duration.slice(1).toLowerCase());
     },
 
     capitalizeFirst(str) {

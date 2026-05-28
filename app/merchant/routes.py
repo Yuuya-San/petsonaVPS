@@ -2,8 +2,10 @@ import os
 import json
 from ..extensions import limiter
 import requests # pyright: ignore[reportMissingModuleSource]
+import re
 import pytz # pyright: ignore[reportMissingModuleSource]
 from datetime import datetime, time as dt_time
+import uuid
 from werkzeug.utils import secure_filename # pyright: ignore[reportMissingImports]
 from flask import render_template, flash, redirect, request, url_for, jsonify # pyright: ignore[reportMissingImports]
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
@@ -17,11 +19,11 @@ from app.models.notification import Notification
 from app.models.user import User
 from app.models.vote import Vote
 from app.models.review import Review
-from app.extensions import db, csrf
+from app.extensions import db, csrf, bcrypt
 from app.merchant.forms import MerchantApplicationForm, MerchantStoreUpdateForm
 from app.models.audit_log import AuditLog
 from app.utils.audit import log_event, log_action_with_changes
-from sqlalchemy import func, and_ # pyright: ignore[reportMissingImports]
+from sqlalchemy import func, and_, or_ # pyright: ignore[reportMissingImports]
 from app.utils.notification_manager import NotificationManager
 import logging
 
@@ -283,7 +285,7 @@ def store():
 
     # Build public URL for merchant logo if exists
     logo_path = merchant.logo_path
-    logo_url = url_for('static', filename=f'uploads/merchants/{merchant.id}/{logo_path}') if logo_path else None
+    logo_url = url_for('static', filename=f'uploads/{logo_path}') if logo_path else None
     
     # Compile all store statistics for template rendering
     store_stats = {
@@ -346,13 +348,13 @@ def upload_logo():
             logger.warning(f"Logo upload: invalid file type {file.filename} from user {current_user.id}")
             return jsonify({'success': False, 'message': 'Invalid file type. Allowed: JPG, PNG'}), 400
         
-        # Validate file size (max 5MB)
+        # Validate file size (max 2MB)
         file.seek(0, os.SEEK_END)
         file_size = file.tell()
         file.seek(0)
         
-        if file_size > MAX_FILE_SIZE: # pyright: ignore[reportUndefinedVariable]
-            return jsonify({'success': False, 'message': 'File too large. Max 5MB'}), 400
+        if file_size > MAX_SINGLE_FILE_SIZE:
+            return jsonify({'success': False, 'message': 'File too large. Max 2MB'}), 400
         
         # Create upload directory using user ID (grouped by user, not merchant)
         upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
@@ -397,8 +399,8 @@ def upload_logo():
             }
         )
         
-        # Build public URL for the uploaded logo
-        logo_url = url_for('static', filename=f'uploads/merchants/{merchant.id}/{filename}')
+        # Build public URL for the uploaded logo (use the stored merchant.logo_path)
+        logo_url = url_for('static', filename=f'uploads/{merchant.logo_path}')
         
         return jsonify({
             'success': True,
@@ -423,6 +425,10 @@ def store_edit():
     if current_user.role != 'merchant':
         flash('Access denied.', 'danger')
         return redirect(url_for('auth.login'))
+
+    if current_user.is_basic_plan and not current_user.is_admin:
+        flash('Merchant store editing is available only for Premium and Pro merchants. Upgrade to unlock full store management.', 'warning')
+        return redirect(url_for('user.subscription'))
 
     merchant = Merchant.query.filter_by(user_id=current_user.id).first()
     
@@ -481,7 +487,7 @@ def store_edit():
                     file_size = logo_file.tell()
                     logo_file.seek(0)
                     
-                    if file_size <= MAX_FILE_SIZE: # pyright: ignore[reportUndefinedVariable]
+                    if file_size <= MAX_SINGLE_FILE_SIZE:
                         # Create merchant upload directory
                         upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
                         os.makedirs(upload_dir, exist_ok=True)
@@ -632,8 +638,10 @@ def store_edit():
             if request.form.get('longitude'):
                 merchant.longitude = float(request.form.get('longitude'))
             
-            # SECTION 4: Update pet types
-            merchant.pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
+            # SECTION 4: Update pet types (merge standard and custom pets)
+            pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
+            custom_pets = [pet.strip() for pet in request.form.getlist('custom_pets') if pet.strip()]
+            merchant.pets_accepted = list(dict.fromkeys((pets_accepted or []) + custom_pets))
             
             # Parse service pricing configuration from form JSON
             service_pricing_json = form.service_pricing_json.data
@@ -920,27 +928,47 @@ def view_species(id):
     )
 
 @bp.route('/apply', methods=['GET', 'POST'])
-@login_required
-@user_required
 def apply():
-    """Merchant application form - collect business details and documents from user"""
-    
-    # Prevent duplicate merchant applications
-    existing_merchant = Merchant.query.filter_by(user_id=current_user.id).first()
-    
-    if existing_merchant and existing_merchant.application_status in ['pending', 'under_review']:
-        flash('You already have a pending application. Please wait for admin review.', 'warning')
-        return redirect(url_for('user.dashboard'))
+    """Merchant application form - collect business details and documents from user
+    Accessible from landing page. Allows anonymous (no-account) submissions.
+    """
+
+    # Allow anonymous submissions. For authenticated users, enforce duplicate checks.
+    applicant_user_id = current_user.id if current_user.is_authenticated else None
+    applicant_display_name = None
+    pending_dir_id = None
+
+    if current_user.is_authenticated:
+        # Prevent duplicate merchant applications for authenticated users
+        existing_merchant = Merchant.query.filter_by(user_id=current_user.id).first()
+        if existing_merchant and existing_merchant.application_status in ['pending', 'under_review']:
+            flash('You already have a pending application. Please wait for admin review.', 'warning')
+            return redirect(url_for('user.dashboard'))
+    else:
+        # Prepare a unique pending id for anonymous applicant uploads
+        pending_dir_id = f"pending_{uuid.uuid4().hex}"
     
     form = MerchantApplicationForm()
     
     if form.validate_on_submit():
         try:
-            # Check if merchant already exists
-            merchant = Merchant.query.filter_by(user_id=current_user.id).first()
-            
-            if not merchant:
-                merchant = Merchant(user_id=current_user.id)
+            # Prevent duplicate anonymous applications with the same business contact email
+            if not applicant_user_id:
+                existing_application = Merchant.query.filter(
+                    Merchant.application_status.in_(['pending', 'under_review']),
+                    Merchant.contact_email == form.contact_email.data
+                ).first()
+                if existing_application:
+                    flash('A merchant application with this contact email is already pending review. Please wait for admin decision or use a different email.', 'warning')
+                    return render_template('merchant/apply.html', form=form)
+
+            # Determine or create merchant record. Authenticated users get merchant tied to their account.
+            if applicant_user_id:
+                merchant = Merchant.query.filter_by(user_id=applicant_user_id).first()
+                if not merchant:
+                    merchant = Merchant(user_id=applicant_user_id)
+            else:
+                merchant = Merchant(user_id=None)
             
             # Fill basic information
             merchant.business_name = form.business_name.data
@@ -971,8 +999,10 @@ def apply():
             except (ValueError, TypeError):
                 logger.warning(f"Invalid coordinates provided: lat={form.latitude.data}, lng={form.longitude.data}")
             
-            # Pets accepted (service offerings were removed from the form)
-            merchant.pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
+            # Pets accepted (include custom pets added manually)
+            pets_accepted = form.pets_accepted.data if form.pets_accepted.data else []
+            custom_pets = [pet.strip() for pet in request.form.getlist('custom_pets') if pet.strip()]
+            merchant.pets_accepted = list(dict.fromkeys((pets_accepted or []) + custom_pets))
             
             # Parse service pricing JSON from form
             service_pricing_json = form.service_pricing_json.data
@@ -994,7 +1024,7 @@ def apply():
                 merchant.closing_time = '23:59'  # 11:59 PM
                 merchant.operating_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                 merchant.is_24h = True
-                logger.info(f"Merchant {current_user.id} set to 24/7 operation")
+                logger.info(f"Merchant {applicant_user_id or pending_dir_id} set to 24/7 operation")
             else:
                 # Custom hours - store as Philippine Time
                 merchant.opening_time = form.opening_time.data
@@ -1005,8 +1035,9 @@ def apply():
             # Policies
             merchant.cancellation_policy = form.cancellation_policy.data or None
             
-            # Create merchant uploads directory
-            merchant_upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+            # Create merchant uploads directory. For anonymous applicants, use the pending id.
+            dir_id = str(applicant_user_id) if applicant_user_id else pending_dir_id
+            merchant_upload_dir = os.path.join('app/static/uploads/merchants', dir_id)
             os.makedirs(merchant_upload_dir, exist_ok=True)
             
             # Handle store logo upload
@@ -1017,7 +1048,7 @@ def apply():
                     if file_size <= MAX_SINGLE_FILE_SIZE:
                         filename = secure_filename(f"logo_{datetime.utcnow().timestamp()}_{file.filename}")
                         file.save(os.path.join(merchant_upload_dir, filename))
-                        merchant.logo_path = f'merchants/{current_user.id}/{filename}'
+                        merchant.logo_path = f'merchants/{dir_id}/{filename}'
                     else:
                         flash('Store logo must be 2MB or smaller.', 'danger')
                         return render_template('merchant/apply.html', form=form)
@@ -1030,7 +1061,7 @@ def apply():
                     if file_size <= MAX_SINGLE_FILE_SIZE:
                         filename = secure_filename(f"gov_id_{datetime.utcnow().timestamp()}_{file.filename}")
                         file.save(os.path.join(merchant_upload_dir, filename))
-                        merchant.government_id_path = f'merchants/{current_user.id}/{filename}'
+                        merchant.government_id_path = f'merchants/{dir_id}/{filename}'
                     else:
                         flash('Government ID must be 2MB or smaller.', 'danger')
                         return render_template('merchant/apply.html', form=form)
@@ -1043,7 +1074,7 @@ def apply():
                     if file_size <= MAX_SINGLE_FILE_SIZE:
                         filename = secure_filename(f"permit_{datetime.utcnow().timestamp()}_{file.filename}")
                         file.save(os.path.join(merchant_upload_dir, filename))
-                        merchant.business_permit_path = f'merchants/{current_user.id}/{filename}'
+                        merchant.business_permit_path = f'merchants/{dir_id}/{filename}'
                     else:
                         flash('Business permit must be 2MB or smaller.', 'danger')
                         return render_template('merchant/apply.html', form=form)
@@ -1074,9 +1105,26 @@ def apply():
                 for idx, (file, file_size) in enumerate(valid_files):
                     filename = secure_filename(f"facility_{idx}_{datetime.utcnow().timestamp()}_{file.filename}")
                     file.save(os.path.join(merchant_upload_dir, filename))
-                    facility_photos.append(f'merchants/{current_user.id}/{filename}')
+                    facility_photos.append(f'merchants/{dir_id}/{filename}')
                 
                 merchant.facility_photos_paths = facility_photos
+            
+            # ========== STORE MERCHANT ACCOUNT DETAILS IN APPLICATION DATA (JSON) ==========
+            # These credentials will be used by admin to create the merchant User account upon approval
+            application_password = form.merchant_password.data
+            import random as _rnd
+            # Randomly assign one of the prebuilt avatars so photo_url is never null
+            avatar_choice = f"images/avatar/avatar-{_rnd.randint(1,16)}.png"
+            merchant.application_data = {
+                'merchant_fname': form.merchant_fname.data,
+                'merchant_lname': form.merchant_lname.data,
+                'merchant_email': form.merchant_email.data,
+                'merchant_password_hash': bcrypt.generate_password_hash(application_password).decode('utf-8') if application_password else None,
+                'merchant_photo_url': avatar_choice
+            }
+
+            # Ensure applicant display name is set for anonymous flows
+            applicant_display_name = f"{form.merchant_fname.data or ''} {form.merchant_lname.data or ''}".strip() if not applicant_user_id else f"{current_user.first_name} {current_user.last_name}"
             
             # Set application status
             merchant.application_status = 'pending'
@@ -1085,40 +1133,59 @@ def apply():
             db.session.add(merchant)
             db.session.commit()
             
-            # ========== CREATE NOTIFICATIONS ==========
-            
-            # 1️ Notify all admin users about the new merchant application
-            admin_users = User.query.filter_by(role='admin').all()
-            
-            for admin_user in admin_users:
-                Notification.create_notification(
-                    user_id=admin_user.id,
-                    title='New Merchant Application',
-                    message=f'{current_user.first_name} {current_user.last_name} has submitted a merchant application for "{merchant.business_name}"',
-                    notification_type='warning',
-                    icon='fas fa-store',
-                    link=f'/admin/merchants/applications',
-                    related_id=merchant.id,
-                    related_type='merchant_application',
-                    from_user_id=current_user.id
-                )
-                logger.info(f"Notification created for admin {admin_user.id} about merchant application {merchant.id}")
-            
-            # 2 Optionally, create a notification for the merchant user about submission
-            Notification.create_notification(
-                user_id=current_user.id,
-                title='Application Submitted',
-                message=f'Your merchant application for "{merchant.business_name}" has been submitted successfully. Our admin team will review it within 5-7 business days.',
-                notification_type='success',
-                icon='fas fa-check-circle',
-                link=f'/user/dashboard',
-                related_id=merchant.id,
-                related_type='merchant_application'
-            )
-            logger.info(f"Notification created for merchant user {current_user.id} about their application submission")
+            # ========== CREATE NOTIFICATIONS (batch insert to avoid per-user commit delays) ==========
+            try:
+                admin_users = User.query.filter_by(role='admin').all()
+                notifications_to_add = []
+
+                from_user_id = applicant_user_id if applicant_user_id else None
+                display_name = applicant_display_name or (f"{current_user.first_name} {current_user.last_name}" if current_user.is_authenticated else merchant.owner_manager_name)
+
+                for admin_user in admin_users:
+                    n = Notification(
+                        user_id=admin_user.id,
+                        from_user_id=from_user_id,
+                        title='New Merchant Application',
+                        message=f'{display_name} has submitted a merchant application for "{merchant.business_name}"',
+                        notification_type='warning',
+                        icon='fas fa-store',
+                        link=f'/admin/merchants/applications',
+                        related_id=merchant.id,
+                        related_type='merchant_application',
+                        created_at=get_ph_datetime()
+                    )
+                    notifications_to_add.append(n)
+
+                # Notification for the applicant (only if authenticated)
+                if applicant_user_id:
+                    applicant_notification = Notification(
+                        user_id=applicant_user_id,
+                        title='Application Submitted',
+                        message=f'Your merchant application for "{merchant.business_name}" has been submitted successfully. Our admin team will review it within 5-7 business days.',
+                        notification_type='success',
+                        icon='fas fa-check-circle',
+                        link=f'/user/dashboard',
+                        related_id=merchant.id,
+                        related_type='merchant_application',
+                        created_at=get_ph_datetime()
+                    )
+                    notifications_to_add.append(applicant_notification)
+
+                for n in notifications_to_add:
+                    db.session.add(n)
+
+                db.session.commit()
+
+                for n in notifications_to_add:
+                    logger.info(f"Notification queued for user {n.user_id} (related={n.related_type}:{n.related_id})")
+            except Exception as ne:
+                logger.exception(f"Failed to create notifications in batch: {str(ne)}")
             
             flash('Application submitted successfully! Our team will review your application and contact you within 5-7 business days.', 'success')
-            return redirect(url_for('user.dashboard'))
+            # Redirect authenticated users to their dashboard, anonymous users to home
+            if applicant_user_id:
+                return redirect(url_for('user.dashboard'))
+            return redirect(url_for('auth.home'))
             
         except Exception as e:
             db.session.rollback()
@@ -1156,19 +1223,16 @@ def _normalize_region_name(region):
         return region
 
     if code == 'NCR' or 'national capital region' in name.lower() or 'metro manila' in name.lower():
-        region['name'] = 'NCR / Metro Manila'
+        region['name'] = 'Metro Manila'
     elif 'calabarzon' in name.lower():
-        region['name'] = 'CALABARZON (Region IV-A)'
-    elif '(' not in name and code:
-        region['name'] = f'{name} ({code})'
+        region['name'] = 'CALABARZON'
 
     return region
 
 
 @bp.route('/api/get-regions')
-@login_required
 def get_regions():
-    """Fetch Philippine regions from the PSGC API."""
+    """Fetch Philippine regions from the PSGC API - accessible to all users"""
     try:
         regions = []
         response = requests.get('https://psgc.gitlab.io/api/regions/', timeout=5)
@@ -1199,10 +1263,19 @@ def get_regions():
 
 @bp.route('/api/get-provinces', defaults={'region_code': None})
 @bp.route('/api/get-provinces/<region_code>')
-@login_required
 def get_provinces(region_code):
-    """Fetch all Philippine provinces or region-specific provinces from PSGC API."""
+    """Fetch all Philippine provinces or region-specific provinces from PSGC API - accessible to all users"""
     try:
+        if region_code:
+            region_key = str(region_code).strip().upper()
+            # Also check numeric PSGC codes (e.g., '13' or '130000000') for NCR
+            region_key_digits = re.sub(r'\D', '', region_key)
+            # HARDCODE: For NCR/Metro Manila, ALWAYS return Metropolitan Manila
+            if region_key == 'NCR' or 'METRO' in region_key or 'MANILA' in region_key or region_key_digits in ('13', '130000000') or region_key_digits.startswith('13'):
+                logger.info(f'NCR region detected: {region_code} -> Returning Metropolitan Manila')
+                return jsonify([{'code': 'NCR', 'name': 'Metropolitan Manila', '_type': 'province'}])
+        
+        # For other regions, fetch from API
         provinces = []
         response = requests.get('https://psgc.gitlab.io/api/provinces/', timeout=5)
         if response.status_code == 200:
@@ -1210,22 +1283,34 @@ def get_provinces(region_code):
 
         if region_code:
             region_key = str(region_code).strip().upper()
-            if region_key == 'NCR':
-                provinces = []
-            else:
-                filtered = []
-                for province in provinces:
-                    if not isinstance(province, dict):
-                        continue
-                    # PSGC province data can use different keys for the region code field
-                    region_code_field = ''
-                    for key in ('regionCode', 'region_code', 'region'):
-                        if province.get(key):
-                            region_code_field = str(province.get(key)).strip().upper()
-                            break
-                    if region_code_field == region_key or region_key in region_code_field:
-                        filtered.append(province)
-                provinces = filtered
+            region_key_digits = re.sub(r'\D', '', region_key)
+            filtered = []
+            for province in provinces:
+                if not isinstance(province, dict):
+                    continue
+                # PSGC province data can use different keys for the region code field
+                region_code_field = ''
+                for key in ('regionCode', 'region_code', 'region'):
+                    if province.get(key):
+                        region_code_field = str(province.get(key)).strip().upper()
+                        break
+
+                # Normalize digits for numeric comparisons
+                region_code_field_digits = re.sub(r'\D', '', region_code_field)
+
+                # Match by exact string, substring, or numeric prefix (handles '13' vs '130000000')
+                matched = False
+                if region_code_field and (region_code_field == region_key or region_key in region_code_field):
+                    matched = True
+                elif region_key_digits and region_code_field_digits:
+                    if region_code_field_digits == region_key_digits:
+                        matched = True
+                    elif region_code_field_digits.startswith(region_key_digits) or region_key_digits.startswith(region_code_field_digits):
+                        matched = True
+
+                if matched:
+                    filtered.append(province)
+            provinces = filtered
 
         unique_provinces = []
         seen = set()
@@ -1246,34 +1331,43 @@ def get_provinces(region_code):
 
 
 @bp.route('/api/get-cities/<location_code>')
-@login_required
 def get_cities(location_code):
-    """Fetch cities/municipalities for a province or region from PSGC API."""
+    """Fetch cities/municipalities for a province or region from PSGC API - accessible to all users"""
     try:
         all_cities = []
         location_code = str(location_code or '').strip()
         location_code_upper = location_code.upper()
 
+        # Normalize Metro Manila / NCR variants to NCR for API calls
+        if 'METRO' in location_code_upper or 'MANILA' in location_code_upper:
+            location_code = 'NCR'
+            location_code_upper = 'NCR'
+            logger.info(f'Normalized Metro Manila variant to NCR for cities lookup')
+
+        # Determine API region code to use for PSGC region endpoints
+        api_region_code = location_code
+        if location_code_upper == 'NCR':
+            # PSGC region numeric code for NCR is 130000000 (or 13); use full code for API endpoints
+            api_region_code = '130000000'
+
         # 1) Region lookup: cities and municipalities for special regions like NCR
         try:
-            response = requests.get(
-                f'https://psgc.gitlab.io/api/regions/{location_code}/cities/',
-                timeout=5
-            )
+            region_cities_url = f'https://psgc.gitlab.io/api/regions/{api_region_code}/cities/'
+            response = requests.get(region_cities_url, timeout=5)
+            logger.debug(f'Fetching PSGC region cities URL: {region_cities_url} -> {response.status_code}')
             if response.status_code == 200:
                 all_cities.extend(_parse_psgc_list(response.json()))
         except Exception as e:
-            logger.debug(f'Region cities lookup failed for {location_code}: {str(e)}')
+            logger.debug(f'Region cities lookup failed for {api_region_code}: {str(e)}')
 
         try:
-            response = requests.get(
-                f'https://psgc.gitlab.io/api/regions/{location_code}/municipalities/',
-                timeout=5
-            )
+            region_munis_url = f'https://psgc.gitlab.io/api/regions/{api_region_code}/municipalities/'
+            response = requests.get(region_munis_url, timeout=5)
+            logger.debug(f'Fetching PSGC region municipalities URL: {region_munis_url} -> {response.status_code}')
             if response.status_code == 200:
                 all_cities.extend(_parse_psgc_list(response.json()))
         except Exception as e:
-            logger.debug(f'Region municipalities lookup failed for {location_code}: {str(e)}')
+            logger.debug(f'Region municipalities lookup failed for {api_region_code}: {str(e)}')
 
         # 2) Province lookup: cities + municipalities
         try:
@@ -1321,9 +1415,8 @@ def get_cities(location_code):
 
 
 @bp.route('/api/get-barangays/<city_code>')
-@login_required
 def get_barangays(city_code):
-    """Fetch barangays for city/municipality from PSGC API with multiple fallbacks"""
+    """Fetch barangays for city/municipality from PSGC API with multiple fallbacks - accessible to all users"""
     try:
         barangay_list = []
 
@@ -1385,10 +1478,40 @@ def get_barangays(city_code):
         return jsonify({'error': 'Failed to fetch barangays'}), 500
 
 
+@bp.route('/api/get-pet-categories')
+def get_pet_categories():
+    """Fetch unique pet categories from Species model - accessible to all users"""
+    try:
+        # Get all unique pet categories from active species
+        pet_categories = db.session.query(Species.pet_category).filter(
+            Species.deleted_at.is_(None)
+        ).distinct().order_by(Species.pet_category.asc()).all()
+        
+        # Convert to list and remove None values
+        categories = [cat[0] for cat in pet_categories if cat[0]]
+        
+        # Define pet size standards based on industry research
+        # (Small, Medium, Large, Extra-Large used across pet services industry)
+        pet_sizes = [
+            {'value': 'extra_small', 'label': 'Extra Small (Toy, Birds, Small Rodents)', 'icon': 'fa-compact-disc'},
+            {'value': 'small', 'label': 'Small (Small Dogs, Cats, Rabbits)', 'icon': 'fa-circle'},
+            {'value': 'medium', 'label': 'Medium (Medium Dogs, Large Cats)', 'icon': 'fa-circle'},
+            {'value': 'large', 'label': 'Large (Large Dogs)', 'icon': 'fa-circle'},
+            {'value': 'extra_large', 'label': 'Extra Large (Giant Breeds)', 'icon': 'fa-circle'},
+        ]
+        
+        return jsonify({
+            'pet_categories': categories,
+            'pet_sizes': pet_sizes
+        })
+    except Exception as e:
+        logger.error(f'Error fetching pet categories: {str(e)}')
+        return jsonify({'error': 'Failed to fetch pet categories'}), 500
+
+
 @bp.route('/api/get-services/<category>')
-@login_required
 def get_services_for_category(category):
-    """Fetch available services for merchant business category"""
+    """Fetch available services for merchant business category - accessible to all users"""
     from app.utils.merchant_service_config import CATEGORY_TO_SERVICES
     
     # Look up services for selected business category from configuration

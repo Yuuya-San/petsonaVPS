@@ -112,7 +112,7 @@
                 <small class="text-gray-500 text-xs mt-1 block\">Auto-filled</small>
               </div>
               <div class="sm:col-span-2">
-                <label class="block text-gray-700 font-semibold mb-2 text-sm\">Phone Number <span class="text-red-500\">*</span></label>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm">Phone Number <span class="text-red-500">*</span></label>
                 <input type="tel" name="customer_phone" id="customer_phone" 
                        placeholder="Enter your phone number"
                        class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm\"
@@ -147,7 +147,7 @@
                   <!-- Pet Name -->
                   <div class="sm:col-span-2">
                     <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                      Pet Name *
+                      Pet Name <span class="text-red-500">*</span>
                       <span class="pet-name-check"></span>
                     </label>
                     <input type="text" name="pets[0][pet_name]" maxlength="50" class="pet_name w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Max, Whiskers" required>
@@ -155,7 +155,7 @@
                   <!-- Species -->
                   <div>
                     <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                      Species *
+                      Species <span class="text-red-500">*</span>
                       <span class="pet-species-check"></span>
                     </label>
                     <select name="pets[0][pet_species]" class="pet_species w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none transition-all text-sm" required>
@@ -171,14 +171,14 @@
                   </div>
                   <!-- Age -->
                   <div>
-                    <label class="block text-gray-700 font-semibold mb-2">Age (years)</label>
+                    <label class="block text-gray-700 font-semibold mb-2">Pet Age (years)</label>
                     <input type="number" name="pets[0][pet_age]" maxlength="3" inputmode="numeric" pattern="\d*" class="pet_age w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" min="0" max="999" step="1" placeholder="e.g., 3">
                     <small class="text-gray-500">Optional</small>
                   </div>
                   <!-- Weight -->
                   <div>
                     <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                      Weight (kg) *
+                      Weight (kg) <span class="text-red-500">*</span>
                       <span class="pet-weight-check"></span>
                     </label>
                     <div class="flex items-center gap-3">
@@ -231,8 +231,8 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-5">
               <div>
-                <label class="block text-gray-700 font-semibold mb-2 text-sm\">
-                  Appointment Date *
+                <label class="block text-gray-700 font-semibold mb-2 text-sm">
+                  Appointment Date <span class="text-red-500">*</span>
                 </label>
                 <input type="date" name="check_in_date" id="check_in_date" 
                        class="w-full px-3 py-2 sm:py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
@@ -240,8 +240,8 @@
                 <small class="text-gray-500 text-xs mt-1 block\">Select today or a future date</small>
               </div>
               <div>
-                <label class="block text-gray-700 font-semibold mb-2 text-sm\">
-                  Appointment Time *
+                <label class="block text-gray-700 font-semibold mb-2 text-sm">
+                  Appointment Time <span class="text-red-500">*</span>
                 </label>
                 <input type="time" name="check_in_time" id="check_in_time" 
                        class="w-full px-3 py-2 sm:py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"

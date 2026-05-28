@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request, abort, jsonify
+from flask import render_template, flash, redirect, url_for, request, abort, jsonify, current_app, send_file
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.user import bp
 from app.decorators import user_required
@@ -11,6 +11,22 @@ from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from datetime import datetime, timedelta
 import pytz
 import logging
+import qrcode
+import io
+import base64
+from urllib.parse import quote_plus
+
+PH_TZ = pytz.timezone('Asia/Manila')
+
+def _normalize_to_ph_time(dt):
+    if not dt:
+        return None
+    if dt.tzinfo is None:
+        try:
+            return PH_TZ.localize(dt)
+        except Exception:
+            return dt.replace(tzinfo=PH_TZ)
+    return dt.astimezone(PH_TZ)
 
 # Philippine timezone helper
 PH_TZ = pytz.timezone('Asia/Manila')
@@ -155,6 +171,509 @@ def dashboard():
         recent_species=recent_species,
         updated_species=updated_species
     )
+
+def _format_emv_tag(tag: str, value: str) -> str:
+    return f"{tag}{len(value):02d}{value}"
+
+
+def _normalize_ph_number(number: str) -> str:
+    digits = ''.join(ch for ch in (number or '') if ch.isdigit())
+    if digits.startswith('0'):
+        return f"63{digits[1:]}"
+    if digits.startswith('63'):
+        return digits
+    return digits
+
+
+def _crc16_ccitt(data: str) -> str:
+    crc = 0xFFFF
+    polynomial = 0x1021
+    for byte in data.encode('utf-8'):
+        crc ^= byte << 8
+        for _ in range(8):
+            crc = ((crc << 1) ^ polynomial) & 0xFFFF if (crc & 0x8000) else (crc << 1) & 0xFFFF
+    return f"{crc:04X}"
+
+
+def _build_gcash_qr_text(plan: str, amount: float) -> str:
+    gcash_raw = current_app.config.get('GCASH_PHONE') or '09977030323'
+    gcash_number = _normalize_ph_number(gcash_raw)
+    gcash_name = current_app.config.get('GCASH_NAME') or 'PetSona'
+
+    merchant_info_value = (
+        _format_emv_tag('00', 'A000000677010112') +
+        _format_emv_tag('01', gcash_number)
+    )
+
+    payload = (
+        _format_emv_tag('00', '01') +
+        _format_emv_tag('01', '12') +
+        _format_emv_tag('29', merchant_info_value) +
+        _format_emv_tag('52', '0000') +
+        _format_emv_tag('53', '608') +
+        _format_emv_tag('54', f"{amount:.2f}") +
+        _format_emv_tag('58', 'PH') +
+        _format_emv_tag('59', gcash_name[:25].upper()) +
+        _format_emv_tag('60', 'MANILA')
+    )
+
+    payload_with_crc_placeholder = payload + '6304'
+    crc = _crc16_ccitt(payload_with_crc_placeholder)
+    return payload_with_crc_placeholder + crc
+
+
+def _generate_gcash_qr_png_bytes(plan: str, amount: float) -> bytes:
+    qr_text = _build_gcash_qr_text(plan, amount)
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
+    qr.add_data(qr_text)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#000000", back_color="white").convert("RGB")
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def _generate_gcash_qr_data_url(plan: str, amount: float) -> str:
+    encoded = base64.b64encode(_generate_gcash_qr_png_bytes(plan, amount)).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
+
+
+def _generate_gcash_deeplink(gcash_phone: str, amount: float, plan: str) -> str:
+    normalized = _normalize_ph_number(gcash_phone)
+    note = quote_plus(f"PetSona {plan.title()}")
+    return f"gcash://pay?phone={normalized}&amount={amount:.2f}&currency=PHP&note={note}"
+
+@bp.route('/subscription', methods=['GET', 'POST'])
+@login_required
+def subscription():
+    """View and choose a subscription plan."""
+    if current_user.is_admin:
+        flash('Admins already have full access.', 'info')
+        return redirect(url_for('user.dashboard'))
+
+    payment_qr = None
+    selected_plan = None
+    payment_amount = None
+    payment_due_text = None
+
+    if current_user.is_pending_subscription:
+        pending_due = _normalize_to_ph_time(current_user.subscription_payment_due)
+        if pending_due and pending_due < get_ph_datetime():
+            current_user.cancel_subscription()
+            db.session.add(current_user)
+            db.session.commit()
+            flash('Your pending subscription request has expired. Please choose a plan again.', 'warning')
+            return redirect(url_for('user.subscription'))
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        if action == 'confirm_payment':
+            if not current_user.is_pending_subscription:
+                flash('There is no pending subscription to confirm.', 'danger')
+                return redirect(url_for('user.subscription'))
+
+            pending_due = _normalize_to_ph_time(current_user.subscription_payment_due)
+            if pending_due and pending_due < get_ph_datetime():
+                current_user.cancel_subscription()
+                db.session.add(current_user)
+                db.session.commit()
+                flash('Your payment window has expired. Please choose a plan again.', 'warning')
+                return redirect(url_for('user.subscription'))
+
+            current_user.activate_pending_subscription()
+            db.session.add(current_user)
+            db.session.commit()
+            flash('Payment confirmed. Your subscription is now active.', 'success')
+            return redirect(url_for('user.dashboard'))
+
+        if action == 'cancel_subscription':
+            current_user.cancel_subscription()
+            db.session.add(current_user)
+            db.session.commit()
+            flash('Your subscription request has been cancelled.', 'info')
+            return redirect(url_for('user.dashboard'))
+
+        selected_plan = (request.form.get('plan') or 'basic').lower()
+        if selected_plan not in ['basic', 'premium', 'pro']:
+            flash('Please choose a valid plan.', 'danger')
+            return redirect(url_for('user.subscription'))
+
+        if selected_plan == 'basic':
+            current_user.set_free_basic()
+            db.session.add(current_user)
+            db.session.commit()
+            flash('You are now on the Basic plan.', 'success')
+            return redirect(url_for('user.dashboard'))
+
+        payment_amount = 75.0 if selected_plan == 'premium' else 500.0
+        current_user.set_pending_subscription(selected_plan, get_ph_datetime() + timedelta(days=1))
+        db.session.add(current_user)
+        db.session.commit()
+        payment_qr = _generate_gcash_qr_data_url(selected_plan, payment_amount)
+        gcash_pay_url = _generate_gcash_deeplink(current_app.config.get('GCASH_PHONE') or '09977030323', payment_amount, selected_plan)
+        payment_due_text = current_user.subscription_payment_due.strftime('%B %d, %Y %I:%M %p')
+        flash('Your subscription is pending payment. Complete payment within 1 day and confirm it below.', 'info')
+    if current_user.is_pending_subscription and payment_qr is None:
+        pending_plan = current_user.pending_subscription_plan
+        payment_amount = 75.0 if pending_plan == 'premium' else 500.0
+        payment_qr = _generate_gcash_qr_data_url(pending_plan, payment_amount)
+        gcash_pay_url = _generate_gcash_deeplink(current_app.config.get('GCASH_PHONE') or '09977030323', payment_amount, pending_plan)
+        payment_due_text = current_user.subscription_payment_due.strftime('%B %d, %Y %I:%M %p') if current_user.subscription_payment_due else None
+        selected_plan = pending_plan
+
+    if 'gcash_pay_url' not in locals():
+        gcash_pay_url = None
+
+    return render_template(
+        'user/subscription.html',
+        page_title='Subscription Plans',
+        payment_qr=payment_qr,
+        pending_plan=selected_plan,
+        payment_amount=payment_amount,
+        payment_due_text=payment_due_text,
+        gcash_phone=current_app.config.get('GCASH_PHONE') or '09977030323',
+        gcash_pay_url=gcash_pay_url
+    )
+
+@bp.route('/api/gcash-subscription', methods=['GET', 'POST'])
+@login_required
+@user_required
+@csrf.exempt
+def api_gcash_subscription():
+    """Create or retrieve GCash subscription payment details."""
+    if current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admins already have full access.'}), 400
+
+    if request.method == 'GET':
+        if current_user.is_pending_subscription:
+            plan = current_user.pending_subscription_plan
+            amount = 75.0 if plan == 'premium' else 500.0 if plan == 'pro' else 0.0
+            return jsonify({
+                'success': True,
+                'pending': True,
+                'plan': plan,
+                'amount': amount,
+                'payment_due': current_user.subscription_payment_due.isoformat() if current_user.subscription_payment_due else None,
+                'gcash_phone': current_app.config.get('GCASH_PHONE') or '09977030323',
+                'payment_qr': _generate_gcash_qr_data_url(plan, amount),
+                'gcash_pay_url': _generate_gcash_deeplink(current_app.config.get('GCASH_PHONE') or '09977030323', amount, plan)
+            })
+
+        return jsonify({
+            'success': True,
+            'pending': False,
+            'message': 'No pending GCash payment. Use POST with plan to create payment details.'
+        })
+
+    data = request.get_json(silent=True) or request.form
+    selected_plan = (data.get('plan') or 'basic').lower()
+    if selected_plan not in ['basic', 'premium', 'pro']:
+        return jsonify({'success': False, 'message': 'Invalid plan selected.'}), 400
+
+    if selected_plan == 'basic':
+        current_user.set_free_basic()
+        db.session.add(current_user)
+        db.session.commit()
+        return jsonify({'success': True, 'plan': 'basic', 'message': 'Basic plan selected. No payment required.'})
+
+    payment_amount = 75.0 if selected_plan == 'premium' else 500.0
+    current_user.set_pending_subscription(selected_plan, get_ph_datetime() + timedelta(days=1))
+    db.session.add(current_user)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'pending': True,
+        'plan': selected_plan,
+        'amount': payment_amount,
+        'payment_due': current_user.subscription_payment_due.isoformat(),
+        'gcash_phone': current_app.config.get('GCASH_PHONE') or '09977030323',
+        'payment_qr': _generate_gcash_qr_data_url(selected_plan, payment_amount),
+        'gcash_pay_url': _generate_gcash_deeplink(current_app.config.get('GCASH_PHONE') or '09977030323', payment_amount, selected_plan),
+        'message': 'GCash payment created. Scan the QR code and confirm payment within 1 day.'
+    })
+
+@bp.route('/api/gcash-subscription/confirm', methods=['POST'])
+@login_required
+@user_required
+@csrf.exempt
+def api_gcash_subscription_confirm():
+    """Confirm the pending GCash subscription payment."""
+    if not current_user.is_pending_subscription:
+        return jsonify({'success': False, 'message': 'No pending subscription payment to confirm.'}), 400
+
+    pending_due = _normalize_to_ph_time(current_user.subscription_payment_due)
+    if pending_due and pending_due < get_ph_datetime():
+        current_user.cancel_subscription()
+        db.session.add(current_user)
+        db.session.commit()
+        return jsonify({'success': False, 'message': 'Payment window has expired. Please create a new payment request.'}), 400
+
+    current_user.activate_pending_subscription()
+    db.session.add(current_user)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Payment confirmed. Your subscription is now active.', 'plan': current_user.subscription_plan})
+
+@bp.route('/subscription/qr.png')
+@login_required
+@user_required
+def subscription_qr_download():
+    if not current_user.is_pending_subscription:
+        abort(404)
+
+    pending_plan = current_user.pending_subscription_plan
+    payment_amount = 75.0 if pending_plan == 'premium' else 500.0
+    qr_bytes = _generate_gcash_qr_png_bytes(pending_plan, payment_amount)
+    return send_file(
+        io.BytesIO(qr_bytes),
+        mimetype='image/png',
+        as_attachment=True,
+        download_name=f'PetSona-{pending_plan}-gcash-qr.png'
+    )
+
+@bp.route('/api/gcash-subscription/cancel', methods=['POST'])
+@login_required
+@user_required
+@csrf.exempt
+def api_gcash_subscription_cancel():
+    """Cancel the pending GCash subscription payment."""
+    if not current_user.is_pending_subscription:
+        return jsonify({'success': False, 'message': 'No pending subscription payment to cancel.'}), 400
+
+    current_user.cancel_subscription()
+    db.session.add(current_user)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Pending subscription payment cancelled.'})
+
+# ======================== PAYMONGO ENDPOINTS ========================
+
+@bp.route('/api/paymongo/create-intent', methods=['POST'])
+@login_required
+@csrf.exempt
+def paymongo_create_intent():
+    """Create a PayMongo payment intent for subscription"""
+    from app.utils.paymongo_manager import get_paymongo_manager
+    
+    if current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admins already have full access.'}), 400
+
+    data = request.get_json(silent=True) or {}
+    plan = (data.get('plan') or 'basic').lower()
+
+    if plan not in ['premium', 'pro']:
+        return jsonify({'success': False, 'message': 'Invalid plan. Use premium or pro.'}), 400
+
+    if plan == 'basic':
+        current_user.set_free_basic()
+        db.session.add(current_user)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'plan': 'basic',
+            'message': 'Basic plan selected. No payment required.'
+        })
+
+    # Calculate amount in cents
+    amount_cents = 7500 if plan == 'premium' else 50000  # ₱75.00 or ₱500.00
+    payment_description = f"PetSona {plan.title()} Subscription - {current_user.email}"
+
+    # Create payment intent
+    pm = get_paymongo_manager()
+    success, intent_data, error = pm.create_payment_intent(
+        amount_cents=amount_cents,
+        plan=plan,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        description=payment_description
+    )
+
+    if not success:
+        logger.error(f"Failed to create PayMongo intent: {error}")
+        return jsonify({
+            'success': False,
+            'message': 'Failed to create payment. Please try again.'
+        }), 500
+
+    # Store payment intent ID temporarily
+    intent_id = intent_data.get('id', '')
+    client_key = pm.create_client_key(intent_id)
+
+    # Set pending subscription with PayMongo
+    current_user.set_pending_subscription(plan, get_ph_datetime() + timedelta(days=1))
+    current_user.paymongo_intent_id = intent_id
+    db.session.add(current_user)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'intent_id': intent_id,
+        'client_key': client_key,
+        'public_key': pm.public_key,
+        'amount': amount_cents,
+        'currency': 'PHP',
+        'plan': plan,
+        'payment_due': current_user.subscription_payment_due.isoformat(),
+        'message': f'Payment intent created. Total: ₱{amount_cents/100:.2f}'
+    })
+
+@bp.route('/api/paymongo/confirm-payment', methods=['POST'])
+@login_required
+@csrf.exempt
+def paymongo_confirm_payment():
+    """Confirm a PayMongo payment and activate subscription"""
+    from app.utils.paymongo_manager import get_paymongo_manager
+    
+    if not current_user.is_pending_subscription:
+        return jsonify({'success': False, 'message': 'No pending subscription.'}), 400
+
+    data = request.get_json(silent=True) or {}
+    payment_id = data.get('payment_id', '')
+    intent_id = data.get('intent_id', '') or current_user.paymongo_intent_id
+
+    if not payment_id or not intent_id:
+        return jsonify({'success': False, 'message': 'Missing payment information.'}), 400
+
+    # Check payment status
+    pm = get_paymongo_manager()
+    
+    # For test mode, check simulated state
+    if pm.mode == 'test':
+        status_data = pm.get_simulated_payment_status(intent_id)
+        status = status_data.get('attributes', {}).get('status', 'unknown')
+    else:
+        success, intent_data, error = pm.retrieve_payment_intent(intent_id)
+        if not success:
+            logger.error(f"Failed to retrieve payment intent: {error}")
+            return jsonify({
+                'success': False,
+                'message': 'Failed to verify payment status.'
+            }), 500
+        status = intent_data.get('attributes', {}).get('status', 'unknown')
+
+    if status != 'succeeded':
+        return jsonify({
+            'success': False,
+            'status': status,
+            'message': f'Payment is {status}. Please wait or try again.'
+        }), 400
+
+    # Update user payment details and activate subscription
+    current_user.set_paymongo_payment(payment_id, intent_id, 'card')
+    current_user.update_paymongo_status('succeeded')
+    current_user.activate_pending_subscription()
+    db.session.add(current_user)
+    db.session.commit()
+
+    # Log the action
+    log_action_with_changes(
+        current_user.id,
+        'subscription_activated',
+        'Payment confirmed via PayMongo (Test Mode)',
+        {'plan': current_user.subscription_plan, 'payment_id': payment_id}
+    )
+
+    return jsonify({
+        'success': True,
+        'plan': current_user.subscription_plan,
+        'renewal_date': current_user.subscription_renewal_date.isoformat(),
+        'message': f'Payment confirmed! Your {current_user.subscription_plan.title()} subscription is now active.'
+    })
+
+@bp.route('/api/paymongo/payment-status', methods=['GET'])
+@login_required
+@csrf.exempt
+def paymongo_payment_status():
+    """Check real-time PayMongo payment status (for polling) - Supports realistic simulation"""
+    from app.utils.paymongo_manager import get_paymongo_manager
+    
+    intent_id = request.args.get('intent_id', '') or current_user.paymongo_intent_id
+
+    if not intent_id:
+        return jsonify({
+            'success': False,
+            'pending': False,
+            'message': 'No payment intent found.'
+        })
+
+    pm = get_paymongo_manager()
+    
+    # For test mode, check simulated state
+    if pm.mode == 'test':
+        status_data = pm.get_simulated_payment_status(intent_id)
+        status = status_data.get('attributes', {}).get('status', 'unknown')
+        amount = status_data.get('attributes', {}).get('amount', 0)
+        payments = status_data.get('attributes', {}).get('payments', [])
+    else:
+        success, intent_data, error = pm.retrieve_payment_intent(intent_id)
+        if not success:
+            return jsonify({
+                'success': False,
+                'status': 'error',
+                'message': 'Failed to retrieve payment status.'
+            })
+        status = intent_data.get('attributes', {}).get('status', 'unknown')
+        amount = intent_data.get('attributes', {}).get('amount', 0)
+        payments = intent_data.get('attributes', {}).get('payments', [])
+
+    return jsonify({
+        'success': True,
+        'status': status,
+        'amount': amount,
+        'currency': 'PHP',
+        'payments': payments,
+        'is_pending': status in ['processing', 'awaiting_payment_method'],
+        'is_succeeded': status == 'succeeded',
+        'is_failed': status == 'failed',
+        'message': f'Payment status: {status}'
+    })
+
+@bp.route('/api/paymongo/simulate-payment', methods=['POST'])
+@login_required
+@csrf.exempt
+def paymongo_simulate_payment():
+    """
+    Simulate a realistic payment transaction (TEST MODE ONLY)
+    Mimics real-world payment processing with 2-4 second delay
+    Status starts as 'processing' and transitions to 'succeeded'
+    """
+    from app.utils.paymongo_manager import get_paymongo_manager
+    
+    if not current_user.paymongo_intent_id:
+        return jsonify({'success': False, 'message': 'No active payment intent.'}), 400
+
+    pm = get_paymongo_manager()
+    
+    if pm.mode != 'test':
+        return jsonify({
+            'success': False,
+            'message': 'Payment simulation only available in test mode.'
+        }), 403
+
+    intent_id = current_user.paymongo_intent_id
+
+    # Simulate payment processing with realistic delay
+    simulated_response = pm.simulate_successful_payment(intent_id)
+    
+    # Update user payment status to 'processing' (not succeeded yet)
+    current_user.set_paymongo_payment(f"payment_sim_{intent_id}", intent_id, 'card')
+    current_user.update_paymongo_status('processing')
+    db.session.add(current_user)
+    db.session.commit()
+
+    # Return initial response showing payment is processing
+    return jsonify({
+        'success': True,
+        'status': 'processing',
+        'message': 'Processing payment... Please wait.',
+        'payment_id': f"payment_sim_{intent_id}",
+        'intent_id': intent_id,
+        'amount': simulated_response.get('attributes', {}).get('amount', 0),
+        'currency': 'PHP',
+        'simulated': True,
+        'polling_needed': True,  # Frontend should poll status
+        'polling_interval': 500  # Check every 500ms
+    })
 
 @bp.route('/species')
 @login_required

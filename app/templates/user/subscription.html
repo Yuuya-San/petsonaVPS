@@ -1,0 +1,763 @@
+{% if current_user.is_authenticated %}
+  {% extends current_user.role ~ "/base.html" %}
+{% else %}
+  {% extends "auth/base.html" %}
+{% endif %}
+{% block content %}
+<style>
+  .subscription-hero {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f0ff 50%, #f5f3ff 100%);
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    box-shadow: 0 24px 64px rgba(124, 58, 237, 0.08);
+  }
+
+  .plan-card {
+    background: white;
+    border: 1px solid rgba(167, 139, 250, 0.2);
+    border-radius: 1rem;
+    box-shadow: 0 18px 45px rgba(124, 58, 237, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+  }
+  
+  .subscription-wrapper {
+    width: 90vw;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 100vh;
+  }
+
+  @media (max-width: 1024px) {
+    .subscription-wrapper {
+      width: 92vw;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .subscription-wrapper {
+      width: 95vw;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .subscription-wrapper {
+      width: 98vw;
+      max-width: 100%;
+    }
+  }
+
+  .pending-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .pending-actions {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+  }
+
+  .plan-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(124, 58, 237, 0.14);
+  }
+
+  .plan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    background: rgba(124, 58, 237, 0.12);
+    color: #6b21a8;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    .plan-badge {
+      font-size: 0.75rem;
+      padding: 0.4rem 0.75rem;
+    }
+  }
+
+  .plan-action {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    color: white;
+  }
+
+  .plan-action:hover:not(:disabled) {
+    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  }
+
+  .subscription-note {
+    color: #4c1d95;
+  }
+
+  .payment-method-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(167, 139, 250, 0.2);
+  }
+
+  .payment-tab {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #9ca3af;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .payment-tab.active {
+    color: #7c3aed;
+    border-bottom-color: #7c3aed;
+  }
+
+  .payment-tab:hover {
+    color: #a855f7;
+  }
+
+  .payment-method-content {
+    display: none;
+  }
+
+  .payment-method-content.active {
+    display: block;
+  }
+
+  .paymongo-checkout {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    border-radius: 1rem;
+    padding: 1.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .paymongo-checkout {
+      padding: 1rem;
+      border-radius: 0.75rem;
+    }
+  }
+
+  .payment-loading {
+    display: none;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .payment-loading.show {
+    display: block;
+  }
+
+  .spinner {
+    border: 4px solid rgba(124, 58, 237, 0.2);
+    border-top: 4px solid #7c3aed;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .test-mode-badge {
+    display: block;
+    background: rgba(59, 130, 246, 0.15);
+    color: #1e40af;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+
+  @media (max-width: 640px) {
+    .test-mode-badge {
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+  }
+
+  .status-alert {
+    padding: 1.25rem;
+    border-radius: 0.875rem;
+    margin-bottom: 1.5rem;
+    word-wrap: break-word;
+  }
+
+  @media (max-width: 640px) {
+    .status-alert {
+      padding: 0.875rem;
+      margin-bottom: 1rem;
+      border-radius: 0.75rem;
+    }
+  }
+
+  .status-alert.info {
+    background: rgba(59, 130, 246, 0.08);
+    color: #1e40af;
+    border: 1.5px solid rgba(59, 130, 246, 0.4);
+  }
+
+  .status-alert.success {
+    background: rgba(34, 197, 94, 0.08);
+    color: #166534;
+    border: 1.5px solid rgba(34, 197, 94, 0.4);
+  }
+
+  .status-alert.danger {
+    background: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1.5px solid rgba(239, 68, 68, 0.4);
+  }
+
+  .test-card-details {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%);
+    border: 1.5px solid rgba(59, 130, 246, 0.25);
+    border-radius: 1rem;
+    padding: 1.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .test-card-details {
+      padding: 1rem;
+      border-radius: 0.75rem;
+    }
+  }
+
+  .test-card-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .test-card-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .test-card-code {
+    background: white;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    font-size: 0.95rem;
+    user-select: all;
+    word-break: break-all;
+  }
+
+  @media (max-width: 640px) {
+    .test-card-code {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.6rem;
+    }
+  }
+
+  /* Plan card layout fix for consistency */
+  .plan-card form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .plan-card button {
+    transition: all 0.2s ease;
+  }
+
+  .plan-card button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Downgrade warning button style */
+  button.border-amber-300 {
+    background: rgba(251, 191, 36, 0.08) !important;
+  }
+</style>
+
+<div class="subscription-wrapper min-h-screen py-6 sm:py-10 lg:py-12 px-3 sm:px-6 lg:px-8">
+  <div class="max-w-full mx-auto space-y-8 md:space-y-10">
+    <div class="subscription-hero rounded-2xl md:rounded-3xl p-6 md:p-10 lg:p-12">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
+        <div>
+          <p class="text-xs md:text-sm uppercase tracking-[0.25em] font-semibold text-purple-700">Subscription Plans</p>
+          <h1 class="mt-2 md:mt-3 text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-extrabold text-slate-900 leading-tight">Choose the plan that fits your PetSona journey.</h1>
+          <p class="mt-3 md:mt-4 max-w-2xl text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed">Basic is always free with one pet match. Premium and Pro unlock unlimited matches, full store editing for merchants, and priority match access.</p>
+          <div class="mt-4 md:mt-6 flex flex-col sm:flex-row gap-2 md:gap-3">
+            <a href="{{ url_for('user.dashboard') }}" class="inline-flex items-center justify-center rounded-lg md:rounded-full border border-purple-200 bg-white px-4 md:px-5 py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold text-purple-800 transition hover:bg-purple-50">Return to dashboard</a>
+            <a href="#plans" class="inline-flex items-center justify-center rounded-lg md:rounded-full plan-action px-4 md:px-5 py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold shadow-lg shadow-purple-200/40">View plans ↓</a>
+          </div>
+        </div>
+        <div class="rounded-2xl md:rounded-3xl bg-white/90 p-4 md:p-6 shadow-lg shadow-purple-200/20 border border-purple-100">
+          <p class="text-xs md:text-sm font-semibold text-purple-700">Current plan</p>
+          <div class="mt-3 md:mt-4 rounded-2xl md:rounded-3xl bg-gradient-to-r from-purple-500 to-indigo-500 p-4 md:p-6 text-white shadow-xl">
+            <div class="flex flex-col gap-3 md:gap-4">
+              <div class="text-xs uppercase tracking-[0.22em] opacity-80">Active Plan</div>
+              <div class="text-2xl md:text-3xl font-bold">{{ current_user.subscription_plan | default('basic') | title }}</div>
+              <div class="text-xs md:text-sm">{{ 'Admin privileges are active.' if current_user.is_admin else 'Upgrade anytime to unlock all features.' }}</div>
+              {% if current_user.subscription_renewal_date %}
+              <div class="text-xs md:text-sm opacity-90">Renewal: {{ current_user.subscription_renewal_date.strftime('%b %d, %Y') }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if current_user.is_pending_subscription %}
+    <div class="plan-card p-6 md:p-8 lg:p-10 border-2 border-purple-300 shadow-purple-200/30">
+      <span class="plan-badge">⏳ Payment Pending</span>
+      <h2 class="mt-4 md:mt-6 text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900">{{ current_user.pending_subscription_plan | title }} Plan</h2>
+      <p class="mt-3 md:mt-4 text-sm md:text-base lg:text-lg text-slate-600">Complete your payment to activate your {{ current_user.pending_subscription_plan | title }} subscription and unlock all features.</p>
+
+      <!-- PayMongo Test Payment Method -->
+      <div class="mt-6 md:mt-8">
+        <div class="paymongo-checkout">
+          <div class="status-alert info text-xs md:text-sm">
+            <strong>🧪 PayMongo Test Mode</strong> - Secure payment with realistic simulation
+          </div>
+          
+          <div id="test-status" class="status-alert text-xs md:text-sm" style="display: none;"></div>
+          
+          <div class="payment-loading" id="paymongo-loading" style="display: none;">
+            <div class="spinner"></div>
+            <p class="text-xs md:text-sm text-slate-600 mt-3">Processing payment...</p>
+          </div>
+
+          <!-- Test Card Details Section -->
+          <div class="test-card-details mt-4 md:mt-6">
+            <h4 class="font-bold text-sm md:text-base text-blue-900 mb-4">💳 Test Card Details</h4>
+            <div class="space-y-2 md:space-y-3">
+              <div class="test-card-item">
+                <span class="text-xs md:text-sm font-semibold text-blue-900">Card Number</span>
+                <code class="test-card-code text-xs md:text-sm">4343 4343 4343 4343</code>
+              </div>
+              <div class="test-card-item">
+                <span class="text-xs md:text-sm font-semibold text-blue-900">Expiry Date</span>
+                <span class="text-xs md:text-sm text-blue-800 font-medium">12/25</span>
+              </div>
+              <div class="test-card-item">
+                <span class="text-xs md:text-sm font-semibold text-blue-900">CVC</span>
+                <span class="text-xs md:text-sm text-blue-800 font-medium">123</span>
+              </div>
+              <p class="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-blue-200 text-xs text-blue-700">
+                ℹ️ This is a test card that will always succeed in test mode. No actual charges will be made.
+              </p>
+            </div>
+          </div>
+
+          <!-- Payment Summary -->
+          <div class="mt-4 md:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
+              <p class="text-xs md:text-sm text-slate-600 font-medium">Plan</p>
+              <p class="text-base md:text-lg font-bold text-slate-900 mt-1">{{ current_user.pending_subscription_plan | title }}</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
+              <p class="text-xs md:text-sm text-slate-600 font-medium">Amount</p>
+              <p class="text-base md:text-lg font-bold text-slate-900 mt-1">₱<span id="test-amount">75.00</span></p>
+            </div>
+          </div>
+
+          <!-- Payment Button -->
+          <button onclick="simulatePayMongoPayment()" id="simulate-btn" class="w-full mt-6 md:mt-8 rounded-lg md:rounded-2xl plan-action px-4 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold transition hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
+            💰 Simulate Payment - ₱<span id="btn-amount">75.00</span>
+          </button>
+
+          <div class="test-mode-badge block text-center text-xs md:text-sm">
+            🔒 Test Mode - Safe to test with simulated payment
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="pending-actions">
+        <form method="post" class="w-full">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="action" value="cancel_subscription">
+          <button type="submit" class="w-full rounded-lg md:rounded-2xl border border-red-200 bg-red-50 px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold text-red-700 hover:bg-red-100 transition">✕ Cancel Subscription</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Calculate and display amount on page load
+      function initializePaymentAmount() {
+        const plan = '{{ current_user.pending_subscription_plan or "premium" }}';
+        const amount = plan === 'premium' ? 75.00 : 500.00;
+        
+        document.getElementById('test-amount').textContent = amount.toFixed(2);
+        document.getElementById('btn-amount').textContent = amount.toFixed(2);
+      }
+
+      function simulatePayMongoPayment() {
+        const plan = '{{ current_user.pending_subscription_plan or "premium" }}';
+        const amount = plan === 'premium' ? 75.00 : 500.00;
+        const statusEl = document.getElementById('test-status');
+        const simulateBtn = document.getElementById('simulate-btn');
+        const loadingEl = document.getElementById('paymongo-loading');
+
+        // Reset state
+        statusEl.style.display = 'block';
+        statusEl.textContent = '⏳ Creating payment intent...';
+        statusEl.className = 'status-alert info';
+        simulateBtn.disabled = true;
+        loadingEl.style.display = 'none';
+
+        // Step 1: Create payment intent
+        fetch('{{ url_for("user.paymongo_create_intent") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({ plan: plan })
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => {
+              const errorMsg = data.message || data.errors?.[0]?.detail || `HTTP ${response.status}`;
+              console.error('API Error Response:', { status: response.status, data: data, message: errorMsg });
+              throw new Error(errorMsg);
+            }).catch(e => {
+              console.error('Failed to parse error response:', e);
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data || !data.success) {
+            const errorMsg = data?.message || 'Failed to create payment intent';
+            console.error('Payment Intent Error:', { data: data, message: errorMsg });
+            throw new Error(errorMsg);
+          }
+
+          statusEl.textContent = '💳 Processing payment...';
+          loadingEl.style.display = 'block';
+
+          // Step 2: Start payment simulation
+          const intentId = data.intent_id;
+          
+          return fetch('{{ url_for("user.paymongo_simulate_payment") }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ intent_id: intentId })
+          });
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => {
+              const errorMsg = data.message || data.errors?.[0]?.detail || `HTTP ${response.status}`;
+              console.error('Simulate Payment Error Response:', { status: response.status, data: data, message: errorMsg });
+              throw new Error(errorMsg);
+            }).catch(e => {
+              console.error('Failed to parse simulate error response:', e);
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data || !data.success) {
+            const errorMsg = data?.message || 'Payment simulation failed';
+            console.error('Simulate Payment Error:', { data: data, message: errorMsg });
+            throw new Error(errorMsg);
+          }
+
+          const intentId = data.intent_id;
+          const paymentId = data.payment_id;
+          const pollingInterval = data.polling_interval || 500;
+
+          // Step 3: Poll for payment completion
+          pollPaymentCompletion(intentId, paymentId, statusEl, loadingEl, simulateBtn, 0, pollingInterval);
+        })
+        .catch(error => {
+          console.error('Payment error:', error);
+          statusEl.textContent = '✗ Error: ' + error.message;
+          statusEl.className = 'status-alert danger';
+          loadingEl.style.display = 'none';
+          simulateBtn.disabled = false;
+        });
+      }
+
+      function pollPaymentCompletion(intentId, paymentId, statusEl, loadingEl, simulateBtn, attempts, pollingInterval) {
+        const maxAttempts = 30; // Max 15 seconds (30 * 500ms)
+        const maxWaitTime = 15000; // 15 seconds
+
+        if (attempts > maxAttempts) {
+          statusEl.textContent = '✗ Payment verification timed out. Please try again.';
+          statusEl.className = 'status-alert danger';
+          loadingEl.style.display = 'none';
+          simulateBtn.disabled = false;
+          return;
+        }
+
+        // Check payment status via API
+        fetch('{{ url_for("user.paymongo_payment_status") }}?intent_id=' + encodeURIComponent(intentId), {
+          method: 'GET',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token() }}'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => {
+              const errorMsg = data.message || `HTTP ${response.status}`;
+              console.error('Status check error response:', { status: response.status, data: data });
+              throw new Error(errorMsg);
+            }).catch(e => {
+              console.error('Failed to parse status error:', e);
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data || !data.success) {
+            const errorMsg = data?.message || 'Failed to check payment status';
+            console.error('Status check failed:', { data: data, message: errorMsg });
+            throw new Error(errorMsg);
+          }
+
+          const status = data.status || 'unknown';
+          const elapsedSeconds = Math.round((attempts * pollingInterval) / 1000);
+
+          if (status === 'succeeded') {
+            // Payment succeeded! Now confirm it
+            statusEl.textContent = '✓ Payment successful! Confirming subscription...';
+            statusEl.className = 'status-alert success';
+            loadingEl.style.display = 'block';
+
+            confirmPaymentSubscription(intentId, paymentId, statusEl, loadingEl, simulateBtn);
+          } else if (status === 'processing') {
+            // Still processing, show progress and continue polling
+            statusEl.textContent = `⏳ Processing payment... ${elapsedSeconds}s`;
+            statusEl.className = 'status-alert info';
+
+            setTimeout(() => {
+              pollPaymentCompletion(intentId, paymentId, statusEl, loadingEl, simulateBtn, attempts + 1, pollingInterval);
+            }, pollingInterval);
+          } else if (status === 'failed') {
+            throw new Error('Payment was declined. Please try again.');
+          } else {
+            // Unknown status, keep polling
+            statusEl.textContent = `⏳ Verifying payment... ${elapsedSeconds}s`;
+            statusEl.className = 'status-alert info';
+
+            setTimeout(() => {
+              pollPaymentCompletion(intentId, paymentId, statusEl, loadingEl, simulateBtn, attempts + 1, pollingInterval);
+            }, pollingInterval);
+          }
+        })
+        .catch(error => {
+          console.error('Polling error:', error);
+          statusEl.textContent = '✗ Error: ' + error.message;
+          statusEl.className = 'status-alert danger';
+          loadingEl.style.display = 'none';
+          simulateBtn.disabled = false;
+        });
+      }
+
+      function confirmPaymentSubscription(intentId, paymentId, statusEl, loadingEl, simulateBtn) {
+        fetch('{{ url_for("user.paymongo_confirm_payment") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({
+            intent_id: intentId,
+            payment_id: paymentId
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => {
+              const errorMsg = data.message || `HTTP ${response.status}`;
+              console.error('Confirm payment error response:', { status: response.status, data: data });
+              throw new Error(errorMsg);
+            }).catch(e => {
+              console.error('Failed to parse confirm error:', e);
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data || !data.success) {
+            const errorMsg = data?.message || 'Failed to confirm payment';
+            console.error('Confirm payment failed:', { data: data, message: errorMsg });
+            throw new Error(errorMsg);
+          }
+
+          statusEl.textContent = '✓ Subscription activated! Redirecting to dashboard...';
+          statusEl.className = 'status-alert success';
+          
+          setTimeout(() => {
+            window.location.href = '{{ url_for("user.dashboard") }}';
+          }, 2000);
+        })
+        .catch(error => {
+          console.error('Confirmation error:', error);
+          statusEl.textContent = '✗ Confirmation failed: ' + error.message;
+          statusEl.className = 'status-alert danger';
+          loadingEl.style.display = 'none';
+          simulateBtn.disabled = false;
+        });
+      }
+
+      // Initialize amount on page load
+      document.addEventListener('DOMContentLoaded', initializePaymentAmount);
+    </script>
+    {% endif %}
+
+    <div id="plans" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <!-- Basic Plan -->
+      <div class="plan-card p-6 md:p-8 flex flex-col h-full">
+        <div class="flex-1">
+          <span class="plan-badge">Basic</span>
+          <h2 class="mt-6 text-2xl md:text-3xl font-bold text-slate-900">Free</h2>
+          <p class="mt-3 text-sm md:text-base text-slate-600">Only one general pet match from the quiz. Breed-specific Match Me and merchant store editing require upgrade.</p>
+          <div class="mt-6 space-y-3">
+            <p class="font-semibold text-slate-700 text-sm md:text-base">Includes:</p>
+            <ul class="space-y-2 text-slate-600 text-xs md:text-sm">
+              <li class="flex items-center"><span class="mr-2">✓</span>1 general pet match</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>Basic pet database access</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>View & vote on breeds</li>
+            </ul>
+          </div>
+        </div>
+        <form method="post" class="mt-8 pt-6 border-t border-purple-100">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="plan" value="basic">
+          <button type="submit" class="w-full rounded-xl border border-purple-200 px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold text-purple-700 hover:bg-purple-50 transition select-plan-btn" data-plan="basic">Select Basic</button>
+        </form>
+      </div>
+
+      <!-- Premium Plan -->
+      <div class="plan-card p-6 md:p-8 flex flex-col h-full border-2 border-purple-300 shadow-lg shadow-purple-200/30 relative sm:col-span-2 lg:col-span-1">
+        <div class="flex items-start justify-between gap-2">
+          <span class="plan-badge">Premium</span>
+          <span class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-2.5 md:px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Most Popular</span>
+        </div>
+        <div class="flex-1 mt-6">
+          <h2 class="mt-6 text-2xl md:text-3xl font-bold text-slate-900">₱75 / month</h2>
+          <p class="mt-3 text-sm md:text-base text-slate-600">Unlimited pet matches, breed-specific access, and full merchant store edit rights.</p>
+          <div class="mt-6 space-y-3">
+            <p class="font-semibold text-slate-700 text-sm md:text-base">Includes:</p>
+            <ul class="space-y-2 text-slate-600 text-xs md:text-sm">
+              <li class="flex items-center"><span class="mr-2">✓</span>Unlimited quiz matches</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>Breed-specific Match Me access</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>Merchant store editing enabled</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>Monthly renewal</li>
+            </ul>
+          </div>
+        </div>
+        <form method="post" class="mt-8 pt-6 border-t border-purple-100">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="plan" value="premium">
+          <button type="submit" class="w-full rounded-xl plan-action px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold transition select-plan-btn" data-plan="premium">Choose Premium</button>
+          <p class="text-xs text-amber-600 mt-2 text-center hidden downgrade-msg bg-amber-50 p-2 rounded">⚠️ This plan is lower than your current plan. Continue to downgrade?</p>
+        </form>
+      </div>
+
+      <!-- Pro Plan -->
+      <div class="plan-card p-6 md:p-8 flex flex-col h-full">
+        <div class="flex-1">
+          <span class="plan-badge">Pro</span>
+          <h2 class="mt-6 text-2xl md:text-3xl font-bold text-slate-900">₱500 / year</h2>
+          <p class="mt-3 text-sm md:text-base text-slate-600">Full platform access plus the best yearly value for power users and merchants.</p>
+          <div class="mt-6 space-y-3">
+            <p class="font-semibold text-slate-700 text-sm md:text-base">Includes:</p>
+            <ul class="space-y-2 text-slate-600 text-xs md:text-sm">
+              <li class="flex items-center"><span class="mr-2">✓</span>Unlimited matches</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>Pro-level merchant tools</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>One-year renewal</li>
+              <li class="flex items-center"><span class="mr-2">✓</span>Best savings</li>
+            </ul>
+          </div>
+        </div>
+        <form method="post" class="mt-8 pt-6 border-t border-purple-100">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="plan" value="pro">
+          <button type="submit" class="w-full rounded-xl plan-action px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold transition select-plan-btn" data-plan="pro">Choose Pro</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Plan hierarchy for downgrade protection
+      const planHierarchy = { 'basic': 0, 'premium': 1, 'pro': 2 };
+      const currentPlan = '{{ current_user.subscription_plan | default("basic") | lower }}';
+      const currentPlanValue = planHierarchy[currentPlan] || 0;
+
+      // Initialize plan buttons
+      document.addEventListener('DOMContentLoaded', function() {
+        const planButtons = document.querySelectorAll('.select-plan-btn');
+        
+        planButtons.forEach(button => {
+          const plan = button.dataset.plan;
+          const planValue = planHierarchy[plan] || 0;
+          const form = button.closest('form');
+          const downgradeMsg = form.querySelector('.downgrade-msg');
+
+          // If current plan
+          if (plan === currentPlan) {
+            button.disabled = true;
+            button.classList.add('opacity-60', 'cursor-not-allowed');
+            button.textContent = '✓ Current Plan';
+          }
+          // If trying to downgrade
+          else if (planValue < currentPlanValue) {
+            button.classList.remove('plan-action');
+            button.classList.add('border', 'border-amber-300', 'bg-amber-50', 'text-amber-700', 'hover:bg-amber-100');
+            if (downgradeMsg) downgradeMsg.classList.remove('hidden');
+            button.textContent = (plan === 'basic' ? '⚠️ Downgrade to Basic' : 
+                                  plan === 'premium' ? '⚠️ Downgrade to Premium' : 
+                                  '⚠️ Downgrade to Pro');
+            
+            // Show confirmation on click
+            button.addEventListener('click', function(e) {
+              if (!confirm('⚠️ You are downgrading your plan. Are you sure?\n\nYour current benefits may be reduced. Continue?')) {
+                e.preventDefault();
+              }
+            });
+          }
+          // If upgrading
+          else if (planValue > currentPlanValue) {
+            button.textContent = (plan === 'premium' ? '⬆️ Upgrade to Premium' : 
+                                  plan === 'pro' ? '⬆️ Upgrade to Pro' : 
+                                  'Choose ' + plan.charAt(0).toUpperCase() + plan.slice(1));
+          }
+        });
+      });
+    </script>
+
+    <div class="rounded-2xl md:rounded-3xl bg-violet-50 border border-purple-100 p-4 md:p-6 lg:p-8 text-slate-700">
+      <p class="font-semibold text-purple-900 text-sm md:text-base">Note:</p>
+      <p class="mt-2 md:mt-3 subscription-note text-xs md:text-sm leading-relaxed">Basic users can access one general pet match. Upgrade to Premium or Pro to unlock breed-specific Match Me and merchant store editing. Admin accounts bypass plan restrictions. Test mode simulates real-world payment processing with realistic 2-4 second delays. Use PayMongo Test tab to test the complete payment flow instantly!</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

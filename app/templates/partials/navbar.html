@@ -452,6 +452,7 @@ body {
       <li><a href="{{ url_for('auth.feature') }}" class="{% if request.endpoint == 'auth.feature' %}active{% endif %}">Features</a></li>
       <li><a href="{{ url_for('auth.about') }}" class="{% if request.endpoint == 'auth.about' %}active{% endif %}">About</a></li>
       <li><a href="{{ url_for('auth.contact') }}" class="{% if request.endpoint == 'auth.contact' %}active{% endif %}">Contact</a></li>
+      <li><a href="{{ url_for('auth.apply') }}" class="{% if request.endpoint == 'auth.apply' or request.endpoint == 'merchant.apply' %}active{% endif %}">Become our partner</a></li>
       <li class="nav-auth">
         <a href="{{ url_for('auth.login') }}">Login</a>
       </li>

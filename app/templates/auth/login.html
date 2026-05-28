@@ -291,6 +291,188 @@
 }
 
 /* ===============================
+   PRIVACY MODAL
+================================ */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+  margin-bottom: 58px !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #ffffff;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 520px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  margin-bottom: 58px;
+  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+}
+
+.modal-header h2 {
+  color: #36064D;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #36064D;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #6366f1;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  color: #36064D;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.modal-body h3 {
+  color: #6366f1;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.2rem 0 0.6rem 0;
+}
+
+.modal-body h3:first-child {
+  margin-top: 0;
+}
+
+.modal-body p {
+  margin: 0.8rem 0;
+  color: #36064D;
+}
+
+.modal-body ul {
+  margin: 0.8rem 0;
+  padding-left: 1.2rem;
+}
+
+.modal-body li {
+  margin: 0.5rem 0;
+  color: #36064D;
+}
+
+.modal-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.modal-btn-close {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.modal-btn-close:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 1.5rem;
+    max-height: 85vh;
+  }
+
+  .modal-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .modal-body {
+    font-size: 0.85rem;
+  }
+
+  .modal-body h3 {
+    font-size: 1rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-btn {
+    width: 100%;
+  }
+}
+
+/* ===============================
    SOCIAL LOGIN (ICON ONLY)
 ================================ */
 
@@ -540,6 +722,156 @@
       </span>
     </div>
 
+    <!-- Data Privacy & Website Use Notice -->
+    <div class="privacy-notice" style="margin-top: 1.2rem; padding: 0.8rem; background: rgba(99, 102, 241, 0.06); border-radius: 8px; border-left: 2px solid #6366f1; text-align: center;">
+      <div style="font-size: 0.7rem; color: #36064D !important; line-height: 1.4;">
+        <p style="margin: 0.4rem 0 0 0; font-size: 0.65rem; color: #36064D !important;">
+          <a href="javascript:void(0)" onclick="openModal('privacyModal')" style="color: #36064D !important; text-decoration: none; border-bottom: 1px solid #36064D; cursor: pointer;">
+            Read Full Privacy Policy
+          </a> 
+          | 
+          <a href="javascript:void(0)" onclick="openModal('termsModal')" style="color: #36064D !important; text-decoration: none; border-bottom: 1px solid #36064D; cursor: pointer;">
+            Terms of Service
+          </a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div id="privacyModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Privacy Policy</h2>
+      <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h3>1. Information We Collect</h3>
+      <p>PetSona may collect:</p>
+      <ul>
+        <li>Names and contact information</li>
+        <li>Profile and account data</li>
+        <li>Pet preferences and personality assessments</li>
+        <li>Booking records and communication history</li>
+        <li>Device and usage analytics</li>
+        <li>Authentication and security-related data</li>
+      </ul>
+
+      <h3>2. Purpose of Data Processing</h3>
+      <p>Collected information may be used for:</p>
+      <ul>
+        <li>Account registration and authentication</li>
+        <li>Recommendation system functionality</li>
+        <li>Customer support</li>
+        <li>Security monitoring and fraud prevention</li>
+        <li>Analytics and platform improvement</li>
+        <li>Communication and booking functionality</li>
+        <li>Compliance with legal obligations</li>
+      </ul>
+
+      <h3>3. Legal Compliance</h3>
+      <p>PetSona aims to comply with the Data Privacy Act of 2012 (Republic Act No. 10173) and applicable Philippine privacy regulations where applicable.</p>
+
+      <h3>4. Data Protection Measures</h3>
+      <p>PetSona implements reasonable administrative, technical, and organizational safeguards including:</p>
+      <ul>
+        <li>Password encryption</li>
+        <li>Access controls</li>
+        <li>Authentication systems</li>
+        <li>Security monitoring</li>
+        <li>Audit logging</li>
+      </ul>
+      <p>However, no online platform can guarantee absolute security.</p>
+
+      <h3>5. User Rights</h3>
+      <p>Users may request to:</p>
+      <ul>
+        <li>Access personal information</li>
+        <li>Correct inaccurate information</li>
+        <li>Request deletion of accounts</li>
+        <li>Obtain copies of stored information</li>
+      </ul>
+      <p>Requests may require identity verification and may be subject to legal limitations.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-close" onclick="closeModal('privacyModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Terms of Service Modal -->
+<div id="termsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Terms of Service</h2>
+      <button class="modal-close" onclick="closeModal('termsModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h3>1. Acceptance of Terms</h3>
+      <p>By accessing, registering for, or using PetSona ("Platform," "Service," "we," "our," or "us"), users acknowledge that they have read, understood, and agreed to comply with these Terms of Service, all related platform policies, and applicable laws and regulations.</p>
+      <p>If a user does not agree with any portion of these Terms, the user must immediately discontinue access to and use of the Platform.</p>
+      <p>PetSona reserves the right to update, modify, replace, or discontinue any part of these Terms at any time without prior notice. Continued use of the Platform following updates constitutes acceptance of the revised Terms.</p>
+
+      <h3>2. Platform Description</h3>
+      <p>PetSona is a digital pet-focused platform that provides:</p>
+      <ul>
+        <li>Personality-based pet recommendation systems</li>
+        <li>Merchant discovery and booking assistance</li>
+        <li>Pet-related educational resources</li>
+        <li>Communication and marketplace functionality</li>
+        <li>Compatibility and lifestyle matching systems</li>
+      </ul>
+      <p>PetSona acts solely as an intermediary technology platform and does not directly provide veterinary, boarding, grooming, breeding, adoption, transportation, or animal healthcare services unless explicitly stated otherwise.</p>
+
+      <h3>3. User Eligibility</h3>
+      <p>Users must be of legal age under applicable local laws or must access the Platform under the supervision of a parent or legal guardian.</p>
+      <p>Users represent that all submitted information is accurate, truthful, complete, and current.</p>
+
+      <h3>4. User Responsibilities</h3>
+      <p>Users are responsible for:</p>
+      <ul>
+        <li>Maintaining account confidentiality</li>
+        <li>Protecting authentication credentials</li>
+        <li>Ensuring lawful use of the Platform</li>
+        <li>Respecting other users and merchants</li>
+        <li>Reporting unauthorized account activity immediately</li>
+      </ul>
+      <p>Users are solely responsible for all activities conducted through their accounts.</p>
+
+      <h3>5. Prohibited Activities</h3>
+      <p>Users agree not to:</p>
+      <ul>
+        <li>Upload malware, viruses, or harmful code</li>
+        <li>Attempt unauthorized access to systems or databases</li>
+        <li>Scrape or automate data extraction</li>
+        <li>Create fake accounts, listings, or reviews</li>
+        <li>Engage in harassment, abuse, hate speech, or discrimination</li>
+        <li>Misuse recommendation or booking systems</li>
+        <li>Circumvent platform fees or security mechanisms</li>
+        <li>Violate intellectual property rights</li>
+        <li>Engage in illegal, deceptive, or fraudulent conduct</li>
+      </ul>
+      <p>PetSona reserves the right to investigate violations and cooperate with law enforcement authorities where legally required.</p>
+
+      <h3>6. Intellectual Property Rights</h3>
+      <p>All platform elements including logos, branding, recommendation systems, designs, interfaces, databases, graphics, source code, content, and proprietary technologies remain the exclusive intellectual property of PetSona and its licensors.</p>
+      <p>Unauthorized reproduction, resale, modification, reverse engineering, or commercial exploitation is strictly prohibited.</p>
+
+      <h3>7. Service Availability</h3>
+      <p>PetSona does not guarantee uninterrupted, secure, or error-free operation of the Platform. We reserve the right to modify or discontinue features, restrict access, conduct maintenance, suspend services, or remove functionality without prior notice where reasonably necessary.</p>
+
+      <h3>8. Limitation of Liability</h3>
+      <p>To the maximum extent permitted by law, PetSona and its affiliates, developers, administrators, employees, and partners shall not be liable for indirect or consequential damages, financial losses, data loss, recommendation outcomes, merchant disputes, booking failures, service interruptions, or user-generated content.</p>
+      <p>The Platform is provided on an "as is" and "as available" basis without warranties of any kind.</p>
+
+      <h3>9. Governing Law</h3>
+      <p>These Terms shall be governed by and interpreted in accordance with the laws of the Republic of the Philippines.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-close" onclick="closeModal('termsModal')">Close</button>
+    </div>
   </div>
 </div>
 
@@ -551,6 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginForm = document.getElementById('login-form');
   const submitBtn = document.querySelector('.btn-primary');
   const showPasswordCheckbox = document.getElementById('showPassword');
+  const agreeTermsCheckbox = document.getElementById('agreeTerms');
   let passwordInput = document.querySelector('input[name="password"]');
   if (!passwordInput) {
     passwordInput = document.querySelector('input[type="password"]');
@@ -564,7 +897,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function validateForm() {
     const emailValid = emailInput && emailInput.value.trim().length > 0;
     const passwordValid = passwordInput && passwordInput.value.trim().length > 0;
-    return emailValid && passwordValid;
+    const termsValid = agreeTermsCheckbox && agreeTermsCheckbox.checked;
+    return emailValid && passwordValid && termsValid;
   }
 
   function updateSubmitButton() {
@@ -612,7 +946,54 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  if (agreeTermsCheckbox) {
+    agreeTermsCheckbox.addEventListener('change', updateSubmitButton);
+  }
+
   updateSubmitButton();
+});
+</script>
+
+<script>
+// Modal Functions
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove('show');
+    document.body.style.overflow = 'auto';
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+  const modals = document.querySelectorAll('.modal');
+  modals.forEach(modal => {
+    modal.addEventListener('click', function(event) {
+      if (event.target === this) {
+        const modalId = this.id;
+        closeModal(modalId);
+      }
+    });
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      modals.forEach(modal => {
+        if (modal.classList.contains('show')) {
+          closeModal(modal.id);
+        }
+      });
+    }
+  });
 });
 </script>
 

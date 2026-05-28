@@ -344,6 +344,34 @@
                 {% if service_pricing and service_pricing|length > 0 %}
                   <div class="space-y-4">
                     
+                    <!-- NEW FORMAT: Direct pricing with basis and rate_type -->
+                    {% if service_pricing.get('prices') and service_pricing.get('basis') %}
+                      <div class="border-l-4 border-purple-500 pl-4 py-2">
+                        <h5 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                          <i class="fas fa-tag text-purple-600"></i> 
+                          {{ service_pricing.get('basis')|title }} Pricing
+                        </h5>
+                        <div class="p-3 bg-purple-50/40 rounded-[20px]">
+                          <div class="space-y-2 text-xs">
+                            {% for type, price in service_pricing.get('prices').items() %}
+                              <div class="flex justify-between items-center pb-1.5 border-b border-purple-100/40">
+                                <span class="text-gray-700 font-medium">{{ type|title }}</span>
+                                <span class="text-purple-700 font-bold">₱{{ price|int|string }}</span>
+                              </div>
+                            {% endfor %}
+                          </div>
+                          {% if service_pricing.get('rate_type') %}
+                          <div class="mt-3 pt-2 border-t border-purple-200/50 text-xs">
+                            <p class="text-gray-600 italic">
+                              <i class="fas fa-clock text-purple-600 mr-1"></i> Rate: {{ service_pricing.get('rate_type')|title }}
+                            </p>
+                          </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% else %}
+                    <!-- OLD FORMAT: Service-based pricing (Pet Hotel, Pet Boarding, Pet Daycare) -->
+                    
                     <!-- Pet Hotel Pricing -->
                     {% if 'Pet Hotel' in service_pricing and service_pricing['Pet Hotel'] is mapping %}
                       {% set hotel_pricing = service_pricing['Pet Hotel'] %}
@@ -498,6 +526,7 @@
                           </div>
                         {% endif %}
                       </div>
+                    {% endif %}
                     {% endif %}
                   </div>
                 {% else %}

@@ -62,20 +62,18 @@
             <p>My Bookings</p>
           </a>
         </li>
-
-        <!-- Become a Partner -->
-        <li class="nav-item">
-          <a href="{{ url_for('merchant.apply') }}" class="nav-link {% if request.endpoint == 'merchant.apply' %}active{% endif %}">
-            <i class="nav-icon fas fa-store"></i>
-            <p>Become a Partner</p>
-          </a>
-        </li>
-
         
         <li class="nav-item">
           <a href="{{ url_for('messages.support') }}" class="nav-link {% if request.endpoint == 'messages.support' or (request.endpoint == 'messages.conversation' and other_user is defined and other_user.id == 1) %}active{% endif %}">
             <i class="nav-icon fas fa-headset"></i>
             <p>Support</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('user.subscription') }}" class="nav-link {% if request.endpoint == 'user.subscription' %}active{% endif %}">
+            <i class="nav-icon fas fa-gem"></i>
+            <p>Subscription</p>
           </a>
         </li>
 

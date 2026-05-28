@@ -240,7 +240,7 @@
     <!-- Premium Detail Modal with Modern Design -->
     <template x-if="selectedApp">
         <div class="modal-overlay" @click.self="selectedApp = null">
-            <div class="modal-content-wrapper" style="width: 580px; max-width: 95vw; min-height: 80vh;" @click.stop>
+            <div class="modal-content-wrapper" style="width: auto; max-width: 580px; min-width: min(90vw, 320px); min-height: auto; max-height: 90vh;" @click.stop>
                 
                 <!-- Modal Header -->
                 <div class="modal-header">
@@ -330,6 +330,35 @@
                                 </div>
                             </div>
                         </div>
+
+                        <template x-if="selectedApp.application_data && Object.keys(selectedApp.application_data).length > 0">
+                            <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+                                <h4 class="font-bold text-gray-900 text-base mb-4 flex items-center gap-2 pb-3 border-b border-purple-200">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5 9 6.343 9 8s1.343 3 3 3zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                    Application Account Details
+                                </h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Applicant First Name</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.application_data.merchant_fname || 'N/A'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Applicant Last Name</p>
+                                        <p class="text-gray-900 font-medium mt-1" x-text="selectedApp.application_data.merchant_lname || 'N/A'"></p>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Merchant Account Email</p>
+                                        <p class="text-blue-600 font-medium mt-1 break-all" x-text="selectedApp.application_data.merchant_email || 'N/A'"></p>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <p class="text-gray-600 font-semibold uppercase text-xs">Password Storage</p>
+                                        <p class="text-gray-900 font-medium mt-1">Password hash is stored securely and never shown in plain text.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
 
                         <!-- Location Information Section -->
                         <div class="bg-white/60 backdrop-blur-lg border border-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
@@ -564,6 +593,22 @@
                                         </div>
                                     </template>
                                 </div>
+
+                                <template x-if="hasOtherServicePricing(selectedApp.service_pricing)">
+                                    <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                                        <h5 class="font-semibold text-slate-900 text-sm mb-3">Additional Pricing Details</h5>
+                                        <div class="space-y-3 text-xs text-slate-700">
+                                            <template x-for="(value, key) in selectedApp.service_pricing" :key="key">
+                                                <template x-if="!['Pet Hotel','Pet Boarding','Pet Daycare'].includes(key)">
+                                                    <div class="bg-white rounded-xl border border-slate-200 p-3">
+                                                        <p class="font-semibold text-slate-900 mb-2" x-text="key"></p>
+                                                        <pre class="whitespace-pre-wrap break-words text-xs leading-relaxed" x-text="formatServicePricingEntry(value)"></pre>
+                                                    </div>
+                                                </template>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </template>
 
@@ -658,14 +703,16 @@
                         <div class="flex gap-2 w-full">
                             <button 
                                 @click="confirmReject(selectedApp.id)"
-                                class="flex-1 modal-btn modal-btn-delete"
+                                class="flex-1 modal-btn modal-btn-delete btn-submit"
+                                data-action="submit"
                             >
                                 <i class="fa-solid fa-ban"></i>
                                 Reject
                             </button>
                             <button 
                                 @click="confirmApprove(selectedApp.id)"
-                                class="flex-1 modal-btn modal-btn-primary"
+                                class="flex-1 modal-btn modal-btn-primary btn-submit"
+                                data-action="submit"
                             >
                                 <i class="fa-solid fa-check"></i>
                                 Approve
@@ -982,7 +1029,9 @@ function merchantApplications() {
                 
                 // Normalize field names to match template expectations
                 this.applications = merchants.map((m, idx) => {
-                    
+                    const applicationEmail = m.application_data?.merchant_email || '';
+                    const applicationName = `${m.application_data?.merchant_fname || ''} ${m.application_data?.merchant_lname || ''}`.trim();
+
                     return {
                         id: m.id,
                         year: m.created_at ? m.created_at.split('T')[0].split('-')[0] : 'N/A',
@@ -991,8 +1040,8 @@ function merchantApplications() {
                         business_type: m.business_category || 'N/A',
                         owner_name: m.owner_manager_name || 'N/A',
                         contact_email: m.contact_email || 'N/A',
-                        user_email: m.user_email || 'N/A',
-                        user_name: m.user_name || 'N/A',
+                        user_email: m.user_email || applicationEmail || 'N/A',
+                        user_name: m.user_name || applicationName || 'N/A',
                         phone: m.contact_phone || 'N/A',
                         city: m.city || 'N/A',
                         province: m.province || 'N/A',
@@ -1002,6 +1051,7 @@ function merchantApplications() {
                         services: Array.isArray(m.services_offered) ? m.services_offered : (m.services_offered ? [m.services_offered] : []),
                         pets_accepted: Array.isArray(m.pets_accepted) ? m.pets_accepted : (m.pets_accepted ? [m.pets_accepted] : []),
                         service_pricing: m.service_pricing || {},
+                        application_data: m.application_data || {},
                         cancellation_policy: m.cancellation_policy || '',
                         government_id_path: m.government_id_path || '',
                         business_permit_path: m.business_permit_path || '',
@@ -1168,14 +1218,35 @@ function merchantApplications() {
             return '₱ -';
         },
 
+        hasOtherServicePricing(pricing) {
+            return pricing && Object.keys(pricing).some(key => !['Pet Hotel', 'Pet Boarding', 'Pet Daycare'].includes(key));
+        },
+
+        formatServicePricingEntry(value) {
+            if (value === null || value === undefined) {
+                return 'Not specified';
+            }
+            if (typeof value === 'string' || typeof value === 'number') {
+                return String(value);
+            }
+            if (Array.isArray(value)) {
+                return value.join(', ');
+            }
+            try {
+                return JSON.stringify(value, null, 2);
+            } catch (e) {
+                return String(value);
+            }
+        },
+
         openPhotosGallery() {
             this.showPhotosModal = true;
             this.currentPhotoIndex = 0;
         },
 
         async approveApplication(merchantId) {
+            showLoader();
             try {
-                
                 const response = await fetch(`/admin/api/merchants/${merchantId}/approve`, {
                     method: 'POST',
                     headers: { 
@@ -1184,33 +1255,27 @@ function merchantApplications() {
                     }
                 });
 
-                
-
                 // Check if response is JSON
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    
                     alert('Server error: Invalid response format. Please check your permissions.');
                     return;
                 }
 
                 const data = await response.json();
-                
 
                 if (response.ok && data.success) {
-                    
                     this.selectedApp = null;
-                    // Redirect to show flash message
                     setTimeout(() => {
                         window.location.href = '/admin/merchants/applications';
                     }, 500);
                 } else {
-                    
                     alert(`Error: ${data.message || 'Failed to approve application'}`);
                 }
             } catch (error) {
-                
                 alert('An error occurred while approving the application: ' + error.message);
+            } finally {
+                hideLoader();
             }
         },
 
@@ -1220,8 +1285,8 @@ function merchantApplications() {
                 return;
             }
 
+            showLoader();
             try {
-                
                 const response = await fetch(`/admin/api/merchants/${merchantId}/reject`, {
                     method: 'POST',
                     headers: { 
@@ -1231,34 +1296,28 @@ function merchantApplications() {
                     body: JSON.stringify({ reason: reason.trim() })
                 });
 
-                
-
                 // Check if response is JSON
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    
                     alert('Server error: Invalid response format. Please check your permissions.');
                     return;
                 }
 
                 const data = await response.json();
-                
 
                 if (response.ok && data.success) {
-                    
                     this.selectedApp = null;
                     this.rejectionReason = '';
-                    // Redirect to show flash message
                     setTimeout(() => {
                         window.location.href = '/admin/merchants/applications';
                     }, 500);
                 } else {
-                    
                     alert(`Error: ${data.message || 'Failed to reject application'}`);
                 }
             } catch (error) {
-                
                 alert('An error occurred while rejecting the application: ' + error.message);
+            } finally {
+                hideLoader();
             }
         }
     };
@@ -1307,10 +1366,10 @@ function merchantApplications() {
   background: white;
   border-radius: 2rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
-  width: 100%;
-  max-width: 95vw;
-  min-width: auto;
-  min-height: 80vh;
+  width: auto;
+  max-width: 580px;
+  min-width: min(90vw, 320px);
+  min-height: auto;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
@@ -1483,7 +1542,9 @@ function merchantApplications() {
 /* Responsive Modal Adjustments */
 @media (max-width: 640px) {
   .modal-content-wrapper {
-    max-width: 100%;
+    width: auto;
+    max-width: 90vw;
+    min-width: calc(100% - 2rem);
     border-radius: 1.5rem;
   }
 

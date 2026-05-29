@@ -1190,7 +1190,7 @@ def apply():
         except Exception as e:
             db.session.rollback()
             logger.exception('Error submitting merchant application')
-            flash('An error occurred while submitting your application. Please try again.', 'danger')
+            flash('An error occurred while submitting your application. Please try again. {e}', 'danger')
             return render_template('merchant/apply.html', form=form)
     
     # Log validation errors if form submission fails

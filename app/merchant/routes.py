@@ -7,7 +7,7 @@ import pytz # pyright: ignore[reportMissingModuleSource]
 from datetime import datetime, time as dt_time
 import uuid
 from werkzeug.utils import secure_filename # pyright: ignore[reportMissingImports]
-from flask import render_template, flash, redirect, request, url_for, jsonify # pyright: ignore[reportMissingImports]
+from flask import render_template, flash, redirect, request, url_for, jsonify, current_app # pyright: ignore[reportMissingImports]
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.merchant import bp
 from app.decorators import merchant_required, user_required
@@ -357,7 +357,7 @@ def upload_logo():
             return jsonify({'success': False, 'message': 'File too large. Max 2MB'}), 400
         
         # Create upload directory using user ID (grouped by user, not merchant)
-        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'merchants', str(current_user.id))
         os.makedirs(upload_dir, exist_ok=True)
         
         # Generate unique filename with timestamp to avoid conflicts
@@ -373,7 +373,7 @@ def upload_logo():
         if merchant.logo_path:
             # Extract just the filename from the stored path
             old_filename = merchant.logo_path.split('/')[-1] if '/' in merchant.logo_path else merchant.logo_path
-            old_path = os.path.join('app/static/uploads/merchants', str(current_user.id), old_filename)
+            old_path = os.path.join(current_app.root_path, 'static', 'uploads', 'merchants', str(current_user.id), old_filename)
             try:
                 if os.path.exists(old_path):
                     os.remove(old_path)
@@ -489,7 +489,7 @@ def store_edit():
                     
                     if file_size <= MAX_SINGLE_FILE_SIZE:
                         # Create merchant upload directory
-                        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'merchants', str(current_user.id))
                         os.makedirs(upload_dir, exist_ok=True)
                         
                         # Delete old logo if exists
@@ -520,7 +520,7 @@ def store_edit():
                     file_size = get_file_size(file)
                     if file_size <= MAX_SINGLE_FILE_SIZE:
                         # Create merchant upload directory
-                        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'merchants', str(current_user.id))
                         os.makedirs(upload_dir, exist_ok=True)
                         
                         # Delete old file if exists
@@ -554,7 +554,7 @@ def store_edit():
                     file_size = get_file_size(file)
                     if file_size <= MAX_SINGLE_FILE_SIZE:
                         # Create merchant upload directory
-                        upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'merchants', str(current_user.id))
                         os.makedirs(upload_dir, exist_ok=True)
                         
                         # Delete old file if exists
@@ -585,7 +585,7 @@ def store_edit():
             all_files = request.files.getlist('facility_photos') or []
             files = [file for file in all_files if file and getattr(file, 'filename', None)]
             if files:
-                upload_dir = os.path.join('app/static/uploads/merchants', str(current_user.id))
+                upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'merchants', str(current_user.id))
                 os.makedirs(upload_dir, exist_ok=True)
                 valid_files = []
                 total_photo_size = 0
@@ -1037,7 +1037,7 @@ def apply():
             
             # Create merchant uploads directory. For anonymous applicants, use the pending id.
             dir_id = str(applicant_user_id) if applicant_user_id else pending_dir_id
-            merchant_upload_dir = os.path.join('app/static/uploads/merchants', dir_id)
+            merchant_upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'merchants', dir_id)
             os.makedirs(merchant_upload_dir, exist_ok=True)
             
             # Handle store logo upload

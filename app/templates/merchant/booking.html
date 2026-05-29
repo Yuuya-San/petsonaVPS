@@ -903,8 +903,17 @@
   let merchantId = parseInt(document.currentScript.getAttribute('data-merchant-id') || '0');
   let currentStep = 1;
 
-  // Pricing structure: { small: 500, medium: 800, large: 1200, xlarge: 1500 }
-  let sizePricing = {};
+  // New pricing structure: { basis: "species|size|weight|flat", prices: {...}, rate_type: "hourly|daily|..." }
+  let pricingConfig = { basis: 'size', prices: {}, rate_type: 'hourly' };
+  
+  // Rate type labels for display
+  const rateTypeLabels = {
+    'hourly': '/hour',
+    'daily': '/day',
+    'overnight': '/night',
+    'weekly': '/week',
+    'monthly': '/month'
+  };
 
   function normalizeDigitsOnly(input, maxLen) {
     if (!input) return;
@@ -1134,8 +1143,8 @@
         merchantServicePricing = data.pricing || {};
         
         
-        // Extract size-based pricing
-        extractSizePricing(merchantServicePricing);
+        // Parse new pricing JSON format: { basis, prices, rate_type }
+        parsePricingConfig(merchantServicePricing);
         populateAllSpeciesDropdowns();
         updateSummary();
       })
@@ -1145,46 +1154,55 @@
       });
   }
 
-  // Extract size-based pricing from service pricing structure
-  function extractSizePricing(serviceData) {
+  // Parse pricing configuration from the new JSON format
+  function parsePricingConfig(serviceData) {
     
-    if (!serviceData || typeof serviceData !== 'object' || Object.keys(serviceData).length === 0) {
-      
+    if (!serviceData || typeof serviceData !== 'object') {
+      console.warn('Invalid pricing data, using defaults');
+      pricingConfig = { basis: 'flat', prices: { all: 0 }, rate_type: 'hourly' };
       return;
     }
     
-    // Get the first available service category
+    // New format: { basis: "species", prices: {...}, rate_type: "hourly" }
+    if (serviceData.basis && serviceData.prices && serviceData.rate_type) {
+      pricingConfig = {
+        basis: serviceData.basis,
+        prices: serviceData.prices,
+        rate_type: serviceData.rate_type
+      };
+      console.log('Pricing config loaded:', pricingConfig);
+      return;
+    }
+    
+    // Old format fallback (for compatibility): { "Pet Daycare": { "fullday": {...} }, ... }
+    // Try to extract pricing from old format
     const categories = ['Pet Hotel', 'Pet Boarding', 'Pet Daycare'];
     
     for (const category of categories) {
       if (serviceData[category]) {
         const categoryData = serviceData[category];
-        
-        
-        // Get the first duration's pricing
         const durations = Object.keys(categoryData);
-        
         
         if (durations.length > 0) {
           const firstDuration = durations[0];
           const durationPricing = categoryData[firstDuration];
           
-          
-          // Convert to sizePricing structure
+          // Convert old format to new format - assume size basis
           if (durationPricing && typeof durationPricing === 'object') {
-            for (const [sizeKey, price] of Object.entries(durationPricing)) {
-              const sizeKeyLower = sizeKey.toLowerCase();
-              sizePricing[sizeKeyLower] = price;
-              
-            }
-            
-            break;
+            pricingConfig = {
+              basis: 'size',
+              prices: durationPricing,
+              rate_type: 'daily'
+            };
+            console.log('Old pricing format detected, converted to:', pricingConfig);
+            return;
           }
         }
       }
     }
     
-    
+    // Fallback
+    pricingConfig = { basis: 'flat', prices: { all: 0 }, rate_type: 'hourly' };
   }
 
   // Populate a single species dropdown while preserving its selected value
@@ -1210,19 +1228,7 @@
     });
   }
 
-  // Get price for a pet based on its weight category
-  function getPriceForPet(weight) {
-    const category = getPetSizeCategory(weight);
-    const price = sizePricing[category];
-    
-    
-    if (!price) return 0;
-    if (typeof price === 'number') return price;
-    
-    return 0;
-  }
-
-  // Get pet size category
+  // Get pet size category based on weight
   function getPetSizeCategory(weight) {
     if (weight < 5) return 'small';
     if (weight < 15) return 'medium';
@@ -1230,14 +1236,77 @@
     return 'xlarge';
   }
 
-  // Calculate total booking price (sum of all pets' prices by size)
+  // Get weight range category based on weight
+  function getWeightRangeCategory(weight) {
+    if (weight < 5) return 'under5kg';
+    if (weight < 15) return '5to15kg';
+    if (weight < 30) return '15to30kg';
+    return 'over30kg';
+  }
+
+  // Calculate price for a single pet based on pricing basis
+  function calculatePriceForPet(petForm) {
+    const basis = pricingConfig.basis;
+    const prices = pricingConfig.prices;
+    
+    if (!prices || Object.keys(prices).length === 0) {
+      return 0;
+    }
+    
+    try {
+      switch (basis) {
+        case 'species': {
+          // Price based on pet species
+          const species = petForm.querySelector('.pet_species').value;
+          if (!species) return 0;
+          
+          // Normalize species to match price key
+          const speciesKey = species.toLowerCase().replace(/\s+/g, '_');
+          const price = prices[speciesKey] || 0;
+          return Math.max(0, price);
+        }
+        
+        case 'size': {
+          // Price based on pet size (small, medium, large, xlarge)
+          const weight = parseFloat(petForm.querySelector('.pet_weight').value) || 0;
+          if (weight <= 0) return 0;
+          
+          const sizeKey = getPetSizeCategory(weight);
+          const price = prices[sizeKey] || 0;
+          return Math.max(0, price);
+        }
+        
+        case 'weight': {
+          // Price based on weight range
+          const weight = parseFloat(petForm.querySelector('.pet_weight').value) || 0;
+          if (weight <= 0) return 0;
+          
+          const weightKey = getWeightRangeCategory(weight);
+          const price = prices[weightKey] || 0;
+          return Math.max(0, price);
+        }
+        
+        case 'flat': {
+          // Flat price for all pets
+          const price = prices['all'] || prices[Object.keys(prices)[0]] || 0;
+          return Math.max(0, price);
+        }
+        
+        default:
+          return 0;
+      }
+    } catch (error) {
+      console.error('Error calculating price:', error);
+      return 0;
+    }
+  }
+
+  // Calculate total booking price (sum of all pets' prices)
   function calculateTotalPrice() {
     let totalCost = 0;
     document.querySelectorAll('.petForm').forEach(form => {
-      const weight = parseFloat(form.querySelector('.pet_weight').value) || 0;
-      if (weight > 0) {
-        totalCost += getPriceForPet(weight);
-      }
+      const price = calculatePriceForPet(form);
+      totalCost += price;
     });
     return Math.round(totalCost);
   }
@@ -1388,7 +1457,7 @@
     });
   }
 
-  // Update summary section
+  // Update summary section with dynamic pricing breakdown
   function updateSummary() {
     validateForm();
 
@@ -1396,26 +1465,52 @@
     const appointDate = document.getElementById('check_in_date').value;
     const appointTime = document.getElementById('check_in_time').value;
 
-    // Calculate weight and price breakdown by size
+    // Build price breakdown based on pricing basis
+    const basis = pricingConfig.basis;
     let totalWeight = 0;
-    let sizeBreakdown = { small: 0, medium: 0, large: 0, xlarge: 0 };
-    let sizeCount = { small: 0, medium: 0, large: 0, xlarge: 0 };
+    let priceBreakdown = {};
+    let totalPrice = 0;
 
-    
-
+    // Collect pet data and build breakdown
     document.querySelectorAll('.petForm').forEach((form, idx) => {
+      const petName = form.querySelector('.pet_name').value || `Pet ${idx + 1}`;
+      const petSpecies = form.querySelector('.pet_species').value;
       const weight = parseFloat(form.querySelector('.pet_weight').value) || 0;
+      
       if (weight > 0) {
         totalWeight += weight;
-        const size = getPetSizeCategory(weight);
-        sizeCount[size]++;
-        const priceForPet = getPriceForPet(weight);
-        sizeBreakdown[size] += priceForPet;
-        
+      }
+
+      const priceForPet = calculatePriceForPet(form);
+      totalPrice += priceForPet;
+
+      // Build breakdown based on basis type
+      let breakdownKey = '';
+      switch (basis) {
+        case 'species':
+          breakdownKey = petSpecies || `Pet ${idx + 1}`;
+          break;
+        case 'size':
+          breakdownKey = getPetSizeCategory(weight);
+          break;
+        case 'weight':
+          breakdownKey = getWeightRangeCategory(weight);
+          break;
+        case 'flat':
+          breakdownKey = 'All Pets';
+          break;
+        default:
+          breakdownKey = petName;
+      }
+
+      if (breakdownKey) {
+        if (!priceBreakdown[breakdownKey]) {
+          priceBreakdown[breakdownKey] = { count: 0, price: 0 };
+        }
+        priceBreakdown[breakdownKey].count++;
+        priceBreakdown[breakdownKey].price += priceForPet;
       }
     });
-
-    
 
     // Update summary info
     document.getElementById('summaryPets').textContent = totalPets;
@@ -1430,38 +1525,58 @@
       document.getElementById('summaryAppointment').textContent = 'Not set';
     }
 
-    const totalPrice = calculateTotalPrice();
-    
-    
     document.getElementById('summaryTotalDisplay').textContent = totalPrice.toLocaleString('en-PH');
 
-    // Update price breakdown
+    // Update price breakdown display
     const breakdownList = document.getElementById('priceBreakdown');
-    const sizeLabels = { 'small': 'Small (<5kg)', 'medium': 'Medium (5-15kg)', 'large': 'Large (15-30kg)', 'xlarge': 'X-Large (>30kg)' };
+    const rateLabel = rateTypeLabels[pricingConfig.rate_type] || '/unit';
     
     if (totalPets === 0) {
       breakdownList.innerHTML = '<p class="text-gray-500 italic">No pets added yet</p>';
     } else {
       let breakdownHTML = '';
-      for (const [size, count] of Object.entries(sizeCount)) {
-        if (count > 0) {
-          const price = sizeBreakdown[size];
-          
-          breakdownHTML += `<div class="flex justify-between text-xs px-3 py-2 bg-white/60 rounded border border-purple-150 hover:bg-white/80 transition-all">
-            <span class="text-gray-700 font-medium">${sizeLabels[size]} × ${count}</span>
-            <span class="font-bold text-purple-600">₱${price.toLocaleString('en-PH')}</span>
-          </div>`;
-        }
+      
+      // Create category labels based on basis
+      const categoryLabels = {
+        'species': 'Species',
+        'size': 'Size',
+        'weight': 'Weight Range',
+        'small': 'Small (<5kg)',
+        'medium': 'Medium (5-15kg)',
+        'large': 'Large (15-30kg)',
+        'xlarge': 'X-Large (>30kg)',
+        'under5kg': 'Under 5kg',
+        '5to15kg': '5-15kg',
+        '15to30kg': '15-30kg',
+        'over30kg': 'Over 30kg',
+        'all': 'All Pets',
+        'All Pets': 'All Pets'
+      };
+
+      for (const [category, data] of Object.entries(priceBreakdown)) {
+        const label = categoryLabels[category] || category;
+        const displayCount = data.count;
+        const categoryPrice = data.price;
+        
+        breakdownHTML += `<div class="flex justify-between text-xs px-3 py-2 bg-white/60 rounded border border-purple-150 hover:bg-white/80 transition-all">
+          <span class="text-gray-700 font-medium">${label} ${displayCount > 1 ? `× ${displayCount}` : ''}</span>
+          <span class="font-bold text-purple-600">₱${categoryPrice.toLocaleString('en-PH')}</span>
+        </div>`;
       }
+      
+      // Add rate type label
+      breakdownHTML += `<div class="flex justify-between text-xs px-3 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded border border-blue-200 mt-2 italic">
+        <span class="text-gray-600">Rate Type:</span>
+        <span class="font-semibold text-blue-600">${rateLabel}</span>
+      </div>`;
+      
       breakdownList.innerHTML = breakdownHTML;
     }
 
-    // Update price breakdown in form
+    // Update price breakdown in form (for submission)
     const breakdownData = {};
-    for (const [size, count] of Object.entries(sizeCount)) {
-      if (count > 0) {
-        breakdownData[size] = { count, price: sizeBreakdown[size] };
-      }
+    for (const [category, data] of Object.entries(priceBreakdown)) {
+      breakdownData[category] = { count: data.count, price: data.price };
     }
     document.getElementById('price_breakdown').value = JSON.stringify(breakdownData);
     

@@ -255,7 +255,6 @@
                   </label>
                   <select id="pricingBasis" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors mb-4">
                     <option value="">-- Select pricing basis --</option>
-                    <option value="size">By Pet Size (Small, Medium, Large, etc.)</option>
                     <option value="weight">By Pet Weight (Under 5kg, 5-15kg, 15-30kg, 30kg+)</option>
                     <option value="species">By Pet Species (Dogs, Cats, Rabbits, etc.)</option>
                     <option value="flat">Flat Rate (Same price for all pets)</option>
@@ -1580,13 +1579,6 @@
     const rateTypeSelect = document.getElementById('rateType');
 
     const pricingOptions = {
-      size: [
-        { value: 'extrasmall', label: 'Extra Small (Toys, Birds, Rodents)' },
-        { value: 'small', label: 'Small (Small Dogs/Cats)' },
-        { value: 'medium', label: 'Medium (Medium Dogs/Large Cats)' },
-        { value: 'large', label: 'Large (Large Dogs)' },
-        { value: 'extralarge', label: 'Extra Large (Giant Breeds)' }
-      ],
       weight: [
         { value: 'under5kg', label: 'Under 5kg' },
         { value: '5to15kg', label: '5kg - 15kg' },

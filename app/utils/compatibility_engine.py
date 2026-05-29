@@ -67,6 +67,13 @@ household safety) heavily influence the final score, while aesthetic preferences
 from app.models.breed import Breed
 from app.models.species import Species
 from typing import Dict, List, Any, Optional
+from app.utils.big_five_personality import (
+    calculate_user_big_five_scores,
+    get_breed_big_five_scores,
+    calculate_big_five_compatibility,
+    integrate_big_five_into_compatibility,
+    get_big_five_recommendations,
+)
 
 
 # ============================================================================
@@ -88,12 +95,29 @@ PET_PREFERENCE_TO_CATEGORY = {
 # PET SIZE PREFERENCE TO BREED SIZE CATEGORY MAPPING - For filtering by size
 # ============================================================================
 # Maps quiz answer options to breed.size_category enum values
+# UNIVERSAL for all pet types - based on weight ranges, not species
+# Supports both new detailed labels (with weight/examples) and legacy format
 PET_SIZE_PREFERENCE_TO_CATEGORY = {
+    # Legacy format (backward compatibility)
     'Toy / Extra Small': 'Toy / Extra Small',
     'Small': 'Small',
     'Medium': 'Medium',
     'Large': 'Large',
     'Giant': 'Giant',
+    
+    # Previous detailed format with dog/cat breed examples
+    'Toy / Extra Small (under 2kg - Chihuahua, Pomeranian, Toy Poodle)': 'Toy / Extra Small',
+    'Small (2-5kg - Beagle, Shih Tzu, Cocker Spaniel)': 'Small',
+    'Medium (5-25kg - Labrador, Bulldog, Schnauzer)': 'Medium',
+    'Large (25-45kg - German Shepherd, Golden Retriever)': 'Large',
+    'Giant (45kg+ - Great Dane, St. Bernard)': 'Giant',
+    
+    # NEW UNIVERSAL format with examples across all pet types (dogs, cats, birds, fish, reptiles, amphibians, small mammals)
+    'Toy / Extra Small (under 2kg - Hamster, Parakeet, Chihuahua, Mouse, Small Fish)': 'Toy / Extra Small',
+    'Small (2-5kg - Guinea Pig, Rabbit, Beagle, Small Cat, Canary)': 'Small',
+    'Medium (5-25kg - Labrador, Maine Coon Cat, Cockatoo, Small Snake)': 'Medium',
+    'Large (25-45kg - German Shepherd, Large Aquarium, Iguana)': 'Large',
+    'Giant (45kg+ - Great Dane, Large Terrarium Setup)': 'Giant',
 }
 
 
@@ -209,12 +233,28 @@ ANSWER_MAPPINGS = {
     },
     
     # Pet Size Preference (maps to breed.size_category)
+    # UNIVERSAL for all pet types - weight-based categories work for all species
     'pet_size_preference': {
+        # Simple format (legacy)
         'Toy / Extra Small': 'Toy / Extra Small',
         'Small': 'Small',
         'Medium': 'Medium',
         'Large': 'Large',
         'Giant': 'Giant',
+        
+        # Previous detailed format (dog/cat breed examples)
+        'Toy / Extra Small (under 2kg - Chihuahua, Pomeranian, Toy Poodle)': 'Toy / Extra Small',
+        'Small (2-5kg - Beagle, Shih Tzu, Cocker Spaniel)': 'Small',
+        'Medium (5-25kg - Labrador, Bulldog, Schnauzer)': 'Medium',
+        'Large (25-45kg - German Shepherd, Golden Retriever)': 'Large',
+        'Giant (45kg+ - Great Dane, St. Bernard)': 'Giant',
+        
+        # NEW UNIVERSAL format (all pet types: dogs, cats, birds, fish, reptiles, amphibians, small mammals)
+        'Toy / Extra Small (under 2kg - Hamster, Parakeet, Chihuahua, Mouse, Small Fish)': 'Toy / Extra Small',
+        'Small (2-5kg - Guinea Pig, Rabbit, Beagle, Small Cat, Canary)': 'Small',
+        'Medium (5-25kg - Labrador, Maine Coon Cat, Cockatoo, Small Snake)': 'Medium',
+        'Large (25-45kg - German Shepherd, Large Aquarium, Iguana)': 'Large',
+        'Giant (45kg+ - Great Dane, Large Terrarium Setup)': 'Giant',
     },
     
     # Safety
@@ -309,6 +349,7 @@ CATEGORY_WEIGHTS = {
     'space': 1.25,
     'lifestyle': 1.20,
     'health': 1.20,
+    'personality': 1.15,  # NEW: Big Five personality compatibility
     'financial': 1.10,
     'care': 1.05,
 }
@@ -337,6 +378,35 @@ QUESTION_CATEGORIES = {
     'pet_allergies': 'health',
     'pet_preference': 'lifestyle',  # Appearance preferences in lifestyle category
     'pet_size_preference': 'lifestyle',  # Appearance preferences in lifestyle category
+    
+    # ========================================================================
+    # BIG FIVE PERSONALITY TRAIT QUESTIONS (OCEAN Model)
+    # These are handled separately and not scored through normal flow
+    # ========================================================================
+    # Openness (Creativity, curiosity, adaptability) - 3 QUESTIONS (OPTIMIZED)
+    'big_five_open_1': 'personality',
+    'big_five_open_2': 'personality',
+    'big_five_open_3': 'personality',
+    
+    # Conscientiousness (Organization, discipline, responsibility) - 3 QUESTIONS (OPTIMIZED)
+    'big_five_cons_1': 'personality',
+    'big_five_cons_2': 'personality',
+    'big_five_cons_3': 'personality',
+    
+    # Extraversion (Sociability, energy, assertiveness) - 3 QUESTIONS (OPTIMIZED)
+    'big_five_extr_1': 'personality',
+    'big_five_extr_2': 'personality',
+    'big_five_extr_3': 'personality',
+    
+    # Agreeableness (Kindness, cooperation, empathy) - 3 QUESTIONS (OPTIMIZED)
+    'big_five_agre_1': 'personality',
+    'big_five_agre_2': 'personality',
+    'big_five_agre_3': 'personality',
+    
+    # Neuroticism (Emotional sensitivity, anxiety, stress response) - 3 QUESTIONS (OPTIMIZED)
+    'big_five_neur_1': 'personality',
+    'big_five_neur_2': 'personality',
+    'big_five_neur_3': 'personality',
 }
 
 
@@ -428,6 +498,56 @@ def normalize_breed_value(breed_value: Any) -> Optional[int]:
     }
     
     return mapping.get(value_str)
+
+
+# ============================================================================
+# SIZE PREFERENCE NORMALIZATION
+# ============================================================================
+
+def normalize_size_preference(size_str: str) -> Optional[str]:
+    """
+    Extract the standardized size category from detailed or simple size labels.
+    
+    Handles both formats:
+    - Simple: "Small", "Medium", "Large"
+    - Detailed: "Small (2-5kg - Beagle, Shih Tzu, Cocker Spaniel)"
+    
+    This is UNIVERSAL for all pet types - works with dogs, cats, birds, fish, 
+    reptiles, amphibians, and small mammals since categories are weight-based.
+    
+    Args:
+        size_str: Raw size preference string from user
+    
+    Returns:
+        Standardized category name (e.g., 'Small') or None if not recognized
+    """
+    if not size_str or not isinstance(size_str, str):
+        return None
+    
+    size_str = size_str.strip()
+    
+    # First check if it's already in the mapping (exact match)
+    if size_str in PET_SIZE_PREFERENCE_TO_CATEGORY:
+        return PET_SIZE_PREFERENCE_TO_CATEGORY[size_str]
+    
+    # Extract base category from detailed label
+    # Format: "Category (details)" → extract "Category"
+    if '(' in size_str:
+        base_category = size_str.split('(')[0].strip()
+        if base_category in PET_SIZE_PREFERENCE_TO_CATEGORY:
+            return PET_SIZE_PREFERENCE_TO_CATEGORY[base_category]
+    
+    # Fallback: try case-insensitive partial matching
+    size_lower = size_str.lower()
+    for key, val in PET_SIZE_PREFERENCE_TO_CATEGORY.items():
+        if key.lower() == size_lower:
+            return val
+        # Check if the base category (before parenthesis) matches
+        key_base = key.split('(')[0].strip().lower()
+        if key_base == size_lower:
+            return val
+    
+    return None
 
 
 # ============================================================================
@@ -961,6 +1081,61 @@ def calculate_compatibility(answers: Dict, breed) -> Dict[str, Any]:
     # Clamp to valid range
     overall_score = max(0, min(100, overall_score))
     
+    # ========================================================================
+    # BIG FIVE PERSONALITY COMPATIBILITY INTEGRATION
+    # ========================================================================
+    
+    big_five_data = {}
+    try:
+        # Calculate user's Big Five scores from answers
+        user_big_five_scores = calculate_user_big_five_scores(answers)
+        
+        # Get breed's Big Five requirements
+        breed_big_five_scores = get_breed_big_five_scores(breed)
+        
+        # Calculate Big Five personality compatibility
+        big_five_compat = calculate_big_five_compatibility(
+            user_big_five_scores,
+            breed_big_five_scores,
+            breed_flexibility=None,
+        )
+        
+        # Store Big Five data for response
+        big_five_data = {
+            'user_traits': user_big_five_scores,
+            'breed_traits': breed_big_five_scores,
+            'compatibility': big_five_compat,
+            'recommendations': get_big_five_recommendations(user_big_five_scores, breed_big_five_scores),
+        }
+        
+        # Integrate Big Five into overall compatibility (20% weight)
+        # This improves the overall score for good personality matches
+        # and slightly reduces it for poor personality matches
+        big_five_percentage = big_five_compat.get('compatibility_percentage', 50)
+        overall_score = integrate_big_five_into_compatibility(
+            overall_score,
+            big_five_percentage,
+            big_five_weight=0.20,  # 20% weight for personality compatibility
+        )
+        
+        # Recalculate compatibility level based on integrated score
+        if overall_score >= 85:
+            level = 'Excellent'
+        elif overall_score >= 70:
+            level = 'Good'
+        elif overall_score >= 55:
+            level = 'Moderate'
+        elif overall_score >= 40:
+            level = 'Low'
+        else:
+            level = 'Poor'
+            
+    except Exception as e:
+        # If Big Five calculation fails, continue with base score
+        import traceback
+        traceback.print_exc()
+        big_five_data = {'error': str(e)}
+    
     # Determine compatibility level with refined thresholds
     if overall_score >= 85:
         level = 'Excellent'
@@ -982,6 +1157,7 @@ def calculate_compatibility(answers: Dict, breed) -> Dict[str, Any]:
         'strengths': strengths,
         'mismatches': mismatches,
         'total_questions_answered': len(question_scores),
+        'big_five': big_five_data,  # New: Big Five personality compatibility data
     }
 
 
@@ -996,6 +1172,9 @@ def generate_suggestions(answers: Dict, breed) -> List[Dict[str, str]]:
     Provides specific, actionable steps to address each mismatch and improve
     compatibility between user and pet. Suggestions are prioritized by concern
     severity and provide concrete actions the user can take.
+    
+    NOTE: Big Five personality questions are scored separately through the
+    personality module and not included in traditional suggestion generation.
     
     Args:
         answers: Dictionary of user answers
@@ -1017,6 +1196,10 @@ def generate_suggestions(answers: Dict, breed) -> List[Dict[str, str]]:
     problem_questions = []
     
     for question_key, user_answer in answers.items():
+        # Skip Big Five personality questions (handled separately by personality module)
+        if question_key.startswith('big_five_'):
+            continue
+            
         if user_answer is None or question_key not in QUESTION_TO_ATTRIBUTE:
             continue
         
@@ -1101,6 +1284,10 @@ def generate_concerns(answers: Dict, breed) -> List[Dict[str, str]]:
     - The specific concern
     - Why it's a concern for this pet and owner
     - Severity level (Critical, Important, Moderate)
+    
+    NOTE: Big Five personality concerns are generated by the personality module
+    and integrated through integrate_big_five_into_compatibility(). This function
+    focuses on traditional lifestyle and household compatibility concerns.
     
     Args:
         answers: Dictionary of user answers
@@ -1223,6 +1410,10 @@ def generate_concerns(answers: Dict, breed) -> List[Dict[str, str]]:
     
     # Analyze each question for concerns
     for question_key, user_answer in answers.items():
+        # Skip Big Five personality questions (handled separately by personality module)
+        if question_key.startswith('big_five_'):
+            continue
+            
         if user_answer is None or question_key not in QUESTION_TO_ATTRIBUTE:
             continue
         
@@ -1263,6 +1454,10 @@ def generate_match_reasons(answers: Dict, breed) -> Dict[str, Any]:
     
     Organizes matches and mismatches by category (Lifestyle, Safety, Household, etc.)
     providing category-level summary and question-by-question details.
+    
+    NOTE: Big Five personality compatibility is calculated separately through
+    calculate_big_five_compatibility() and integrated via integrate_big_five_into_compatibility().
+    This function generates reasons for traditional lifestyle and household questions.
     
     Args:
         answers: Dictionary of user answers
@@ -1382,6 +1577,10 @@ def generate_match_reasons(answers: Dict, breed) -> Dict[str, Any]:
     
     # Analyze each question
     for question_key, user_answer in answers.items():
+        # Skip Big Five personality questions (handled separately by personality module)
+        if question_key.startswith('big_five_'):
+            continue
+            
         if user_answer is None or question_key not in QUESTION_TO_ATTRIBUTE:
             continue
         
@@ -1521,24 +1720,18 @@ def find_top_matches(answers: Dict, limit: int = 5) -> List[Dict]:
                 preferred_categories[category] = pref_normalized
     
     # Extract and validate pet size preference from answers
+    # UNIVERSAL: Works for all pet types since categories are weight-based
     pet_size_preference_str = answers.get('pet_size_preference', '').strip()
     size_preferences = []
     
     if pet_size_preference_str:
-        # Parse comma-separated size preferences and map to breed categories
+        # Parse comma-separated size preferences and normalize using new function
         sizes = [s.strip() for s in pet_size_preference_str.split(',') if s.strip()]
         for size in sizes:
-            size_normalized = size.strip()
-            # First try exact match
-            if size_normalized in PET_SIZE_PREFERENCE_TO_CATEGORY:
-                size_preferences.append(PET_SIZE_PREFERENCE_TO_CATEGORY[size_normalized])
-            else:
-                # Try partial match (handle with/without weight ranges)
-                for key, val in PET_SIZE_PREFERENCE_TO_CATEGORY.items():
-                    if size_normalized.lower() in key.lower() or key.lower() in size_normalized.lower():
-                        if val not in size_preferences:
-                            size_preferences.append(val)
-                        break
+            # Use robust normalization to handle both simple and detailed labels
+            normalized_size = normalize_size_preference(size)
+            if normalized_size and normalized_size not in size_preferences:
+                size_preferences.append(normalized_size)
     
     # Get all active breeds
     breeds = Breed.query.filter(

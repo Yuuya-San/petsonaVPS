@@ -1046,14 +1046,33 @@ body {
 
         <div class="breakdown-card">
           <div class="breakdown-header">
-            <h4 class="breakdown-title">{{ category|replace('_', ' ') }}</h4>
+            <h4 class="breakdown-title">{{ category|replace('_', ' ')|title }}</h4>
             <div class="breakdown-percentage">{{ percentage|int }}%</div>
           </div>
 
           <div class="breakdown-badge {{ label_class }}">{{ label }}</div>
           <p class="breakdown-description">{{ description }}</p>
+          
+          <!-- Category-Specific Guidance -->
+          <div style="background: var(--gray-50); border-left: 3px solid var(--purple); padding: 12px; border-radius: 6px; font-size: 12px; color: var(--text-light); margin-top: 12px; line-height: 1.5;">
+            {% if 'financial' in category.lower() %}
+              <strong style="color: var(--text-dark);">💰 Financial Insight:</strong> Your budget compatibility determines if you can afford regular and emergency pet care. Consider veterinary costs, food, supplies, and unexpected health issues.
+            {% elif 'time' in category.lower() %}
+              <strong style="color: var(--text-dark);">⏰ Time Insight:</strong> This breed requires consistent daily interaction and care. Assess your work schedule, family commitments, and availability to provide proper attention.
+            {% elif 'space' in category.lower() %}
+              <strong style="color: var(--text-dark);">🏠 Space Insight:</strong> Living space affects the pet's exercise needs and comfort. Ensure your home environment matches this breed's activity level and territorial requirements.
+            {% elif 'experience' in category.lower() %}
+              <strong style="color: var(--text-dark);">📚 Experience Insight:</strong> Your pet ownership background determines how well you can handle training, behavior management, and breed-specific care challenges.
+            {% elif 'lifestyle' in category.lower() %}
+              <strong style="color: var(--text-dark);">🎯 Lifestyle Insight:</strong> Your daily activities and social patterns should align with this pet's energy levels and social needs for mutual happiness.
+            {% elif 'personality' in category.lower() or 'big five' in category.lower() %}
+              <strong style="color: var(--text-dark);">🧠 Personality Insight:</strong> Your personality traits (introversion/extraversion, organization level, stress resilience) significantly impact your ability to meet this breed's emotional and behavioral needs.
+            {% else %}
+              <strong style="color: var(--text-dark);">ℹ️ Category Insight:</strong> This compatibility factor affects your long-term satisfaction and the pet's wellbeing. Understanding this helps ensure a successful match.
+            {% endif %}
+          </div>
 
-          <div class="progress-bar-new">
+          <div class="progress-bar-new" style="margin-top: 12px;">
             <div class="progress-fill {{ label_class }}" style="width: {{ percentage }}%"></div>
           </div>
         </div>
@@ -1075,7 +1094,7 @@ body {
       <div class="insight-card good">
         <div class="insight-header">
           <i class="fas fa-check-circle insight-icon"></i>
-          <h3 class="insight-title">Why You Match</h3>
+          <h3 class="insight-title">Strengths in Your Match</h3>
         </div>
         <div class="insight-list">
           {% for category, data in match_reasons.by_category.items() %}
@@ -1085,23 +1104,39 @@ body {
                 <div class="insight-item">
                   <i class="fas fa-check"></i>
                   <div>
-                    <strong>{{ question.question_key|replace('_', ' ')|title }}</strong><br>
-                    <span style="font-size: 12px; opacity: 0.8;">{{ question.reason }}</span>
+                    <strong>{{ question.question_key|replace('_', ' ')|title }}</strong>
+                    {% if question.reason %}
+                      <br><span style="font-size: 12px; opacity: 0.8;">{{ question.reason }}</span>
+                    {% else %}
+                      <br><span style="font-size: 12px; opacity: 0.8; font-style: italic;">Your answer aligns perfectly with this breed's needs.</span>
+                    {% endif %}
                   </div>
                 </div>
                 {% endif %}
               {% endfor %}
             {% endif %}
           {% endfor %}
+          {% if not (match_reasons and match_reasons.by_category) %}
+            <div class="insight-item">
+              <i class="fas fa-check"></i>
+              <div>
+                <strong>General Compatibility</strong>
+                <br><span style="font-size: 12px; opacity: 0.8;">Your overall profile shows promise for this breed match.</span>
+              </div>
+            </div>
+          {% endif %}
         </div>
       </div>
       {% else %}
       <div class="insight-card good">
         <div class="insight-header">
           <i class="fas fa-check-circle insight-icon"></i>
-          <h3 class="insight-title">Why You Match</h3>
+          <h3 class="insight-title">Strengths in Your Match</h3>
         </div>
-        <div class="empty-insight">No compatibility reasons available.</div>
+        <div style="padding: 16px; background: #f0fdf4; border-radius: 8px; color: #15803d; text-align: center;">
+          <i class="fas fa-heart" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+          <p style="margin: 0;"><strong>Good foundation!</strong> You have several qualities that make you a suitable match for this breed.</p>
+        </div>
       </div>
       {% endif %}
 
@@ -1110,23 +1145,43 @@ body {
       <div class="insight-card bad">
         <div class="insight-header">
           <i class="fas fa-exclamation-circle insight-icon"></i>
-          <h3 class="insight-title">Concerns</h3>
+          <h3 class="insight-title">Areas Needing Attention</h3>
         </div>
         <div class="insight-list">
           {% for concern in concerns %}
-          <div class="insight-item">
-            <i class="fas fa-warning"></i>
-            <div>
-              <strong>{{ concern.concern }}</strong>
-              <span style="display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
-              {% if concern.severity == 'Critical' %}
-              background: #fecaca; color: #991b1b;
-              {% elif concern.severity == 'Important' %}
-              background: #fed7aa; color: #9a3412;
+          <div class="insight-item" style="flex-direction: column; align-items: stretch;">
+            <div style="display: flex; gap: 8px; align-items: flex-start;">
+              <i class="fas fa-warning" style="flex-shrink: 0;"></i>
+              <div style="flex: 1;">
+                <strong>{{ concern.concern }}</strong>
+                <span style="display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+                {% if concern.severity == 'Critical' %}
+                background: #fecaca; color: #991b1b;
+                {% elif concern.severity == 'Important' %}
+                background: #fed7aa; color: #9a3412;
+                {% else %}
+                background: #fce7f3; color: #831843;
+                {% endif %}">{{ concern.severity }}</span>
+              </div>
+            </div>
+            <span style="font-size: 12px; line-height: 1.4; padding-left: 6px; display: block; margin-top: 4px;">{{ concern.reason }}</span>
+            
+            <!-- Impact Info -->
+            <div style="font-size: 11px; background: rgba(239, 68, 68, 0.05); padding: 8px; border-radius: 4px; margin-top: 6px; color: #7f1d1d; border-left: 2px solid #ef4444; padding-left: 8px;">
+              <strong style="display: block; margin-bottom: 2px;">Why this matters:</strong>
+              {% if 'budget' in concern.concern.lower() or 'cost' in concern.concern.lower() %}
+                Insufficient funds can lead to neglected care, medical emergencies, and ultimately the pet's suffering or need for rehoming.
+              {% elif 'time' in concern.concern.lower() or 'schedule' in concern.concern.lower() %}
+                Pets need consistent attention for behavioral health. Lack of time can result in destructive behavior, anxiety, and a stressed owner-pet relationship.
+              {% elif 'space' in concern.concern.lower() %}
+                Limited space can cause stress, obesity, and behavioral issues, especially for active breeds that need room to exercise and explore.
+              {% elif 'experience' in concern.concern.lower() %}
+                Without proper knowledge, you may not recognize health issues, behavioral problems, or misunderstand the breed's specific needs.
+              {% elif 'children' in concern.concern.lower() or 'household' in concern.concern.lower() %}
+                Safety concerns affect both the pet's wellbeing and your family's peace of mind. Proper management is essential.
               {% else %}
-              background: #fce7f3; color: #831843;
-              {% endif %}">{{ concern.severity }}</span><br>
-              <span style="font-size: 12px; opacity: 0.8;">{{ concern.reason }}</span>
+                This compatibility gap could lead to long-term challenges, frustration, and potentially impact the pet's quality of life.
+              {% endif %}
             </div>
           </div>
           {% endfor %}
@@ -1136,9 +1191,12 @@ body {
       <div class="insight-card bad">
         <div class="insight-header">
           <i class="fas fa-exclamation-circle insight-icon"></i>
-          <h3 class="insight-title">Concerns</h3>
+          <h3 class="insight-title">Areas Needing Attention</h3>
         </div>
-        <div class="empty-insight">No significant concerns found.</div>
+        <div style="padding: 16px; background: #f0fdf4; border-radius: 8px; text-align: center; color: #15803d;">
+          <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+          <p style="margin: 0;"><strong>Excellent!</strong> No significant concerns detected. You appear well-prepared for this pet.</p>
+        </div>
       </div>
       {% endif %}
 
@@ -1147,21 +1205,72 @@ body {
       <div class="insight-card neutral">
         <div class="insight-header">
           <i class="fas fa-lightbulb insight-icon"></i>
-          <h3 class="insight-title">Suggestions</h3>
+          <h3 class="insight-title">Actionable Recommendations</h3>
         </div>
         <div class="insight-list">
           {% for suggestion in suggestions %}
-          <div class="insight-item">
-            <i class="fas fa-arrow-right"></i>
-            <div>
-              <strong>{{ suggestion.concern_area }}</strong>
-              <span style="display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
-              {% if suggestion.priority == 'Critical' or suggestion.priority == 'High' %}
-              background: #fed7aa; color: #9a3412;
+          <div class="insight-item" style="flex-direction: column; align-items: stretch; gap: 6px;">
+            <div style="display: flex; gap: 8px; align-items: flex-start;">
+              {% if suggestion.priority == 'Critical' %}
+                <i class="fas fa-circle-exclamation" style="color: #dc2626; flex-shrink: 0;"></i>
+              {% elif suggestion.priority == 'High' %}
+                <i class="fas fa-triangle-exclamation" style="color: #f59e0b; flex-shrink: 0;"></i>
               {% else %}
-              background: #fce7f3; color: #831843;
-              {% endif %}">{{ suggestion.priority }}</span><br>
-              <span style="font-size: 12px; opacity: 0.8;">{{ suggestion.suggestion }}</span>
+                <i class="fas fa-star" style="color: #3b82f6; flex-shrink: 0;"></i>
+              {% endif %}
+              <div style="flex: 1;">
+                <strong style="display: block; margin-bottom: 2px;">{{ suggestion.concern_area }}</strong>
+                <span style="display: inline-block; margin-bottom: 6px; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+                {% if suggestion.priority == 'Critical' %}
+                background: #fecaca; color: #991b1b;
+                {% elif suggestion.priority == 'High' %}
+                background: #fed7aa; color: #9a3412;
+                {% else %}
+                background: #dbeafe; color: #1e40af;
+                {% endif %}">{{ suggestion.priority }} Priority</span>
+              </div>
+            </div>
+            <span style="font-size: 12px; color: inherit; line-height: 1.4; padding-left: 6px; display: block;"><strong>Plan:</strong> {{ suggestion.suggestion }}</span>
+            
+            <!-- Action Steps -->
+            <div style="font-size: 11px; background: rgba(99, 102, 241, 0.05); padding: 8px 6px; border-radius: 4px; margin-top: 4px; padding-left: 6px;">
+              <strong style="display: block; margin-bottom: 3px; color: var(--text-dark);">How to improve:</strong>
+              {% if 'budget' in suggestion.concern_area.lower() or 'financial' in suggestion.concern_area.lower() %}
+                <div>• Research average monthly costs (food, vet, supplies)</div>
+                <div>• Build emergency fund ($500-$2000 for unexpected vet care)</div>
+                <div>• Create a budget spreadsheet and track expenses</div>
+                <div>• Consider pet insurance options</div>
+              {% elif 'time' in suggestion.concern_area.lower() or 'schedule' in suggestion.concern_area.lower() %}
+                <div>• Map your daily schedule realistically</div>
+                <div>• Identify dedicated pet care time blocks</div>
+                <div>• Arrange backup care (family, pet sitter, boarding)</div>
+                <div>• Practice routine before bringing pet home</div>
+              {% elif 'space' in suggestion.concern_area.lower() %}
+                <div>• Measure your living space honestly</div>
+                <div>• Identify outdoor access (yard, park proximity)</div>
+                <div>• Create dedicated pet areas within your home</div>
+                <div>• Plan exercise alternatives if space is limited</div>
+              {% elif 'experience' in suggestion.concern_area.lower() %}
+                <div>• Read breed-specific care guides and blogs</div>
+                <div>• Watch training and behavior videos online</div>
+                <div>• Join pet owner communities and forums</div>
+                <div>• Consider consulting a trainer or veterinarian</div>
+              {% elif 'personality' in suggestion.concern_area.lower() or 'big five' in suggestion.concern_area.lower() %}
+                <div>• Reflect on your personality traits honestly</div>
+                <div>• Identify areas that don't match the breed's needs</div>
+                <div>• Develop strategies to adapt (routines, support systems)</div>
+                <div>• Consider if you're ready to adjust your lifestyle</div>
+              {% elif 'household' in suggestion.concern_area.lower() or 'children' in suggestion.concern_area.lower() %}
+                <div>• Discuss pet integration with family members</div>
+                <div>• Teach children proper pet interaction techniques</div>
+                <div>• Establish household rules for the pet's safety</div>
+                <div>• Supervise introductions and initial interactions</div>
+              {% else %}
+                <div>• Take concrete steps to address this compatibility issue</div>
+                <div>• Research best practices specific to this breed</div>
+                <div>• Create an action timeline with measurable milestones</div>
+                <div>• Evaluate progress before making final adoption decision</div>
+              {% endif %}
             </div>
           </div>
           {% endfor %}
@@ -1171,9 +1280,12 @@ body {
       <div class="insight-card neutral">
         <div class="insight-header">
           <i class="fas fa-lightbulb insight-icon"></i>
-          <h3 class="insight-title">Suggestions</h3>
+          <h3 class="insight-title">Actionable Recommendations</h3>
         </div>
-        <div class="empty-insight">No suggestions available at this time.</div>
+        <div style="padding: 16px; background: linear-gradient(135deg, var(--purple-light) 0%, #faf5ff 100%); border-radius: 8px; text-align: center; color: #5b21b6;">
+          <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+          <p style="margin: 0;"><strong>Great news!</strong> Your compatibility is well-balanced with this breed. No critical areas need improvement. Continue researching and preparing!</p>
+        </div>
       </div>
       {% endif %}
 

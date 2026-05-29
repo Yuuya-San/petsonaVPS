@@ -259,3 +259,67 @@ def add_missing_columns(engine):
             if "Unknown column" not in str(e) and "doesn't exist" not in str(e):
                 print(f"⚠️ Error removing icon column: {e}")
             # else: column doesn't exist, continue
+
+        # ========================================================================
+        # BIG FIVE PERSONALITY TRAITS - Add to breed table
+        # ========================================================================
+        
+        # Add big_five_openness column to breed table
+        try:
+            connection.execute(text("""
+                ALTER TABLE breed 
+                ADD COLUMN big_five_openness INT DEFAULT 3 
+                COMMENT 'Big Five: Openness (1-5) - Creativity, curiosity, adaptability'
+            """))
+            print("✅ Added big_five_openness column to breed table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding big_five_openness column: {e}")
+        
+        # Add big_five_conscientiousness column to breed table
+        try:
+            connection.execute(text("""
+                ALTER TABLE breed 
+                ADD COLUMN big_five_conscientiousness INT DEFAULT 3 
+                COMMENT 'Big Five: Conscientiousness (1-5) - Organization, discipline, responsibility'
+            """))
+            print("✅ Added big_five_conscientiousness column to breed table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding big_five_conscientiousness column: {e}")
+        
+        # Add big_five_extraversion column to breed table
+        try:
+            connection.execute(text("""
+                ALTER TABLE breed 
+                ADD COLUMN big_five_extraversion INT DEFAULT 3 
+                COMMENT 'Big Five: Extraversion (1-5) - Sociability, energy, assertiveness'
+            """))
+            print("✅ Added big_five_extraversion column to breed table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding big_five_extraversion column: {e}")
+        
+        # Add big_five_agreeableness column to breed table
+        try:
+            connection.execute(text("""
+                ALTER TABLE breed 
+                ADD COLUMN big_five_agreeableness INT DEFAULT 3 
+                COMMENT 'Big Five: Agreeableness (1-5) - Kindness, cooperation, empathy'
+            """))
+            print("✅ Added big_five_agreeableness column to breed table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding big_five_agreeableness column: {e}")
+        
+        # Add big_five_neuroticism column to breed table
+        try:
+            connection.execute(text("""
+                ALTER TABLE breed 
+                ADD COLUMN big_five_neuroticism INT DEFAULT 2 
+                COMMENT 'Big Five: Neuroticism (1-5) - Emotional sensitivity, anxiety, stress response'
+            """))
+            print("✅ Added big_five_neuroticism column to breed table")
+        except Exception as e:
+            if "Duplicate column" not in str(e) and "already exists" not in str(e):
+                print(f"⚠️ Error adding big_five_neuroticism column: {e}")

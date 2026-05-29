@@ -15,6 +15,7 @@ import qrcode
 import io
 import base64
 from urllib.parse import quote_plus
+from app.extensions import limiter
 
 PH_TZ = pytz.timezone('Asia/Manila')
 
@@ -104,6 +105,7 @@ def get_road_distance(lat1, lon1, lat2, lon2):
 @bp.route('/dashboard')
 @login_required
 @user_required
+@limiter.exempt
 def dashboard():
     from app.models.breed import Breed
     from app.models.user import User

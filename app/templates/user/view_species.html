@@ -1277,6 +1277,161 @@
         <!-- SECTION DIVIDER -->
         <div class="section-divider mb-6"></div>
 
+        <!-- BIG FIVE PERSONALITY MATCH -->
+        <div class="mb-6">
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-brain text-indigo-600"></i> Personality Compatibility (Big Five)
+          </h3>
+          
+          <div class="glass-form-section rounded-xl p-4 mb-4">
+            <p class="text-xs text-gray-700 mb-4 leading-relaxed">
+              <strong>Who would love this breed?</strong> Learn about personality types that naturally match well with this pet based on psychological research.
+            </p>
+            
+            <!-- Big Five Traits for this Breed -->
+            <div class="space-y-3">
+              <!-- Openness -->
+              <div class="p-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-l-blue-500">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-blue-600"></i>
+                    <span class="font-semibold text-sm text-gray-800">Openness (Creativity, Curiosity)</span>
+                  </div>
+                  <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded" x-text="(selectedBreed?.big_five_openness || 3) + '/5'"></span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_openness || 3) === 1">
+                  <strong>Very Rigid (1):</strong> Extremely predictable and routine-dependent. Prefers familiar environments and doesn't adapt well to changes. Best for owners who want a consistent, unchanging pet.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_openness || 3) === 2">
+                  <strong>Routine-Loving (2):</strong> Prefers familiar patterns and consistent routines. Limited adaptability. Good for owners who value stability and predictability.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_openness || 3) === 3">
+                  <strong>Moderate (3):</strong> Balanced mix of predictability and adaptability. Handles both routine and occasional change well. Suits owners who enjoy both routine and variety.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_openness || 3) === 4">
+                  <strong>Curious (4):</strong> Enjoys exploration and new experiences. Adapts well to changes and novel situations. Great for adventurous owners who like learning new things about their pet.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_openness || 3) === 5">
+                  <strong>Highly Adaptive (5):</strong> Extremely flexible and novel-seeking. Thrives on change and exploration. Perfect for very adventurous owners who love constant new experiences.
+                </p>
+              </div>
+
+              <!-- Conscientiousness -->
+              <div class="p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-purple-600"></i>
+                    <span class="font-semibold text-sm text-gray-800">Conscientiousness (Organization, Discipline)</span>
+                  </div>
+                  <span class="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded" x-text="(selectedBreed?.big_five_conscientiousness || 3) + '/5'"></span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_conscientiousness || 3) === 1">
+                  <strong>Very Flexible (1):</strong> Extremely adaptable to irregular or spontaneous schedules. Doesn't require rigid routines. Perfect for spontaneous owners with unpredictable lifestyles.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_conscientiousness || 3) === 2">
+                  <strong>Flexible (2):</strong> Forgiving of inconsistent routines and schedules. Requires basic care but adapts to changes. Good for busy or unpredictable owners.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_conscientiousness || 3) === 3">
+                  <strong>Moderate (3):</strong> Needs regular care but not necessarily rigid structure. Suits owners who balance routine with flexibility.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_conscientiousness || 3) === 4">
+                  <strong>Disciplined (4):</strong> Requires consistent, structured care with predictable routines and schedules. Best for organized, detail-oriented owners.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_conscientiousness || 3) === 5">
+                  <strong>Highly Structured (5):</strong> Demands very rigid schedules and strict discipline. Needs absolute consistency. Only for extremely organized owners.
+                </p>
+              </div>
+
+              <!-- Extraversion -->
+              <div class="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-red-50 border-l-4 border-l-orange-500">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-people-group text-orange-600"></i>
+                    <span class="font-semibold text-sm text-gray-800">Extraversion (Energy, Sociability)</span>
+                  </div>
+                  <span class="text-xs font-bold bg-orange-100 text-orange-800 px-2 py-1 rounded" x-text="(selectedBreed?.big_five_extraversion || 3) + '/5'"></span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_extraversion || 3) === 1">
+                  <strong>Very Calm (1):</strong> Extremely quiet, independent, and content without interaction. Perfect for introverted owners or those in peaceful environments who prefer minimal engagement.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_extraversion || 3) === 2">
+                  <strong>Calm (2):</strong> Prefers solitude with minimal social interaction. Independent and self-sufficient. Ideal for quiet, introverted owners.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_extraversion || 3) === 3">
+                  <strong>Moderate (3):</strong> Balanced energy and social needs. Good for owners with mixed schedules who want both interaction and independence.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_extraversion || 3) === 4">
+                  <strong>Social (4):</strong> Energetic and social with significant interaction needs. Perfect for outgoing owners who enjoy play and engagement.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_extraversion || 3) === 5">
+                  <strong>Highly Energetic (5):</strong> Extremely active and social, constantly seeking engagement. Requires very active owners who provide constant interaction and activity.
+                </p>
+              </div>
+
+              <!-- Agreeableness -->
+              <div class="p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-l-green-500">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-heart text-green-600"></i>
+                    <span class="font-semibold text-sm text-gray-800">Agreeableness (Affection, Empathy)</span>
+                  </div>
+                  <span class="text-xs font-bold bg-green-100 text-green-800 px-2 py-1 rounded" x-text="(selectedBreed?.big_five_agreeableness || 3) + '/5'"></span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_agreeableness || 3) === 1">
+                  <strong>Very Independent (1):</strong> Extremely aloof and self-sufficient. Minimal need for bonding or affection. Great for owners who respect independence and don't need constant connection.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_agreeableness || 3) === 2">
+                  <strong>Independent (2):</strong> Prefers independence with minimal emotional bonding. Self-reliant. Good for owners who want a self-sufficient pet.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_agreeableness || 3) === 3">
+                  <strong>Moderate (3):</strong> Balanced affection and independence. Offers companionship without being overly demanding or distant. Good for balanced owners.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_agreeableness || 3) === 4">
+                  <strong>Affectionate (4):</strong> Warm, bonding-focused, and affectionate. Seeks emotional connection. Best for nurturing owners who want deep bonds.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_agreeableness || 3) === 5">
+                  <strong>Highly Affectionate (5):</strong> Extremely devoted and affection-seeking. Highly bonded and emotionally dependent. Perfect for owners who want intense emotional connection.
+                </p>
+              </div>
+
+              <!-- Emotional Stability/Neuroticism -->
+              <div class="p-3 rounded-lg bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-l-red-500">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shield text-red-600"></i>
+                    <span class="font-semibold text-sm text-gray-800">Emotional Stability (Stress Resilience)</span>
+                  </div>
+                  <span class="text-xs font-bold bg-red-100 text-red-800 px-2 py-1 rounded" x-text="(selectedBreed?.big_five_neuroticism || 3) + '/5'"></span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_neuroticism || 3) === 1">
+                  <strong>Highly Sensitive (1):</strong> Very vulnerable to stress and environmental changes. Needs extremely calm owners with consistent emotional support and minimal disruption.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_neuroticism || 3) === 2">
+                  <strong>Sensitive (2):</strong> Sensitive to stress and changes in environment. Needs calm, gentle owners who provide stable, supportive environments.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_neuroticism || 3) === 3">
+                  <strong>Moderate (3):</strong> Balanced emotional response. Handles most normal situations well with reasonable care and stability.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_neuroticism || 3) === 4">
+                  <strong>Resilient (4):</strong> Calm and composed under stress. Adapts well to changes. Good for moderately active households with some variation.
+                </p>
+                <p class="text-xs text-gray-700 leading-relaxed" x-show="(selectedBreed?.big_five_neuroticism || 3) === 5">
+                  <strong>Highly Resilient (5):</strong> Extremely stress-resistant and emotionally stable. Thrives in chaotic environments. Perfect for very active, busy households with constant changes.
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <p class="text-xs text-indigo-900">
+                <strong>💡 Tip:</strong> Take the personality quiz to discover your Big Five profile and see how compatible you are with this breed!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION DIVIDER -->
+        <div class="section-divider mb-6"></div>
+
         <!-- EXPERIENCE & ENVIRONMENT - METRIC CARDS -->
         <div class="mb-6">
           <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">

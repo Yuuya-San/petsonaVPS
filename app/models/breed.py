@@ -58,6 +58,16 @@ class Breed(db.Model):
     size_category = db.Column(db.Enum('Toy / Extra Small', 'Small', 'Medium', 'Large', 'Giant'), nullable=True, comment="Pet size category based on pet types")
 
     # --------------------------
+    # Big Five Personality Traits (Psychology-based compatibility)
+    # Range: 1-5 scale indicating breed characteristic alignment
+    # --------------------------
+    big_five_openness = db.Column(db.Integer, default=3, comment="Openness (1-5): Curiosity, adaptability, novelty-seeking. Low=routine-oriented, High=adventurous")
+    big_five_conscientiousness = db.Column(db.Integer, default=3, comment="Conscientiousness (1-5): Organization, discipline needs. Low=flexible, High=structured care")
+    big_five_extraversion = db.Column(db.Integer, default=3, comment="Extraversion (1-5): Social needs, activity level. Low=solitary, High=social/active")
+    big_five_agreeableness = db.Column(db.Integer, default=3, comment="Agreeableness (1-5): Friendliness, cooperation. Low=independent, High=affectionate")
+    big_five_neuroticism = db.Column(db.Integer, default=2, comment="Neuroticism (1-5): Sensitivity, anxiety, stress response. Low=calm, High=sensitive/anxious")
+
+    # --------------------------
     # Voting & Engagement
     # --------------------------
     heart_vote_count = db.Column(db.Integer, default=0, comment="Total heart votes from all users")
@@ -157,6 +167,16 @@ class Breed(db.Model):
             # Risk & Responsibility
             # --------------------------
             "compatibility_risk": escape(self.compatibility_risk) if self.compatibility_risk else "",
+            
+            # --------------------------
+            # Big Five Personality Traits
+            # --------------------------
+            "big_five_openness": self.big_five_openness or 3,
+            "big_five_conscientiousness": self.big_five_conscientiousness or 3,
+            "big_five_extraversion": self.big_five_extraversion or 3,
+            "big_five_agreeableness": self.big_five_agreeableness or 3,
+            "big_five_neuroticism": self.big_five_neuroticism or 2,
+            
             "is_active": self.is_active
         }
 

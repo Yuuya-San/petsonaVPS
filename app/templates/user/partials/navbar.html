@@ -130,6 +130,22 @@
 
         <div class="dropdown-divider glass-divider"></div>
 
+        <!-- My Pets -->
+        <div class="glass-dropdown-section">
+          <a href="{{ url_for('user.my_pets_index') }}" class="glass-dropdown-item">
+            <div class="glass-item-icon">
+              <i class="fas fa-paw"></i>
+            </div>
+            <div class="glass-item-content">
+              <span class="glass-item-label">My Pets</span>
+              <span class="glass-item-desc">Manage your pets</span>
+            </div>
+            <i class="fas fa-chevron-right glass-item-arrow"></i>
+          </a>
+        </div>
+
+        <div class="dropdown-divider glass-divider"></div>
+
         <!-- Settings Section (Only for System Registration) -->
         {% if current_user.registration_method == 'system' %}
         <div class="glass-dropdown-section">

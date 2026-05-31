@@ -1,0 +1,1714 @@
+{% extends "user/base.html" %}
+{% block content %}
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes glassFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slideDown {
+    animation: slideDown 0.4s ease-out;
+  }
+
+  /* Card entrance, responsive grid and CTA handling */
+  .species-item {
+    transition: all 0.3s ease;
+    opacity: 0;
+    animation: cardEntrance 0.7s ease-out forwards;
+  }
+
+  @keyframes cardEntrance {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .species-item.hidden { display: none; }
+
+  .species-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .species-card-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; }
+
+  .species-action-button { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .species-action-button .cta-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .species-action-button.compact { font-size: 0.78rem; padding-top: 0.45rem; padding-bottom: 0.45rem; }
+  .species-action-button.compact-xs { font-size: 0.72rem; padding-top: 0.35rem; padding-bottom: 0.35rem; }
+  @media (max-width: 420px) { .species-card-actions .species-action-button { flex-basis: 100%; } }
+
+  /* Modern Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    top: -50px;
+  }
+
+  .modal-content-wrapper {
+    background: white;
+    border-radius: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(168, 85, 247, 0.2);
+    max-width: min(100%, 580px);
+    width: min(95vw, 580px);
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    background: linear-gradient(135deg, #fafbfc 0%, #f3f4f6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .modal-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .modal-header-title i {
+    color: #a855f7;
+    font-size: 1.5rem;
+  }
+
+  .modal-close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    color: #6b7280;
+    transition: all 0.3s ease;
+    font-size: 1.25rem;
+  }
+
+  .modal-close-btn:hover {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.98);
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .modal-body * {
+    max-width: 95vw;
+  }
+
+  .modal-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 0.8) 100%);
+  }
+
+  .modal-footer > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .modal-footer .modal-btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    gap: 0.25rem;
+    min-height: 3rem;
+  }
+
+  .btn-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .modal-footer form {
+    display: flex;
+    flex: 0 1 8rem;
+    width: 8rem;
+  }
+
+  .modal-footer form .modal-btn {
+    width: 100%;
+  }
+
+  .modal-footer .modal-btn i {
+    font-size: 0.8rem;
+  }
+
+  .preview-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .preview-item {
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .preview-item:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+  }
+
+  .preview-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #a855f7;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+  }
+
+  .preview-value {
+    display: block;
+    font-size: 0.95rem;
+    color: #1f2937;
+    font-weight: 500;
+  }
+
+  .section-divider {
+    height: 2px;
+    background: repeating-linear-gradient(90deg, rgba(168, 85, 247, 0.25) 0px, rgba(168, 85, 247, 0.25) 8px, transparent 8px, transparent 12px);
+    margin: 1.5rem 0;
+    opacity: 0.8;
+  }
+
+  .info-alert {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 0.875rem;
+    color: #1e40af;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .info-alert:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+    border-color: rgba(59, 130, 246, 0.35);
+  }
+
+  .warning-alert {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(217, 119, 6, 0.08) 100%);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+    border-radius: 0.875rem;
+    color: #854d0e;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .warning-alert:hover {
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(217, 119, 6, 0.12) 100%);
+    border-color: rgba(234, 179, 8, 0.35);
+  }
+
+  .info-alert i,
+  .warning-alert i {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #a855f7;
+  }
+
+  /* Glass Form Sections - Enhanced with backdrop effect */
+  .glass-form-section {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(168, 85, 247, 0.2);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  .glass-form-section:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(168, 85, 247, 0.35);
+    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  /* Metric Cards */
+  .metric-card {
+    padding: 1rem;
+    border-radius: 0.875rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.15);
+  }
+
+  /* Compatibility Matrix Grid */
+  .compatibility-matrix {
+    position: relative;
+  }
+
+  .compatibility-matrix:after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 0.875rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .compatibility-matrix:hover:after {
+    opacity: 0.05;
+  }
+
+  /* Care Requirement Items */
+  .care-requirement-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(249, 250, 251, 0.8) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .care-requirement-item .care-requirement-label span {
+    min-width: 0;
+    word-break: break-word;
+  }
+
+  .care-requirement-item:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border-color: rgba(168, 85, 247, 0.25);
+    transform: translateX(2px);
+  }
+
+  .care-requirement-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 0.9rem;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    min-width: 0;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 640px) {
+    .living-compatibility-row {
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .living-compatibility-row > div {
+      flex: 1 1 100%;
+    }
+
+    .care-requirement-item {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+    .care-requirement-item .status-badge {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .care-requirement-label {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .modal-footer {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .modal-footer .modal-btn {
+      width: 100%;
+    }
+  }
+
+  .status-yes {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-no {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-medium {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-blue {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .glass-card {
+    background: rgba(243, 244, 246, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 30px 70px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translateY(-8px);
+  }
+
+  /* Spinner Animation */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(168, 85, 247, 0.2);
+    border-top-color: #a855f7;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.875rem;
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .modal-btn-primary {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+  }
+
+  .modal-btn-primary:hover {
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35);
+  }
+
+  .modal-btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .modal-btn-secondary {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+    color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .modal-btn-secondary:hover {
+    background: linear-gradient(135deg, #d1d5db 0%, #bfdbfe 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .modal-btn-secondary:active {
+    transform: translateY(0);
+  }
+
+  .modal-btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+
+  .modal-btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+  }
+
+  .modal-btn-delete:active {
+    transform: translateY(0);
+  }
+
+  /* Details section for view modal */
+  .details-section {
+    background: #1f2937;
+    border-radius: 0.875rem;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #e5e7eb;
+    line-height: 1.6;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(168, 85, 247, 0.1);
+  }
+
+  /* Form Field Alignment Styles */
+  .form-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .form-label i {
+    flex-shrink: 0;
+    width: 1.25rem;
+    text-align: center;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    color: #1f2937;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: #a855f7;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+    background: #ffffff;
+  }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  .form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  .form-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .checkbox-item:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #a855f7;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox-item span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .checkbox-item span i {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .modal-content-wrapper {
+      max-width: 100%;
+    }
+
+    .modal-header {
+      padding: 1.25rem;
+    }
+
+    .modal-header-title {
+      font-size: 1.125rem;
+    }
+
+    .modal-body {
+      padding: 1.25rem;
+    }
+
+    .modal-footer {
+      flex-direction: row;
+      gap: 0.75rem;
+      flex-wrap: nowrap;
+    }
+
+    .modal-btn {
+      font-size: 0.875rem;
+      padding: 0.625rem 1.25rem;
+    }
+
+    .preview-section {
+      grid-template-columns: 1fr;
+      margin-bottom: 1rem;
+    }
+
+    .form-field-row {
+      grid-template-columns: 1fr;
+    }
+
+    .checkbox-group {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .modal-footer {
+    width: 95vw;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* EXACT equal width */
+    gap: 12px;
+  }
+
+  .modal-footer > button,
+  .modal-footer > form {
+    width: 100%;
+    margin: 0;
+  }
+
+  .modal-footer form {
+    display: flex;
+  }
+
+  .modal-footer button {
+    width: 100%;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+
+    box-sizing: border-box;
+    text-align: center;
+  }
+</style>
+
+<!-- Parent Alpine for View Modal + Add/Edit Pet Modal + Delete Modal -->
+<div x-data="{
+        viewModal: false,
+        petModal: false,
+        deleteModal: false,
+        selectedPet: null,
+        editingPet: null,
+        selectedPetToDelete: null,
+        imagePreview: null,
+        openEditPet(pet) {
+          this.editingPet = {
+            ...pet,
+            big_five_openness: pet.big_five_openness || 3,
+            big_five_conscientiousness: pet.big_five_conscientiousness || 3,
+            big_five_extraversion: pet.big_five_extraversion || 3,
+            big_five_agreeableness: pet.big_five_agreeableness || 3,
+            big_five_neuroticism: pet.big_five_neuroticism || 3
+          };
+          this.imagePreview = pet.photo_url ? '{{ url_for("static", filename="") }}' + pet.photo_url : null;
+          this.petModal = true;
+        },
+        initNewPet() {
+          this.editingPet = {
+            id: null,
+            name: '',
+            species: '',
+            breed: '',
+            age: '',
+            sex: '',
+            weight: '',
+            photo: null,
+            photo_url: null,
+
+            activity_level: 'Moderately active',
+            animal_social_behavior: 'Neutral',
+            people_sociality: 'Selectively friendly',
+            independence_level: 'Balanced',
+            adaptability: 'Needs time to adjust',
+            affection_level: 'Occasionally affectionate',
+            alone_behavior: 'Usually stays calm',
+            personality_type: 'Calm and relaxed',
+            trainability: 'Learns gradually',
+            companion_preference: 'Maybe',
+            big_five_openness: 3,
+            big_five_conscientiousness: 3,
+            big_five_extraversion: 3,
+            big_five_agreeableness: 3,
+            big_five_neuroticism: 3
+          };
+          this.imagePreview = null;
+          this.petModal = true;
+        },
+        resetPetForm() {
+          this.editingPet = null;
+          this.imagePreview = null;
+          if(this.$refs.petFile) this.$refs.petFile.value = '';
+        },
+        async submitPetForm() {
+          try {
+            const form = document.getElementById('pet-form');
+            const formData = new FormData(form);
+            
+            const response = await fetch('/my-pets/save', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            });
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              const text = await response.text();
+              console.error('Server error:', text);
+              alert('Server error: ' + (response.status === 500 ? 'Internal server error' : response.statusText));
+              return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              this.petModal = false;
+              this.resetPetForm();
+              // Refresh pet list
+              await this.loadPets();
+              // Show success message
+              if (data.message) {
+                console.log('✓', data.message);
+              }
+            } else {
+              alert('Error: ' + (data.message || 'Failed to save pet'));
+            }
+          } catch (error) {
+            console.error('Error saving pet:', error);
+            alert('Error saving pet: ' + error.message);
+          }
+        },
+        async loadPets() {
+          try {
+            const response = await fetch('/api/my-pets', {
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            });
+            if (response.ok) {
+              const data = await response.json();
+              this.pets = data.pets || [];
+            }
+          } catch (error) {
+            console.error('Error loading pets:', error);
+          }
+        },
+        openDeleteConfirmPet(pet) {
+          this.selectedPetToDelete = pet;
+          this.deleteModal = true;
+        },
+        getStatusClass(value) {
+          if (!value) return 'status-medium';
+          const val = value.toLowerCase();
+          if (val === 'low' || val === 'small' || val === 'easy' || val === 'beginner' || val === 'simple' || val === 'silent' || val === 'none') return 'status-yes';
+          if (val === 'medium' || val === 'moderate' || val === 'intermediate') return 'status-medium';
+          if (val === 'high' || val === 'large' || val === 'difficult' || val === 'advanced' || val === 'complex' || val === 'loud') return 'status-no';
+          return 'status-medium';
+        },
+        getSpeciesIcon(speciesName) {
+          if (!speciesName) return 'fa-solid fa-paw';
+          const name = speciesName.toLowerCase();
+          if (name.includes('dog') || name.includes('canis')) return 'fa-solid fa-dog';
+          if (name.includes('cat') || name.includes('felis')) return 'fa-solid fa-cat';
+          if (name.includes('rabbit') || name.includes('bunny') || name.includes('oryctolagus')) return 'fa-solid fa-rabbit';
+          if (name.includes('bird') || name.includes('parrot') || name.includes('budgie') || name.includes('finch')) return 'fa-solid fa-dove';
+          if (name.includes('fish') || name.includes('aquatic')) return 'fa-solid fa-fish';
+          if (name.includes('hamster') || name.includes('guinea') || name.includes('rodent') || name.includes('gerbil')) return 'fa-solid fa-mouse';
+          if (name.includes('turtle') || name.includes('tortoise') || name.includes('reptile')) return 'fa-solid fa-turtle';
+          return 'fa-solid fa-paw';
+        }
+      }"
+     class="w-full min-h-screen animate-fadeIn">
+  <div class="w-[95vw] mx-auto px-2 sm:px-4 lg:px-6 py-6 space-y-10">
+
+  <!-- 🔷 PETS SECTION -->
+  <div>
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-8">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="bg-lavender/30 rounded-full p-2 flex-shrink-0">
+          <i class="fa-solid fa-paw text-indigo-600 text-lg sm:text-xl"></i>
+        </span>
+        <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">
+          My Pets
+        </h2>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <!-- Add Pet Button -->
+        <button type="button" @click="initNewPet()"
+          class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition">
+          <i class="fa-solid fa-plus mr-2"></i> Add Pet
+        </button>
+
+        <!-- Back Button -->
+        <a href="{{ url_for('user.species_index') }}"
+          class="inline-flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Back to Pet Database
+        </a>
+      </div>
+    </div>
+
+
+    {% if pets %}
+    <div class="species-grid">
+
+       {% for pet in pets %}
+       <!-- Each pet card has its own Alpine.js state for menu/delete -->
+      {% set image_url = url_for('static', filename=pet.photo_url or 'uploads/no-image-attachment.jpg') %}
+
+        <div x-data="{ menu: false }"
+            class="species-item w-full rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden relative"
+            style="height: 400px; min-height: 400px; max-height: 400px; max-width: 340px;
+                    background-image: url('{{ image_url }}');
+                    background-size: cover;
+                    background-position: center;
+                    justify-self: center;
+                    background-repeat: no-repeat;">
+
+        <!-- MENU BUTTON -->
+        <button @click="menu = !menu"
+                class="absolute top-4 right-4 transition">
+          <i class="fa-solid fa-ellipsis-vertical text-black-900"></i>
+        </button>
+
+        <!-- DROPDOWN MENU -->
+        <div x-show="menu" @click.outside="menu=false"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="absolute right-3 top-12 bg-white/30 backdrop-blur-md
+                  rounded-2xl shadow-lg border border-white/20 z-20 w-44 px-2 py-1.5">
+
+          <!-- EDIT BUTTON -->
+          <button @click="openEditPet(JSON.parse($el.getAttribute('data-pet'))); menu=false"
+                  data-pet='{{ pet.as_dict|tojson|replace("'", "&apos;")|safe }}'
+                  class="flex items-center gap-3 px-4 py-2 text-sm font-medium
+                        bg-white/20 backdrop-blur-md
+                        text-purple-800
+                        border border-purple-200/40
+                        rounded-xl w-full text-left
+                        cursor-pointer
+                        transition-all duration-200 ease-out
+                        hover:bg-purple-200/40
+                        hover:border-purple-400/60
+                        hover:shadow-lg
+                        hover:-translate-y-0.5
+                        hover:scale-[1.02]
+                        active:scale-100
+                        focus:outline-none focus:ring-2 focus:ring-purple-300">
+            <i class="fa-solid fa-pen-to-square text-purple-600"></i>
+            Edit
+          </button>
+
+          <!-- DELETE BUTTON -->
+          <button @click="openDeleteConfirmPet(JSON.parse($el.getAttribute('data-pet'))); menu=false"
+                  data-pet='{{ pet.as_dict|tojson|replace("'", "&apos;")|safe }}'
+                  class="flex items-center gap-3 px-4 py-2 mt-2 text-sm font-medium
+                        bg-white/20 backdrop-blur-md
+                        text-purple-800
+                        border border-purple-200/40
+                        rounded-xl w-full text-left
+                        cursor-pointer
+                        transition-all duration-200 ease-out
+                        hover:bg-red-200/40
+                        hover:text-red-600
+                        hover:border-red-400/60
+                        hover:shadow-lg
+                        hover:-translate-y-0.5
+                        hover:scale-[1.02]
+                        active:scale-100
+                        focus:outline-none focus:ring-2 focus:ring-red-300">
+            <i class="fa-regular fa-trash-can text-red-500"></i>
+            Delete
+          </button>
+
+        </div>
+
+        <!-- CONTENT -->
+        <div class="p-4 sm:p-5 flex flex-col flex-1">
+
+          <!-- ACTION BUTTONS CONTAINER -->
+          <div class="mt-auto flex gap-2">
+
+            <!-- VIEW MODAL BUTTON -->
+            <button 
+              @click="selectedPet = JSON.parse($el.getAttribute('data-pet')); viewModal = true;"
+              data-pet='{{ pet.as_dict|tojson|replace("'", "&apos;")|safe }}'
+              class="flex-1 text-center
+                    bg-white/30 backdrop-blur-md
+                    border border-indigo-200/40
+                    text-indigo-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-white/50
+                    hover:border-indigo-400/60
+                    hover:text-indigo-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                Learn More
+            </button>
+
+            <!-- MATCH BUTTON -->
+            <a href="{% if current_user.is_authenticated and current_user.is_basic_plan %}{{ url_for('user.subscription') }}{% else %}{{ url_for('matching.quiz_specific', breed_id=pet.id) }}{% endif %}"
+            class="flex-1 text-center
+                    bg-white/20 backdrop-blur-md
+                    border border-purple-200/40
+                    text-purple-800
+                    py-2 sm:py-2.5 px-3
+                    rounded-xl text-xs sm:text-sm font-medium
+                    cursor-pointer
+                    transition-all duration-200 ease-out
+                    hover:bg-purple-200/40
+                    hover:border-purple-500/60
+                    hover:text-purple-900
+                    hover:shadow-lg
+                    hover:-translate-y-0.5
+                    hover:scale-[1.02]
+                    active:scale-100
+                    focus:outline-none focus:ring-2 focus:ring-purple-300">
+              Match Me
+            </a>
+
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="bg-gray-50 rounded-2xl p-10 text-center text-gray-600">
+        No pets found.
+      </div>
+    {% endif %}
+
+  </div>
+
+  <!-- 🔷 DELETE PET MODAL -->
+  <div x-show="deleteModal" x-transition.opacity
+       class="modal-overlay"
+       @click.self="deleteModal=false">
+
+    <div class="modal-content-wrapper">
+
+      <!-- MODAL HEADER -->
+      <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
+        <h3 class="modal-header-title">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Confirm Delete
+        </h3>
+        <button type="button" class="modal-close-btn" @click="deleteModal=false" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+        <p class="text-sm text-gray-700 mb-4 font-medium">
+          You are about to delete this pet:
+        </p>
+
+        <!-- PREVIEW ITEMS -->
+        <div class="preview-section mb-4" style="grid-template-columns: 1fr;">
+          <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
+            <span class="preview-label">Name</span>
+            <span class="preview-value" x-text="selectedPetToDelete?.name"></span>
+          </div>
+          <div class="preview-item" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.05);">
+            <span class="preview-label">Pet</span>
+            <span class="preview-value" x-text="selectedPetToDelete?.breed || selectedPetToDelete?.species || ''"></span>
+          </div>
+        </div>
+
+        <!-- WARNING ALERT -->
+        <div class="warning-alert">
+          <i class="fa-solid fa-circle-info"></i>
+          <div>
+            <span class="text-xs font-medium text-red-800">This is a soft delete. You can restore it later.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+        <button
+          type="button"
+          @click="deleteModal=false"
+          class="modal-btn modal-btn-secondary footer-btn"
+        >
+          <i class="fa-solid fa-ban"></i>
+          <span>Cancel</span>
+        </button>
+
+        <form
+          method="POST"
+          :action="selectedPetToDelete ? `/my-pets/${selectedPetToDelete.id}/delete` : '#'"
+          class="footer-form"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <button type="submit" class="modal-btn modal-btn-delete footer-btn">
+            <i class="fa-regular fa-trash-can"></i>
+            <span>Delete</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔷 VIEW PET MODAL -->
+  <div x-show="viewModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       class="modal-overlay"
+       @click.self="viewModal=false; selectedPet=null">
+    <div class="modal-content-wrapper" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         style="max-width: min(95vw, 42rem);">
+
+      <!-- HEADER with Close Button -->
+      <div class="modal-header">
+        <h3 class="modal-header-title">
+          <i class="fa-solid fa-paw"></i>
+          Pet Profile
+        </h3>
+        <button type="button" class="modal-close-btn" @click="viewModal=false; selectedPet=null" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- SCROLLABLE CONTENT -->
+      <div class="modal-body">
+
+        <!-- HERO IMAGE SECTION -->
+        <div class="relative w-64 h-80 mx-auto rounded-2xl overflow-hidden shadow-md mb-6">
+          <img :src="selectedPet?.photo_url ? '/static/' + selectedPet.photo_url : '/static/uploads/no-image-attachment.jpg'"
+               alt="Pet Image"
+               class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+        </div>
+
+        <!-- PET NAME & BASIC INFO -->
+        <div class="glass-card bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-4 sm:p-5 border border-indigo-200 mb-6">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div class="flex-1">
+              <h2 class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="selectedPet?.name"></h2>
+              <p class="text-sm text-gray-600 mt-1 italic" x-text="(selectedPet?.species || 'Unknown') + ' · ' + (selectedPet?.breed || 'Unknown')"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION DIVIDER -->
+        <div class="section-divider mb-6"></div>
+
+        <!-- QUICK STATS -->
+        <div class="mb-6">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
+              <div class="text-xs text-gray-500">Age</div>
+              <div class="font-semibold text-lg" x-text="selectedPet?.age || 'N/A'"></div>
+            </div>
+            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
+              <div class="text-xs text-gray-500">Sex</div>
+              <div class="font-semibold text-lg" x-text="selectedPet?.sex || 'N/A'"></div>
+            </div>
+            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
+              <div class="text-xs text-gray-500">Weight</div>
+              <div class="font-semibold text-lg" x-text="selectedPet?.weight || 'N/A'"></div>
+            </div>
+            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
+              <div class="text-xs text-gray-500">Status</div>
+              <div class="font-semibold text-lg" x-text="selectedPet?.is_active ? 'Active' : (selectedPet?.deleted_at ? 'Deleted' : 'Inactive')"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4 sm:p-5 border border-amber-100 mb-6">
+          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-comments text-amber-600"></i> Behavior & Companion Profile
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Activity Level</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.activity_level || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Other Animals</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.animal_social_behavior || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">People Sociality</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.people_sociality || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Independence</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.independence_level || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Adaptability</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.adaptability || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Affection</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.affection_level || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Alone Behavior</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.alone_behavior || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Personality Type</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.personality_type || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Trainability</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.trainability || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Companion Preference</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.companion_preference || 'N/A'"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4 sm:p-5 border border-amber-100 mb-6">
+          <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-comments text-amber-600"></i> Behavior & Companion Profile
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Activity Level</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.activity_level || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Other Animals</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.animal_social_behavior || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">People Sociality</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.people_sociality || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Independence</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.independence_level || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Adaptability</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.adaptability || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Affection</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.affection_level || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Alone Behavior</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.alone_behavior || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Personality Type</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.personality_type || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Trainability</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.trainability || 'N/A'"></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 mb-1">Companion Preference</div>
+              <div class="font-semibold text-gray-900" x-text="selectedPet?.companion_preference || 'N/A'"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BIG FIVE (if present) -->
+        <div class="mb-6">
+          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-brain text-indigo-600"></i> Personality (Big Five)
+          </h3>
+          <div class="space-y-3">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-l-blue-500">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-lightbulb text-blue-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Openness</span>
+                </div>
+                <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded" x-text="(selectedPet?.big_five_openness || 3) + '/5'"></span>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-list-check text-purple-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Conscientiousness</span>
+                </div>
+                <span class="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded" x-text="(selectedPet?.big_five_conscientiousness || 3) + '/5'"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="font-semibold text-sm text-blue-800 mb-2">Disclaimer Notice</div>
+          <div class="info-alert bg-blue-50 border-blue-200 text-blue-900">
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-info mt-0.5 text-blue-600"></i>
+              <span class="text-sm">This profile is based on saved pet data; confirm details before relying on it.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER BUTTONS -->
+      <div class="modal-footer">
+        <button @click="viewModal=false; selectedPet=null"
+                class="modal-btn modal-btn-secondary">
+          <i class="fa-solid fa-xmark"></i>
+          Close
+        </button>
+        <button @click="openEditPet(selectedPet); viewModal = false"
+                class="modal-btn modal-btn-primary">
+          <i class="fa-regular fa-pen-to-square"></i>
+          Edit Pet
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+    <!-- 🔷 ADD / EDIT PET MODAL -->
+    <div x-show="petModal" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+      class="modal-overlay"
+      @click.self="petModal=false; resetPetForm()">
+    <div class="modal-content-wrapper" x-transition:enter="transition transform ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         style="max-width: min(95vw, 42rem);">
+
+
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h3 class="modal-header-title">
+          <template x-if="!editingPet?.id">
+            <i class="fa-solid fa-circle-plus"></i>
+          </template>
+          <template x-if="editingPet?.id">
+            <i class="fa-regular fa-pen-to-square"></i>
+          </template>
+          <span x-text="editingPet?.id ? 'Edit Pet' : 'Add Pet'"></span>
+        </h3>
+        <button type="button" class="modal-close-btn" @click="petModal=false; resetPetForm()" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- FORM -->
+      <div class="modal-body">
+        <form id="pet-form" method="POST" action="/my-pets/save" enctype="multipart/form-data" class="space-y-6 w-full" @submit.prevent="submitPetForm()">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="pet_id" :value="editingPet?.id || ''">
+          <input type="hidden" name="species_id" value="{{ species.id if species is defined else '' }}">
+
+          <!-- ========== SECTION 1: BASIC INFORMATION ========== -->
+          <div class="bg-gradient-to-r from-indigo-50 to-lavender-50 rounded-2xl p-4 sm:p-5 border border-indigo-100 w-full">
+            <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-circle-1 text-indigo-600"></i> Basic Information
+            </h4>
+            <div class="space-y-4 w-full">
+
+              <!-- Image Upload -->
+              <div class="flex flex-col w-full">
+                <label class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-image text-indigo-600"></i> Pet Photo <span x-show="!editingPet" class="text-red-600">*</span>
+                </label>
+                <div @click="$refs.petImageInput.click()" class="border-2 border-dashed border-indigo-300 rounded-2xl p-6 text-center cursor-pointer bg-indigo-50 hover:bg-indigo-100 transition flex flex-col items-center justify-center gap-2 w-full">
+                  <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400"></i>
+                  <span class="text-gray-700 text-sm font-medium">Click to upload image</span>
+                  <span class="text-xs text-gray-500">PNG, JPG or GIF (recommended size: 400x300)</span>
+                </div>
+                <input type="file" name="photo" x-ref="petImageInput" @change="imagePreview = URL.createObjectURL($event.target.files[0])" hidden accept="image/*" :required="!editingPet">
+                <template x-if="imagePreview">
+                  <div class="mt-4 relative w-48 mx-auto">
+                    <img :src="imagePreview" class="h-64 w-full object-cover rounded-xl border border-gray-200 shadow-md">
+                    <p class="text-xs text-gray-500 mt-2">Preview: New image will be used on save</p>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Name -->
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-paw text-indigo-600"></i> Pet Name <span class="text-red-600">*</span>
+                </label>
+                <input type="text" name="name" x-bind:value="editingPet?.name || ''" placeholder="e.g., Fido, Whiskers" maxlength="100" class="form-input" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== SECTION 2: SPECIES & BREED ========== -->
+          <div class="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-2xl p-4 sm:p-5 border border-teal-100 w-full">
+            <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-circle-2 text-teal-600"></i> Species & Breed
+            </h4>
+            <div class="space-y-4 w-full">
+              <!-- Species -->
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-fish text-teal-600"></i> Species <span class="text-red-600">*</span>
+                </label>
+                <input type="text" name="species" x-bind:value="editingPet?.species || ''" placeholder="e.g., Dog, Cat, Rabbit" maxlength="120" class="form-input" required>
+              </div>
+
+              <!-- Breed -->
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-paw text-teal-600"></i> Breed
+                </label>
+                <input type="text" name="breed" x-bind:value="editingPet?.breed || ''" placeholder="e.g., Labrador, Maine Coon" maxlength="120" class="form-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== SECTION 3: AGE & PHYSICAL ATTRIBUTES ========== -->
+          <div class="bg-gradient-to-r from-orange-50 to-rose-50 rounded-2xl p-4 sm:p-5 border border-orange-100 w-full">
+            <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-circle-3 text-orange-600"></i> Age & Physical Attributes
+            </h4>
+            <div class="space-y-4 w-full">
+              <!-- Age -->
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-birthday-cake text-orange-600"></i> Age <span class="text-red-600">*</span>
+                </label>
+                <input type="text" name="age" x-bind:value="editingPet?.age || ''" placeholder="e.g., 2 years, 3 months, Young" maxlength="50" class="form-input" required>
+              </div>
+
+              <!-- Sex -->
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-venus-mars text-orange-600"></i> Sex
+                </label>
+                <select name="sex" x-bind:value="editingPet?.sex || 'Unknown'" class="form-select">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Unknown">Unknown</option>
+                </select>
+              </div>
+
+              <!-- Weight -->
+              <div class="form-field-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-scale-balanced text-orange-600"></i> Weight
+                </label>
+                <input type="text" name="weight" x-bind:value="editingPet?.weight || ''" placeholder="e.g., 25 kg, 5 lbs" maxlength="50" class="form-input">
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- ========== SECTION 4: BEHAVIOR & SOCIAL PROFILE ========== -->
+          <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4 sm:p-5 border border-amber-100 w-full">
+            <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-paw-claws text-amber-600"></i> Behavior & Social Profile
+            </h4>
+            <div class="space-y-3 w-full">
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-bed text-amber-600"></i> How active is your pet?</label>
+                <select name="activity_level" x-bind:value="editingPet?.activity_level || 'Moderately active'" class="form-select">
+                  <option value="Very calm">Very calm</option>
+                  <option value="Moderately active">Moderately active</option>
+                  <option value="Very energetic">Very energetic</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-dog-leashed text-amber-600"></i> How does your pet behave around other animals?</label>
+                <select name="animal_social_behavior" x-bind:value="editingPet?.animal_social_behavior || 'Neutral'" class="form-select">
+                  <option value="Aggressive or territorial">Aggressive or territorial</option>
+                  <option value="Nervous or avoidant">Nervous or avoidant</option>
+                  <option value="Neutral">Neutral</option>
+                  <option value="Friendly and playful">Friendly and playful</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-people-group text-amber-600"></i> How social is your pet with people?</label>
+                <select name="people_sociality" x-bind:value="editingPet?.people_sociality || 'Selectively friendly'" class="form-select">
+                  <option value="Very shy">Very shy</option>
+                  <option value="Selectively friendly">Selectively friendly</option>
+                  <option value="Friendly with most people">Friendly with most people</option>
+                  <option value="Extremely social">Extremely social</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-user-clock text-amber-600"></i> How independent is your pet?</label>
+                <select name="independence_level" x-bind:value="editingPet?.independence_level || 'Balanced'" class="form-select">
+                  <option value="Very dependent/clingy">Very dependent/clingy</option>
+                  <option value="Balanced">Balanced</option>
+                  <option value="Very independent">Very independent</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-globe text-amber-600"></i> How does your pet react to new environments or people?</label>
+                <select name="adaptability" x-bind:value="editingPet?.adaptability || 'Needs time to adjust'" class="form-select">
+                  <option value="Gets stressed easily">Gets stressed easily</option>
+                  <option value="Needs time to adjust">Needs time to adjust</option>
+                  <option value="Adapts quickly">Adapts quickly</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-heart text-amber-600"></i> How affectionate is your pet?</label>
+                <select name="affection_level" x-bind:value="editingPet?.affection_level || 'Occasionally affectionate'" class="form-select">
+                  <option value="Rarely affectionate">Rarely affectionate</option>
+                  <option value="Occasionally affectionate">Occasionally affectionate</option>
+                  <option value="Very affectionate">Very affectionate</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-house-chimney-user text-amber-600"></i> How does your pet behave when left alone?</label>
+                <select name="alone_behavior" x-bind:value="editingPet?.alone_behavior || 'Usually stays calm'" class="form-select">
+                  <option value="Gets anxious or destructive">Gets anxious or destructive</option>
+                  <option value="Usually stays calm">Usually stays calm</option>
+                  <option value="Prefers being alone">Prefers being alone</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-face-smile text-amber-600"></i> What personality best describes your pet?</label>
+                <select name="personality_type" x-bind:value="editingPet?.personality_type || 'Calm and relaxed'" class="form-select">
+                  <option value="Calm and relaxed">Calm and relaxed</option>
+                  <option value="Energetic and playful">Energetic and playful</option>
+                  <option value="Curious and adventurous">Curious and adventurous</option>
+                  <option value="Protective and alert">Protective and alert</option>
+                  <option value="Independent and reserved">Independent and reserved</option>
+                  <option value="Affectionate and clingy">Affectionate and clingy</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-book text-amber-600"></i> How trainable is your pet?</label>
+                <select name="trainability" x-bind:value="editingPet?.trainability || 'Learns gradually'" class="form-select">
+                  <option value="Difficult to train">Difficult to train</option>
+                  <option value="Learns gradually">Learns gradually</option>
+                  <option value="Learns quickly">Learns quickly</option>
+                </select>
+              </div>
+              <div class="form-field-group">
+                <label class="form-label"><i class="fa-solid fa-paw text-amber-600"></i> Would your pet enjoy having another companion pet?</label>
+                <select name="companion_preference" x-bind:value="editingPet?.companion_preference || 'Maybe'" class="form-select">
+                  <option value="Probably not">Probably not</option>
+                  <option value="Maybe">Maybe</option>
+                  <option value="Most likely yes">Most likely yes</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== SECTION 5: BIG FIVE PERSONALITY TRAITS ========== -->
+          <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-4 sm:p-5 border border-indigo-100 w-full">
+            <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-circle-6 text-indigo-600"></i> Big Five Personality Traits
+            </h4>
+            <p class="text-sm text-gray-600 mb-4">Rate this pet's personality characteristics (1=Low, 5=High) to improve owner compatibility matching:</p>
+            <div class="space-y-4 w-full">
+
+              <!-- OPENNESS: Creativity, Curiosity, Adaptability -->
+              <div class="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
+                  <label class="form-label mb-0">
+                    <i class="fa-solid fa-lightbulb text-blue-600"></i> Openness (Creativity & Adaptability)
+                  </label>
+                  <span class="text-sm font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full" x-text="(editingPet?.big_five_openness || 3) + '/5'"></span>
+                </div>
+                <input type="range" name="big_five_openness" min="1" max="5" :value="editingPet?.big_five_openness || 3" @input="editingPet && (editingPet.big_five_openness = parseInt($el.value))" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <p class="text-xs text-gray-600 mt-2">Low = Routine-loving | High = Creative & adaptable</p>
+              </div>
+
+              <!-- CONSCIENTIOUSNESS: Organization, Discipline, Responsibility -->
+              <div class="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-purple-200/50">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
+                  <label class="form-label mb-0">
+                    <i class="fa-solid fa-list-check text-purple-600"></i> Conscientiousness (Organization & Discipline)
+                  </label>
+                  <span class="text-sm font-bold bg-purple-100 text-purple-800 px-3 py-1 rounded-full" x-text="(editingPet?.big_five_conscientiousness || 3) + '/5'"></span>
+                </div>
+                <input type="range" name="big_five_conscientiousness" min="1" max="5" :value="editingPet?.big_five_conscientiousness || 3" @input="editingPet && (editingPet.big_five_conscientiousness = parseInt($el.value))" class="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                <p class="text-xs text-gray-600 mt-2">Low = Flexible | High = Needs structure & routines</p>
+              </div>
+
+              <!-- EXTRAVERSION: Energy, Sociability, Assertiveness -->
+              <div class="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-orange-200/50">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
+                  <label class="form-label mb-0">
+                    <i class="fa-solid fa-people-group text-orange-600"></i> Extraversion (Energy & Sociability)
+                  </label>
+                  <span class="text-sm font-bold bg-orange-100 text-orange-800 px-3 py-1 rounded-full" x-text="(editingPet?.big_five_extraversion || 3) + '/5'"></span>
+                </div>
+                <input type="range" name="big_five_extraversion" min="1" max="5" :value="editingPet?.big_five_extraversion || 3" @input="editingPet && (editingPet.big_five_extraversion = parseInt($el.value))" class="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-600">
+                <p class="text-xs text-gray-600 mt-2">Low = Calm & quiet | High = Active & social</p>
+              </div>
+
+              <!-- AGREEABLENESS: Kindness, Cooperation, Empathy -->
+              <div class="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-green-200/50">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
+                  <label class="form-label mb-0">
+                    <i class="fa-solid fa-heart text-green-600"></i> Agreeableness (Affection & Kindness)
+                  </label>
+                  <span class="text-sm font-bold bg-green-100 text-green-800 px-3 py-1 rounded-full" x-text="(editingPet?.big_five_agreeableness || 3) + '/5'"></span>
+                </div>
+                <input type="range" name="big_five_agreeableness" min="1" max="5" :value="editingPet?.big_five_agreeableness || 3" @input="editingPet && (editingPet.big_five_agreeableness = parseInt($el.value))" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+                <p class="text-xs text-gray-600 mt-2">Low = Independent | High = Affectionate & bonding-focused</p>
+              </div>
+
+              <!-- NEUROTICISM: Emotional Sensitivity, Anxiety, Stress Response -->
+              <div class="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-red-200/50">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
+                  <label class="form-label mb-0">
+                    <i class="fa-solid fa-shield text-red-600"></i> Emotional Stability (Stress Resilience)
+                  </label>
+                  <span class="text-sm font-bold bg-red-100 text-red-800 px-3 py-1 rounded-full" x-text="(editingPet?.big_five_neuroticism || 3) + '/5'"></span>
+                </div>
+                <input type="range" name="big_five_neuroticism" min="1" max="5" :value="editingPet?.big_five_neuroticism || 3" @input="editingPet && (editingPet.big_five_neuroticism = parseInt($el.value))" class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-600">
+                <p class="text-xs text-gray-600 mt-2">Low = Calm & resilient | High = Sensitive to stress & changes</p>
+              </div>
+
+              <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mt-4">
+                <p class="text-xs text-indigo-900">
+                  <strong>💡 Tip:</strong> Use these scores to reflect the pet's typical personality. Base scores on owner observations and medical notes. This helps match owners with compatible pets.
+                </p>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- FOOTER BUTTONS -->
+      <div class="modal-footer">
+        <button type="button" @click="petModal=false; resetPetForm()" class="modal-btn modal-btn-secondary">
+          <i class="fa-solid fa-ban"></i>
+          Cancel
+        </button>
+        <button type="submit" form="pet-form" class="modal-btn modal-btn-primary">
+          <i class="fa-solid fa-check"></i>
+          <span x-text="editingPet ? 'Save Changes' : 'Add Pet'"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -114,14 +114,22 @@
 <!-- Socket.IO for Real-time Updates -->
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='admin/plugins/jquery/jquery.min.js') }}"></script>
+<script>
+(function() {
+  if (typeof window.jQuery === 'undefined') {
+    document.write('<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJ+Y3oAKiH6jyCmMJk3Hr6zvN3O82ijvs0yvc=" crossorigin="anonymous"><\/script>');
+  }
+})();
+</script>
+<script>
+  if (window.jQuery && typeof window.$ === 'undefined') {
+    window.$ = window.jQuery;
+  }
+</script>
 <script src="{{ url_for('static', filename='admin/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename='admin/dist/js/adminlte.min.js') }}"></script>
 <script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
 <script src="{{ url_for('static', filename='js/navbar-notifications.js') }}"></script>
-
-
-<!-- Socket.IO for Real-Time Updates -->
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/socket-manager.js') }}"></script>
 
 <!-- ================= SKELETON HANDLER ================= -->

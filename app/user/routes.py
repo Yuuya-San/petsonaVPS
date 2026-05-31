@@ -2,7 +2,9 @@ from flask import render_template, flash, redirect, url_for, request, abort, jso
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.user import bp
 from app.decorators import user_required
-from app.models import Species, Breed, Merchant, MatchHistory, Vote
+from werkzeug.utils import secure_filename
+from app.models import Species, Breed, Merchant, MatchHistory, Vote, MyPet
+from app.models.my_pet import validate_pet_name, validate_enum_field
 from app import db
 from app.extensions import csrf
 from app.utils.notification_manager import NotificationManager
@@ -337,6 +339,265 @@ def subscription():
         gcash_phone=current_app.config.get('GCASH_PHONE') or '09977030323',
         gcash_pay_url=gcash_pay_url
     )
+
+
+@bp.route('/my-pets')
+@login_required
+def my_pets_index():
+    pets = MyPet.query.filter_by(user_id=current_user.id, is_active=True).order_by(MyPet.created_at.desc()).all()
+    return render_template('user/my_pets.html', page_title='My Pets', pets=pets)
+
+
+@bp.route('/api/my-pets', methods=['GET'])
+@login_required
+def api_my_pets():
+    """API endpoint to get pets as JSON"""
+    pets = MyPet.query.filter_by(user_id=current_user.id, is_active=True).order_by(MyPet.created_at.desc()).all()
+    return jsonify({
+        'success': True,
+        'pets': [pet.as_dict for pet in pets]
+    })
+
+
+@bp.route('/my-pets/save', methods=['POST'])
+@csrf.exempt
+@login_required
+def my_pets_save():
+    """Save new or update existing pet. Handles both form and AJAX requests."""
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    try:
+        pet_id = request.form.get('pet_id', '').strip()
+        
+        # Validate pet name first
+        pet_name = request.form.get('name', '').strip()
+        if not pet_name:
+            error_msg = 'Pet name is required.'
+            if is_ajax:
+                return jsonify({'success': False, 'message': error_msg}), 400
+            flash(error_msg, 'danger')
+            return redirect(url_for('user.my_pets_index'))
+        
+        if not validate_pet_name(pet_name):
+            error_msg = 'Pet name must be 1-120 characters and contain only letters, numbers, spaces, hyphens, and apostrophes.'
+            if is_ajax:
+                return jsonify({'success': False, 'message': error_msg}), 400
+            flash(error_msg, 'danger')
+            return redirect(url_for('user.my_pets_index'))
+        
+        # Get or create pet
+        if pet_id:
+            pet = MyPet.query.filter_by(id=pet_id, user_id=current_user.id, is_active=True).first()
+            if not pet:
+                error_msg = 'Pet not found or has been deleted.'
+                if is_ajax:
+                    return jsonify({'success': False, 'message': error_msg}), 404
+                flash(error_msg, 'danger')
+                return redirect(url_for('user.my_pets_index'))
+            is_update = True
+        else:
+            pet = MyPet(user_id=current_user.id)
+            is_update = False
+
+        # Build data dictionary for validation and update
+        pet_data = {
+            'name': pet_name,
+            'species': request.form.get('species', '').strip() or None,
+            'breed': request.form.get('breed', '').strip() or None,
+            'age': request.form.get('age', '').strip() or None,
+            'sex': request.form.get('sex', 'Unknown').strip(),
+            'weight': request.form.get('weight', '').strip() or None,
+            'activity_level': request.form.get('activity_level', 'Moderately active'),
+            'animal_social_behavior': request.form.get('animal_social_behavior', 'Neutral'),
+            'people_sociality': request.form.get('people_sociality', 'Selectively friendly'),
+            'independence_level': request.form.get('independence_level', 'Balanced'),
+            'adaptability': request.form.get('adaptability', 'Needs time to adjust'),
+            'affection_level': request.form.get('affection_level', 'Occasionally affectionate'),
+            'alone_behavior': request.form.get('alone_behavior', 'Usually stays calm'),
+            'personality_type': request.form.get('personality_type', 'Calm and relaxed'),
+            'trainability': request.form.get('trainability', 'Learns gradually'),
+            'companion_preference': request.form.get('companion_preference', 'Maybe'),
+            'big_five_openness': request.form.get('big_five_openness', 3),
+            'big_five_conscientiousness': request.form.get('big_five_conscientiousness', 3),
+            'big_five_extraversion': request.form.get('big_five_extraversion', 3),
+            'big_five_agreeableness': request.form.get('big_five_agreeableness', 3),
+            'big_five_neuroticism': request.form.get('big_five_neuroticism', 2),
+        }
+        
+        # Apply validated data to pet through model method
+        pet.update_from_dict(pet_data)
+        
+        # Photo upload (optional)
+        file = request.files.get('photo')
+        if file and file.filename:
+            try:
+                filename = secure_filename(file.filename)
+                if filename:
+                    # Add timestamp to prevent collisions
+                    timestamp = int(get_ph_datetime().timestamp())
+                    filename_with_ts = f"{timestamp}_{filename}"
+                    upload_dir = os.path.join(current_app.static_folder, 'uploads', 'pets')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    filepath = os.path.join(upload_dir, filename_with_ts)
+                    file.save(filepath)
+                    pet.photo_url = f'uploads/pets/{filename_with_ts}'
+                    logger.info(f'Pet photo uploaded: {filename_with_ts}')
+            except Exception as e:
+                logger.warning(f'Photo upload error: {str(e)}')
+                # Continue without photo if upload fails - don't break the whole transaction
+
+        # Save to database
+        db.session.add(pet)
+        db.session.commit()
+        
+        # Log the action
+        if is_update:
+            log_action_with_changes('pet_updated', current_user.id, f'Pet ID: {pet.id}', {'name': pet.name})
+        else:
+            log_action_with_changes('pet_created', current_user.id, f'Pet ID: {pet.id}', {'name': pet.name})
+        
+        # Prepare response
+        message = f'✓ {pet.name} updated successfully!' if is_update else f'✓ {pet.name} added successfully!'
+        
+        if is_ajax:
+            # Return JSON response with complete pet data
+            return jsonify({
+                'success': True,
+                'message': message,
+                'pet': pet.as_dict,
+                'is_update': is_update
+            }), 200
+        
+        # Redirect for traditional form submission
+        flash(message, 'success')
+        return redirect(url_for('user.my_pets_index'))
+        
+    except Exception as e:
+        db.session.rollback()
+        error_msg = str(e)
+        logger.error(f'Pet save error for user {current_user.id}: {error_msg}', exc_info=True)
+        
+        if is_ajax:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to save pet. Please try again.'
+            }), 500
+        
+        flash('Error saving pet. Please try again.', 'danger')
+        return redirect(url_for('user.my_pets_index'))
+
+
+@bp.route('/my-pets/<int:id>/delete', methods=['POST'])
+@login_required
+def my_pets_delete(id):
+    """Soft delete a pet (mark as inactive but keep data in database)."""
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    try:
+        # Get pet and verify ownership
+        pet = MyPet.query.filter_by(id=id, user_id=current_user.id, is_active=True).first()
+        if not pet:
+            error_msg = 'Pet not found.'
+            if is_ajax:
+                return jsonify({'success': False, 'message': error_msg}), 404
+            flash(error_msg, 'danger')
+            return redirect(url_for('user.my_pets_index'))
+        
+        # Soft delete the pet
+        pet_name = pet.name
+        pet.soft_delete()
+        db.session.add(pet)
+        db.session.commit()
+        
+        # Log the action
+        log_action_with_changes('pet_deleted', current_user.id, f'Pet ID: {id}', {'name': pet_name})
+        
+        # Prepare response
+        message = f'✓ {pet_name} removed successfully!'
+        if is_ajax:
+            return jsonify({'success': True, 'message': message}), 200
+        
+        flash(message, 'warning')
+        return redirect(url_for('user.my_pets_index'))
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Pet delete error for user {current_user.id}: {str(e)}', exc_info=True)
+        error_msg = 'Error removing pet. Please try again.'
+        if is_ajax:
+            return jsonify({'success': False, 'message': error_msg}), 500
+        flash(error_msg, 'danger')
+        return redirect(url_for('user.my_pets_index'))
+
+
+@bp.route('/test/pet-form-diagnostics', methods=['GET'])
+@login_required
+def test_pet_form_diagnostics():
+    """Diagnostic endpoint to test if pet form handler works"""
+    try:
+        # Test imports
+        from app.models.my_pet import validate_pet_name, validate_enum_field, MyPet
+        
+        # Test validation functions
+        name_valid = validate_pet_name("Fluffy")
+        enum_valid = validate_enum_field('Moderately active', ['Very calm', 'Moderately active', 'Very energetic'], 'Moderately active')
+        
+        # Test model update
+        test_pet = MyPet(user_id=current_user.id, name="DiagnosticTest")
+        test_pet.update_from_dict({
+            'name': 'TestPet',
+            'species': 'Cat',
+            'breed': 'Persian',
+            'activity_level': 'Moderately active',
+            'big_five_openness': 4
+        })
+        test_dict = test_pet.as_dict
+        
+        return jsonify({
+            'success': True,
+            'message': 'All pet form diagnostics passed ✓',
+            'tests': {
+                'validate_pet_name': name_valid,
+                'validate_enum_field': enum_valid,
+                'pet_update_from_dict': test_pet.name == 'TestPet',
+                'as_dict_serializable': isinstance(test_dict, dict),
+                'keys_in_response': len(test_dict) > 20
+            }
+        }), 200
+    except Exception as e:
+        import traceback
+        logger.error(f'Diagnostic test failed: {str(e)}', exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'type': type(e).__name__,
+            'details': traceback.format_exc()
+        }), 500
+
+
+@bp.route('/my-pets/quiz-submit', methods=['POST'])
+@login_required
+@user_required
+def my_pets_quiz_submit():
+    pet_id = request.form.get('pet_id')
+    pet = MyPet.query.get(pet_id) if pet_id else None
+    # Save big five answers to pet
+    try:
+        if pet and pet.user_id == current_user.id:
+            pet.big_five_openness = int(request.form.get('b_openness') or pet.big_five_openness)
+            pet.big_five_conscientiousness = int(request.form.get('b_conscientiousness') or pet.big_five_conscientiousness)
+            pet.big_five_extraversion = int(request.form.get('b_extraversion') or pet.big_five_extraversion)
+            pet.big_five_agreeableness = int(request.form.get('b_agreeableness') or pet.big_five_agreeableness)
+            pet.big_five_neuroticism = int(request.form.get('b_neuroticism') or pet.big_five_neuroticism)
+            db.session.add(pet)
+            db.session.commit()
+            flash('Quiz submitted and Big Five updated for your pet.', 'success')
+        else:
+            flash('Quiz submitted.', 'success')
+    except Exception:
+        flash('Could not save quiz answers.', 'warning')
+
+    return redirect(url_for('user.my_pets_index'))
 
 @bp.route('/api/gcash-subscription', methods=['GET', 'POST'])
 @login_required
@@ -1707,3 +1968,308 @@ def get_merchant_reviews(merchant_id):
         logger.error(f'Error fetching merchant reviews: {str(e)}')
         return jsonify({'success': False, 'error': 'Error fetching reviews'}), 500
 
+
+
+# ======================== PET MANAGEMENT ROUTES ========================
+
+@bp.route('/pets', methods=['GET'])
+@login_required
+@user_required
+def my_pets():
+    """Display user's pet collection"""
+    from app.models import MyPet
+    
+    page = request.args.get('page', 1, type=int)
+    
+    # Get user's pets with pagination
+    pets = MyPet.query.filter_by(
+        user_id=current_user.id,
+        is_active=True
+    ).order_by(MyPet.created_at.desc()).paginate(
+        page=page, per_page=12, error_out=False
+    )
+    
+    log_event('pet_collection_viewed', details={'user_id': current_user.id, 'pet_count': pets.total})
+    
+    return render_template('user/my_pets.html', pets=pets)
+
+
+@bp.route('/api/pets', methods=['GET'])
+@login_required
+@user_required
+@csrf.exempt
+def api_get_pets():
+    """Get user's pets as JSON"""
+    from app.models import MyPet
+    
+    pets = MyPet.query.filter_by(
+        user_id=current_user.id,
+        is_active=True
+    ).order_by(MyPet.created_at.desc()).all()
+    
+    return jsonify({
+        'success': True,
+        'pets': [pet.as_dict for pet in pets],
+        'total': len(pets)
+    })
+
+
+@bp.route('/api/pets/<int:pet_id>', methods=['GET'])
+@login_required
+@user_required
+@csrf.exempt
+def api_get_pet(pet_id):
+    """Get single pet details"""
+    from app.models import MyPet
+    
+    pet = MyPet.query.filter_by(
+        id=pet_id,
+        user_id=current_user.id
+    ).first()
+    
+    if not pet:
+        return jsonify({'success': False, 'error': 'Pet not found'}), 404
+    
+    return jsonify({
+        'success': True,
+        'pet': pet.as_dict
+    })
+
+
+ALLOWED_PET_PHOTO_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+def allowed_pet_photo(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_PET_PHOTO_EXTENSIONS
+
+def save_pet_photo(file, pet_id):
+    """Save pet photo and return the relative path"""
+    if not file or file.filename == '':
+        return None
+    
+    if not allowed_pet_photo(file.filename):
+        return None
+    
+    try:
+        # Create upload directory if it doesn't exist
+        upload_dir = current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads')
+        pet_upload_dir = os.path.join(upload_dir, 'pets')
+        os.makedirs(pet_upload_dir, exist_ok=True)
+        
+        # Generate secure filename
+        from werkzeug.utils import secure_filename
+        filename = secure_filename(file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+        filename = f"{timestamp}{pet_id}_{filename}"
+        
+        filepath = os.path.join(pet_upload_dir, filename)
+        file.save(filepath)
+        
+        # Return relative path for database storage
+        return f"uploads/pets/{filename}"
+    except Exception as e:
+        print(f"Error saving pet photo: {e}")
+        return None
+
+
+@bp.route('/api/pets/create', methods=['POST'])
+@login_required
+@user_required
+@csrf.exempt
+def api_create_pet():
+    """Create a new pet"""
+    from app.models import MyPet
+    
+    try:
+        data = request.form.to_dict()
+        
+        # Validate required fields
+        if not data.get('name') or not data.get('species'):
+            return jsonify({'success': False, 'error': 'Name and species are required'}), 400
+        
+        # Create new pet
+        pet = MyPet(
+            user_id=current_user.id,
+            name=data.get('name'),
+            species=data.get('species'),
+            breed=data.get('breed'),
+            age=data.get('age'),
+            sex=data.get('sex') or 'Unknown',
+            weight=data.get('weight'),
+            energy_level=data.get('energy_level') or 'Medium',
+            exercise_frequency=data.get('exercise_frequency') or 'Medium',
+            grooming_frequency=data.get('grooming_frequency') or 'Medium',
+            space_requirement=data.get('space_requirement') or 'Medium',
+            training_difficulty=data.get('training_difficulty') or 'Moderate',
+            handling_difficulty=data.get('handling_difficulty') or 'Medium',
+            noise_level=data.get('noise_level') or 'Low',
+            bonding_needs=data.get('bonding_needs') or 'Medium',
+            child_friendly=data.get('child_friendly') or 'Medium',
+            pet_friendly=data.get('pet_friendly') or 'Medium',
+            care_intensity=data.get('care_intensity') or 'Medium',
+            time_commitment=data.get('time_commitment') or 'Medium',
+            experience_required=data.get('experience_required') or 'Beginner',
+            environment_complexity=data.get('environment_complexity') or 'Simple',
+            preventive_care=data.get('preventive_care') or 'Medium',
+            emergency_risk=data.get('emergency_risk') or 'Low',
+            stress_sensitivity=data.get('stress_sensitivity') or 'Medium',
+            lifetime_cost_level=data.get('lifetime_cost_level') or 'Medium',
+            big_five_openness=int(data.get('big_five_openness', 3)),
+            big_five_conscientiousness=int(data.get('big_five_conscientiousness', 3)),
+            big_five_extraversion=int(data.get('big_five_extraversion', 3)),
+            big_five_agreeableness=int(data.get('big_five_agreeableness', 3)),
+            big_five_neuroticism=int(data.get('big_five_neuroticism', 2))
+        )
+        
+        db.session.add(pet)
+        db.session.flush()
+        
+        # Handle photo upload
+        if 'photo' in request.files:
+            photo = request.files['photo']
+            if photo and allowed_pet_photo(photo.filename):
+                photo_path = save_pet_photo(photo, pet.id)
+                if photo_path:
+                    pet.photo_url = photo_path
+        
+        db.session.commit()
+        
+        log_event('pet_created', details={
+            'user_id': current_user.id,
+            'pet_id': pet.id,
+            'pet_name': pet.name
+        })
+        
+        return jsonify({
+            'success': True,
+            'pet': pet.as_dict,
+            'message': f'{pet.name} has been added to your pets!'
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating pet: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@bp.route('/api/pets/<int:pet_id>/update', methods=['POST'])
+@login_required
+@user_required
+@csrf.exempt
+def api_update_pet(pet_id):
+    """Update an existing pet"""
+    from app.models import MyPet
+    
+    try:
+        pet = MyPet.query.filter_by(
+            id=pet_id,
+            user_id=current_user.id
+        ).first()
+        
+        if not pet:
+            return jsonify({'success': False, 'error': 'Pet not found'}), 404
+        
+        data = request.form.to_dict()
+        
+        # Update basic info
+        pet.name = data.get('name', pet.name)
+        pet.species = data.get('species', pet.species)
+        pet.breed = data.get('breed', pet.breed)
+        pet.age = data.get('age', pet.age)
+        pet.weight = data.get('weight', pet.weight)
+        pet.sex = data.get('sex', pet.sex)
+        
+        # Update care and behavioral traits
+        pet.energy_level = data.get('energy_level', pet.energy_level)
+        pet.exercise_frequency = data.get('exercise_frequency', pet.exercise_frequency)
+        pet.grooming_frequency = data.get('grooming_frequency', pet.grooming_frequency)
+        pet.space_requirement = data.get('space_requirement', pet.space_requirement)
+        pet.training_difficulty = data.get('training_difficulty', pet.training_difficulty)
+        pet.handling_difficulty = data.get('handling_difficulty', pet.handling_difficulty)
+        pet.noise_level = data.get('noise_level', pet.noise_level)
+        pet.bonding_needs = data.get('bonding_needs', pet.bonding_needs)
+        pet.child_friendly = data.get('child_friendly', pet.child_friendly)
+        pet.pet_friendly = data.get('pet_friendly', pet.pet_friendly)
+        pet.care_intensity = data.get('care_intensity', pet.care_intensity)
+        pet.time_commitment = data.get('time_commitment', pet.time_commitment)
+        pet.experience_required = data.get('experience_required', pet.experience_required)
+        pet.environment_complexity = data.get('environment_complexity', pet.environment_complexity)
+        pet.preventive_care = data.get('preventive_care', pet.preventive_care)
+        pet.emergency_risk = data.get('emergency_risk', pet.emergency_risk)
+        pet.stress_sensitivity = data.get('stress_sensitivity', pet.stress_sensitivity)
+        pet.lifetime_cost_level = data.get('lifetime_cost_level', pet.lifetime_cost_level)
+        
+        # Update Big Five traits
+        pet.big_five_openness = int(data.get('big_five_openness', pet.big_five_openness))
+        pet.big_five_conscientiousness = int(data.get('big_five_conscientiousness', pet.big_five_conscientiousness))
+        pet.big_five_extraversion = int(data.get('big_five_extraversion', pet.big_five_extraversion))
+        pet.big_five_agreeableness = int(data.get('big_five_agreeableness', pet.big_five_agreeableness))
+        pet.big_five_neuroticism = int(data.get('big_five_neuroticism', pet.big_five_neuroticism))
+        
+        if 'photo' in request.files:
+            photo = request.files['photo']
+            if photo and allowed_pet_photo(photo.filename):
+                photo_path = save_pet_photo(photo, pet.id)
+                if photo_path:
+                    pet.photo_url = photo_path
+        
+        pet.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        log_event('pet_updated', details={
+            'user_id': current_user.id,
+            'pet_id': pet.id,
+            'pet_name': pet.name
+        })
+        
+        return jsonify({
+            'success': True,
+            'pet': pet.as_dict,
+            'message': f'{pet.name} has been updated!'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating pet: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@bp.route('/api/pets/<int:pet_id>/delete', methods=['POST'])
+@login_required
+@user_required
+@csrf.exempt
+def api_delete_pet(pet_id):
+    """Delete a pet (soft delete)"""
+    from app.models import MyPet
+    
+    try:
+        pet = MyPet.query.filter_by(
+            id=pet_id,
+            user_id=current_user.id
+        ).first()
+        
+        if not pet:
+            return jsonify({'success': False, 'error': 'Pet not found'}), 404
+        
+        pet_name = pet.name
+        pet.is_active = False
+        pet.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        log_event('pet_deleted', details={
+            'user_id': current_user.id,
+            'pet_id': pet.id,
+            'pet_name': pet_name
+        })
+        
+        return jsonify({
+            'success': True,
+            'message': f'{pet_name} has been removed from your pets.'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting pet: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+        return jsonify({'success': False, 'error': str(e)}), 500

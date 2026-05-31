@@ -173,25 +173,48 @@
 <!-- Socket.IO for Real-time Updates -->
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='admin/plugins/jquery/jquery.min.js') }}"></script>
+
+<!-- Ensure jQuery is aliased to $ immediately -->
 <script>
-if (typeof window.jQuery === 'undefined') {
-  var fallbackScript = document.createElement('script');
-  fallbackScript.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
-  fallbackScript.integrity = 'sha256-/xUj+3OJ+Y3oAKiH6jyCmMJk3Hr6zvN3O82ijvs0yvc=';
-  fallbackScript.crossOrigin = 'anonymous';
-  document.head.appendChild(fallbackScript);
-}
+  // Immediately make jQuery available as $
+  if (typeof jQuery !== 'undefined' && typeof $ === 'undefined') {
+    window.$ = jQuery;
+  }
+  // If jQuery still doesn't exist, create a safe dummy
+  if (typeof $ === 'undefined') {
+    window.$ = function() { 
+      console.warn('jQuery not loaded yet');
+      return { alert: () => {}, modal: () => {}, on: () => {} };
+    };
+    $.fn = { alert: () => {}, modal: () => {}, on: () => {} };
+  }
 </script>
+
+<script>
+(function() {
+  // Fallback if jQuery didn't load from local
+  if (typeof window.jQuery === 'undefined') {
+    // Load from CDN
+    var script = document.createElement('script');
+    script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+    script.integrity = 'sha256-/xUj+3OJ+Y3oAKiH6jyCmMJk3Hr6zvN3O82ijvs0yvc=';
+    script.crossOrigin = 'anonymous';
+    script.onload = function() {
+      window.$ = window.jQuery;
+    };
+    document.head.appendChild(script);
+  } else {
+    // Local jQuery loaded, ensure $ is set
+    window.$ = window.jQuery;
+  }
+})();
+</script>
+
 <script src="{{ url_for('static', filename='admin/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='admin/dist/js/adminlte.min.js') }}"></script>
 <script src="{{ url_for('static', filename='shared/loader.js') }}"></script>
-
-<!-- Socket.IO for Real-Time Updates -->
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/socket-manager.js') }}"></script>
 <script src="{{ url_for('static', filename='js/navbar-notifications.js') }}"></script>
-
 
 
 <!-- ================= SKELETON HANDLER ================= -->

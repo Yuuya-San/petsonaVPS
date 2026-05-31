@@ -1,0 +1,68 @@
+<div x-data="{ quizOpen:false, pet:null, answers:{}, traitOptions:['Openness','Conscientiousness','Extraversion','Agreeableness','Neuroticism'], traitDescriptions:{Openness:'Curiosity and adaptability to new environments.', Conscientiousness:'Ability to stay organized and reliable.', Extraversion:'Sociability and energy levels.', Agreeableness:'Friendliness and willingness to work with others.', Neuroticism:'Emotional sensitivity and stress response.'}, openFor(p){ this.pet=p; this.quizOpen=true }, close(){ this.quizOpen=false; this.pet=null; this.answers={} }, questionOptions(q){
+        if (q === 1) return ['Very calm', 'Moderately active', 'Very energetic'];
+        if (q === 2) return ['Aggressive or territorial', 'Nervous or avoidant', 'Neutral', 'Friendly and playful'];
+        if (q === 3) return ['Very shy', 'Selectively friendly', 'Friendly with most people', 'Extremely social'];
+        if (q === 4) return ['Very dependent/clingy', 'Balanced', 'Very independent'];
+        if (q === 5) return ['Gets stressed easily', 'Needs time to adjust', 'Adapts quickly'];
+        if (q === 6) return ['Rarely affectionate', 'Occasionally affectionate', 'Very affectionate'];
+        if (q === 7) return ['Gets anxious or destructive', 'Usually stays calm', 'Prefers being alone'];
+        if (q === 8) return ['Calm and relaxed', 'Energetic and playful', 'Curious and adventurous', 'Protective and alert', 'Independent and reserved', 'Affectionate and clingy'];
+        if (q === 9) return ['Difficult to train', 'Learns gradually', 'Learns quickly'];
+        if (q === 10) return ['Probably not', 'Maybe', 'Most likely yes'];
+        return [];
+      } }" x-init="document.addEventListener('show-quiz', e => { openFor(e.detail.pet) })" x-cloak>
+  <div x-show="quizOpen" x-transition.opacity class="modal-overlay" @click.self="close()" @keydown.escape.window="close()">
+    <div class="modal-content-wrapper" style="max-width:700px;">
+      <div class="modal-header">
+        <h3 class="modal-header-title"><i class="fas fa-question-circle"></i> Pet Quiz - <span x-text="pet ? pet.name : ''"></span></h3>
+        <button type="button" class="modal-close-btn" @click="close()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="pet-quiz-form" method="POST" action="{{ url_for('user.my_pets_quiz_submit') }}">
+          <input type="hidden" name="pet_id" :value="pet ? pet.id : ''">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Ten matching questions -->
+          <template x-for="q in [1,2,3,4,5,6,7,8,9,10]" :key="q">
+            <div class="mb-4">
+              <label class="form-label">Question <span x-text="q"></span></label>
+              <select :name="'q' + q" class="form-select" required>
+                <option value="">Select</option>
+                <template x-for="option in questionOptions(q)" :key="option">
+                  <option x-text="option"></option>
+                </template>
+              </select>
+            </div>
+          </template>
+
+          <div class="section-divider"></div>
+
+          <h4 class="mb-3">Big Five Questions</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="trait in traitOptions" :key="trait">
+              <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                <div class="flex items-center justify-between gap-4 mb-2">
+                  <label class="form-label mb-0" x-text="trait"></label>
+                  <span class="text-xs text-slate-500">1 = low, 5 = high</span>
+                </div>
+                <select :name="`b_${trait.toLowerCase()}`" class="form-select" required>
+                  <option value="1">1 — Low</option>
+                  <option value="2">2 — Below average</option>
+                  <option value="3">3 — Moderate</option>
+                  <option value="4">4 — Above average</option>
+                  <option value="5">5 — High</option>
+                </select>
+                <p class="text-xs text-slate-500 mt-2" x-text="traitDescriptions[trait]"></p>
+              </div>
+            </template>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn modal-btn-secondary" @click="close()">Cancel</button>
+        <button type="submit" form="pet-quiz-form" class="modal-btn modal-btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>

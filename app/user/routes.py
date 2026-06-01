@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request, abort, jsonify, current_app, send_file
+from flask import render_template, flash, redirect, url_for, request, abort, jsonify, current_app, send_file, session
 from flask_login import login_required, current_user # pyright: ignore[reportMissingImports]
 from app.user import bp
 from app.decorators import user_required
@@ -9,6 +9,14 @@ from app import db
 from app.extensions import csrf
 from app.utils.notification_manager import NotificationManager
 from app.utils.audit import log_event, log_action_with_changes, log_data_access
+from app.utils.compatibility_engine import calculate_compatibility, QUESTION_WEIGHTS, CATEGORY_WEIGHTS
+from app.utils.big_five_personality import (
+    get_breed_big_five_scores,
+    calculate_big_five_compatibility,
+    integrate_big_five_into_compatibility,
+    calculate_user_big_five_scores,
+)
+from app.utils.pet_owner_compatibility import calculate_pet_owner_compatibility as calc_pet_compatibility
 from sqlalchemy import func # pyright: ignore[reportMissingImports]
 from datetime import datetime, timedelta
 import pytz
@@ -348,6 +356,36 @@ def my_pets_index():
     return render_template('user/my_pets.html', page_title='My Pets', pets=pets)
 
 
+@bp.route('/my-pets/upgrade-required')
+@login_required
+def my_pets_upgrade_required():
+    """Check subscription and handle upgrade prompt for My Pets access"""
+    if current_user.subscription_plan == 'basic':
+        flash('Upgrade your plan to unlock all features and manage unlimited pets!', 'warning')
+        return redirect(url_for('user.subscription'))
+    return redirect(url_for('user.my_pets_index'))
+
+
+@bp.route('/matching-quiz/upgrade-required')
+@login_required
+def matching_quiz_upgrade_required():
+    """Check subscription and handle upgrade prompt for Find Me Pet access"""
+    if current_user.subscription_plan == 'basic':
+        flash('Upgrade your plan to use our intelligent pet matching system!', 'warning')
+        return redirect(url_for('user.subscription'))
+    return redirect(url_for('matching.quiz'))
+
+
+@bp.route('/matching-quiz/breed/<int:breed_id>/upgrade-required')
+@login_required
+def matching_quiz_specific_upgrade_required(breed_id):
+    """Check subscription and handle upgrade prompt for breed-specific matching"""
+    if current_user.subscription_plan == 'basic':
+        flash('Upgrade your plan to use our intelligent pet matching system!', 'warning')
+        return redirect(url_for('user.subscription'))
+    return redirect(url_for('matching.quiz_specific', breed_id=breed_id))
+
+
 @bp.route('/api/my-pets', methods=['GET'])
 @login_required
 def api_my_pets():
@@ -363,135 +401,110 @@ def api_my_pets():
 @csrf.exempt
 @login_required
 def my_pets_save():
-    """Save new or update existing pet. Handles both form and AJAX requests."""
-    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    
+    """Save new or update existing pet - optimized and scalable."""
     try:
         pet_id = request.form.get('pet_id', '').strip()
-        
-        # Validate pet name first
         pet_name = request.form.get('name', '').strip()
-        if not pet_name:
-            error_msg = 'Pet name is required.'
-            if is_ajax:
-                return jsonify({'success': False, 'message': error_msg}), 400
-            flash(error_msg, 'danger')
-            return redirect(url_for('user.my_pets_index'))
         
-        if not validate_pet_name(pet_name):
-            error_msg = 'Pet name must be 1-120 characters and contain only letters, numbers, spaces, hyphens, and apostrophes.'
-            if is_ajax:
-                return jsonify({'success': False, 'message': error_msg}), 400
-            flash(error_msg, 'danger')
-            return redirect(url_for('user.my_pets_index'))
+        # Validate name
+        if not pet_name or not validate_pet_name(pet_name):
+            return jsonify({'success': False, 'message': 'Invalid pet name'}), 400
         
         # Get or create pet
         if pet_id:
             pet = MyPet.query.filter_by(id=pet_id, user_id=current_user.id, is_active=True).first()
             if not pet:
-                error_msg = 'Pet not found or has been deleted.'
-                if is_ajax:
-                    return jsonify({'success': False, 'message': error_msg}), 404
-                flash(error_msg, 'danger')
-                return redirect(url_for('user.my_pets_index'))
+                return jsonify({'success': False, 'message': 'Pet not found'}), 404
             is_update = True
         else:
             pet = MyPet(user_id=current_user.id)
             is_update = False
 
-        # Build data dictionary for validation and update
-        pet_data = {
-            'name': pet_name,
-            'species': request.form.get('species', '').strip() or None,
-            'breed': request.form.get('breed', '').strip() or None,
-            'age': request.form.get('age', '').strip() or None,
-            'sex': request.form.get('sex', 'Unknown').strip(),
-            'weight': request.form.get('weight', '').strip() or None,
-            'activity_level': request.form.get('activity_level', 'Moderately active'),
-            'animal_social_behavior': request.form.get('animal_social_behavior', 'Neutral'),
-            'people_sociality': request.form.get('people_sociality', 'Selectively friendly'),
-            'independence_level': request.form.get('independence_level', 'Balanced'),
-            'adaptability': request.form.get('adaptability', 'Needs time to adjust'),
-            'affection_level': request.form.get('affection_level', 'Occasionally affectionate'),
-            'alone_behavior': request.form.get('alone_behavior', 'Usually stays calm'),
-            'personality_type': request.form.get('personality_type', 'Calm and relaxed'),
-            'trainability': request.form.get('trainability', 'Learns gradually'),
-            'companion_preference': request.form.get('companion_preference', 'Maybe'),
-            'big_five_openness': request.form.get('big_five_openness', 3),
-            'big_five_conscientiousness': request.form.get('big_five_conscientiousness', 3),
-            'big_five_extraversion': request.form.get('big_five_extraversion', 3),
-            'big_five_agreeableness': request.form.get('big_five_agreeableness', 3),
-            'big_five_neuroticism': request.form.get('big_five_neuroticism', 2),
-        }
+        # Efficiently update all fields
+        pet.name = pet_name
+        pet.species = request.form.get('species', '').strip() or None
+        pet.breed = request.form.get('breed', '').strip() or None
+        pet.age = request.form.get('age', '').strip() or None
+        pet.sex = validate_enum_field(request.form.get('sex', 'Unknown'), ['Male', 'Female', 'Unknown'], 'Unknown')
+        pet.weight = request.form.get('weight', '').strip() or None
         
-        # Apply validated data to pet through model method
-        pet.update_from_dict(pet_data)
+        # Behavior fields
+        pet.activity_level = validate_enum_field(request.form.get('activity_level', 'Moderately active'), 
+            ['Very calm', 'Moderately active', 'Very energetic'], 'Moderately active')
+        pet.animal_social_behavior = validate_enum_field(request.form.get('animal_social_behavior', 'Neutral'),
+            ['Aggressive or territorial', 'Nervous or avoidant', 'Neutral', 'Friendly and playful'], 'Neutral')
+        pet.people_sociality = validate_enum_field(request.form.get('people_sociality', 'Selectively friendly'),
+            ['Very shy', 'Selectively friendly', 'Friendly with most people', 'Extremely social'], 'Selectively friendly')
+        pet.independence_level = validate_enum_field(request.form.get('independence_level', 'Balanced'),
+            ['Very dependent/clingy', 'Balanced', 'Very independent'], 'Balanced')
+        pet.adaptability = validate_enum_field(request.form.get('adaptability', 'Needs time to adjust'),
+            ['Gets stressed easily', 'Needs time to adjust', 'Adapts quickly'], 'Needs time to adjust')
+        pet.affection_level = validate_enum_field(request.form.get('affection_level', 'Occasionally affectionate'),
+            ['Rarely affectionate', 'Occasionally affectionate', 'Very affectionate'], 'Occasionally affectionate')
+        pet.alone_behavior = validate_enum_field(request.form.get('alone_behavior', 'Usually stays calm'),
+            ['Gets anxious or destructive', 'Usually stays calm', 'Prefers being alone'], 'Usually stays calm')
+        pet.personality_type = validate_enum_field(request.form.get('personality_type', 'Calm and relaxed'),
+            ['Calm and relaxed', 'Energetic and playful', 'Curious and adventurous', 'Protective and alert', 'Independent and reserved', 'Affectionate and clingy'], 'Calm and relaxed')
+        pet.trainability = validate_enum_field(request.form.get('trainability', 'Learns gradually'),
+            ['Difficult to train', 'Learns gradually', 'Learns quickly'], 'Learns gradually')
+        pet.companion_preference = validate_enum_field(request.form.get('companion_preference', 'Maybe'),
+            ['Probably not', 'Maybe', 'Most likely yes'], 'Maybe')
         
-        # Photo upload (optional)
+        # Big Five (1-5 scale)
+        try:
+            pet.big_five_openness = max(1, min(5, int(request.form.get('big_five_openness', 3) or 3)))
+            pet.big_five_conscientiousness = max(1, min(5, int(request.form.get('big_five_conscientiousness', 3) or 3)))
+            pet.big_five_extraversion = max(1, min(5, int(request.form.get('big_five_extraversion', 3) or 3)))
+            pet.big_five_agreeableness = max(1, min(5, int(request.form.get('big_five_agreeableness', 3) or 3)))
+            pet.big_five_neuroticism = max(1, min(5, int(request.form.get('big_five_neuroticism', 2) or 2)))
+        except (ValueError, TypeError):
+            pass
+        
+        # Handle photo upload - FIXED to save properly
         file = request.files.get('photo')
         if file and file.filename:
-            try:
-                filename = secure_filename(file.filename)
-                if filename:
-                    # Add timestamp to prevent collisions
-                    timestamp = int(get_ph_datetime().timestamp())
-                    filename_with_ts = f"{timestamp}_{filename}"
-                    upload_dir = os.path.join(current_app.static_folder, 'uploads', 'pets')
-                    os.makedirs(upload_dir, exist_ok=True)
-                    filepath = os.path.join(upload_dir, filename_with_ts)
+            filename = secure_filename(file.filename)
+            if filename:
+                timestamp = int(get_ph_datetime().timestamp())
+                filename_with_ts = f"{timestamp}_{filename}"
+                upload_dir = os.path.join(current_app.static_folder, 'uploads', 'pets')
+                os.makedirs(upload_dir, exist_ok=True)
+                filepath = os.path.join(upload_dir, filename_with_ts)
+                try:
                     file.save(filepath)
                     pet.photo_url = f'uploads/pets/{filename_with_ts}'
-                    logger.info(f'Pet photo uploaded: {filename_with_ts}')
-            except Exception as e:
-                logger.warning(f'Photo upload error: {str(e)}')
-                # Continue without photo if upload fails - don't break the whole transaction
-
+                except Exception as e:
+                    logger.warning(f'Photo upload error: {str(e)}')
+        
         # Save to database
         db.session.add(pet)
         db.session.commit()
         
-        # Log the action
-        if is_update:
-            log_action_with_changes('pet_updated', current_user.id, f'Pet ID: {pet.id}', {'name': pet.name})
-        else:
-            log_action_with_changes('pet_created', current_user.id, f'Pet ID: {pet.id}', {'name': pet.name})
+        # Log action
+        log_action_with_changes('pet_' + ('updated' if is_update else 'created'), 
+                              current_user.id, f'Pet: {pet.name}', {})
         
-        # Prepare response
-        message = f'✓ {pet.name} updated successfully!' if is_update else f'✓ {pet.name} added successfully!'
+        # Flash message for page reload
+        flash(f'✓ {pet.name} saved successfully!', 'success')
         
-        if is_ajax:
-            # Return JSON response with complete pet data
-            return jsonify({
-                'success': True,
-                'message': message,
-                'pet': pet.as_dict,
-                'is_update': is_update
-            }), 200
-        
-        # Redirect for traditional form submission
-        flash(message, 'success')
-        return redirect(url_for('user.my_pets_index'))
+        return jsonify({
+            'success': True,
+            'message': f'✓ {pet.name} saved successfully!',
+            'pet': pet.as_dict,
+            'is_update': is_update
+        }), 200
         
     except Exception as e:
         db.session.rollback()
-        error_msg = str(e)
-        logger.error(f'Pet save error for user {current_user.id}: {error_msg}', exc_info=True)
-        
-        if is_ajax:
-            # Return actual error details for AJAX in development
-            import os
-            is_dev = os.environ.get('FLASK_ENV') == 'development' or not os.environ.get('FLASK_ENV')
-            return jsonify({
-                'success': False,
-                'message': f'Error: {error_msg}' if is_dev else 'Failed to save pet. Please try again.',
-                'debug': error_msg if is_dev else None
-            }), 500
-        
-        flash('Error saving pet. Please try again.', 'danger')
-        return redirect(url_for('user.my_pets_index'))
+        logger.error(f'Pet save error: {str(e)}', exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': 'Failed to save pet'
+        }), 500
 
 
 @bp.route('/my-pets/<int:id>/delete', methods=['POST'])
+@csrf.exempt
 @login_required
 def my_pets_delete(id):
     """Soft delete a pet (mark as inactive but keep data in database)."""
@@ -518,10 +531,13 @@ def my_pets_delete(id):
         
         # Prepare response
         message = f'✓ {pet_name} removed successfully!'
+        
+        # Flash message for page reload (works for AJAX too)
+        flash(message, 'warning')
+        
         if is_ajax:
             return jsonify({'success': True, 'message': message}), 200
         
-        flash(message, 'warning')
         return redirect(url_for('user.my_pets_index'))
         
     except Exception as e:
@@ -579,29 +595,339 @@ def test_pet_form_diagnostics():
         }), 500
 
 
+@bp.route('/my-pets/<int:pet_id>/quiz', methods=['GET'])
+@login_required
+@user_required
+def my_pets_quiz(pet_id):
+    """Display quiz page for a specific pet."""
+    pet = MyPet.query.filter_by(id=pet_id, user_id=current_user.id, is_active=True).first()
+    if not pet:
+        flash('Pet not found.', 'danger')
+        return redirect(url_for('user.my_pets_index'))
+    
+    return render_template('user/my_pets_quiz.html', pet=pet)
+
+
 @bp.route('/my-pets/quiz-submit', methods=['POST'])
 @login_required
 @user_required
 def my_pets_quiz_submit():
+    """Process pet owner compatibility quiz and save results."""
+    from flask import session
+    
     pet_id = request.form.get('pet_id')
     pet = MyPet.query.get(pet_id) if pet_id else None
-    # Save big five answers to pet
+    
     try:
-        if pet and pet.user_id == current_user.id:
-            pet.big_five_openness = int(request.form.get('b_openness') or pet.big_five_openness)
-            pet.big_five_conscientiousness = int(request.form.get('b_conscientiousness') or pet.big_five_conscientiousness)
-            pet.big_five_extraversion = int(request.form.get('b_extraversion') or pet.big_five_extraversion)
-            pet.big_five_agreeableness = int(request.form.get('b_agreeableness') or pet.big_five_agreeableness)
-            pet.big_five_neuroticism = int(request.form.get('b_neuroticism') or pet.big_five_neuroticism)
-            db.session.add(pet)
-            db.session.commit()
-            flash('Quiz submitted and Big Five updated for your pet.', 'success')
-        else:
-            flash('Quiz submitted.', 'success')
-    except Exception:
-        flash('Could not save quiz answers.', 'warning')
+        if not pet or pet.user_id != current_user.id:
+            flash('Pet not found.', 'danger')
+            return redirect(url_for('user.my_pets_index'))
+        
+        # Collect all user answers from form
+        user_answers = {}
+        for key, value in request.form.items():
+            if key not in ['pet_id', 'csrf_token'] and value:
+                user_answers[key] = value
+        
+        # Calculate Big Five scores from answers
+        user_big_five = calculate_user_big_five_scores(user_answers)
+        
+        # NOTE: DO NOT modify pet's Big Five scores!
+        # Pet already has its own Big Five scores set in the database
+        # Only use them for compatibility calculation, do not overwrite
+        
+        # Calculate overall compatibility using new engine
+        # Pet's existing Big Five scores are used from the database
+        compatibility_result = calc_pet_compatibility(pet, user_answers)
+        
+        # Store in session for display on results page
+        session[f'pet_{pet_id}_compatibility'] = compatibility_result
+        session[f'pet_{pet_id}_answers'] = user_answers
+        session.modified = True
+        
+        flash('✓ Quiz completed! Here\'s your compatibility analysis.', 'success')
+        return redirect(url_for('user.my_pets_match_results', pet_id=pet_id))
+        
+    except ValueError as e:
+        flash('Invalid answer format. Please try again.', 'warning')
+        logger.error(f'ValueError in my_pets_quiz_submit: {str(e)}')
+    except Exception as e:
+        flash('Could not process your quiz. Please try again.', 'warning')
+        logger.error(f'Error in my_pets_quiz_submit: {str(e)}')
 
     return redirect(url_for('user.my_pets_index'))
+
+
+@bp.route('/my-pets/<int:pet_id>/match-results', methods=['GET'])
+@login_required
+@user_required
+def my_pets_match_results(pet_id):
+    """Display pet compatibility and matching results."""
+    from flask import session
+    from app.matching.routes import extract_big_five_from_answers
+    
+    pet = MyPet.query.filter_by(id=pet_id, user_id=current_user.id, is_active=True).first()
+    if not pet:
+        flash('Pet not found.', 'danger')
+        return redirect(url_for('user.my_pets_index'))
+    
+    try:
+        # Get compatibility result from session
+        compatibility_result = session.get(f'pet_{pet_id}_compatibility')
+        user_answers = session.get(f'pet_{pet_id}_answers', {})
+        
+        if not compatibility_result:
+            # Fallback: Calculate using pet owner compatibility engine
+            compatibility_result = calc_pet_compatibility(pet, user_answers) if user_answers else None
+        
+        if not compatibility_result:
+            # If still no result, return basic pet info
+            compatibility_result = {
+                'overall_score': 70,
+                'compatibility_level': 'Moderate',
+                'compatibility_emoji': '🟠',
+                'lifestyle_score': 70,
+                'personality_score': 70,
+                'strengths': ['Pet awaiting compatibility assessment'],
+                'considerations': [],
+                'recommendations': ['Complete the pet compatibility quiz for detailed insights'],
+            }
+        
+        # Extract Big Five personality scores from user answers
+        big_five_scores = extract_big_five_from_answers(user_answers) if user_answers else {}
+        
+        # Get scores directly from compatibility result (already calculated by pet_owner_compatibility)
+        lifestyle_score = compatibility_result.get('lifestyle_score', 70)
+        personality_score = compatibility_result.get('personality_score', 70)
+        overall_score = compatibility_result.get('overall_score', 70)
+        
+        # Prepare result for template with proper structure
+        result = {
+            'pet_name': pet.name,
+            'pet_species': pet.species,
+            'pet_photo_url': pet.photo_url,
+            'overall_score': overall_score,
+            'compatibility_level': compatibility_result.get('compatibility_level', 'Moderate'),
+            'compatibility_emoji': compatibility_result.get('compatibility_emoji', '🟠'),
+            'lifestyle_score': lifestyle_score,
+            'personality_score': personality_score,
+            'category_breakdown': compatibility_result.get('category_breakdown', {}),
+            # Nest insights for template compatibility
+            'insights': {
+                'strengths': compatibility_result.get('strengths', []),
+                'considerations': compatibility_result.get('considerations', []),
+                'recommendations': compatibility_result.get('recommendations', []),
+            },
+            'pet_big_five': {
+                'Openness': pet.big_five_openness or 3,
+                'Conscientiousness': pet.big_five_conscientiousness or 3,
+                'Extraversion': pet.big_five_extraversion or 3,
+                'Agreeableness': pet.big_five_agreeableness or 3,
+                'Neuroticism': pet.big_five_neuroticism or 2,
+            },
+            'pet_traits': {
+                'activity_level': pet.activity_level or 'N/A',
+                'animal_social_behavior': pet.animal_social_behavior or 'N/A',
+                'people_sociality': pet.people_sociality or 'N/A',
+                'independence_level': pet.independence_level or 'N/A',
+                'adaptability': pet.adaptability or 'N/A',
+                'affection_level': pet.affection_level or 'N/A',
+                'alone_behavior': pet.alone_behavior or 'N/A',
+                'personality_type': pet.personality_type or 'N/A',
+                'trainability': pet.trainability or 'N/A',
+                'companion_preference': pet.companion_preference or 'N/A',
+            },
+            'big_five': big_five_scores,  # Add Big Five data to result for template
+        }
+        
+        return render_template(
+            'user/my_pets_match_results.html',
+            pet=pet,
+            result=result
+        )
+    
+    except Exception as e:
+        logger.error(f'Error displaying pet compatibility: {str(e)}', exc_info=True)
+        flash('Error loading compatibility results.', 'danger')
+        return redirect(url_for('user.my_pets_index'))
+
+
+def calculate_pet_user_compatibility(pet):
+    """Calculate overall compatibility score for a pet (0-100)."""
+    # Base score on pet's behavioral traits
+    scores = []
+    
+    # Evaluate each behavioral trait
+    trait_evaluation = {
+        'Moderately active': 80,
+        'Friendly and playful': 85,
+        'Selectively friendly': 75,
+        'Balanced': 80,
+        'Adaptable': 75,
+        'Affectionate': 80,
+        'Usually stays calm': 75,
+        'Learns gradually': 70,
+        'Maybe': 70,
+    }
+    
+    traits = [
+        pet.activity_level,
+        pet.animal_social_behavior,
+        pet.people_sociality,
+        pet.independence_level,
+        pet.adaptability,
+        pet.affection_level,
+        pet.alone_behavior,
+        pet.trainability,
+        pet.companion_preference,
+    ]
+    
+    for trait in traits:
+        if trait:
+            score = trait_evaluation.get(trait, 70)
+            scores.append(score)
+    
+    # Average the scores with Big Five adjustment
+    base_score = sum(scores) / len(scores) if scores else 70
+    
+    # Adjust based on Big Five balance (more extreme = lower compatibility)
+    big_five_average = (
+        pet.big_five_openness +
+        pet.big_five_conscientiousness +
+        pet.big_five_extraversion +
+        pet.big_five_agreeableness +
+        (6 - pet.big_five_neuroticism)  # Lower neuroticism is better
+    ) / 5
+    
+    # Normalize Big Five (1-5 scale to 0-1)
+    big_five_factor = (big_five_average - 1) / 4
+    adjusted_score = base_score * 0.7 + (big_five_factor * 100) * 0.3
+    
+    return round(max(40, min(100, adjusted_score)))
+
+
+def get_pet_category_breakdown(pet):
+    """Get compatibility breakdown by category."""
+    return {
+        'personality': {
+            'name': 'Personality',
+            'score': round((pet.big_five_extraversion + pet.big_five_agreeableness) / 2 * 20),
+            'weight': CATEGORY_WEIGHTS.get('personality', 1.15),
+            'status': 'good' if pet.big_five_agreeableness >= 3 else 'fair',
+        },
+        'energy': {
+            'name': 'Energy & Activity',
+            'score': calculate_energy_score(pet.activity_level),
+            'weight': CATEGORY_WEIGHTS.get('lifestyle', 1.20),
+            'status': 'good' if pet.activity_level in ['Moderately active', 'Very active'] else 'fair',
+        },
+        'social': {
+            'name': 'Social Compatibility',
+            'score': calculate_social_score(pet.people_sociality, pet.animal_social_behavior),
+            'weight': CATEGORY_WEIGHTS.get('household', 1.35),
+            'status': 'good' if pet.people_sociality in ['Friendly with most people', 'Extremely social'] else 'fair',
+        },
+        'adaptability': {
+            'name': 'Adaptability',
+            'score': calculate_adaptability_score(pet.adaptability),
+            'weight': CATEGORY_WEIGHTS.get('experience', 1.50),
+            'status': 'good' if pet.adaptability in ['Adapts quickly', 'Needs time to adjust'] else 'fair',
+        },
+        'care': {
+            'name': 'Care Requirements',
+            'score': calculate_care_score(pet.trainability),
+            'weight': CATEGORY_WEIGHTS.get('care', 1.05),
+            'status': 'good' if pet.trainability in ['Learns gradually', 'Learns quickly'] else 'fair',
+        },
+    }
+
+
+def calculate_energy_score(activity_level):
+    """Convert activity level to score."""
+    mapping = {
+        'Very calm': 40,
+        'Moderately active': 75,
+        'Very energetic': 65,
+        'Very active': 80,
+    }
+    return mapping.get(activity_level, 60)
+
+
+def calculate_social_score(people_sociality, animal_social):
+    """Calculate social compatibility score."""
+    social_mapping = {
+        'Very shy': 30,
+        'Selectively friendly': 65,
+        'Friendly with most people': 85,
+        'Extremely social': 95,
+    }
+    people_score = social_mapping.get(people_sociality, 60)
+    return round(people_score * 0.7 + 60 * 0.3)  # Weight people more
+
+
+def calculate_adaptability_score(adaptability):
+    """Convert adaptability to score."""
+    mapping = {
+        'Gets stressed easily': 40,
+        'Needs time to adjust': 70,
+        'Adapts quickly': 90,
+        'Adaptable': 80,
+    }
+    return mapping.get(adaptability, 65)
+
+
+def calculate_care_score(trainability):
+    """Convert trainability to care score."""
+    mapping = {
+        'Difficult to train': 50,
+        'Learns gradually': 70,
+        'Learns quickly': 85,
+        'Intelligent': 85,
+        'Very trainable': 90,
+    }
+    return mapping.get(trainability, 70)
+
+
+def get_pet_insights(pet):
+    """Generate insights about the pet."""
+    insights = {
+        'strengths': [],
+        'considerations': [],
+        'recommendations': [],
+    }
+    
+    # Strengths
+    if pet.affection_level in ['Affectionate', 'Very affectionate']:
+        insights['strengths'].append('🤝 Very affectionate and bonding-oriented')
+    if pet.trainability in ['Learns quickly', 'Very trainable']:
+        insights['strengths'].append('🎓 Quick learner, easy to train')
+    if pet.people_sociality in ['Friendly with most people', 'Extremely social']:
+        insights['strengths'].append('👥 Great with people, social butterfly')
+    if pet.adaptability in ['Adapts quickly']:
+        insights['strengths'].append('🔄 Highly adaptable to changes')
+    
+    # Considerations
+    if pet.activity_level == 'Very energetic':
+        insights['considerations'].append('⚡ High energy - needs regular exercise')
+    if pet.independence_level == 'Very independent':
+        insights['considerations'].append('🐾 Independent nature - may not need constant attention')
+    if pet.alone_behavior == 'Gets anxious or destructive':
+        insights['considerations'].append('😟 May need companionship or alone training')
+    if pet.big_five_neuroticism >= 4:
+        insights['considerations'].append('💭 Emotionally sensitive - needs gentle handling')
+    
+    # Recommendations
+    if pet.trainability in ['Learns gradually', 'Difficult to train']:
+        insights['recommendations'].append('📚 Consider patience-based training methods')
+    if pet.big_five_conscientiousness >= 4:
+        insights['recommendations'].append('✅ Structured routines and schedules work best')
+    if pet.big_five_extraversion >= 4:
+        insights['recommendations'].append('🎉 Enjoys social activities and group settings')
+    if pet.activity_level in ['Moderately active', 'Very active']:
+        insights['recommendations'].append('🏃 Daily activities and playtime recommended')
+    
+    return insights
+
 
 @bp.route('/api/gcash-subscription', methods=['GET', 'POST'])
 @login_required

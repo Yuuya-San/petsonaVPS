@@ -927,6 +927,29 @@ def view_species(id):
         page_title=f"{species.name} Breeds"
     )
 
+
+@bp.route('/species/find-pet/upgrade-required')
+@login_required
+@merchant_required
+def species_find_pet_upgrade_required():
+    """Check subscription and handle upgrade prompt for Find Me Pet access"""
+    if current_user.subscription_plan == 'basic':
+        flash('Upgrade your plan to use our intelligent pet matching system!', 'warning')
+        return redirect(url_for('user.subscription'))
+    return redirect(url_for('matching.quiz'))
+
+
+@bp.route('/species/quiz/breed/<int:breed_id>/upgrade-required')
+@login_required
+@merchant_required
+def species_quiz_breed_upgrade_required(breed_id):
+    """Check subscription and handle upgrade prompt for breed-specific matching"""
+    if current_user.subscription_plan == 'basic':
+        flash('Upgrade your plan to use our intelligent pet matching system!', 'warning')
+        return redirect(url_for('user.subscription'))
+    return redirect(url_for('matching.quiz_specific', breed_id=breed_id))
+
+
 @bp.route('/apply', methods=['GET', 'POST'])
 def apply():
     """Merchant application form - collect business details and documents from user

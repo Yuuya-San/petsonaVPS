@@ -254,25 +254,25 @@ def calculate_user_big_five_scores(answers: Dict[str, str]) -> Dict[str, float]:
     """
     Calculate user's Big Five personality scores from questionnaire answers.
     
-    Process:
+    IMPROVED PROCESS:
     1. Extract answers for each Big Five question
     2. Convert Likert scale responses to numeric scores (1-5)
-    3. Apply reverse scoring where needed
-    4. Calculate mean score for each trait (OPTIMIZED: each trait has 3 questions)
-    5. Normalize to 1-5 scale (already in that range from averaging)
+    3. Apply reverse scoring where needed (big_five_neur_2: "I stay calm" reversed)
+    4. Calculate mean score for each trait (3 questions per trait)
+    5. Validate all answers exist and are in valid range
+    6. Return 1-5 scale scores
     
     Args:
         answers: Dictionary of user answers {question_key: answer_text}
     
     Returns:
-        Dictionary with trait scores and metadata:
+        Dictionary with trait scores (1-5 scale):
         {
             'Openness': 3.5,
             'Conscientiousness': 4.0,
             'Extraversion': 2.8,
             'Agreeableness': 4.2,
             'Neuroticism': 2.1,
-            'raw_scores': {...},  # For debugging
         }
     """
     trait_scores = {
@@ -288,33 +288,45 @@ def calculate_user_big_five_scores(answers: Dict[str, str]) -> Dict[str, float]:
         question_key = question['name']
         trait = question['trait']
         
-        # Get user's answer
-        if question_key not in answers or answers[question_key] is None:
+        # Get user's answer - validate it exists
+        if question_key not in answers:
+            # Skip missing answers, don't default
             continue
         
         user_answer = answers[question_key]
-        
-        # Convert to numeric score
-        numeric_score = LIKERT_ANSWER_MAPPING.get(user_answer)
-        if numeric_score is None:
+        if user_answer is None or user_answer == '':
+            # Skip empty answers
             continue
         
+        # Convert to numeric score - validate it's a valid Likert response
+        user_answer_str = str(user_answer).strip()
+        if user_answer_str not in LIKERT_ANSWER_MAPPING:
+            # Skip invalid answers
+            continue
+        
+        numeric_score = LIKERT_ANSWER_MAPPING[user_answer_str]
+        
         # Apply reverse scoring if needed
+        # Example: big_five_neur_2 "I stay calm when things get stressful" should be reversed
+        # High calm = low neuroticism, so reverse the score
         if question.get('reverse', False):
             numeric_score = 6 - numeric_score  # 5→1, 4→2, 3→3, 2→4, 1→5
+        
+        # Ensure score is in valid range
+        numeric_score = max(1, min(5, numeric_score))
         
         # Accumulate in trait scores
         trait_scores[trait].append(numeric_score)
     
-    # Calculate mean score for each trait (7 questions per trait)
+    # Calculate mean score for each trait
     final_scores = {}
     for trait, scores in trait_scores.items():
-        if scores:
+        if scores and len(scores) > 0:
             mean_score = sum(scores) / len(scores)
-            # Round to 2 decimal places for precision
-            final_scores[trait] = round(mean_score, 2)
+            # Round to 2 decimal places for precision, ensure 1-5 range
+            final_scores[trait] = max(1.0, min(5.0, round(mean_score, 2)))
         else:
-            # If no answers for this trait, default to neutral (3.0)
+            # If no valid answers for this trait, default to neutral (3.0)
             final_scores[trait] = 3.0
     
     return final_scores
@@ -357,17 +369,15 @@ def calculate_big_five_compatibility(
     """
     Calculate personality compatibility score using Big Five traits.
     
-    Algorithm:
-    1. Calculate Euclidean distance in 5D personality space
-    2. Normalize distance to 0-1 compatibility score (0 = perfect match, 1 = complete mismatch)
-    3. Apply flexibility weighting (breeds with high flexibility are more compatible)
-    4. Individual trait gap analysis for detailed feedback
+    IMPROVED ALGORITHM:
+    1. Calculate absolute trait gaps for each dimension
+    2. Use gap-based scoring: perfect match (gap 0) = 100%, max gap (4) = 0%
+    3. Average across all 5 traits
+    4. Apply flexibility bonus (modest, only 5-10%)
+    5. Individual trait gap analysis for detailed feedback
     
-    Formula:
-    - Euclidean Distance: sqrt((O_u - O_b)² + (C_u - C_b)² + (E_u - E_b)² + (A_u - A_b)² + (N_u - N_b)²)
-    - Normalized Distance: distance / sqrt(5 * 4²)  (max possible distance with 1-5 scale)
-    - Compatibility: (1 - Normalized Distance) * (1 + flexibility_bonus)
-    - Flexibility Bonus: 0.15 if breed_flexibility is high (more forgiving)
+    Key Fix: Uses direct gap-to-percentage conversion instead of Euclidean distance
+    This ensures opposite answers (1 vs 5, gap=4) = 0% compatibility
     
     Args:
         user_scores: User's Big Five scores {trait: 1-5 value}
@@ -393,43 +403,44 @@ def calculate_big_five_compatibility(
     
     traits = ['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Neuroticism']
     
-    # Calculate Euclidean distance in 5D personality space
-    sum_squared_gaps = 0
+    # Calculate gap-based compatibility for each trait
+    trait_compatibilities = []
     trait_gaps = {}
     
     for trait in traits:
         user_val = user_scores.get(trait, 3.0)
         breed_val = breed_scores.get(trait, 3)
         
+        # Ensure both values are in 1-5 range
+        user_val = max(1.0, min(5.0, float(user_val)))
+        breed_val = max(1, min(5, int(breed_val)))
+        
         # Calculate gap (0-4 range since scale is 1-5)
         gap = abs(user_val - breed_val)
+        
+        # Convert gap to compatibility percentage
+        # gap 0 = 100%, gap 0.5 = 87.5%, gap 1 = 75%, gap 2 = 50%, gap 3 = 25%, gap 4 = 0%
+        trait_compat = max(0, (1 - (gap / 4.0)) * 100)
+        trait_compatibilities.append(trait_compat)
+        
         trait_gaps[trait] = {
             'user': round(user_val, 2),
             'breed': breed_val,
             'gap': round(gap, 2),
+            'compatibility': round(trait_compat, 1),
             'match_quality': _get_trait_match_quality(gap),
         }
-        
-        sum_squared_gaps += gap ** 2
     
-    # Calculate Euclidean distance
-    euclidean_distance = math.sqrt(sum_squared_gaps)
+    # Calculate average compatibility across all traits
+    avg_compatibility = sum(trait_compatibilities) / len(trait_compatibilities) if trait_compatibilities else 50
+    compatibility_percentage = max(0, min(100, avg_compatibility))
     
-    # Normalize to 0-1 scale
-    # Maximum possible distance with 1-5 scale: sqrt(5 * 4²) = sqrt(80) ≈ 8.94
-    max_distance = math.sqrt(5 * (4 ** 2))
-    normalized_distance = euclidean_distance / max_distance
+    # Apply flexibility bonus (modest: only 5% for highly flexible breeds)
+    if breed_flexibility and breed_flexibility > 0.7:
+        compatibility_percentage *= 1.05  # 5% bonus only
+        compatibility_percentage = min(100, compatibility_percentage)
     
-    # Convert to compatibility score (1 = perfect, 0 = complete mismatch)
-    compatibility_score = 1 - normalized_distance
-    
-    # Apply flexibility bonus if breed is flexible
-    if breed_flexibility and breed_flexibility > 0.6:
-        compatibility_score *= 1.15  # 15% bonus for highly flexible breeds
-        compatibility_score = min(1.0, compatibility_score)  # Cap at 1.0
-    
-    # Convert to percentage
-    compatibility_percentage = compatibility_score * 100
+    compatibility_score = compatibility_percentage / 100.0
     
     # Determine compatibility level
     if compatibility_percentage >= 85:
@@ -452,7 +463,7 @@ def calculate_big_five_compatibility(
         'compatibility_level': level,
         'trait_gaps': trait_gaps,
         'personality_match_reason': explanation,
-        'euclidean_distance': round(euclidean_distance, 2),
+        'trait_compatibilities': {t: trait_gaps[t]['compatibility'] for t in traits},
     }
 
 

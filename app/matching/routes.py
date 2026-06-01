@@ -72,6 +72,58 @@ def normalize_quiz_answers(answers: dict) -> dict:
     return normalized
 
 
+def extract_big_five_from_answers(answers: dict) -> dict:
+    """
+    Extract and calculate Big Five personality scores from quiz answers.
+    
+    Args:
+        answers: Quiz answers dict containing big_five_* keys
+    
+    Returns:
+        Dict with big_five dimension scores as percentages (0-100)
+    """
+    if not answers or not isinstance(answers, dict):
+        return {}
+    
+    # Map response text to numeric scores (1-5 scale)
+    response_scores = {
+        'Strongly Disagree': 1,
+        'Disagree': 2,
+        'Neutral': 3,
+        'Agree': 4,
+        'Strongly Agree': 5
+    }
+    
+    big_five = {}
+    dimensions = {
+        'openness': 'big_five_open',
+        'conscientiousness': 'big_five_cons',
+        'extraversion': 'big_five_extr',
+        'agreeableness': 'big_five_agr',
+        'neuroticism': 'big_five_neur'
+    }
+    
+    for dimension_name, dimension_prefix in dimensions.items():
+        scores = []
+        for i in range(1, 4):  # 3 questions per dimension
+            key = f"{dimension_prefix}_{i}"
+            answer = answers.get(key)
+            
+            if answer and answer in response_scores:
+                # Convert 1-5 scale to percentage (1=20%, 5=100%)
+                score_pct = response_scores[answer] * 20
+                scores.append(score_pct)
+        
+        # Average the scores for this dimension
+        if scores:
+            big_five[dimension_name] = round(sum(scores) / len(scores))
+        else:
+            big_five[dimension_name] = 0
+    
+    return big_five
+
+
+
 # --------------------------
 # GLOBAL QUIZ PAGE (NEW)
 # --------------------------
@@ -265,25 +317,58 @@ def breed_match(breed_id):
     
     # Prepare category scores for display (calculate percentages if needed)
     category_display = {}
+    lifestyle_scores = []
+    personality_scores = []
+    
     for category, data in match_data.get('category_scores', {}).items():
         if isinstance(data, dict):
             category_display[category] = {
                 'score': data.get('score', 0),
                 'percentage': data.get('percentage', 0)
             }
+            # Categorize scores for lifestyle vs personality
+            # Lifestyle = lifestyle, care, space, health, household, experience, safety (everything except personality)
+            # Personality = personality (Big Five traits)
+            if category == 'personality':
+                personality_scores.append(data.get('percentage', 0))
+            else:
+                lifestyle_scores.append(data.get('percentage', 0))
+    
+    # Calculate lifestyle and personality averages properly
+    if lifestyle_scores:
+        lifestyle_score = round(sum(lifestyle_scores) / len(lifestyle_scores))
+    else:
+        lifestyle_score = match_data.get('overall_score', 70)
+    
+    if personality_scores:
+        personality_score = round(sum(personality_scores) / len(personality_scores))
+    else:
+        # If no personality scores from quiz, calculate from big_five
+        personality_score = match_data.get('overall_score', 70)
+    
+    # Calculate overall score using same formula as pet_owner_compatibility
+    # Lifestyle (60%) + Personality (40%)
+    overall_score_calculated = round((lifestyle_score * 0.60) + (personality_score * 0.40))
+    
+    # Extract Big Five personality scores from answers
+    big_five_scores = extract_big_five_from_answers(answers)
+    user_personality = {'big_five': big_five_scores} if big_five_scores else {}
     
     return render_template(
         "matching/breed_results.html",
         breed=breed,
-        score=match_data.get('overall_score', 0),
+        score=overall_score_calculated,
         compatibility_level=match_data.get('compatibility_level', 'Unknown'),
         category_scores=category_display,
+        lifestyle_score=lifestyle_score,
+        personality_score=personality_score,
         strength_areas=match_data.get('strengths', []),
         question_scores=match_data.get('question_scores', []),
         match_reasons=match_reasons,
         concerns=concerns,
         suggestions=suggestions,
-        total_questions=match_data.get('total_questions_answered', 0)
+        total_questions=match_data.get('total_questions_answered', 0),
+        user_personality=user_personality
     )
 
 

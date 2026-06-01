@@ -9,12 +9,13 @@
     background: linear-gradient(135deg, #ffffff 0%, #f8f0ff 50%, #f5f3ff 100%);
     border: 1px solid rgba(167, 139, 250, 0.28);
     box-shadow: 0 24px 64px rgba(124, 58, 237, 0.08);
+    border-radius: 1.5rem;
   }
 
   .plan-card {
     background: white;
     border: 1px solid rgba(167, 139, 250, 0.2);
-    border-radius: 1rem;
+    border-radius: 1.5rem;
     box-shadow: 0 18px 45px rgba(124, 58, 237, 0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     width: 100%;
@@ -91,6 +92,7 @@
   .plan-action {
     background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
     color: white;
+    border-radius: 1rem;
   }
 
   .plan-action:hover:not(:disabled) {
@@ -99,6 +101,7 @@
 
   .subscription-note {
     color: #4c1d95;
+    border-radius: 1.5rem;
   }
 
   .payment-method-tabs {
@@ -117,6 +120,7 @@
     color: #9ca3af;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
+    border-radius: 0.75rem 0.75rem 0 0;
   }
 
   .payment-tab.active {
@@ -139,14 +143,14 @@
   .paymongo-checkout {
     background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
     border: 1px solid rgba(167, 139, 250, 0.3);
-    border-radius: 1rem;
+    border-radius: 1.25rem;
     padding: 1.25rem;
   }
 
   @media (max-width: 640px) {
     .paymongo-checkout {
       padding: 1rem;
-      border-radius: 0.75rem;
+      border-radius: 1rem;
     }
   }
 
@@ -180,7 +184,7 @@
     background: rgba(59, 130, 246, 0.15);
     color: #1e40af;
     padding: 0.75rem 1.25rem;
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     font-size: 0.9rem;
     font-weight: 600;
     margin-top: 1.5rem;
@@ -192,12 +196,13 @@
       padding: 0.6rem 1rem;
       font-size: 0.8rem;
       margin-top: 1rem;
+      border-radius: 0.875rem;
     }
   }
 
   .status-alert {
     padding: 1.25rem;
-    border-radius: 0.875rem;
+    border-radius: 1rem;
     margin-bottom: 1.5rem;
     word-wrap: break-word;
   }
@@ -206,7 +211,7 @@
     .status-alert {
       padding: 0.875rem;
       margin-bottom: 1rem;
-      border-radius: 0.75rem;
+      border-radius: 0.875rem;
     }
   }
 
@@ -231,14 +236,14 @@
   .test-card-details {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%);
     border: 1.5px solid rgba(59, 130, 246, 0.25);
-    border-radius: 1rem;
+    border-radius: 1.25rem;
     padding: 1.25rem;
   }
 
   @media (max-width: 640px) {
     .test-card-details {
       padding: 1rem;
-      border-radius: 0.75rem;
+      border-radius: 1rem;
     }
   }
 
@@ -257,7 +262,7 @@
     background: white;
     border: 1px solid rgba(59, 130, 246, 0.2);
     padding: 0.6rem 0.75rem;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     font-family: 'Courier New', monospace;
     font-weight: 600;
     font-size: 0.95rem;
@@ -280,6 +285,7 @@
 
   .plan-card button {
     transition: all 0.2s ease;
+    border-radius: 1rem;
   }
 
   .plan-card button:disabled {
@@ -290,6 +296,81 @@
   /* Downgrade warning button style */
   button.border-amber-300 {
     background: rgba(251, 191, 36, 0.08) !important;
+    border-radius: 1rem;
+  }
+
+  /* Feature list styling */
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .feature-icon {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    font-size: 0.85rem;
+  }
+
+  .feature-icon.yes {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+  }
+
+  .feature-icon.no {
+    background: rgba(209, 213, 219, 0.5);
+    color: #9ca3af;
+  }
+
+  .feature-text {
+    flex: 1;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  /* Professional styling for plan cards */
+  .plan-pricing {
+    margin: 1.5rem 0;
+  }
+
+  .plan-price {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #1f2937;
+    line-height: 1;
+  }
+
+  .plan-billing {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .plan-price {
+      font-size: 2rem;
+    }
+  }
+
+  /* Section separator */
+  .feature-section-title {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feature-section-title:first-of-type {
+    margin-top: 0;
   }
 </style>
 
@@ -300,10 +381,10 @@
         <div>
           <p class="text-xs md:text-sm uppercase tracking-[0.25em] font-semibold text-purple-700">Subscription Plans</p>
           <h1 class="mt-2 md:mt-3 text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-extrabold text-slate-900 leading-tight">Choose the plan that fits your PetSona journey.</h1>
-          <p class="mt-3 md:mt-4 max-w-2xl text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed">Basic is always free with one pet match. Premium and Pro unlock unlimited matches, full store editing for merchants, and priority match access.</p>
+          <p class="mt-3 md:mt-4 max-w-2xl text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed">Basic is always free with limited features. Premium and Pro unlock unlimited matches, 3-way matching, full store management for merchants, and priority access.</p>
           <div class="mt-4 md:mt-6 flex flex-col sm:flex-row gap-2 md:gap-3">
-            <a href="{{ url_for('user.dashboard') }}" class="inline-flex items-center justify-center rounded-lg md:rounded-full border border-purple-200 bg-white px-4 md:px-5 py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold text-purple-800 transition hover:bg-purple-50">Return to dashboard</a>
-            <a href="#plans" class="inline-flex items-center justify-center rounded-lg md:rounded-full plan-action px-4 md:px-5 py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold shadow-lg shadow-purple-200/40">View plans ↓</a>
+            <a href="{{ url_for('user.dashboard') }}" class="inline-flex items-center justify-center rounded-xl md:rounded-full border border-purple-200 bg-white px-4 md:px-5 py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold text-purple-800 transition hover:bg-purple-50">Return to dashboard</a>
+            <a href="#plans" class="inline-flex items-center justify-center rounded-xl md:rounded-full plan-action px-4 md:px-5 py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold shadow-lg shadow-purple-200/40">View plans</a>
           </div>
         </div>
         <div class="rounded-2xl md:rounded-3xl bg-white/90 p-4 md:p-6 shadow-lg shadow-purple-200/20 border border-purple-100">
@@ -377,7 +458,7 @@
           </div>
 
           <!-- Payment Button -->
-          <button onclick="simulatePayMongoPayment()" id="simulate-btn" class="w-full mt-6 md:mt-8 rounded-lg md:rounded-2xl plan-action px-4 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold transition hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
+          <button onclick="simulatePayMongoPayment()" id="simulate-btn" class="w-full mt-6 md:mt-8 rounded-xl plan-action px-4 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold transition hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
             💰 Simulate Payment - ₱<span id="btn-amount">75.00</span>
           </button>
 
@@ -392,7 +473,7 @@
         <form method="post" class="w-full">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="action" value="cancel_subscription">
-          <button type="submit" class="w-full rounded-lg md:rounded-2xl border border-red-200 bg-red-50 px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold text-red-700 hover:bg-red-100 transition">✕ Cancel Subscription</button>
+          <button type="submit" class="w-full rounded-lg md:rounded-xl border border-red-200 bg-red-50 px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold text-red-700 hover:bg-red-100 transition">✕ Cancel Subscription</button>
         </form>
       </div>
     </div>
@@ -637,48 +718,172 @@
       <div class="plan-card p-6 md:p-8 flex flex-col h-full">
         <div class="flex-1">
           <span class="plan-badge">Basic</span>
-          <h2 class="mt-6 text-2xl md:text-3xl font-bold text-slate-900">Free</h2>
-          <p class="mt-3 text-sm md:text-base text-slate-600">Only one general pet match from the quiz. Breed-specific Match Me and merchant store editing require upgrade.</p>
-          <div class="mt-6 space-y-3">
-            <p class="font-semibold text-slate-700 text-sm md:text-base">Includes:</p>
-            <ul class="space-y-2 text-slate-600 text-xs md:text-sm">
-              <li class="flex items-center"><span class="mr-2">✓</span>1 general pet match</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>Basic pet database access</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>View & vote on breeds</li>
-            </ul>
+          <div class="plan-pricing">
+            <div class="plan-price">Free</div>
           </div>
+          <p class="mt-2 text-sm md:text-base text-slate-600">Perfect for getting started. Limited matches and essential features.</p>
+          
+          <!-- User Features -->
+          {% if current_user.role == 'user' %}
+          <div class="mt-6">
+            <div class="feature-section-title">Core Features</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">1 General Pet Match</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Manage Bookings</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Book Pet Services</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Basic Pet Database Access</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">View & Vote on Breeds</div>
+              </div>
+            </div>
+            
+            <div class="feature-section-title">Not Included</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon no">✕</div>
+                <div class="feature-text">3-Way Matching</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon no">✕</div>
+                <div class="feature-text">Add Your Pet Profile</div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <!-- Merchant Features -->
+          <div class="mt-6">
+            <div class="feature-section-title">Core Features</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Manage Bookings</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Basic Store Management</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">1 General Pet Match</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">View Pet Database</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Limited Store Editing</div>
+              </div>
+            </div>
+            
+            <div class="feature-section-title">Not Included</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon no">✕</div>
+                <div class="feature-text">Full Store Management</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon no">✕</div>
+                <div class="feature-text">Advanced Matching Tools</div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
-        <form method="post" class="mt-8 pt-6 border-t border-purple-100">
+        <form method="post" class="mt-8 pt-6 border-t border-slate-200">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="plan" value="basic">
-          <button type="submit" class="w-full rounded-xl border border-purple-200 px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold text-purple-700 hover:bg-purple-50 transition select-plan-btn" data-plan="basic">Select Basic</button>
+          <button type="submit" class="w-full rounded-xl border border-purple-200 bg-white px-4 py-3 md:py-3 text-xs md:text-sm font-semibold text-purple-700 hover:bg-purple-50 transition select-plan-btn" data-plan="basic">Select Basic</button>
         </form>
       </div>
 
       <!-- Premium Plan -->
-      <div class="plan-card p-6 md:p-8 flex flex-col h-full border-2 border-purple-300 shadow-lg shadow-purple-200/30 relative sm:col-span-2 lg:col-span-1">
+      <div class="plan-card p-6 md:p-8 flex flex-col h-full border-2 border-purple-400 shadow-lg shadow-purple-200/30 relative sm:col-span-2 lg:col-span-1">
         <div class="flex items-start justify-between gap-2">
           <span class="plan-badge">Premium</span>
           <span class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-2.5 md:px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Most Popular</span>
         </div>
-        <div class="flex-1 mt-6">
-          <h2 class="mt-6 text-2xl md:text-3xl font-bold text-slate-900">₱75 / month</h2>
-          <p class="mt-3 text-sm md:text-base text-slate-600">Unlimited pet matches, breed-specific access, and full merchant store edit rights.</p>
-          <div class="mt-6 space-y-3">
-            <p class="font-semibold text-slate-700 text-sm md:text-base">Includes:</p>
-            <ul class="space-y-2 text-slate-600 text-xs md:text-sm">
-              <li class="flex items-center"><span class="mr-2">✓</span>Unlimited quiz matches</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>Breed-specific Match Me access</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>Merchant store editing enabled</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>Monthly renewal</li>
-            </ul>
+        <div class="flex-1 mt-4">
+          <div class="plan-pricing">
+            <div class="plan-price">₱75</div>
+            <div class="plan-billing">/month, billed monthly</div>
           </div>
+          <p class="mt-3 text-sm md:text-base text-slate-600">Unlimited matching and full store access for power users.</p>
+          
+          <!-- User Features -->
+          {% if current_user.role == 'user' %}
+          <div class="mt-6">
+            <div class="feature-section-title">Premium Features</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Unlimited 3-Way Matching</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Add Your Pet Profile</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Match Yourself to Your Pet</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Breed-Specific Matching</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Manage Bookings & Services</div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <!-- Merchant Features -->
+          <div class="mt-6">
+            <div class="feature-section-title">Premium Features</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Full Store Management</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Edit & Publish Listings</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Unlimited 3-Way Matching</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Advanced Inventory Control</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Manage Bookings</div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
-        <form method="post" class="mt-8 pt-6 border-t border-purple-100">
+        <form method="post" class="mt-8 pt-6 border-t border-slate-200">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="plan" value="premium">
-          <button type="submit" class="w-full rounded-xl plan-action px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold transition select-plan-btn" data-plan="premium">Choose Premium</button>
-          <p class="text-xs text-amber-600 mt-2 text-center hidden downgrade-msg bg-amber-50 p-2 rounded">⚠️ This plan is lower than your current plan. Continue to downgrade?</p>
+          <button type="submit" class="w-full rounded-xl plan-action px-4 py-3 md:py-3 text-xs md:text-sm font-semibold transition select-plan-btn" data-plan="premium">Choose Premium</button>
+          <p class="text-xs text-amber-600 mt-2 text-center hidden downgrade-msg bg-amber-50 p-2 rounded-lg">⚠️ This plan is lower than your current plan. Continue to downgrade?</p>
         </form>
       </div>
 
@@ -686,22 +891,80 @@
       <div class="plan-card p-6 md:p-8 flex flex-col h-full">
         <div class="flex-1">
           <span class="plan-badge">Pro</span>
-          <h2 class="mt-6 text-2xl md:text-3xl font-bold text-slate-900">₱500 / year</h2>
-          <p class="mt-3 text-sm md:text-base text-slate-600">Full platform access plus the best yearly value for power users and merchants.</p>
-          <div class="mt-6 space-y-3">
-            <p class="font-semibold text-slate-700 text-sm md:text-base">Includes:</p>
-            <ul class="space-y-2 text-slate-600 text-xs md:text-sm">
-              <li class="flex items-center"><span class="mr-2">✓</span>Unlimited matches</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>Pro-level merchant tools</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>One-year renewal</li>
-              <li class="flex items-center"><span class="mr-2">✓</span>Best savings</li>
-            </ul>
+          <div class="plan-pricing">
+            <div class="plan-price">₱500</div>
+            <div class="plan-billing">/year, best value</div>
           </div>
+          <p class="mt-3 text-sm md:text-base text-slate-600">Complete platform access with the best annual savings.</p>
+          
+          <!-- User Features -->
+          {% if current_user.role == 'user' %}
+          <div class="mt-6">
+            <div class="feature-section-title">All Premium + Pro</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Unlimited 3-Way Matching</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Add Your Pet Profile</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Match Yourself to Your Pet</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Priority Booking Access</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Priority Support</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Exclusive Pro Features</div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <!-- Merchant Features -->
+          <div class="mt-6">
+            <div class="feature-section-title">All Premium + Pro</div>
+            <div class="space-y-3">
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Full Store Management</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Advanced Analytics</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Unlimited 3-Way Matching</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Priority Support</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Custom Store Branding</div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon yes">✓</div>
+                <div class="feature-text">Advanced Reporting Tools</div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
-        <form method="post" class="mt-8 pt-6 border-t border-purple-100">
+        <form method="post" class="mt-8 pt-6 border-t border-slate-200">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="plan" value="pro">
-          <button type="submit" class="w-full rounded-xl plan-action px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold transition select-plan-btn" data-plan="pro">Choose Pro</button>
+          <button type="submit" class="w-full rounded-xl plan-action px-4 py-3 md:py-3 text-xs md:text-sm font-semibold transition select-plan-btn" data-plan="pro">Choose Pro</button>
         </form>
       </div>
     </div>
@@ -746,8 +1009,8 @@
           }
           // If upgrading
           else if (planValue > currentPlanValue) {
-            button.textContent = (plan === 'premium' ? '⬆️ Upgrade to Premium' : 
-                                  plan === 'pro' ? '⬆️ Upgrade to Pro' : 
+            button.textContent = (plan === 'premium' ? 'Upgrade to Premium' : 
+                                  plan === 'pro' ? 'Upgrade to Pro' : 
                                   'Choose ' + plan.charAt(0).toUpperCase() + plan.slice(1));
           }
         });
@@ -755,8 +1018,8 @@
     </script>
 
     <div class="rounded-2xl md:rounded-3xl bg-violet-50 border border-purple-100 p-4 md:p-6 lg:p-8 text-slate-700">
-      <p class="font-semibold text-purple-900 text-sm md:text-base">Note:</p>
-      <p class="mt-2 md:mt-3 subscription-note text-xs md:text-sm leading-relaxed">Basic users can access one general pet match. Upgrade to Premium or Pro to unlock breed-specific Match Me and merchant store editing. Admin accounts bypass plan restrictions. Test mode simulates real-world payment processing with realistic 2-4 second delays. Use PayMongo Test tab to test the complete payment flow instantly!</p>
+      <p class="font-semibold text-purple-900 text-sm md:text-base">💡 Need Help Choosing?</p>
+      <p class="mt-2 md:mt-3 subscription-note text-xs md:text-sm leading-relaxed">Basic users get essential features including booking management and pet database access. Premium unlocks unlimited 3-way matching and full store management for merchants with monthly billing. Pro offers the best annual value with all features plus priority support. All plans include access to our pet matching system and comprehensive pet database. Upgrade anytime to unlock advanced features!</p>
     </div>
   </div>
 </div>

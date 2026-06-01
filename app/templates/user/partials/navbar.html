@@ -132,7 +132,7 @@
 
         <!-- My Pets -->
         <div class="glass-dropdown-section">
-          <a href="{{ url_for('user.my_pets_index') }}" class="glass-dropdown-item">
+          <a href="{% if current_user.subscription_plan and current_user.subscription_plan == 'basic' %}{{ url_for('user.my_pets_upgrade_required') }}{% else %}{{ url_for('user.my_pets_index') }}{% endif %}" class="glass-dropdown-item">
             <div class="glass-item-icon">
               <i class="fas fa-paw"></i>
             </div>

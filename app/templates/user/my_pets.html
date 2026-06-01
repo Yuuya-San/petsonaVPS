@@ -41,6 +41,16 @@
     animation: slideDown 0.4s ease-out;
   }
 
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin {
+    animation: spin 0.8s linear infinite;
+  }
+
   /* Card entrance, responsive grid and CTA handling */
   .species-item {
     transition: all 0.3s ease;
@@ -794,173 +804,7 @@
 </style>
 
 <!-- Parent Alpine for View Modal + Add/Edit Pet Modal + Delete Modal -->
-<div x-data="{
-        viewModal: false,
-        petModal: false,
-        deleteModal: false,
-        selectedPet: null,
-        editingPet: null,
-        selectedPetToDelete: null,
-        imagePreview: null,
-        openEditPet(pet) {
-          this.editingPet = {
-            ...pet,
-            big_five_openness: pet.big_five_openness || 3,
-            big_five_conscientiousness: pet.big_five_conscientiousness || 3,
-            big_five_extraversion: pet.big_five_extraversion || 3,
-            big_five_agreeableness: pet.big_five_agreeableness || 3,
-            big_five_neuroticism: pet.big_five_neuroticism || 3
-          };
-          this.imagePreview = pet.photo_url ? '{{ url_for("static", filename="") }}' + pet.photo_url : null;
-          this.petModal = true;
-        },
-        initNewPet() {
-          this.editingPet = {
-            id: null,
-            name: '',
-            species: '',
-            breed: '',
-            age: '',
-            sex: '',
-            weight: '',
-            photo: null,
-            photo_url: null,
-
-            activity_level: 'Moderately active',
-            animal_social_behavior: 'Neutral',
-            people_sociality: 'Selectively friendly',
-            independence_level: 'Balanced',
-            adaptability: 'Needs time to adjust',
-            affection_level: 'Occasionally affectionate',
-            alone_behavior: 'Usually stays calm',
-            personality_type: 'Calm and relaxed',
-            trainability: 'Learns gradually',
-            companion_preference: 'Maybe',
-            big_five_openness: 3,
-            big_five_conscientiousness: 3,
-            big_five_extraversion: 3,
-            big_five_agreeableness: 3,
-            big_five_neuroticism: 3
-          };
-          this.imagePreview = null;
-          this.petModal = true;
-        },
-        resetPetForm() {
-          this.editingPet = null;
-          this.imagePreview = null;
-          if(this.$refs.petImageInput) this.$refs.petImageInput.value = '';
-        },
-                async submitPetForm() {
-          try {
-            const form = document.getElementById('pet-form');
-            const formData = new FormData(form);
-            
-            // Log form data for debugging
-            console.log('=== PET FORM SUBMISSION ===');
-            console.log('Form action:', form.action);
-            console.log('Form data entries:');
-            
-            const entries = {};
-            for (let [key, value] of formData.entries()) {
-              if (key === 'csrf_token') {
-                entries[key] = '***';
-              } else if (value instanceof File) {
-                entries[key] = `File(${value.name}, ${value.size} bytes)`;
-              } else {
-                entries[key] = value;
-              }
-            }
-            console.table(entries);
-            
-            console.log('Sending POST request to:', '{{ url_for("user.my_pets_save") }}');
-            
-            const response = await fetch('{{ url_for("user.my_pets_save") }}', {
-              method: 'POST',
-              body: formData,
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            });
-            
-            console.log('Response status:', response.status, response.statusText);
-            
-            const contentType = response.headers.get('content-type');
-            console.log('Response content-type:', contentType);
-            
-            if (!contentType || !contentType.includes('application/json')) {
-              const text = await response.text();
-              console.error('Server returned non-JSON response:');
-              console.error(text);
-              alert('Server Error (Status ' + response.status + '):\n\n' + text.substring(0, 500));
-              return;
-            }
-            
-            const data = await response.json();
-            console.log('JSON Response:', data);
-            
-            if (data.success) {
-              console.log('✓ Pet saved successfully!');
-              this.petModal = false;
-              this.resetPetForm();
-              await this.loadPets();
-              if (data.message) {
-                alert('Success: ' + data.message);
-              }
-            } else {
-              console.error('Server error:', data.message);
-              if (data.debug) {
-                console.error('DEBUG INFO:', data.debug);
-                alert('Error: ' + data.message + '\n\nDebug: ' + data.debug);
-              } else {
-                alert('Error: ' + (data.message || 'Failed to save pet'));
-              }
-            }
-          } catch (error) {
-            console.error('Exception in submitPetForm:', error);
-            console.error('Stack:', error.stack);
-            alert('Error: ' + error.message + '\n\nCheck browser console for details');
-          }
-        },
-        async loadPets() {
-          try {
-            const response = await fetch('{{ url_for("user.api_my_pets") }}', {
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            });
-            if (response.ok) {
-              const data = await response.json();
-              this.pets = data.pets || [];
-            }
-          } catch (error) {
-            console.error('Error loading pets:', error);
-          }
-        },
-        openDeleteConfirmPet(pet) {
-          this.selectedPetToDelete = pet;
-          this.deleteModal = true;
-        },
-        getStatusClass(value) {
-          if (!value) return 'status-medium';
-          const val = value.toLowerCase();
-          if (val === 'low' || val === 'small' || val === 'easy' || val === 'beginner' || val === 'simple' || val === 'silent' || val === 'none') return 'status-yes';
-          if (val === 'medium' || val === 'moderate' || val === 'intermediate') return 'status-medium';
-          if (val === 'high' || val === 'large' || val === 'difficult' || val === 'advanced' || val === 'complex' || val === 'loud') return 'status-no';
-          return 'status-medium';
-        },
-        getSpeciesIcon(speciesName) {
-          if (!speciesName) return 'fa-solid fa-paw';
-          const name = speciesName.toLowerCase();
-          if (name.includes('dog') || name.includes('canis')) return 'fa-solid fa-dog';
-          if (name.includes('cat') || name.includes('felis')) return 'fa-solid fa-cat';
-          if (name.includes('rabbit') || name.includes('bunny') || name.includes('oryctolagus')) return 'fa-solid fa-rabbit';
-          if (name.includes('bird') || name.includes('parrot') || name.includes('budgie') || name.includes('finch')) return 'fa-solid fa-dove';
-          if (name.includes('fish') || name.includes('aquatic')) return 'fa-solid fa-fish';
-          if (name.includes('hamster') || name.includes('guinea') || name.includes('rodent') || name.includes('gerbil')) return 'fa-solid fa-mouse';
-          if (name.includes('turtle') || name.includes('tortoise') || name.includes('reptile')) return 'fa-solid fa-turtle';
-          return 'fa-solid fa-paw';
-        }
-      }"
+<div x-data="petManagementData()"
      class="w-full min-h-screen animate-fadeIn">
   <div class="w-[95vw] mx-auto px-2 sm:px-4 lg:px-6 py-6 space-y-10">
 
@@ -1102,7 +946,7 @@
             </button>
 
             <!-- MATCH BUTTON -->
-            <a href="{% if current_user.is_authenticated and current_user.is_basic_plan %}{{ url_for('user.subscription') }}{% else %}{{ url_for('matching.quiz_specific', breed_id=pet.id) }}{% endif %}"
+            <a href="{{ url_for('user.my_pets_quiz', pet_id=pet.id) }}"
             class="flex-1 text-center
                     bg-white/20 backdrop-blur-md
                     border border-purple-200/40
@@ -1187,22 +1031,16 @@
           @click="deleteModal=false"
           class="modal-btn modal-btn-secondary footer-btn"
         >
-          <i class="fa-solid fa-ban"></i>
           <span>Cancel</span>
         </button>
 
-        <form
-          method="POST"
-          :action="selectedPetToDelete ? '{{ url_for("user.my_pets_delete", id=0) }}'.replace('/0/', '/' + selectedPetToDelete.id + '/') : '#'"
-          class="footer-form"
+        <button
+          type="button"
+          @click="submitDeletePet()"
+          class="modal-btn modal-btn-delete footer-btn"
         >
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-          <button type="submit" class="modal-btn modal-btn-delete footer-btn">
-            <i class="fa-regular fa-trash-can"></i>
-            <span>Delete</span>
-          </button>
-        </form>
+          <span>Delete</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1252,154 +1090,224 @@
         <!-- QUICK STATS -->
         <div class="mb-6">
           <div class="grid grid-cols-2 gap-3">
-            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
-              <div class="text-xs text-gray-500">Age</div>
-              <div class="font-semibold text-lg" x-text="selectedPet?.age || 'N/A'"></div>
+            <!-- Age -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-blue-500">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fa-solid fa-calendar-days text-blue-600"></i>
+                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Age</span>
+              </div>
+              <div class="font-bold text-lg text-gray-900" x-text="selectedPet?.age || 'N/A'"></div>
             </div>
-            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
-              <div class="text-xs text-gray-500">Sex</div>
-              <div class="font-semibold text-lg" x-text="selectedPet?.sex || 'N/A'"></div>
+            <!-- Sex -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-purple-500">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fa-solid fa-venus-mars text-purple-600"></i>
+                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Sex</span>
+              </div>
+              <div class="font-bold text-lg text-gray-900" x-text="selectedPet?.sex || 'N/A'"></div>
             </div>
-            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
-              <div class="text-xs text-gray-500">Weight</div>
-              <div class="font-semibold text-lg" x-text="selectedPet?.weight || 'N/A'"></div>
+            <!-- Weight -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-orange-500">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fa-solid fa-weight text-orange-600"></i>
+                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Weight</span>
+              </div>
+              <div class="font-bold text-lg text-gray-900" x-text="selectedPet?.weight || 'N/A'"></div>
             </div>
-            <div class="glass-stat p-3 rounded-lg border border-indigo-100">
-              <div class="text-xs text-gray-500">Status</div>
-              <div class="font-semibold text-lg" x-text="selectedPet?.is_active ? 'Active' : (selectedPet?.deleted_at ? 'Deleted' : 'Inactive')"></div>
+            <!-- Status -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4" :class="selectedPet?.is_active ? 'border-l-green-500' : 'border-l-red-500'">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fa-solid fa-circle-check" :class="selectedPet?.is_active ? 'text-green-600' : 'text-red-600'"></i>
+                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</span>
+              </div>
+              <div class="font-bold text-lg" :class="selectedPet?.is_active ? 'text-green-700' : 'text-red-700'" x-text="selectedPet?.is_active ? 'Active' : (selectedPet?.deleted_at ? 'Deleted' : 'Inactive')"></div>
             </div>
           </div>
         </div>
 
+        <!-- BEHAVIOR & COMPANION PROFILE -->
         <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4 sm:p-5 border border-amber-100 mb-6">
           <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
             <i class="fa-solid fa-comments text-amber-600"></i> Behavior & Companion Profile
           </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Activity Level</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.activity_level || 'N/A'"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Activity Level -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-orange-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-bolt text-orange-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Activity Level</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.activity_level || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Other Animals</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.animal_social_behavior || 'N/A'"></div>
+            <!-- Other Animals -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-cyan-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-paw text-cyan-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Other Animals</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.animal_social_behavior || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">People Sociality</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.people_sociality || 'N/A'"></div>
+            <!-- People Sociality -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-rose-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-person text-rose-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">People Sociality</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.people_sociality || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Independence</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.independence_level || 'N/A'"></div>
+            <!-- Independence -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-violet-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-star text-violet-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Independence</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.independence_level || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Adaptability</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.adaptability || 'N/A'"></div>
+            <!-- Adaptability -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-teal-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-arrows-spin text-teal-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Adaptability</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.adaptability || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Affection</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.affection_level || 'N/A'"></div>
+            <!-- Affection -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-red-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-heart text-red-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Affection</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.affection_level || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Alone Behavior</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.alone_behavior || 'N/A'"></div>
+            <!-- Alone Behavior -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-sky-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-house text-sky-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Alone Behavior</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.alone_behavior || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Personality Type</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.personality_type || 'N/A'"></div>
+            <!-- Personality Type -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-lime-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-face-smile text-lime-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Personality Type</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.personality_type || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Trainability</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.trainability || 'N/A'"></div>
+            <!-- Trainability -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-fuchsia-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-graduation-cap text-fuchsia-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Trainability</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.trainability || 'N/A'"></div>
             </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Companion Preference</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.companion_preference || 'N/A'"></div>
+            <!-- Companion Preference -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-indigo-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-check-circle text-indigo-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Companion Preference</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium" x-text="selectedPet?.companion_preference || 'N/A'"></div>
             </div>
           </div>
         </div>
 
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4 sm:p-5 border border-amber-100 mb-6">
+        <!-- BIG FIVE PERSONALITY TRAITS -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-4 sm:p-5 border border-indigo-100 mb-6">
           <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-comments text-amber-600"></i> Behavior & Companion Profile
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Activity Level</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.activity_level || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Other Animals</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.animal_social_behavior || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">People Sociality</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.people_sociality || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Independence</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.independence_level || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Adaptability</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.adaptability || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Affection</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.affection_level || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Alone Behavior</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.alone_behavior || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Personality Type</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.personality_type || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Trainability</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.trainability || 'N/A'"></div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 mb-1">Companion Preference</div>
-              <div class="font-semibold text-gray-900" x-text="selectedPet?.companion_preference || 'N/A'"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- BIG FIVE (if present) -->
-        <div class="mb-6">
-          <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-brain text-indigo-600"></i> Personality (Big Five)
+            <i class="fa-solid fa-brain text-indigo-600"></i> Personality Profile (Big Five)
           </h3>
           <div class="space-y-3">
-            <div class="p-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-l-blue-500">
-              <div class="flex items-start justify-between mb-2">
+            <!-- Openness -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-blue-500">
+              <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <i class="fa-solid fa-lightbulb text-blue-600"></i>
                   <span class="font-semibold text-sm text-gray-800">Openness</span>
                 </div>
-                <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded" x-text="(selectedPet?.big_five_openness || 3) + '/5'"></span>
+                <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full" x-text="(selectedPet?.big_five_openness || 3) + '/5'"></span>
+              </div>
+              <div class="w-full bg-blue-100 rounded-full h-1.5">
+                <div class="bg-blue-500 h-1.5 rounded-full transition-all" :style="'width: ' + ((selectedPet?.big_five_openness || 3) * 20) + '%'"></div>
               </div>
             </div>
-            <div class="p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
-              <div class="flex items-start justify-between mb-2">
+
+            <!-- Conscientiousness -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-purple-500">
+              <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <i class="fa-solid fa-list-check text-purple-600"></i>
                   <span class="font-semibold text-sm text-gray-800">Conscientiousness</span>
                 </div>
-                <span class="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded" x-text="(selectedPet?.big_five_conscientiousness || 3) + '/5'"></span>
+                <span class="text-xs font-bold bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full" x-text="(selectedPet?.big_five_conscientiousness || 3) + '/5'"></span>
+              </div>
+              <div class="w-full bg-purple-100 rounded-full h-1.5">
+                <div class="bg-purple-500 h-1.5 rounded-full transition-all" :style="'width: ' + ((selectedPet?.big_five_conscientiousness || 3) * 20) + '%'"></div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="mt-4">
-          <div class="font-semibold text-sm text-blue-800 mb-2">Disclaimer Notice</div>
-          <div class="info-alert bg-blue-50 border-blue-200 text-blue-900">
-            <div class="flex items-start gap-2">
-              <i class="fa-solid fa-circle-info mt-0.5 text-blue-600"></i>
-              <span class="text-sm">This profile is based on saved pet data; confirm details before relying on it.</span>
+            <!-- Extraversion -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-red-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-people-group text-red-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Extraversion</span>
+                </div>
+                <span class="text-xs font-bold bg-red-100 text-red-800 px-2.5 py-1 rounded-full" x-text="(selectedPet?.big_five_extraversion || 3) + '/5'"></span>
+              </div>
+              <div class="w-full bg-red-100 rounded-full h-1.5">
+                <div class="bg-red-500 h-1.5 rounded-full transition-all" :style="'width: ' + ((selectedPet?.big_five_extraversion || 3) * 20) + '%'"></div>
+              </div>
+            </div>
+
+            <!-- Agreeableness -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-green-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-handshake text-green-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Agreeableness</span>
+                </div>
+                <span class="text-xs font-bold bg-green-100 text-green-800 px-2.5 py-1 rounded-full" x-text="(selectedPet?.big_five_agreeableness || 3) + '/5'"></span>
+              </div>
+              <div class="w-full bg-green-100 rounded-full h-1.5">
+                <div class="bg-green-500 h-1.5 rounded-full transition-all" :style="'width: ' + ((selectedPet?.big_five_agreeableness || 3) * 20) + '%'"></div>
+              </div>
+            </div>
+
+            <!-- Neuroticism -->
+            <div class="p-3 rounded-lg bg-white/60 backdrop-blur border-l-4 border-l-amber-500">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-heart-crack text-amber-600"></i>
+                  <span class="font-semibold text-sm text-gray-800">Neuroticism</span>
+                </div>
+                <span class="text-xs font-bold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full" x-text="(selectedPet?.big_five_neuroticism || 2) + '/5'"></span>
+              </div>
+              <div class="w-full bg-amber-100 rounded-full h-1.5">
+                <div class="bg-amber-500 h-1.5 rounded-full transition-all" :style="'width: ' + ((selectedPet?.big_five_neuroticism || 2) * 20) + '%'"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1410,12 +1318,10 @@
       <div class="modal-footer">
         <button @click="viewModal=false; selectedPet=null"
                 class="modal-btn modal-btn-secondary">
-          <i class="fa-solid fa-xmark"></i>
           Close
         </button>
         <button @click="openEditPet(selectedPet); viewModal = false"
                 class="modal-btn modal-btn-primary">
-          <i class="fa-regular fa-pen-to-square"></i>
           Edit Pet
         </button>
       </div>
@@ -1726,11 +1632,9 @@
       <!-- FOOTER BUTTONS -->
       <div class="modal-footer">
         <button type="button" @click="petModal=false; resetPetForm()" class="modal-btn modal-btn-secondary">
-          <i class="fa-solid fa-ban"></i>
           Cancel
         </button>
         <button type="submit" form="pet-form" class="modal-btn modal-btn-primary">
-          <i class="fa-solid fa-check"></i>
           <span x-text="editingPet ? 'Save Changes' : 'Add Pet'"></span>
         </button>
       </div>
@@ -1739,5 +1643,251 @@
   </div>
 
 </div>
+
+<script>
+  function petManagementData() {
+    return {
+      viewModal: false,
+      petModal: false,
+      deleteModal: false,
+      selectedPet: null,
+      editingPet: null,
+      selectedPetToDelete: null,
+      imagePreview: null,
+      pets: [],
+      
+      openEditPet(pet) {
+        this.editingPet = {
+          ...pet,
+          big_five_openness: pet.big_five_openness || 3,
+          big_five_conscientiousness: pet.big_five_conscientiousness || 3,
+          big_five_extraversion: pet.big_five_extraversion || 3,
+          big_five_agreeableness: pet.big_five_agreeableness || 3,
+          big_five_neuroticism: pet.big_five_neuroticism || 3
+        };
+        this.imagePreview = pet.photo_url ? '{{ url_for("static", filename="") }}' + pet.photo_url : null;
+        this.petModal = true;
+      },
+      
+      initNewPet() {
+        this.editingPet = {
+          id: null,
+          name: '',
+          species: '',
+          breed: '',
+          age: '',
+          sex: '',
+          weight: '',
+          photo: null,
+          photo_url: null,
+          activity_level: 'Moderately active',
+          animal_social_behavior: 'Neutral',
+          people_sociality: 'Selectively friendly',
+          independence_level: 'Balanced',
+          adaptability: 'Needs time to adjust',
+          affection_level: 'Occasionally affectionate',
+          alone_behavior: 'Usually stays calm',
+          personality_type: 'Calm and relaxed',
+          trainability: 'Learns gradually',
+          companion_preference: 'Maybe',
+          big_five_openness: 3,
+          big_five_conscientiousness: 3,
+          big_five_extraversion: 3,
+          big_five_agreeableness: 3,
+          big_five_neuroticism: 2
+        };
+        this.imagePreview = null;
+        this.petModal = true;
+      },
+      
+      resetPetForm() {
+        this.editingPet = null;
+        this.imagePreview = null;
+        const form = document.getElementById('pet-form');
+        if(form) form.reset();
+      },
+      
+      async submitPetForm() {
+        try {
+          const form = document.getElementById('pet-form');
+          const formData = new FormData(form);
+          
+          const photoFile = this.$refs.petImageInput?.files[0];
+          if (photoFile) {
+            formData.set('photo', photoFile);
+            console.log('Photo included:', photoFile.name, photoFile.size, 'bytes');
+          }
+          
+          const saveBtn = form.querySelector('button[type="submit"]');
+          const originalText = saveBtn?.innerHTML;
+          if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Saving...';
+          }
+          
+          const response = await fetch('{{ url_for("user.my_pets_save") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            console.log('✓ Pet saved:', data.pet?.name);
+            this.petModal = false;
+            this.resetPetForm();
+            // Reload page immediately - Flask will display flash message on page load
+            window.location.reload();
+          } else {
+            console.error('Save failed:', data.message);
+            this.showToast('✗ ' + data.message, 'error');
+          }
+          
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+          }
+        } catch (error) {
+          console.error('Error:', error.message);
+          this.showToast('✗ Error saving pet', 'error');
+        }
+      },
+      
+      showToast(message, type = 'info') {
+        // Map type to category for flash message styling
+        const categoryMap = {
+          'success': 'success',
+          'error': 'danger',
+          'info': 'info'
+        };
+        const category = categoryMap[type] || 'info';
+        
+        // Create toast matching Flask flash message style
+        const toast = document.createElement('div');
+        toast.className = `flash flash-${category}`;
+        toast.setAttribute('data-dismiss-time', '6400');
+        
+        // Icon
+        const icon = document.createElement('div');
+        icon.className = 'flash-icon';
+        if (type === 'success') icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+        else if (type === 'error') icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        else icon.innerHTML = '<i class="fas fa-info-circle"></i>';
+        
+        // Content
+        const content = document.createElement('div');
+        content.className = 'flash-content';
+        content.textContent = message;
+        
+        // Close button
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'flash-close';
+        closeBtn.setAttribute('aria-label', 'Close notification');
+        closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        closeBtn.onclick = () => {
+          toast.style.animation = 'none';
+          toast.style.opacity = '0';
+          setTimeout(() => toast.remove(), 300);
+        };
+        
+        // Assemble toast
+        toast.appendChild(icon);
+        toast.appendChild(content);
+        toast.appendChild(closeBtn);
+        
+        // Add to flash container (or create if needed)
+        let container = document.querySelector('.flash-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.className = 'flash-container';
+          document.body.insertBefore(container, document.querySelector('.main-content') || document.body.firstChild);
+        }
+        
+        container.appendChild(toast);
+        
+        // Auto remove after 6.4s to match flash message duration
+        setTimeout(() => {
+          if (toast.parentNode) toast.remove();
+        }, 6400);
+      },
+      
+      async loadPets() {
+        try {
+          const response = await fetch('{{ url_for("user.api_my_pets") }}', {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            this.pets = data.pets || [];
+          }
+        } catch (error) {
+          console.error('Error loading pets:', error);
+        }
+      },
+      
+      openDeleteConfirmPet(pet) {
+        this.selectedPetToDelete = pet;
+        this.deleteModal = true;
+      },
+      
+      async submitDeletePet() {
+        if (!this.selectedPetToDelete) return;
+        const petId = this.selectedPetToDelete.id;
+        const petName = this.selectedPetToDelete.name;
+        
+        try {
+          const response = await fetch(`{{ url_for("user.my_pets_delete", id=0) }}`.replace('/0/', '/' + petId + '/'), {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value || ''
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            this.deleteModal = false;
+            this.selectedPetToDelete = null;
+            // Reload page immediately - Flask will display flash message on page load
+            window.location.reload();
+          } else {
+            this.showToast('✗ ' + (data.message || 'Failed to delete'), 'error');
+          }
+        } catch (error) {
+          console.error('Delete error:', error);
+          this.showToast('✗ Error deleting pet', 'error');
+        }
+      },
+      
+      getStatusClass(value) {
+        if (!value) return 'status-medium';
+        const val = value.toLowerCase();
+        if (val === 'low' || val === 'small' || val === 'easy' || val === 'beginner' || val === 'simple' || val === 'silent' || val === 'none') return 'status-yes';
+        if (val === 'medium' || val === 'moderate' || val === 'intermediate') return 'status-medium';
+        if (val === 'high' || val === 'large' || val === 'difficult' || val === 'advanced' || val === 'complex' || val === 'loud') return 'status-no';
+        return 'status-medium';
+      },
+      
+      getSpeciesIcon(speciesName) {
+        if (!speciesName) return 'fa-solid fa-paw';
+        const name = speciesName.toLowerCase();
+        if (name.includes('dog') || name.includes('canis')) return 'fa-solid fa-dog';
+        if (name.includes('cat') || name.includes('felis')) return 'fa-solid fa-cat';
+        if (name.includes('rabbit') || name.includes('bunny') || name.includes('oryctolagus')) return 'fa-solid fa-rabbit';
+        if (name.includes('bird') || name.includes('parrot') || name.includes('budgie') || name.includes('finch')) return 'fa-solid fa-dove';
+        if (name.includes('fish') || name.includes('aquatic')) return 'fa-solid fa-fish';
+        if (name.includes('hamster') || name.includes('guinea') || name.includes('rodent') || name.includes('gerbil')) return 'fa-solid fa-mouse';
+        if (name.includes('turtle') || name.includes('tortoise') || name.includes('reptile')) return 'fa-solid fa-turtle';
+        return 'fa-solid fa-paw';
+      }
+    };
+  }
+</script>
 
 {% endblock %}

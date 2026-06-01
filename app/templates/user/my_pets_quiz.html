@@ -1,68 +1,789 @@
-<div x-data="{ quizOpen:false, pet:null, answers:{}, traitOptions:['Openness','Conscientiousness','Extraversion','Agreeableness','Neuroticism'], traitDescriptions:{Openness:'Curiosity and adaptability to new environments.', Conscientiousness:'Ability to stay organized and reliable.', Extraversion:'Sociability and energy levels.', Agreeableness:'Friendliness and willingness to work with others.', Neuroticism:'Emotional sensitivity and stress response.'}, openFor(p){ this.pet=p; this.quizOpen=true }, close(){ this.quizOpen=false; this.pet=null; this.answers={} }, questionOptions(q){
-        if (q === 1) return ['Very calm', 'Moderately active', 'Very energetic'];
-        if (q === 2) return ['Aggressive or territorial', 'Nervous or avoidant', 'Neutral', 'Friendly and playful'];
-        if (q === 3) return ['Very shy', 'Selectively friendly', 'Friendly with most people', 'Extremely social'];
-        if (q === 4) return ['Very dependent/clingy', 'Balanced', 'Very independent'];
-        if (q === 5) return ['Gets stressed easily', 'Needs time to adjust', 'Adapts quickly'];
-        if (q === 6) return ['Rarely affectionate', 'Occasionally affectionate', 'Very affectionate'];
-        if (q === 7) return ['Gets anxious or destructive', 'Usually stays calm', 'Prefers being alone'];
-        if (q === 8) return ['Calm and relaxed', 'Energetic and playful', 'Curious and adventurous', 'Protective and alert', 'Independent and reserved', 'Affectionate and clingy'];
-        if (q === 9) return ['Difficult to train', 'Learns gradually', 'Learns quickly'];
-        if (q === 10) return ['Probably not', 'Maybe', 'Most likely yes'];
-        return [];
-      } }" x-init="document.addEventListener('show-quiz', e => { openFor(e.detail.pet) })" x-cloak>
-  <div x-show="quizOpen" x-transition.opacity class="modal-overlay" @click.self="close()" @keydown.escape.window="close()">
-    <div class="modal-content-wrapper" style="max-width:700px;">
-      <div class="modal-header">
-        <h3 class="modal-header-title"><i class="fas fa-question-circle"></i> Pet Quiz - <span x-text="pet ? pet.name : ''"></span></h3>
-        <button type="button" class="modal-close-btn" @click="close()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="pet-quiz-form" method="POST" action="{{ url_for('user.my_pets_quiz_submit') }}">
-          <input type="hidden" name="pet_id" :value="pet ? pet.id : ''">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% if current_user.is_authenticated %}
+  {% extends current_user.role ~ "/base.html" %}
+{% else %}
+  {% extends "auth/base.html" %}
+{% endif %}
+{% block content %}
 
-          <!-- Ten matching questions -->
-          <template x-for="q in [1,2,3,4,5,6,7,8,9,10]" :key="q">
-            <div class="mb-4">
-              <label class="form-label">Question <span x-text="q"></span></label>
-              <select :name="'q' + q" class="form-select" required>
-                <option value="">Select</option>
-                <template x-for="option in questionOptions(q)" :key="option">
-                  <option x-text="option"></option>
-                </template>
-              </select>
-            </div>
-          </template>
+{# Pet Compatibility Quiz - Matches user personality & lifestyle to pet characteristics #}
 
-          <div class="section-divider"></div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='shared/loader.css') }}">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="{{ url_for('static', filename='shared/loader.js') }}"></script>
 
-          <h4 class="mb-3">Big Five Questions</h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <template x-for="trait in traitOptions" :key="trait">
-              <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-                <div class="flex items-center justify-between gap-4 mb-2">
-                  <label class="form-label mb-0" x-text="trait"></label>
-                  <span class="text-xs text-slate-500">1 = low, 5 = high</span>
-                </div>
-                <select :name="`b_${trait.toLowerCase()}`" class="form-select" required>
-                  <option value="1">1 — Low</option>
-                  <option value="2">2 — Below average</option>
-                  <option value="3">3 — Moderate</option>
-                  <option value="4">4 — Above average</option>
-                  <option value="5">5 — High</option>
-                </select>
-                <p class="text-xs text-slate-500 mt-2" x-text="traitDescriptions[trait]"></p>
-              </div>
-            </template>
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .question-card { animation: slideUp 0.5s ease-out; }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .loading-spinner {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    margin: 0 auto;
+  }
+
+  .spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: #667eea;
+    border-right-color: #764ba2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner-ring:nth-child(2) {
+    width: 70%;
+    height: 70%;
+    top: 15%;
+    left: 15%;
+    border-top-color: #764ba2;
+    border-right-color: #ec4899;
+    animation: spin 1.5s linear infinite reverse;
+  }
+
+  .loading-text {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .breed-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .breed-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+  }
+
+  .quiz-page-wrapper {
+    width: 95vw;
+    max-width: 95vw;
+    animation: petsonaMatchingPageFade 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes petsonaMatchingPageFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (min-width: 1023px) {
+    .quiz-page-wrapper {
+      width: 90vw;
+      max-width: 90vw;
+    }
+  }
+
+  /* Disclaimer Modal */
+  .modal {
+    display: none;
+    position: fixed !important;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 99999;
+    animation: fadeIn 0.3s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2rem 1rem;
+  }
+
+  .modal.show {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background: #ffffff;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 520px;
+    width: min(520px, 90vw);
+    max-height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+    animation: slideUp 0.4s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+  }
+
+  .modal-header h2 {
+    color: #36064D;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #36064D;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .modal-close:hover {
+    color: #6366f1;
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    color: #36064D;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding-right: 0.25rem;
+  }
+
+  .modal-body h3 {
+    color: #6366f1;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.2rem 0 0.6rem 0;
+  }
+
+  .modal-body p {
+    margin: 0.8rem 0;
+    color: #36064D;
+  }
+
+  .modal-body ul {
+    margin: 0.8rem 0;
+    padding-left: 1.2rem;
+  }
+
+  .modal-body li {
+    margin: 0.5rem 0;
+    color: #36064D;
+  }
+
+  .modal-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid rgba(99, 102, 241, 0.2);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+
+  .modal-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+
+  .modal-btn-close {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  .modal-btn-close:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  }
+
+  .disclaimer-btn {
+    background: none;
+    border: none;
+    color: #6366f1;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+
+  .disclaimer-btn:hover {
+    color: #4f46e5;
+  }
+
+  @media (max-width: 480px) {
+    .modal-content {
+      padding: 1.5rem;
+      max-height: calc(100vh - 4rem);
+    }
+
+    .modal-header h2 {
+      font-size: 1.2rem;
+    }
+
+    .modal-body {
+      font-size: 0.85rem;
+    }
+
+    .modal-body h3 {
+      font-size: 1rem;
+    }
+
+    .modal-footer {
+      flex-direction: column;
+    }
+
+    .modal-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="min-h-screen flex justify-center">
+  <div class="quiz-page-wrapper petsona-page-fade min-w-0 mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6 space-y-6 sm:space-y-8">
+
+    <!-- Back Button -->
+    <div class="mb-4">
+      <a href="{{ url_for('user.my_pets') }}"
+        class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition">
+        <i class="fa-solid fa-arrow-left"></i> Back to My Pets
+      </a>
+    </div>
+
+    <!-- Pet Introduction -->
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-3xl p-6 sm:p-8 border border-indigo-100">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Compatibility Check for {{ pet.name }}</h1>
+          <p class="text-gray-700 text-sm sm:text-base leading-relaxed">
+            We're analyzing how well your lifestyle and personality align with <strong>{{ pet.name }}</strong>'s characteristics and needs. 
+            Answer 25 questions about your habits, personality, and preferences to get an accurate compatibility score.
+            This assessment measures real compatibility and helps ensure the best relationship between you and your pet.
+          </p>
+          <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-xs sm:text-sm text-blue-900">
+              <i class="fas fa-info-circle mr-2"></i>
+              Answer honestly based on your actual lifestyle, personality, and situation.
+            </p>
+            <button class="disclaimer-btn mt-3 inline-flex items-center gap-2" onclick="openDisclaimerModal()">
+              <i class="fas fa-shield-alt mr-1"></i> Read our disclaimer
+            </button>
           </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pet Info Card -->
+    <div class="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+      {% if pet.photo_url %}
+        <img src="{{ url_for('static', filename=pet.photo_url) }}" alt="{{ pet.name }}" class="w-20 h-20 rounded-lg object-cover border-2 border-purple-200">
+      {% else %}
+        <div class="w-20 h-20 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-white text-2xl flex-shrink-0">
+          <i class="fas fa-paw"></i>
+        </div>
+      {% endif %}
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">{{ pet.name }}</h2>
+        <p class="text-sm text-gray-600">{{ pet.species }}{% if pet.breed %} - {{ pet.breed }}{% endif %}</p>
+      </div>
+    </div>
+    <div x-data="quizApp()" class="space-y-5 sm:space-y-6" x-init="init()">
+      <!-- Progress Bar -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+        <div class="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+          <span class="text-xs sm:text-sm font-semibold text-indigo-700">
+            Question <span x-text="currentIndex + 1"></span> of <span x-text="quizQuestions.length"></span>
+          </span>
+          <span class="text-xs sm:text-sm text-gray-600 font-medium">
+            <span x-text="Math.round((answeredCount/quizQuestions.length)*100)"></span>% Complete
+          </span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
+          <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full rounded-full transition-all duration-300" :style="'width: ' + ((currentIndex + 1) / quizQuestions.length * 100) + '%'"></div>
+        </div>
+      </div>
 
-        </form>
+      <!-- Question Card -->
+      <div x-show="!quizComplete" class="bg-white rounded-3xl shadow-lg p-6 sm:p-8 question-card border border-gray-100">
+        <div class="mb-8">
+          <div class="mb-4">
+            <p class="text-xs font-semibold text-indigo-800 uppercase tracking-widest" x-text="quizQuestions[currentIndex]?.section || 'Quiz'"></p>
+          </div>
+          <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 leading-snug">
+            <span x-text="quizQuestions[currentIndex]?.question || ''"></span>
+          </h2>
+          <p class="text-gray-600 text-xs sm:text-sm mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <i class="fa-solid fa-lightbulb mr-2 text-amber-600"></i>
+            <strong>Be honest:</strong> Answer based on your actual lifestyle, not your aspirations.
+          </p>
+          <p class="text-gray-600 text-xs sm:text-sm">
+            <template x-if="isMultiSelectQuestion(quizQuestions[currentIndex]?.name)">
+              <span><i class="fa-solid fa-info-circle mr-1 text-blue-600"></i> You can select multiple options</span>
+            </template>
+            <template x-if="!isMultiSelectQuestion(quizQuestions[currentIndex]?.name)">
+              <span>Select one option to continue</span>
+            </template>
+          </p>
+        </div>
+
+        <!-- Options -->
+        <div class="space-y-3 mb-8">
+          <template x-for="(option, idx) in (quizQuestions[currentIndex]?.options || [])" :key="idx">
+            <label class="flex items-center p-4 sm:p-5 border-2 rounded-2xl transition-all group active:scale-95"
+                   :class="[
+                     isSelected(option) ? 'border-indigo-800 bg-indigo-50 ring-2 ring-indigo-200 cursor-pointer' : 'border-gray-200 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50',
+                     isOptionDisabled(option, quizQuestions[currentIndex]?.name) ? 'opacity-50 cursor-not-allowed' : ''
+                   ]"
+            >
+              <input :type="isMultiSelectQuestion(quizQuestions[currentIndex]?.name) ? 'checkbox' : 'radio'"
+                     :value="option"
+                     @change="selectAnswer(option)"
+                     :checked="isSelected(option)"
+                     :disabled="isOptionDisabled(option, quizQuestions[currentIndex]?.name)"
+                     class="w-5 h-5 text-indigo-800 flex-shrink-0 cursor-pointer disabled:cursor-not-allowed">
+              <span class="ml-3 text-sm sm:text-base text-gray-700 font-medium group-hover:text-gray-900 transition" x-text="option"></span>
+            </label>
+          </template>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="modal-btn modal-btn-secondary" @click="close()">Cancel</button>
-        <button type="submit" form="pet-quiz-form" class="modal-btn modal-btn-primary">Submit</button>
+
+      <!-- Loading Screen -->
+      <div x-show="quizComplete" class="bg-white rounded-3xl shadow-lg p-8 sm:p-12 text-center question-card border border-gray-100">
+        <div class="mb-8">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+          </div>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 loading-text">Analyzing Your Compatibility...</h2>
+        <p class="text-gray-600 text-sm sm:text-base">Comparing your lifestyle to {{ pet.name }}'s characteristics</p>
+        <p class="text-gray-500 text-xs sm:text-sm mt-4">We're measuring true alignment based on similarity, not just capability</p>
       </div>
+
+      <!-- Navigation Buttons -->
+      <div x-show="!quizComplete" class="flex flex-row flex-nowrap w-full gap-3 sm:gap-4 justify-end items-center">
+
+        <!-- Back Button -->
+        <button
+          @click="prevQuestion()"
+          :disabled="currentIndex === 0"
+          class="flex-1 min-w-[120px] h-12 sm:h-auto px-4 sm:px-6 sm:py-3
+                bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed
+                text-gray-800 font-semibold rounded-xl transition
+                flex items-center justify-center gap-1 sm:gap-2"
+          :class="currentIndex === 0 ? 'opacity-50' : 'opacity-100'"
+        >
+          <i class="fa-solid fa-chevron-left text-base sm:text-lg"></i>
+          <span class="text-xs sm:text-sm">Back</span>
+        </button>
+
+        <!-- Next / Submit Button -->
+        <button
+          @click="currentIndex === (quizQuestions.length - 1) ? submitQuiz() : nextQuestion()"
+          :disabled="!isQuestionAnswered(currentIndex) || isLoading"
+          class="flex-1 min-w-[120px] h-12 sm:h-auto px-4 sm:px-6 sm:py-3
+                flex items-center justify-center gap-1 sm:gap-2
+                font-semibold rounded-xl transition
+                disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="currentIndex === (quizQuestions.length - 1)
+            ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+            : 'bg-indigo-800 hover:bg-indigo-900 text-white'"
+        >
+          <i :class="isLoading ? 'fa-solid fa-spinner animate-spin' : (currentIndex === (quizQuestions.length - 1) ? 'fa-solid fa-check' : 'fa-solid fa-chevron-right')" class="text-base sm:text-lg"></i>
+          <span class="text-xs sm:text-sm" x-text="isLoading ? 'Analyzing...' : (currentIndex === (quizQuestions.length - 1) ? 'See Results' : 'Next')"></span>
+        </button>
+
+      </div>
+
+  </div>
+</div>
+
+<!-- Disclaimer Modal -->
+<div id="disclaimerModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Pet Matching Disclaimer</h2>
+      <button class="modal-close" onclick="closeDisclaimerModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h3>Informational Assessment Only</h3>
+      <p>PetSona's pet compatibility assessment provides informational guidance based on personality compatibility, lifestyle alignment, and behavioral matching. Results are estimates only and should not be interpreted as guarantees of successful pet ownership.</p>
+      <h3>No Guarantee of Compatibility</h3>
+      <p>PetSona does not guarantee:</p>
+      <ul>
+        <li>Behavioral compatibility</li>
+        <li>Health outcomes</li>
+        <li>Temperament consistency</li>
+        <li>Long-term owner satisfaction</li>
+        <li>Training success</li>
+        <li>Absence of behavioral issues</li>
+      </ul>
+      <p>Every animal possesses unique personality traits, individual behaviors, and specific needs that may differ from generalized species or individual characteristics.</p>
+      <h3>Professional Consultation</h3>
+      <p>We strongly encourage you to:</p>
+      <ul>
+        <li>Spend quality time with the pet before making decisions</li>
+        <li>Consult with veterinarians and animal behaviorists</li>
+        <li>Research breed/species-specific information</li>
+        <li>Evaluate your long-term capacity and commitment</li>
+      </ul>
+      <h3>Individual Responsibility</h3>
+      <p>You remain fully responsible for all aspects of pet ownership, including care decisions, behavioral management, healthcare, and financial obligations.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-close" onclick="closeDisclaimerModal()">I Understand</button>
     </div>
   </div>
 </div>
+
+<script>
+  function openDisclaimerModal() {
+    const modal = document.getElementById('disclaimerModal');
+    if (modal) {
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeDisclaimerModal() {
+    const modal = document.getElementById('disclaimerModal');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.addEventListener('click', function(event) {
+    const modal = document.getElementById('disclaimerModal');
+    if (modal && modal.classList.contains('show') && event.target === modal) {
+      closeDisclaimerModal();
+    }
+  });
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeDisclaimerModal();
+    }
+  });
+</script>
+
+<script>
+  function quizApp() {
+    return {
+      currentIndex: 0,
+      quizComplete: false,
+      answers: {},
+      answeredCount: 0,
+      isLoading: false,
+      resultsVisible: false,
+      quizResults: null,
+      quizQuestions: [],
+
+      init() {
+        this.quizQuestions = this.getQuizQuestions();
+        this.resultsVisible = false;
+        this.quizResults = null;
+        this.currentIndex = 0;
+        this.answers = {};
+        this.quizQuestions.forEach(q => {
+          this.answers[q.name] = null;
+        });
+        this.updateProgress();
+      },
+
+      getQuizQuestions() {
+        return [
+          /* ====================================================================
+             USER LIFESTYLE & COMPATIBILITY QUESTIONS (10 questions)
+             Directly mapped to MyPet behavioral trait fields for accurate compatibility
+             ==================================================================== */
+          { name: 'user_activity_level', section: 'Your Lifestyle', question: 'How would you describe your activity level?', options: ['Very calm, I mostly relax at home', 'Moderately active', 'Very energetic, always busy'] },
+          { name: 'user_animal_social_behavior', section: 'Your Household', question: 'How do you typically react to territorial or aggressive animals?', options: ['Aggressive or territorial', 'Nervous or avoidant', 'Neutral', 'Friendly and playful'] },
+          { name: 'user_people_sociality', section: 'Your Social Nature', question: 'How comfortable are you with social interactions?', options: ['Very shy', 'Selectively friendly', 'Friendly with most people', 'Extremely social'] },
+          { name: 'user_independence_level', section: 'Your Needs', question: 'How much companionship do you need from your pet?', options: ['Very dependent/clingy', 'Balanced', 'Very independent'] },
+          { name: 'user_adaptability', section: 'Your Personality', question: 'How well do you adapt to unexpected changes?', options: ['Gets stressed easily', 'Needs time to adjust', 'Adapts quickly'] },
+          { name: 'user_affection_level', section: 'Your Personality', question: 'How important is physical affection and bonding with your pet?', options: ['Rarely affectionate', 'Occasionally affectionate', 'Very affectionate'] },
+          { name: 'user_alone_behavior', section: 'Your Schedule', question: 'How much daily time can you dedicate to your pet?', options: ['Less than 1 hour - often left alone', 'Usually stays calm - 1-2 hours daily', 'Prefers being alone - 2+ hours daily'] },
+          { name: 'user_trainability', section: 'Your Patience', question: 'How patient are you with training and behavior challenges?', options: ['Difficult to train', 'Learns gradually', 'Learns quickly'] },
+          { name: 'user_personality_type', section: 'Your Overall Type', question: 'Which best describes your personality?', options: ['Calm and relaxed', 'Energetic and playful', 'Curious and adventurous', 'Protective and alert', 'Independent and reserved', 'Affectionate and clingy'] },
+          { name: 'user_companion_preference', section: 'Your Preference', question: 'Would you prefer having a pet as a close companion?', options: ['Probably not', 'Maybe', 'Most likely yes'] },
+          
+          /* ====================================================================
+             PERSONALITY ASSESSMENT (BIG FIVE MODEL - 15 questions)
+             Costa & McCrae OCEAN Model - Measures psychological compatibility
+             Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism
+             ==================================================================== */
+          
+          // OPENNESS - Creativity, Curiosity, Adaptability (3 questions)
+          { name: 'big_five_open_1', section: 'Your Personality', question: 'I like trying new things and exploring different activities.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_open_2', section: 'Your Personality', question: 'Unusual or different ideas excite me.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_open_3', section: 'Your Personality', question: 'When things change unexpectedly, I adapt pretty well.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          
+          // CONSCIENTIOUSNESS - Organization, Discipline, Responsibility (3 questions)
+          { name: 'big_five_cons_1', section: 'Your Personality', question: 'My space is usually clean and organized.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_cons_2', section: 'Your Personality', question: 'I stick to a routine for daily tasks.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_cons_3', section: 'Your Personality', question: 'People can count on me to follow through.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          
+          // EXTRAVERSION - Sociability, Energy, Assertiveness (3 questions)
+          { name: 'big_five_extr_1', section: 'Your Personality', question: 'I\'m comfortable meeting and talking to new people.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_extr_2', section: 'Your Personality', question: 'I have lots of energy and I\'m always doing something.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_extr_3', section: 'Your Personality', question: 'I have fun at social gatherings.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          
+          // AGREEABLENESS - Kindness, Cooperation, Empathy (3 questions)
+          { name: 'big_five_agre_1', section: 'Your Personality', question: 'I genuinely care about others\' feelings.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_agre_2', section: 'Your Personality', question: 'I like helping people and making them happy.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_agre_3', section: 'Your Personality', question: 'When people make mistakes, I\'m understanding.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          
+          // NEUROTICISM - Emotional Stability, Stress Response, Resilience (3 questions)
+          { name: 'big_five_neur_1', section: 'Your Personality', question: 'I tend to worry about things more than I should.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_neur_2', section: 'Your Personality', question: 'I stay calm when things get stressful.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] },
+          { name: 'big_five_neur_3', section: 'Your Personality', question: 'Small problems can really bother me.', options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] }
+        ];
+      },
+
+      resetQuiz() {
+        this.init();
+        this.quizComplete = false;
+        this.isLoading = false;
+      },
+
+      isMultiSelectQuestion(questionName) {
+        const question = this.quizQuestions.find(q => q.name === questionName);
+        return question && question.isMultiSelect === true;
+      },
+
+      isOptionDisabled(option, questionName) {
+        // Special handling for other_pets_friendly question
+        if (questionName === 'other_pets_friendly') {
+          const answer = this.answers[questionName];
+          if (!Array.isArray(answer)) return false;
+          
+          // If "None" is selected, disable all other options
+          if (answer.includes('None') && option !== 'None') {
+            return true;
+          }
+          
+          // If any other option is selected, disable "None"
+          if (option === 'None' && answer.length > 0 && !answer.includes('None')) {
+            return true;
+          }
+        }
+        
+        return false;
+      },
+
+      isSelected(option) {
+        const currentQuestion = this.quizQuestions[this.currentIndex];
+        if (!currentQuestion) return false;
+        
+        const answer = this.answers[currentQuestion.name];
+        
+        if (this.isMultiSelectQuestion(currentQuestion.name)) {
+          return Array.isArray(answer) && answer.includes(option);
+        } else {
+          return answer === option;
+        }
+      },
+
+      selectAnswer(option) {
+        const currentQuestion = this.quizQuestions[this.currentIndex];
+        if (!currentQuestion) return;
+        
+        if (this.isMultiSelectQuestion(currentQuestion.name)) {
+          if (!Array.isArray(this.answers[currentQuestion.name])) {
+            this.answers[currentQuestion.name] = [];
+          }
+          
+          // Special handling for other_pets_friendly
+          if (currentQuestion.name === 'other_pets_friendly') {
+            if (option === 'None') {
+              // If selecting "None", clear all other options
+              if (!this.answers[currentQuestion.name].includes('None')) {
+                this.answers[currentQuestion.name] = ['None'];
+              } else {
+                // If deselecting "None", just remove it
+                this.answers[currentQuestion.name].splice(this.answers[currentQuestion.name].indexOf('None'), 1);
+              }
+            } else {
+              // If selecting any other option, remove "None" if it's there
+              const noneIndex = this.answers[currentQuestion.name].indexOf('None');
+              if (noneIndex > -1) {
+                this.answers[currentQuestion.name].splice(noneIndex, 1);
+              }
+              
+              // Toggle the current option
+              const index = this.answers[currentQuestion.name].indexOf(option);
+              if (index > -1) {
+                this.answers[currentQuestion.name].splice(index, 1);
+              } else {
+                this.answers[currentQuestion.name].push(option);
+              }
+            }
+          } else {
+            // Normal multi-select behavior for other questions
+            const index = this.answers[currentQuestion.name].indexOf(option);
+            if (index > -1) {
+              this.answers[currentQuestion.name].splice(index, 1);
+            } else {
+              this.answers[currentQuestion.name].push(option);
+            }
+          }
+        } else {
+          this.answers[currentQuestion.name] = option;
+        }
+        
+        this.updateProgress();
+      },
+
+      isQuestionAnswered(index) {
+        const question = this.quizQuestions[index];
+        if (!question) return false;
+        const answer = this.answers[question.name];
+        if (question.isMultiSelect) {
+          return Array.isArray(answer) && answer.length > 0;
+        } else {
+          return answer !== null && answer !== '';
+        }
+      },
+
+      updateProgress() {
+        this.answeredCount = 0;
+        this.quizQuestions.forEach(q => {
+          const answer = this.answers[q.name];
+          if (q.isMultiSelect) {
+            if (Array.isArray(answer) && answer.length > 0) {
+              this.answeredCount++;
+            }
+          } else {
+            if (answer !== null && answer !== '') {
+              this.answeredCount++;
+            }
+          }
+        });
+      },
+
+      prevQuestion() {
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+
+      nextQuestion() {
+        if (this.currentIndex < this.quizQuestions.length - 1) {
+          this.currentIndex++;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+
+      async submitQuiz() {
+        this.isLoading = true;
+        this.quizComplete = true;
+
+        const formattedAnswers = {};
+        Object.entries(this.answers).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            formattedAnswers[key] = value.join(',');
+          } else {
+            formattedAnswers[key] = value;
+          }
+        });
+
+        try {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '{{ url_for("user.my_pets_quiz_submit") }}';
+          
+          const petIdInput = document.createElement('input');
+          petIdInput.type = 'hidden';
+          petIdInput.name = 'pet_id';
+          petIdInput.value = '{{ pet.id }}';
+          form.appendChild(petIdInput);
+          
+          const csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = 'csrf_token';
+          csrfInput.value = '{{ csrf_token() }}';
+          form.appendChild(csrfInput);
+          
+          Object.entries(formattedAnswers).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+          });
+          
+          document.body.appendChild(form);
+          form.submit();
+        } catch (error) {
+          console.error('Error:', error);
+          this.quizComplete = false;
+          this.isLoading = false;
+          alert('An error occurred. Please try again.');
+        }
+      }
+    }
+  }
+</script>
+
+{% endblock %}

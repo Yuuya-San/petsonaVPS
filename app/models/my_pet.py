@@ -86,20 +86,20 @@ class MyPet(db.Model):
             self.name = data['name'].strip()
         
         if 'species' in data:
-            self.species = escape(data['species']).strip() if data['species'] else None
+            self.species = str(escape(data['species'])).strip() if data['species'] else None
         
         if 'breed' in data:
-            self.breed = escape(data['breed']).strip() if data['breed'] else None
+            self.breed = str(escape(data['breed'])).strip() if data['breed'] else None
         
         if 'age' in data:
-            self.age = escape(data['age']).strip() if data['age'] else None
+            self.age = str(escape(data['age'])).strip() if data['age'] else None
         
         if 'sex' in data:
             sex_options = ['Male', 'Female', 'Unknown']
             self.sex = validate_enum_field(data['sex'], sex_options, 'Unknown')
         
         if 'weight' in data:
-            self.weight = escape(data['weight']).strip() if data['weight'] else None
+            self.weight = str(escape(data['weight'])).strip() if data['weight'] else None
         
         # Behavior fields with validation
         if 'activity_level' in data:

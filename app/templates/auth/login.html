@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginForm = document.getElementById('login-form');
   const submitBtn = document.querySelector('.btn-primary');
   const showPasswordCheckbox = document.getElementById('showPassword');
-  const agreeTermsCheckbox = document.getElementById('agreeTerms');
+  
   let passwordInput = document.querySelector('input[name="password"]');
   if (!passwordInput) {
     passwordInput = document.querySelector('input[type="password"]');
@@ -897,8 +897,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function validateForm() {
     const emailValid = emailInput && emailInput.value.trim().length > 0;
     const passwordValid = passwordInput && passwordInput.value.trim().length > 0;
-    const termsValid = agreeTermsCheckbox && agreeTermsCheckbox.checked;
-    return emailValid && passwordValid && termsValid;
+    
+    return emailValid && passwordValid;
   }
 
   function updateSubmitButton() {
@@ -946,9 +946,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  if (agreeTermsCheckbox) {
-    agreeTermsCheckbox.addEventListener('change', updateSubmitButton);
-  }
+ 
 
   updateSubmitButton();
 });

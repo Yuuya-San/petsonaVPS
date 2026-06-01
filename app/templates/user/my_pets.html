@@ -848,14 +848,33 @@
         resetPetForm() {
           this.editingPet = null;
           this.imagePreview = null;
-          if(this.$refs.petFile) this.$refs.petFile.value = '';
+          if(this.$refs.petImageInput) this.$refs.petImageInput.value = '';
         },
-        async submitPetForm() {
+                async submitPetForm() {
           try {
             const form = document.getElementById('pet-form');
             const formData = new FormData(form);
             
-            const response = await fetch('/my-pets/save', {
+            // Log form data for debugging
+            console.log('=== PET FORM SUBMISSION ===');
+            console.log('Form action:', form.action);
+            console.log('Form data entries:');
+            
+            const entries = {};
+            for (let [key, value] of formData.entries()) {
+              if (key === 'csrf_token') {
+                entries[key] = '***';
+              } else if (value instanceof File) {
+                entries[key] = `File(${value.name}, ${value.size} bytes)`;
+              } else {
+                entries[key] = value;
+              }
+            }
+            console.table(entries);
+            
+            console.log('Sending POST request to:', '{{ url_for("user.my_pets_save") }}');
+            
+            const response = await fetch('{{ url_for("user.my_pets_save") }}', {
               method: 'POST',
               body: formData,
               headers: {
@@ -863,37 +882,48 @@
               }
             });
             
-            // Check if response is JSON
+            console.log('Response status:', response.status, response.statusText);
+            
             const contentType = response.headers.get('content-type');
+            console.log('Response content-type:', contentType);
+            
             if (!contentType || !contentType.includes('application/json')) {
               const text = await response.text();
-              console.error('Server error:', text);
-              alert('Server error: ' + (response.status === 500 ? 'Internal server error' : response.statusText));
+              console.error('Server returned non-JSON response:');
+              console.error(text);
+              alert('Server Error (Status ' + response.status + '):\n\n' + text.substring(0, 500));
               return;
             }
             
             const data = await response.json();
+            console.log('JSON Response:', data);
             
             if (data.success) {
+              console.log('✓ Pet saved successfully!');
               this.petModal = false;
               this.resetPetForm();
-              // Refresh pet list
               await this.loadPets();
-              // Show success message
               if (data.message) {
-                console.log('✓', data.message);
+                alert('Success: ' + data.message);
               }
             } else {
-              alert('Error: ' + (data.message || 'Failed to save pet'));
+              console.error('Server error:', data.message);
+              if (data.debug) {
+                console.error('DEBUG INFO:', data.debug);
+                alert('Error: ' + data.message + '\n\nDebug: ' + data.debug);
+              } else {
+                alert('Error: ' + (data.message || 'Failed to save pet'));
+              }
             }
           } catch (error) {
-            console.error('Error saving pet:', error);
-            alert('Error saving pet: ' + error.message);
+            console.error('Exception in submitPetForm:', error);
+            console.error('Stack:', error.stack);
+            alert('Error: ' + error.message + '\n\nCheck browser console for details');
           }
         },
         async loadPets() {
           try {
-            const response = await fetch('/api/my-pets', {
+            const response = await fetch('{{ url_for("user.api_my_pets") }}', {
               headers: {
                 'X-Requested-With': 'XMLHttpRequest'
               }
@@ -1163,7 +1193,7 @@
 
         <form
           method="POST"
-          :action="selectedPetToDelete ? `/my-pets/${selectedPetToDelete.id}/delete` : '#'"
+          :action="selectedPetToDelete ? '{{ url_for("user.my_pets_delete", id=0) }}'.replace('/0/', '/' + selectedPetToDelete.id + '/') : '#'"
           class="footer-form"
         >
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -1419,10 +1449,9 @@
 
       <!-- FORM -->
       <div class="modal-body">
-        <form id="pet-form" method="POST" action="/my-pets/save" enctype="multipart/form-data" class="space-y-6 w-full" @submit.prevent="submitPetForm()">
+        <form id="pet-form" method="POST" action="{{ url_for('user.my_pets_save') }}" enctype="multipart/form-data" class="space-y-6 w-full" @submit.prevent="submitPetForm()">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="pet_id" :value="editingPet?.id || ''">
-          <input type="hidden" name="species_id" value="{{ species.id if species is defined else '' }}">
 
           <!-- ========== SECTION 1: BASIC INFORMATION ========== -->
           <div class="bg-gradient-to-r from-indigo-50 to-lavender-50 rounded-2xl p-4 sm:p-5 border border-indigo-100 w-full">
@@ -1441,7 +1470,7 @@
                   <span class="text-gray-700 text-sm font-medium">Click to upload image</span>
                   <span class="text-xs text-gray-500">PNG, JPG or GIF (recommended size: 400x300)</span>
                 </div>
-                <input type="file" name="photo" x-ref="petImageInput" @change="imagePreview = URL.createObjectURL($event.target.files[0])" hidden accept="image/*" :required="!editingPet">
+                <input type="file" name="photo" x-ref="petImageInput" @change="imagePreview = URL.createObjectURL($event.target.files[0]); $event.target.form.photo.required = false;" hidden accept="image/*">
                 <template x-if="imagePreview">
                   <div class="mt-4 relative w-48 mx-auto">
                     <img :src="imagePreview" class="h-64 w-full object-cover rounded-xl border border-gray-200 shadow-md">

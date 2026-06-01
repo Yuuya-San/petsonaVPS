@@ -478,9 +478,13 @@ def my_pets_save():
         logger.error(f'Pet save error for user {current_user.id}: {error_msg}', exc_info=True)
         
         if is_ajax:
+            # Return actual error details for AJAX in development
+            import os
+            is_dev = os.environ.get('FLASK_ENV') == 'development' or not os.environ.get('FLASK_ENV')
             return jsonify({
                 'success': False,
-                'message': 'Failed to save pet. Please try again.'
+                'message': f'Error: {error_msg}' if is_dev else 'Failed to save pet. Please try again.',
+                'debug': error_msg if is_dev else None
             }), 500
         
         flash('Error saving pet. Please try again.', 'danger')

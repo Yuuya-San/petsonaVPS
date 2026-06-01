@@ -94,10 +94,10 @@ def add_missing_columns(engine):
                 ADD COLUMN is_open BOOLEAN DEFAULT 1 
                 AFTER is_verified
             """))
-            print("✅ Added is_open column to merchants table")
+            print("OK Added is_open column to merchants table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding is_open column: {e}")
+                print(f"WARNING Error adding is_open column: {e}")
             # else: column already exists, continue
         
         # Add is_24h column to merchants table if it doesn't exist
@@ -107,10 +107,10 @@ def add_missing_columns(engine):
                 ADD COLUMN is_24h BOOLEAN DEFAULT 0 
                 AFTER closing_time
             """))
-            print("✅ Added is_24h column to merchants table")
+            print("OK Added is_24h column to merchants table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding is_24h column: {e}")
+                print(f"WARNING Error adding is_24h column: {e}")
             # else: column already exists, continue
             else:
                 print("is_open column already exists in merchants table")
@@ -122,10 +122,10 @@ def add_missing_columns(engine):
                 ADD COLUMN healthcare_info TEXT NULL 
                 COMMENT 'Detailed healthcare information including vaccination frequency, vet visits, parasite control, dental care, and other medical requirements'
             """))
-            print("✅ Added healthcare_info column to breed table")
+            print("OK Added healthcare_info column to breed table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding healthcare_info column: {e}")
+                print(f"WARNING Error adding healthcare_info column: {e}")
             # else: column already exists, continue
 
         # Add pet_category column to species table if it doesn't exist
@@ -135,10 +135,10 @@ def add_missing_columns(engine):
                 ADD COLUMN pet_category VARCHAR(100) NOT NULL DEFAULT 'Uncategorized' 
                 COMMENT 'Pet category (e.g., Cat, Dog, Bird)'
             """))
-            print("✅ Added pet_category column to species table")
+            print("OK Added pet_category column to species table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding pet_category column: {e}")
+                print(f"WARNING Error adding pet_category column: {e}")
             # else: column already exists, continue
 
         # Add subscription columns to users table if they don't exist
@@ -147,55 +147,55 @@ def add_missing_columns(engine):
                 ALTER TABLE users
                 ADD COLUMN subscription_plan VARCHAR(32) NOT NULL DEFAULT 'basic' AFTER `role`
             """))
-            print("✅ Added subscription_plan column to users table")
+            print("OK Added subscription_plan column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding subscription_plan column: {e}")
+                print(f"WARNING Error adding subscription_plan column: {e}")
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN subscription_status VARCHAR(32) NOT NULL DEFAULT 'active' AFTER subscription_plan
             """))
-            print("✅ Added subscription_status column to users table")
+            print("OK Added subscription_status column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding subscription_status column: {e}")
+                print(f"WARNING Error adding subscription_status column: {e}")
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN subscription_renewal_date DATETIME NULL AFTER subscription_status
             """))
-            print("✅ Added subscription_renewal_date column to users table")
+            print("OK Added subscription_renewal_date column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding subscription_renewal_date column: {e}")
+                print(f"WARNING Error adding subscription_renewal_date column: {e}")
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN pending_subscription_plan VARCHAR(32) NULL AFTER subscription_renewal_date
             """))
-            print("✅ Added pending_subscription_plan column to users table")
+            print("OK Added pending_subscription_plan column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding pending_subscription_plan column: {e}")
+                print(f"WARNING Error adding pending_subscription_plan column: {e}")
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN subscription_payment_due DATETIME NULL AFTER pending_subscription_plan
             """))
-            print("✅ Added subscription_payment_due column to users table")
+            print("OK Added subscription_payment_due column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding subscription_payment_due column: {e}")
+                print(f"WARNING Error adding subscription_payment_due column: {e}")
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN quiz_access_count INT NOT NULL DEFAULT 0 AFTER subscription_payment_due
             """))
-            print("✅ Added quiz_access_count column to users table")
+            print("OK Added quiz_access_count column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding quiz_access_count column: {e}")
+                print(f"WARNING Error adding quiz_access_count column: {e}")
 
         # Add PayMongo payment tracking columns to users table
         try:
@@ -203,50 +203,50 @@ def add_missing_columns(engine):
                 ALTER TABLE users
                 ADD COLUMN paymongo_payment_id VARCHAR(255) UNIQUE NULL AFTER quiz_access_count
             """))
-            print("✅ Added paymongo_payment_id column to users table")
+            print("OK Added paymongo_payment_id column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding paymongo_payment_id column: {e}")
+                print(f"WARNING Error adding paymongo_payment_id column: {e}")
         
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN paymongo_intent_id VARCHAR(255) UNIQUE NULL AFTER paymongo_payment_id
             """))
-            print("✅ Added paymongo_intent_id column to users table")
+            print("OK Added paymongo_intent_id column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding paymongo_intent_id column: {e}")
+                print(f"WARNING Error adding paymongo_intent_id column: {e}")
         
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN paymongo_payment_status VARCHAR(32) NULL AFTER paymongo_intent_id
             """))
-            print("✅ Added paymongo_payment_status column to users table")
+            print("OK Added paymongo_payment_status column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding paymongo_payment_status column: {e}")
+                print(f"WARNING Error adding paymongo_payment_status column: {e}")
         
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN paymongo_last_payment_update DATETIME NULL AFTER paymongo_payment_status
             """))
-            print("✅ Added paymongo_last_payment_update column to users table")
+            print("OK Added paymongo_last_payment_update column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding paymongo_last_payment_update column: {e}")
+                print(f"WARNING Error adding paymongo_last_payment_update column: {e}")
         
         try:
             connection.execute(text("""
                 ALTER TABLE users
                 ADD COLUMN paymongo_payment_method VARCHAR(50) NULL AFTER paymongo_last_payment_update
             """))
-            print("✅ Added paymongo_payment_method column to users table")
+            print("OK Added paymongo_payment_method column to users table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding paymongo_payment_method column: {e}")
+                print(f"WARNING Error adding paymongo_payment_method column: {e}")
 
         # Drop icon column from species table if it exists
         try:
@@ -254,10 +254,10 @@ def add_missing_columns(engine):
                 ALTER TABLE species 
                 DROP COLUMN icon
             """))
-            print("✅ Removed icon column from species table")
+            print("OK Removed icon column from species table")
         except Exception as e:
             if "Unknown column" not in str(e) and "doesn't exist" not in str(e):
-                print(f"⚠️ Error removing icon column: {e}")
+                print(f"WARNING Error removing icon column: {e}")
             # else: column doesn't exist, continue
 
         # ========================================================================
@@ -271,10 +271,10 @@ def add_missing_columns(engine):
                 ADD COLUMN big_five_openness INT DEFAULT 3 
                 COMMENT 'Big Five: Openness (1-5) - Creativity, curiosity, adaptability'
             """))
-            print("✅ Added big_five_openness column to breed table")
+            print("OK Added big_five_openness column to breed table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding big_five_openness column: {e}")
+                print(f"WARNING Error adding big_five_openness column: {e}")
         
         # Add big_five_conscientiousness column to breed table
         try:
@@ -283,10 +283,10 @@ def add_missing_columns(engine):
                 ADD COLUMN big_five_conscientiousness INT DEFAULT 3 
                 COMMENT 'Big Five: Conscientiousness (1-5) - Organization, discipline, responsibility'
             """))
-            print("✅ Added big_five_conscientiousness column to breed table")
+            print("OK Added big_five_conscientiousness column to breed table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding big_five_conscientiousness column: {e}")
+                print(f"WARNING Error adding big_five_conscientiousness column: {e}")
         
         # Add big_five_extraversion column to breed table
         try:
@@ -295,10 +295,10 @@ def add_missing_columns(engine):
                 ADD COLUMN big_five_extraversion INT DEFAULT 3 
                 COMMENT 'Big Five: Extraversion (1-5) - Sociability, energy, assertiveness'
             """))
-            print("✅ Added big_five_extraversion column to breed table")
+            print("OK Added big_five_extraversion column to breed table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding big_five_extraversion column: {e}")
+                print(f"WARNING Error adding big_five_extraversion column: {e}")
         
         # Add big_five_agreeableness column to breed table
         try:
@@ -307,10 +307,10 @@ def add_missing_columns(engine):
                 ADD COLUMN big_five_agreeableness INT DEFAULT 3 
                 COMMENT 'Big Five: Agreeableness (1-5) - Kindness, cooperation, empathy'
             """))
-            print("✅ Added big_five_agreeableness column to breed table")
+            print("OK Added big_five_agreeableness column to breed table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding big_five_agreeableness column: {e}")
+                print(f"WARNING Error adding big_five_agreeableness column: {e}")
         
         # Add big_five_neuroticism column to breed table
         try:
@@ -319,7 +319,7 @@ def add_missing_columns(engine):
                 ADD COLUMN big_five_neuroticism INT DEFAULT 2 
                 COMMENT 'Big Five: Neuroticism (1-5) - Emotional sensitivity, anxiety, stress response'
             """))
-            print("✅ Added big_five_neuroticism column to breed table")
+            print("OK Added big_five_neuroticism column to breed table")
         except Exception as e:
             if "Duplicate column" not in str(e) and "already exists" not in str(e):
-                print(f"⚠️ Error adding big_five_neuroticism column: {e}")
+                print(f"WARNING Error adding big_five_neuroticism column: {e}")

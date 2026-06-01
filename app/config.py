@@ -101,7 +101,7 @@ class DevelopmentConfig(Config):
 
     SESSION_COOKIE_SECURE = False
 
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:Petsona-0717@localhost/petsona"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:12345@localhost/petsona"
 
     AUTHLIB_INSECURE_TRANSPORT = True
 

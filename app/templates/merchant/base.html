@@ -39,6 +39,14 @@
     * {
       scrollbar-width: none;
     }
+
+    /* Required field indicator */
+    label.required-field::after {
+      content: " *";
+      color: #dc2626;
+      font-weight: 700;
+      margin-left: 0.125rem;
+    }
     </style>
 
     <!-- Font Awesome CDN -->
@@ -181,6 +189,28 @@ document.querySelectorAll('.flash').forEach(flash => {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
+
+    function markRequiredFieldLabels() {
+        document.querySelectorAll('input[required], select[required], textarea[required]').forEach(field => {
+            let label = null;
+            if (field.id) {
+                label = document.querySelector(`label[for="${field.id}"]`);
+            }
+            if (!label) {
+                label = field.closest('label');
+            }
+            if (!label) {
+                return;
+            }
+            const labelText = label.textContent.trim();
+            if (labelText.endsWith('*')) {
+                return;
+            }
+            label.classList.add('required-field');
+        });
+    }
+
+    markRequiredFieldLabels();
 
     const body = document.body;
 

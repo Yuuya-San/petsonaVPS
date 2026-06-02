@@ -18,6 +18,8 @@ function injectNotificationCSS() {
             border-left: 3px solid transparent !important;
             color: inherit !important;
             text-decoration: none !important;
+            pointer-events: auto !important;
+            user-select: none !important;
             transition: all 0.2s ease !important;
         }
         
@@ -100,6 +102,36 @@ function format12HourTime(dateString) {
     } catch (e) {
         return dateString;
     }
+}
+
+function buildNotificationDataFromDom(el) {
+    if (!el || !el.getAttribute) return {};
+
+    const data = {
+        id: el.getAttribute('data-notification-id') || null,
+        title: el.getAttribute('data-notification-title') || null,
+        message: el.getAttribute('data-notification-message') || null,
+        created_at: el.getAttribute('data-notification-created-at') || el.getAttribute('data-notification-time') || null,
+        time: el.getAttribute('data-notification-time') || null,
+        time_short: el.getAttribute('data-notification-time-short') || null,
+        is_read: el.getAttribute('data-notification-is-read') === 'true' || el.classList.contains('read') || false,
+        type: el.getAttribute('data-notification-type') || null,
+        related_type: el.getAttribute('data-notification-related-type') || null,
+        related_id: el.getAttribute('data-notification-related-id') || null,
+        link: el.getAttribute('data-notification-link') || null,
+        icon: el.getAttribute('data-notification-icon') || null
+    };
+
+    if (!data.title) {
+        const titleEl = el.querySelector('p') || el.querySelector('.notification-title');
+        if (titleEl) data.title = titleEl.textContent.trim();
+    }
+    if (!data.message) {
+        const msgEl = el.querySelector('p.mb-0') || el.querySelector('.notification-message');
+        if (msgEl) data.message = msgEl.textContent.trim();
+    }
+
+    return data;
 }
 
 function getNotificationRedirectUrl(notificationData) {
@@ -233,12 +265,14 @@ function updateNotificationBadge(count) {
 // === EVENT DELEGATION HANDLER FOR NOTIFICATION ITEMS ===
 function handleNotificationItemClick(e) {
     // Find the notification item that was clicked (might be a child element)
-    const notifElement = e.target.closest('[data-notification-id]');
-    
+    // Prefer explicit data attribute, fallback to `.notification-item` class
+    const notifElement = e.target.closest('[data-notification-id]') || e.target.closest('.notification-item');
+
     if (!notifElement) return;
     
-    e.preventDefault();
-    e.stopPropagation();
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
     
     const notificationId = notifElement.getAttribute('data-notification-id');
     
@@ -247,8 +281,24 @@ function handleNotificationItemClick(e) {
     
     if (notif) {
         // Find index of this notification
+        console.debug('[notif] clicked, found in allNotifications:', notificationId, notif);
         currentNotificationIndex = allNotifications.findIndex(n => n.id == notificationId);
         displayNotificationModal(notif);
+        return;
+    }
+
+    const domNotif = buildNotificationDataFromDom(notifElement);
+    // If we have at least an id or title/message, show modal
+    if (domNotif && (domNotif.id || domNotif.title || domNotif.message)) {
+        console.debug('[notif] clicked, built from DOM:', domNotif);
+        // Add to allNotifications array if missing so navigation works
+        if (domNotif.id && !allNotifications.find(n => n.id == domNotif.id)) {
+            allNotifications.unshift(domNotif);
+            currentNotificationIndex = 0;
+        } else {
+            currentNotificationIndex = allNotifications.findIndex(n => n.id == domNotif.id);
+        }
+        displayNotificationModal(domNotif);
     }
 }
 
@@ -257,23 +307,34 @@ function makeNotificationItemsClickable() {
     const container = document.querySelector('.notifications-scroll-container');
     if (!container) return;
     
-    // Get all notification items
-    const items = container.querySelectorAll('[data-notification-id]');
+    // Get all notification items (by data attribute or class fallback)
+    const items = container.querySelectorAll('[data-notification-id], .notification-item');
     
     items.forEach(item => {
         // Ensure they're fully clickable
-        item.style.pointerEvents = 'auto !important';
-        item.style.cursor = 'pointer !important';
+        item.style.setProperty('pointer-events', 'auto', 'important');
+        item.style.setProperty('cursor', 'pointer', 'important');
         
         // Remove any potentially restrictive styles
-        item.style.opacity = '1 !important';
-        item.style.userSelect = 'none !important';
+        item.style.setProperty('opacity', '1', 'important');
+        item.style.setProperty('user-select', 'none', 'important');
         
         // Make sure the entire item is clickable
         if (!item.hasAttribute('data-clickable-setup')) {
-            item.addEventListener('click', function(e) {
+            const itemHandler = function(e) {
                 handleNotificationItemClick(e);
-            }, false);
+            };
+            item.addEventListener('click', itemHandler, true);
+            item.addEventListener('pointerdown', itemHandler, true);
+            item.addEventListener('mousedown', itemHandler, true);
+            item.addEventListener('touchstart', itemHandler, { passive: false, capture: true });
+            item.addEventListener('pointerup', itemHandler, true);
+            item.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    itemHandler(e);
+                }
+            }, true);
             item.setAttribute('data-clickable-setup', 'true');
         }
     });
@@ -340,7 +401,7 @@ function displayNotifications(notifications, unreadCount) {
         // Removed sender avatar display
         
         const notificationHTML = `
-            <div data-notification-id="${notif.id}" class="dropdown-item notification-item ${notif.is_read ? '' : 'unread'}" style="display: flex !important; align-items: flex-start !important; cursor: pointer !important; transition: all 0.2s !important; padding: 12px 15px !important; border: none !important; background: ${notif.is_read ? 'transparent' : '#f0f3ff'} !important; color: inherit !important; text-decoration: none !important; width: 100% !important; border-left: 3px solid ${notif.is_read ? 'transparent' : '#667eea'} !important;">
+            <a href="#" data-notification-id="${notif.id}" data-notification-title="${notif.title || ''}" data-notification-message="${notif.message || ''}" data-notification-created-at="${notif.created_at || notif.time || ''}" data-notification-time="${notif.time || ''}" data-notification-time-short="${notif.time_short || ''}" data-notification-is-read="${notif.is_read ? 'true' : 'false'}" data-notification-type="${notif.type || ''}" data-notification-related-type="${notif.related_type || ''}" data-notification-related-id="${notif.related_id || ''}" data-notification-link="${notif.link || ''}" data-notification-icon="${notif.icon || 'fas fa-bell'}" role="button" tabindex="0" aria-label="View notification" class="dropdown-item notification-item ${notif.is_read ? '' : 'unread'}" style="display: flex !important; align-items: flex-start !important; cursor: pointer !important; transition: all 0.2s !important; padding: 12px 15px !important; border: none !important; background: ${notif.is_read ? 'transparent' : '#f0f3ff'} !important; color: inherit !important; text-decoration: none !important; width: 100% !important; border-left: 3px solid ${notif.is_read ? 'transparent' : '#667eea'} !important;">
                 <div style="width: 100% !important; display: flex !important; align-items: flex-start !important; gap: 12px !important;">
                     <!-- Notification Content -->
                     <div style="flex: 1 !important; min-width: 0 !important;">
@@ -364,7 +425,7 @@ function displayNotifications(notifications, unreadCount) {
                     <!-- Chevron -->
                     <i class="fas fa-chevron-right" style="color: ${notif.is_read ? '#ccc' : '#667eea'} !important; font-size: 0.8rem !important; flex-shrink: 0 !important; margin-top: 2px !important;" ></i>
                 </div>
-            </div>
+            </a>
             <div class="dropdown-divider"></div>
         `;
         container.innerHTML += notificationHTML;
@@ -446,14 +507,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Find the notifications dropdown trigger
-    const notificationsDropdown = document.querySelector('[data-toggle="dropdown"][href="#"]');
-    
+    // Find the notifications dropdown trigger (prefer explicit ID)
+    const notificationsDropdown = document.getElementById('notificationsDropdownToggle') || document.querySelector('[data-toggle="dropdown"] .far.fa-bell')?.closest('[data-toggle="dropdown"]');
+
+    const fetchNotificationsFallback = async function() {
+        try {
+            const res = await fetch('/api/notifications');
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && data.notifications) {
+                displayNotifications(data.notifications, data.unread_count || 0);
+            }
+        } catch (err) {
+            console.debug('fetchNotificationsFallback failed', err);
+        }
+    };
+
     if (notificationsDropdown) {
         notificationsDropdown.addEventListener('click', function() {
-            // Emit request to get notifications
+            // Emit request to get notifications via socket if available
             if (isSocketConnected && notificationSocket) {
                 notificationSocket.emit('get_notifications');
+            } else {
+                // Fallback to HTTP fetch when Socket.IO is unavailable
+                fetchNotificationsFallback();
             }
         });
     }
@@ -489,6 +566,69 @@ document.addEventListener('DOMContentLoaded', function() {
             notificationSocket.emit('get_unread_count');
         }
     }, 30000);
+
+    // Ensure any pre-rendered notification items are clickable on initial load
+    try {
+        makeNotificationItemsClickable();
+    } catch (e) {
+        // noop
+    }
+
+    // Observe notifications container for changes and re-apply click handlers
+    (function() {
+        const container = document.querySelector('.notifications-scroll-container');
+        if (!container || typeof MutationObserver === 'undefined') return;
+        const mo = new MutationObserver(function() {
+            try { makeNotificationItemsClickable(); } catch (e) {}
+        });
+        mo.observe(container, { childList: true, subtree: true });
+    })();
+
+    // Fallback: global click listener for notification items if delegation fails
+    document.addEventListener('click', function(e) {
+        try {
+            const el = e.target.closest && e.target.closest('[data-notification-id]');
+            if (el) {
+                // Avoid interfering with other handlers; forward to existing handler
+                handleNotificationItemClick(e);
+            }
+        } catch (err) {}
+    }, true);
+
+    // Strong capture-phase handler to prevent other scripts from overriding notification clicks
+    // Uses a unique global flag and namespace to avoid double-binding
+    if (!window.__petsonaNotifCaptureBound) {
+        window.__petsonaNotifCaptureBound = true;
+
+        const captureHandler = function(e) {
+            try {
+                const el = e.target && e.target.closest && e.target.closest('[data-notification-id], .notification-item');
+                if (!el) return;
+
+                // mark that this element was handled by our capture handler
+                el.setAttribute('data-notif-captured', 'true');
+
+                // Prevent other handlers from running and stop default navigation
+                if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+                if (typeof e.preventDefault === 'function') e.preventDefault();
+
+                // Build a minimal synthetic event object preserving target
+                const syntheticEvent = { target: el, currentTarget: el, preventDefault: function(){}, stopPropagation: function(){}, stopImmediatePropagation: function(){} };
+
+                // Directly call the click handler logic
+                handleNotificationItemClick(syntheticEvent);
+            } catch (err) {
+                console.debug('petsona captureHandler error', err);
+            }
+        };
+
+        // Use pointerdown to catch interactions earlier, and click as a fallback
+        document.addEventListener('pointerdown', captureHandler, true);
+        document.addEventListener('touchstart', captureHandler, { passive: false, capture: true });
+        document.addEventListener('pointerup', captureHandler, true);
+        document.addEventListener('click', captureHandler, true);
+    }
     
     // === CONFIRM DELETE NOTIFICATION ===
     const confirmDeleteBtn = document.getElementById('confirmDeleteNotifBtn');
@@ -622,13 +762,17 @@ function viewNotificationFull(notificationId) {
         });
     } else {
         // Fallback: display what we have in the DOM
-        displayNotificationModal(notificationItem);
+        displayNotificationModal(buildNotificationDataFromDom(notificationItem));
     }
 }
 
 // === DISPLAY NOTIFICATION MODAL ===
 function displayNotificationModal(notificationData) {
-    
+    if (notificationData && notificationData.nodeType === 1 && typeof notificationData.getAttribute === 'function') {
+        notificationData = buildNotificationDataFromDom(notificationData);
+    }
+
+    console.debug('[notif] displayNotificationModal called', notificationData);
     // Get modal elements
     const modal = document.getElementById('notificationModal');
     if (!modal) {
@@ -801,6 +945,15 @@ function displayNotificationModal(notificationData) {
     // Set notification ID for delete operations
     setNotificationToDelete(notificationId);
     
+    // Close any open dropdown menus before opening the modal
+    document.querySelectorAll('.dropdown-menu.show').forEach(function(dropdown) {
+        dropdown.classList.remove('show');
+        dropdown.setAttribute('aria-hidden', 'true');
+    });
+    document.querySelectorAll('[aria-expanded="true"]').forEach(function(toggle) {
+        toggle.setAttribute('aria-expanded', 'false');
+    });
+
     // Show modal with proper Bootstrap handling
     try {
         if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -811,26 +964,35 @@ function displayNotificationModal(notificationData) {
                 focus: true
             });
             bsModal.show();
+        } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            // Use Bootstrap 4 / jQuery modal API when available
+            window.jQuery(modal).modal('show');
         } else {
-            // Fallback for non-Bootstrap environments
+            // Fallback for no Bootstrap API available
+            modal.classList.add('show');
             modal.style.display = 'block';
             modal.style.zIndex = '10000';
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            if (!document.querySelector('.modal-backdrop')) {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                backdrop.style.zIndex = '9999';
+                document.body.appendChild(backdrop);
+            }
         }
     } catch (error) {
+        modal.classList.add('show');
         modal.style.display = 'block';
         modal.style.zIndex = '10000';
-    }
-    
-    // Handle delete button
-    const deleteBtn = document.getElementById('notifDeleteBtn');
-    if (deleteBtn) {
-        deleteBtn.onclick = function() {
-            const deleteConfirmModal = document.getElementById('deleteNotificationConfirmModal');
-            if (deleteConfirmModal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                const bsModal = bootstrap.Modal.getInstance(deleteConfirmModal) || new bootstrap.Modal(deleteConfirmModal);
-                bsModal.show();
-            }
-        };
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        if (!document.querySelector('.modal-backdrop')) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.style.zIndex = '9999';
+            document.body.appendChild(backdrop);
+        }
     }
 }
 

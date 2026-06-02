@@ -1,7 +1,7 @@
 <!-- Notification Modal -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px !important; width: 100% !important;">
-        <div class="modal-content" style="border: none; border-radius: 16px; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15); background: #ffffff; overflow: hidden;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px !important; width: auto !important; margin: 1.5rem auto;">
+        <div class="modal-content" style="border: none; border-radius: 16px; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15); background: #ffffff; overflow: hidden; max-height: 400px !important; display: flex; flex-direction: column;">
             
             <!-- Modal Header with Icon and Close -->
             <div style="padding: 30px 30px 20px 30px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.03) 100%); border-bottom: 1px solid rgba(102, 126, 234, 0.1); display: flex; align-items: center; justify-content: space-between;">
@@ -14,9 +14,6 @@
                         <span id="notifModalType" style="display: inline-block; margin-top: 2px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap;">notification</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close close-notif-modal" aria-label="Close" style="background: rgba(102, 126, 234, 0.15); border: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #667eea; cursor: pointer; padding: 0; transition: all 0.3s ease; flex-shrink: 0;">
-                    <i class="fas fa-times" style="font-size: 1rem;"></i>
-                </button>
             </div>
 
             <!-- Modal Body - Professional Layout -->
@@ -90,8 +87,29 @@
 
 #notificationModal .modal-dialog {
     animation: notifFadeIn 0.35s cubic-bezier(0.23, 1, 0.320, 1) forwards !important;
-    max-width: 420px !important;
-    width: 100% !important;
+    max-width: 500px !important;
+    width: auto !important;
+    margin: 1.5rem auto !important;
+    box-sizing: border-box !important;
+}
+
+#notificationModal .modal-content {
+    max-height: 400px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#notificationModal .modal-body {
+    overflow-y: auto !important;
+    max-height: calc(400px - 178px) !important;
+    padding: 30px !important;
+    box-sizing: border-box !important;
+}
+
+#notificationModal .modal-header,
+#notificationModal .modal-footer {
+    flex-shrink: 0 !important;
 }
 
 /* Ensure notification items remain fully clickable */
@@ -166,24 +184,28 @@
 /* Responsive Design */
 @media (max-width: 576px) {
     #notificationModal .modal-dialog {
-        margin: 15px !important;
-        max-width: calc(100% - 30px) !important;
+        margin: 10px auto !important;
+        max-width: calc(100% - 20px) !important;
+        width: auto !important;
+        padding: 0 10px !important;
     }
     
     #notificationModal .modal-content {
         border-radius: 14px !important;
+        max-height: calc(100vh - 40px) !important;
     }
     
     #notificationModal .modal-header {
-        padding: 24px 20px 16px 20px !important;
+        padding: 20px 18px 14px 18px !important;
     }
     
     #notificationModal .modal-body {
-        padding: 20px !important;
+        padding: 18px !important;
+        max-height: calc(100vh - 158px) !important;
     }
     
     #notificationModal .modal-footer {
-        padding: 20px !important;
+        padding: 18px !important;
         flex-direction: column !important;
         gap: 10px !important;
     }

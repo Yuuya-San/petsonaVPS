@@ -264,18 +264,39 @@
   overflow: hidden;
 }
 
-.strength-bar::after {
-  content: "";
-  display: block;
-  height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, #ff6b6b, #ffd43b, #51cf66);
-  transition: width 0.3s ease;
-}
+    .agree-terms {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      margin: 1rem 0 0.7rem;
+      font-size: 0.82rem;
+      color: #36064D;
+      line-height: 1.4;
+    }
 
-.strength-text {
-  font-size: 0.6rem;
-  color: #6B7280;
+    .agree-terms input[type="checkbox"] {
+      margin: 0.15rem 0 0 0;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .agree-terms label {
+      display: block;
+      margin: 0;
+      padding: 0;
+      font-size: 0.85rem;
+      color: #36064D;
+    }
+
+    .agree-terms a {
+      color: #4f46e5;
+      text-decoration: underline;
+    }
 }
 
 /* ===============================
@@ -807,7 +828,8 @@
         <button
           class="themed-btn next-btn"
           type="button"
-          id="to-password-section">
+          id="to-password-section"
+          disabled>
           Next
         </button>
       </div>
@@ -887,6 +909,13 @@
           <span class="input-status" id="password2-status"></span>
         </div>
 
+        <div class="agree-terms">
+          <input type="checkbox" id="agreeTermsRegister" />
+          <label for="agreeTermsRegister">
+            I agree to the <a href="javascript:void(0)" onclick="openModal('termsModal')">Terms and Conditions</a> and <a href="javascript:void(0)" onclick="openModal('privacyModal')">Privacy Policy</a>.
+          </label>
+        </div>
+
         <div class="section-nav">
           <button
             class="themed-btn prev-btn"
@@ -896,7 +925,8 @@
           </button>
 
           <button
-            class="themed-btn loading-btn"
+            class="themed-btn register-submit-btn"
+            id="register-submit-btn"
             type="submit"
             disabled>
             Create Account
@@ -922,21 +952,6 @@
     <div class="links">
       Already have an account?
       <a href="{{ url_for('auth.login') }}">Login here</a>
-    </div>
-
-    <!-- Data Privacy & Website Use Notice -->
-    <div class="privacy-notice" style="margin-top: 1.2rem; padding: 0.8rem; background: rgba(99, 102, 241, 0.06); border-radius: 8px; border-left: 2px solid #6366f1; text-align: center;">
-      <div style="font-size: 0.7rem; color: #36064D !important; line-height: 1.4;">
-        <p style="margin: 0.4rem 0 0 0; font-size: 0.65rem; color: #36064D !important;">
-          <a href="javascript:void(0)" onclick="openModal('privacyModal')" style="color: #36064D !important; text-decoration: none; border-bottom: 1px solid #36064D; cursor: pointer;">
-            Read Full Privacy Policy
-          </a> 
-          | 
-          <a href="javascript:void(0)" onclick="openModal('termsModal')" style="color: #36064D !important; text-decoration: none; border-bottom: 1px solid #36064D; cursor: pointer;">
-            Terms of Service
-          </a>
-        </p>
-      </div>
     </div>
 
   </div>
@@ -1081,31 +1096,109 @@
 const personalSection = document.getElementById('personal-info-section');
 const passwordSection = document.getElementById('password-section');
 const registerForm = document.getElementById('register-form');
+const firstNameInput = document.getElementById('first_name');
+const lastNameInput = document.getElementById('last_name');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const password2Input = document.getElementById('password2');
+const nextSectionBtn = document.getElementById('to-password-section');
 const agreeTermsCheckbox = document.getElementById('agreeTermsRegister');
-const submitBtn = document.querySelector('.loading-btn');
+let submitBtn = document.getElementById('register-submit-btn');
+if (!submitBtn) {
+  submitBtn = document.querySelector('button[type="submit"].register-submit-btn');
+}
+
+function setSubmitDisabled(disabled) {
+  if (!submitBtn) return;
+  submitBtn.disabled = disabled;
+  if (disabled) {
+    submitBtn.setAttribute('disabled', 'disabled');
+  } else {
+    submitBtn.removeAttribute('disabled');
+  }
+}
+
+setSubmitDisabled(true);
+
+function isValidName(value) {
+  return /^[A-Za-z]+$/.test(value.trim());
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function isValidPassword(password) {
+  return password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[!@#$%^&*(),.?"{}|<>\[\]\\/~`_+=:;-]/.test(password);
+}
+
+function validatePersonalSection() {
+  const firstNameValid = firstNameInput && isValidName(firstNameInput.value);
+  const lastNameValid = lastNameInput && isValidName(lastNameInput.value);
+  const emailValid = emailInput && isValidEmail(emailInput.value);
+
+  if (nextSectionBtn) {
+    nextSectionBtn.disabled = !(firstNameValid && lastNameValid && emailValid);
+  }
+}
+
+if (firstNameInput) {
+  firstNameInput.addEventListener('input', validatePersonalSection);
+}
+if (lastNameInput) {
+  lastNameInput.addEventListener('input', validatePersonalSection);
+}
+if (emailInput) {
+  emailInput.addEventListener('input', validatePersonalSection);
+}
+
+validatePersonalSection();
+
+document.addEventListener('DOMContentLoaded', function() {
+  validatePersonalSection();
+});
 
 document.getElementById('to-password-section').onclick = () => {
   personalSection.style.display = 'none';
   passwordSection.style.display = '';
+  updateSubmitButtonState();
 };
 
 document.getElementById('back-to-personal-info').onclick = () => {
   passwordSection.style.display = 'none';
   personalSection.style.display = '';
+  updateSubmitButtonState();
 };
 
 // Handle terms agreement checkbox
 function updateSubmitButtonState() {
   const isTermsChecked = agreeTermsCheckbox && agreeTermsCheckbox.checked;
-  if (submitBtn) {
-    submitBtn.disabled = !isTermsChecked;
-  }
+  const passwordsValid = passwordInput && password2Input &&
+    passwordInput.value &&
+    password2Input.value &&
+    isValidPassword(passwordInput.value) &&
+    passwordInput.value === password2Input.value;
+
+  setSubmitDisabled(!(isTermsChecked && passwordsValid));
 }
 
+if (passwordInput) {
+  passwordInput.addEventListener('input', updateSubmitButtonState);
+  passwordInput.addEventListener('change', updateSubmitButtonState);
+}
+if (password2Input) {
+  password2Input.addEventListener('input', updateSubmitButtonState);
+  password2Input.addEventListener('change', updateSubmitButtonState);
+}
 if (agreeTermsCheckbox) {
   agreeTermsCheckbox.addEventListener('change', updateSubmitButtonState);
-  updateSubmitButtonState();
 }
+
+document.addEventListener('DOMContentLoaded', updateSubmitButtonState);
 </script>
 <script async defer src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
 <script>

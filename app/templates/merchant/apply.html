@@ -45,7 +45,7 @@
                   <label for="business_name" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-briefcase text-purple-600 mr-2"></i>Business Name
                   </label>
-                  {{ form.business_name(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="e.g., Happy Paws Hotel") }}
+                  {{ form.business_name(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="e.g., Happy Paws Hotel", required=True) }}
                   {% if form.business_name.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.business_name.errors[0] }}</div>
                   {% endif %}
@@ -56,7 +56,7 @@
                   <label for="business_category" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-list text-purple-600 mr-2"></i>Business Category
                   </label>
-                  {{ form.business_category(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
+                  {{ form.business_category(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", required=True) }}
                   {% if form.business_category.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.business_category.errors[0] }}</div>
                   {% endif %}
@@ -67,7 +67,7 @@
                   <label for="contact_phone" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-phone text-purple-600 mr-2"></i>Contact Phone
                   </label>
-                  <input type="text" id="contact_phone" name="contact_phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors" placeholder="9XXXXXXXXX" maxlength="10" inputmode="numeric">
+                  <input type="text" id="contact_phone" name="contact_phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors" placeholder="9XXXXXXXXX" maxlength="10" inputmode="numeric" required>
                   {% if form.contact_phone.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.contact_phone.errors[0] }}</div>
                   {% endif %}
@@ -78,7 +78,7 @@
                   <label for="owner_manager_name" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-user text-purple-600 mr-2"></i>Owner/Manager Name
                   </label>
-                  {{ form.owner_manager_name(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Full Name") }}
+                  {{ form.owner_manager_name(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Full Name", required=True) }}
                   {% if form.owner_manager_name.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.owner_manager_name.errors[0] }}</div>
                   {% endif %}
@@ -89,7 +89,7 @@
                   <label for="contact_email" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-envelope text-purple-600 mr-2"></i>Business Contact Email
                   </label>
-                  {{ form.contact_email(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", type="email", placeholder="business@example.com") }}
+                  {{ form.contact_email(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", type="email", placeholder="business@example.com", required=True) }}
                   {% if form.contact_email.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.contact_email.errors[0] }}</div>
                   {% endif %}
@@ -100,7 +100,7 @@
                   <label for="business_description" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-align-left text-purple-600 mr-2"></i>Business Description
                   </label>
-                  {{ form.business_description(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Tell us about your business, specialties, and what makes you unique...", rows=4) }}
+                  {{ form.business_description(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Tell us about your business, specialties, and what makes you unique...", rows=4, required=True) }}
                   {% if form.business_description.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.business_description.errors[0] }}</div>
                   {% endif %}
@@ -111,7 +111,7 @@
                   <label for="region" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-map text-purple-600 mr-2"></i>Region
                   </label>
-                  {{ form.region(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
+                  {{ form.region(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", required=True) }}
                   {% if form.region.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.region.errors[0] }}</div>
                   {% endif %}
@@ -122,7 +122,7 @@
                   <label for="province" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-map-pin text-purple-600 mr-2"></i>Province
                   </label>
-                  {{ form.province(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
+                  {{ form.province(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", required=True) }}
                   {% if form.province.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.province.errors[0] }}</div>
                   {% endif %}
@@ -133,7 +133,7 @@
                   <label for="city" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-city text-purple-600 mr-2"></i>City/Municipality
                   </label>
-                  {{ form.city(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
+                  {{ form.city(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", required=True) }}
                   {% if form.city.errors %}
                     <div class="text-red-600 text-sm mt-1">{{ form.city.errors[0] }}</div>
                   {% endif %}
@@ -144,7 +144,7 @@
                   <label for="barangay" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-road text-purple-600 mr-2"></i>Barangay
                   </label>
-                  {{ form.barangay(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
+                  {{ form.barangay(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", required=True) }}
                 </div>
 
                 <!-- Postal Code -->
@@ -152,7 +152,7 @@
                   <label for="postal_code" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-envelope text-purple-600 mr-2"></i>Postal Code
                   </label>
-                  {{ form.postal_code(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="1200", maxlength="4") }}
+                  {{ form.postal_code(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="1200", maxlength="4", required=True) }}
                 </div>
 
                 <!-- Google Maps Link -->
@@ -160,7 +160,7 @@
                   <label for="google_maps_link" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-link text-purple-600 mr-2"></i>Google Maps Link
                   </label>
-                  {{ form.google_maps_link(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="https://maps.google.com/?q=...") }}
+                  {{ form.google_maps_link(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="https://maps.google.com/?q=...", required=True) }}
                 </div>
 
                 <!-- Full Address -->
@@ -168,7 +168,7 @@
                   <label for="full_address" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-location-dot text-purple-600 mr-2"></i>Full Address
                   </label>
-                  {{ form.full_address(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Click on map to get full address") }}
+                  {{ form.full_address(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Click on map to get full address", required=True) }}
                   <p class="text-xs text-gray-500 mt-1">Click on map to auto-fill</p>
                 </div>
 
@@ -197,8 +197,8 @@
 
               <!-- Pets Accepted -->
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-4">
-                  <i class="fas fa-paw text-purple-600 mr-2"></i>Which pets do you accept?
+                <label class="block text-sm font-semibold text-gray-700 mb-4 required-label manual-star">
+                  <i class="fas fa-paw text-purple-600 mr-2"></i>Which pets do you accept? <span class="required-star">*</span>
                 </label>
                 
                 <!-- Predefined Pet Options -->
@@ -250,10 +250,10 @@
                 
                 <!-- Pricing Basis Selection -->
                 <div class="p-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 transition-colors">
-                  <label class="block text-sm font-semibold text-gray-700 mb-4">
-                    <i class="fas fa-object-group text-purple-600 mr-2"></i>What's your pricing basis? *
+                  <label for="pricingBasis" class="block text-sm font-semibold text-gray-700 mb-4 required-label manual-star">
+                    <i class="fas fa-object-group text-purple-600 mr-2"></i>What's your pricing basis? <span class="required-star">*</span>
                   </label>
-                  <select id="pricingBasis" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors mb-4">
+                  <select id="pricingBasis" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors mb-4" required>
                     <option value="">-- Select pricing basis --</option>
                     <option value="weight">By Pet Weight (Under 5kg, 5-15kg, 15-30kg, 30kg+)</option>
                     <option value="species">By Pet Species (Dogs, Cats, Rabbits, etc.)</option>
@@ -263,10 +263,10 @@
 
                 <!-- Rate Type Selection -->
                 <div class="p-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 transition-colors">
-                  <label class="block text-sm font-semibold text-gray-700 mb-4">
-                    <i class="fas fa-tag text-purple-600 mr-2"></i>What's your rate type? *
+                  <label for="rateType" class="block text-sm font-semibold text-gray-700 mb-4 required-label manual-star">
+                    <i class="fas fa-tag text-purple-600 mr-2"></i>What's your rate type? <span class="required-star">*</span>
                   </label>
-                  <select id="rateType" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
+                  <select id="rateType" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors" required>
                     <option value="">-- Select rate type --</option>
                     <option value="hourly">⏰ Per Hour</option>
                     <option value="daily">📅 Per Day</option>
@@ -308,7 +308,7 @@
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
                   <p class="text-gray-700 font-semibold text-sm sm:text-base">Click to upload or drag & drop</p>
                   <p class="text-gray-500 text-xs sm:text-sm mt-1">PNG, JPG, GIF or WebP (Max 2MB)</p>
-                  <input type="file" id="store_logo" name="store_logo" class="hidden" accept="image/*" onchange="checkFileSize(this); previewImage(this, 'storeLogo')">
+                  <input type="file" id="store_logo" name="store_logo" class="hidden" accept="image/*" required onchange="checkFileSize(this); previewImage(this, 'storeLogo')">
                 </div>
                 <div id="storeLogo" class="mt-4 hidden">
                   <img class="max-h-24 sm:max-h-32 mx-auto rounded-lg shadow-md">
@@ -328,7 +328,7 @@
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
                   <p class="text-gray-700 font-semibold text-sm sm:text-base">Click to upload or drag & drop</p>
                   <p class="text-gray-500 text-xs sm:text-sm mt-1">PNG, JPG, or PDF (Max 2MB)</p>
-                  <input type="file" id="government_id" name="government_id" class="hidden" accept=".jpg,.jpeg,.png,.pdf" onchange="checkFileSize(this); previewDocument(this, 'govID')">
+                  <input type="file" id="government_id" name="government_id" class="hidden" accept=".jpg,.jpeg,.png,.pdf" required onchange="checkFileSize(this); previewDocument(this, 'govID')">
                 </div>
                 <div id="govID" class="mt-4 hidden">
                   <div class="bg-gray-100 p-3 sm:p-4 rounded-lg">
@@ -351,7 +351,7 @@
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
                   <p class="text-gray-700 font-semibold text-sm sm:text-base">Click to upload or drag & drop</p>
                   <p class="text-gray-500 text-xs sm:text-sm mt-1">PNG, JPG, or PDF (Max 2MB)</p>
-                  <input type="file" id="business_permit" name="business_permit" class="hidden" accept=".jpg,.jpeg,.png,.pdf" onchange="checkFileSize(this); previewDocument(this, 'permit')">
+                  <input type="file" id="business_permit" name="business_permit" class="hidden" accept=".jpg,.jpeg,.png,.pdf" required onchange="checkFileSize(this); previewDocument(this, 'permit')">
                 </div>
                 <div id="permit" class="mt-4 hidden">
                   <div class="bg-gray-100 p-3 sm:p-4 rounded-lg">
@@ -374,7 +374,7 @@
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
                   <p class="text-gray-700 font-semibold text-sm sm:text-base">Click to upload or drag & drop</p>
                   <p class="text-gray-500 text-xs sm:text-sm mt-1">Upload 3-5 photos (Max 10MB total)</p>
-                  <input type="file" id="facility_photos" name="facility_photos" class="hidden" accept="image/*" multiple onchange="checkFileSizeMultiple(this); previewMultipleImages(this)">
+                  <input type="file" id="facility_photos" name="facility_photos" class="hidden" accept="image/*" multiple required onchange="checkFileSizeMultiple(this); previewMultipleImages(this)">
                 </div>
                 <div id="facilityPhotos" class="mt-6 hidden">
                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4" id="photoGrid"></div>
@@ -708,6 +708,27 @@
 
   .requirement-indicator i {
     transition: color 0.3s ease;
+  }
+
+  /* Required field styling */
+  .required-label:not(.manual-star)::after {
+    content: "*";
+    color: #dc2626;
+    font-weight: 800;
+    margin-left: 0.15rem;
+  }
+
+  .required-label,
+  .manual-star {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .required-star {
+    color: #dc2626;
+    font-weight: 800;
+    margin-left: 0.15rem;
   }
 
   /* Live Validation Styles */
@@ -1054,6 +1075,7 @@
     setupPricingSystem();
     setupCustomPetInput();
     setupLiveValidation();
+    applyRequiredLabelStyling();
 
     // Setup form submit handler
     const merchantForm = document.getElementById('merchantForm');
@@ -1064,6 +1086,47 @@
       });
     }
   });
+
+  function applyRequiredLabelStyling() {
+    const requiredFields = document.querySelectorAll('#merchantForm input[required], #merchantForm select[required], #merchantForm textarea[required]');
+    requiredFields.forEach(field => {
+      let label = null;
+      if (field.id) {
+        label = document.querySelector(`#merchantForm label[for="${field.id}"]`);
+      }
+      if (!label) {
+        label = field.closest('label');
+      }
+      if (!label) return;
+
+      const labelText = label.textContent.trim();
+      const hasTrailingStar = /\*\s*$/.test(labelText);
+
+      if (hasTrailingStar) {
+        label.classList.add('manual-star');
+        const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        let node;
+        while (node = walker.nextNode()) {
+          textNodes.push(node);
+        }
+
+        textNodes.forEach(textNode => {
+          const text = textNode.textContent;
+          const match = text.match(/^(.*?)(\s*\*)\s*$/);
+          if (match && match[1] !== undefined) {
+            textNode.textContent = match[1];
+            const star = document.createElement('span');
+            star.className = 'required-star';
+            star.textContent = match[2].trim();
+            textNode.parentNode.insertBefore(star, textNode.nextSibling);
+          }
+        });
+      } else {
+        label.classList.add('required-label');
+      }
+    });
+  }
 
   // ============= LIVE VALIDATION SETUP =============
   function setupLiveValidation() {
@@ -1924,12 +1987,7 @@
       if (!province || !province.value.trim()) return false;
     }
 
-    // Check if at least one pet is selected (standard or custom)
-    const petsChecked = document.querySelector('input[name="pets_accepted"]:checked');
-    const customPets = document.querySelectorAll('input[name="custom_pets"]').length > 0;
-    if (!petsChecked && !customPets) return false;
-
-    // Check pricing basis and rate type selected
+    // Pets selection is optional for this setup; only pricing basis and rate type are required.
     const pricingBasis = document.getElementById('pricingBasis').value;
     const rateType = document.getElementById('rateType').value;
     if (!pricingBasis || !rateType) return false;

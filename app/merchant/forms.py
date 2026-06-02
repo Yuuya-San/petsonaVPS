@@ -217,17 +217,11 @@ class MerchantApplicationForm(FlaskForm):
     pets_accepted = MultiCheckboxField(
         'Pets Accepted',
         choices=[(pet, pet) for pet in ALLOWED_PETS],
-        validators=[DataRequired(message='Please select at least one pet type')],
+        validators=[Optional()],
         render_kw={'class': 'space-y-2'}
     )
 
     custom_pets = HiddenField('Custom Pets')
-
-    def validate_pets_accepted(self, field):
-        custom_pets = request.form.getlist('custom_pets')
-        if not field.data and not any(pet.strip() for pet in custom_pets):
-            raise ValidationError('Please select at least one pet type')
-
 
     # Hidden field for service pricing JSON structure
     service_pricing_json = HiddenField('Service Pricing', validators=[Optional()])
@@ -424,11 +418,6 @@ class MerchantApplicationForm(FlaskForm):
             if self.opening_time.data and field.data:
                 if field.data <= self.opening_time.data:
                     raise ValidationError('Closing time must be after opening time')
-
-    def validate_pets_accepted(self, field):
-        """Ensure at least one pet type is selected"""
-        if not field.data or len(field.data) == 0:
-            raise ValidationError('Please select at least one pet type')
 
     def validate_operating_days(self, field):
         """Ensure operating days are selected only for Pet Daycare"""
@@ -634,7 +623,7 @@ class MerchantStoreUpdateForm(FlaskForm):
     pets_accepted = MultiCheckboxField(
         'Pets Accepted',
         choices=[(pet, pet) for pet in ALLOWED_PETS],
-        validators=[DataRequired(message='Please select at least one pet type')],
+        validators=[Optional()],
         render_kw={'class': 'space-y-2'}
     )
 
@@ -765,11 +754,6 @@ class MerchantStoreUpdateForm(FlaskForm):
             if self.opening_time.data and field.data:
                 if field.data <= self.opening_time.data:
                     raise ValidationError('Closing time must be after opening time')
-
-    def validate_pets_accepted(self, field):
-        """Ensure at least one pet type is selected"""
-        if not field.data or len(field.data) == 0:
-            raise ValidationError('Please select at least one pet type')
 
     def validate_operating_days(self, field):
         """Ensure operating days are selected only for Pet Daycare"""

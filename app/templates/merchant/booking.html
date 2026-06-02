@@ -96,29 +96,29 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-gray-700 font-semibold mb-2 text-sm\">Full Name</label>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm">Full Name</label>
                 <input type="text" name="customer_name" id="customer_name" 
                        value="{{ current_user.first_name }} {{ current_user.last_name }}"
-                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm\"
+                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                        readonly>
-                <small class="text-gray-500 text-xs mt-1 block\">Auto-filled</small>
+                <small class="text-gray-500 text-xs mt-1 block">Auto-filled</small>
               </div>
               <div>
-                <label class="block text-gray-700 font-semibold mb-2 text-sm\">Email Address</label>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm">Email Address</label>
                 <input type="email" name="customer_email" id="customer_email" 
                        value="{{ current_user.email }}"
-                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm\"
+                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                        readonly>
-                <small class="text-gray-500 text-xs mt-1 block\">Auto-filled</small>
+                <small class="text-gray-500 text-xs mt-1 block">Auto-filled</small>
               </div>
               <div class="sm:col-span-2">
-                <label class="block text-gray-700 font-semibold mb-2 text-sm">Phone Number <span class="text-red-500">*</span></label>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm required-label">Phone Number</label>
                 <input type="tel" name="customer_phone" id="customer_phone" 
                        placeholder="Enter your phone number"
-                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm\"
+                       class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                        inputmode="numeric" pattern="[0-9]*" maxlength="11"
                        required>
-                <small class="text-gray-500 text-xs mt-1 block\">Required for confirmation</small>
+                <small class="text-gray-500 text-xs mt-1 block">Required for confirmation</small>
               </div>
             </div>
           </div>
@@ -146,16 +146,16 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <!-- Pet Name -->
                   <div class="sm:col-span-2">
-                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                      Pet Name <span class="text-red-500">*</span>
+                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2 required-label">
+                      Pet Name
                       <span class="pet-name-check"></span>
                     </label>
                     <input type="text" name="pets[0][pet_name]" maxlength="50" class="pet_name w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm" placeholder="e.g., Max, Whiskers" required>
                   </div>
                   <!-- Species -->
                   <div>
-                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                      Species <span class="text-red-500">*</span>
+                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2 required-label">
+                      Species
                       <span class="pet-species-check"></span>
                     </label>
                     <select name="pets[0][pet_species]" class="pet_species w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none transition-all text-sm" required>
@@ -177,8 +177,8 @@
                   </div>
                   <!-- Weight -->
                   <div>
-                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                      Weight (kg) <span class="text-red-500">*</span>
+                    <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2 required-label">
+                      Weight (kg)
                       <span class="pet-weight-check"></span>
                     </label>
                     <div class="flex items-center gap-3">
@@ -224,29 +224,29 @@
             <!-- Info Panel -->
             <div class="p-3 bg-gray-100 border border-gray-300 rounded-lg mb-5">
               <p class="text-xs text-gray-700 font-semibold">
-                <i class="fas fa-info-circle text-gray-600 mr-1.5\"></i>
+                <i class="fas fa-info-circle text-gray-600 mr-1.5"></i>
                 Select when you want to bring your pet(s)
               </p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-5">
               <div>
-                <label class="block text-gray-700 font-semibold mb-2 text-sm">
-                  Appointment Date <span class="text-red-500">*</span>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm required-label">
+                  Appointment Date
                 </label>
                 <input type="date" name="check_in_date" id="check_in_date" 
                        class="w-full px-3 py-2 sm:py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                        required>
-                <small class="text-gray-500 text-xs mt-1 block\">Select today or a future date</small>
+                <small class="text-gray-500 text-xs mt-1 block">Select today or a future date</small>
               </div>
               <div>
-                <label class="block text-gray-700 font-semibold mb-2 text-sm">
-                  Appointment Time <span class="text-red-500">*</span>
+                <label class="block text-gray-700 font-semibold mb-2 text-sm required-label">
+                  Appointment Time
                 </label>
                 <input type="time" name="check_in_time" id="check_in_time" 
                        class="w-full px-3 py-2 sm:py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                        required>
-                <small class="text-gray-500 text-xs mt-1 block\">What time works best?</small>
+                <small class="text-gray-500 text-xs mt-1 block">What time works best?</small>
               </div>
             </div>
 
@@ -269,14 +269,15 @@
             <div class="space-y-4 sm:space-y-5 lg:space-y-6">
               <!-- Medical & Special Care Notes -->
               <div>
-                <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                <label class="block text-gray-700 font-semibold mb-2 flex items-center gap-2 required-label">
                   <i class="fas fa-heart text-red-500"></i>
                   Special Medical & Care Notes
                 </label>
                 <textarea name="pet_special_notes" id="pet_special_notes" maxlength="500"
                           rows="4"
                           placeholder="Important medical information, dietary requirements, medications, behavioral notes, or special requests..."
-                          class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all text-sm"></textarea>
+                          class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-purple-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all text-sm"
+                          required></textarea>
                 <small class="text-gray-500 mt-2 block">We'll share this with the merchant to ensure the best care for your pet(s)</small>
               </div>
 
@@ -381,8 +382,8 @@
 
           <!-- Booking Terms -->
           <div class="mb-4">
-            <label class="flex items-start gap-3 p-3 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition-all group">
-              <input type="checkbox" id="agreeTerms" class="w-4 h-4 mt-0.5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer" form="bookingForm">
+            <label class="flex items-start gap-3 p-3 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition-all group required-label">
+              <input type="checkbox" id="agreeTerms" class="w-4 h-4 mt-0.5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer" form="bookingForm" required>
               <span class="text-xs text-gray-700 font-medium leading-relaxed">
                 I agree to the booking terms and conditions. The merchant will confirm the final price.
               </span>
@@ -508,6 +509,26 @@
 
   body {
     scroll-behavior: smooth;
+  }
+
+  .required-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-weight: 600;
+  }
+
+  .required-label::after {
+    content: "*";
+    color: #dc2626;
+    font-weight: 800;
+    margin-left: 0.2rem;
+  }
+
+  .required-star {
+    color: #dc2626;
+    font-weight: 800;
+    margin-left: 0.15rem;
   }
 
   /* ========== STICKY SIDEBAR ========== */

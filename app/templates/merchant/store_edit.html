@@ -42,7 +42,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Business Name -->
                 <div class="md:col-span-2">
-                  <label for="business_name" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="business_name" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-briefcase text-purple-600 mr-2"></i>Business Name
                   </label>
                   {{ form.business_name(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="e.g., Happy Paws Hotel") }}
@@ -53,7 +53,7 @@
 
                 <!-- Business Category -->
                 <div>
-                  <label for="business_category" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="business_category" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-list text-purple-600 mr-2"></i>Business Category
                   </label>
                   {{ form.business_category(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
@@ -64,7 +64,7 @@
 
                 <!-- Contact Phone -->
                 <div>
-                  <label for="contact_phone" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="contact_phone" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-phone text-purple-600 mr-2"></i>Contact Phone
                   </label>
                   <input type="text" id="contact_phone" name="contact_phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors" placeholder="9XXXXXXXXX" maxlength="10" inputmode="numeric">
@@ -75,7 +75,7 @@
 
                 <!-- Owner/Manager Name -->
                 <div>
-                  <label for="owner_manager_name" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="owner_manager_name" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-user text-purple-600 mr-2"></i>Owner/Manager Name
                   </label>
                   {{ form.owner_manager_name(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Full Name") }}
@@ -86,7 +86,7 @@
 
                 <!-- Contact Email (Business) -->
                 <div>
-                  <label for="contact_email" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="contact_email" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-envelope text-purple-600 mr-2"></i>Business Contact Email
                   </label>
                   {{ form.contact_email(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", type="email", placeholder="business@example.com") }}
@@ -97,7 +97,7 @@
 
                 <!-- Business Description -->
                 <div class="md:col-span-2">
-                  <label for="business_description" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="business_description" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-align-left text-purple-600 mr-2"></i>Business Description
                   </label>
                   {{ form.business_description(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Tell us about your business, specialties, and what makes you unique...", rows=4) }}
@@ -108,7 +108,7 @@
 
                 <!-- Region -->
                 <div>
-                  <label for="region" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="region" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-map text-purple-600 mr-2"></i>Region
                   </label>
                   {{ form.region(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
@@ -119,7 +119,7 @@
 
                 <!-- Province -->
                 <div id="provinceContainer">
-                  <label for="province" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="province" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-map-pin text-purple-600 mr-2"></i>Province
                   </label>
                   {{ form.province(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
@@ -130,7 +130,7 @@
 
                 <!-- City -->
                 <div>
-                  <label for="city" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="city" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-city text-purple-600 mr-2"></i>City/Municipality
                   </label>
                   {{ form.city(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
@@ -141,7 +141,7 @@
 
                 <!-- Barangay -->
                 <div>
-                  <label for="barangay" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="barangay" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-road text-purple-600 mr-2"></i>Barangay
                   </label>
                   {{ form.barangay(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors") }}
@@ -149,7 +149,7 @@
 
                 <!-- Postal Code -->
                 <div>
-                  <label for="postal_code" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="postal_code" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-envelope text-purple-600 mr-2"></i>Postal Code
                   </label>
                   {{ form.postal_code(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="1200", maxlength="4") }}
@@ -157,7 +157,7 @@
 
                 <!-- Google Maps Link -->
                 <div>
-                  <label for="google_maps_link" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="google_maps_link" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-link text-purple-600 mr-2"></i>Google Maps Link
                   </label>
                   {{ form.google_maps_link(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="https://maps.google.com/?q=...") }}
@@ -165,7 +165,7 @@
 
                 <!-- Full Address -->
                 <div class="md:col-span-2">
-                  <label for="full_address" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="full_address" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-location-dot text-purple-600 mr-2"></i>Full Address
                   </label>
                   {{ form.full_address(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", placeholder="Click on map to get full address") }}
@@ -174,7 +174,7 @@
 
                 <!-- Map -->
                 <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-map text-purple-600 mr-2"></i>Location on Map
                   </label>
                   <div id="storeMap" class="w-full h-96 border-2 border-gray-300 rounded-lg"></div>
@@ -197,8 +197,8 @@
 
               <!-- Pets Accepted -->
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-4">
-                  <i class="fas fa-paw text-purple-600 mr-2"></i>Which pets do you accept?
+                <label class="block text-sm font-semibold text-gray-700 mb-4 required-label manual-star">
+                  <i class="fas fa-paw text-purple-600 mr-2"></i>Which pets do you accept? <span class="required-star">*</span>
                 </label>
                 
                 <!-- Predefined Pet Options -->
@@ -250,8 +250,8 @@
                 
                 <!-- Pricing Basis Selection -->
                 <div class="p-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 transition-colors">
-                  <label class="block text-sm font-semibold text-gray-700 mb-4">
-                    <i class="fas fa-object-group text-purple-600 mr-2"></i>What's your pricing basis? *
+                  <label for="pricingBasis" class="block text-sm font-semibold text-gray-700 mb-4 required-label manual-star">
+                    <i class="fas fa-object-group text-purple-600 mr-2"></i>What's your pricing basis? <span class="required-star">*</span>
                   </label>
                   <select id="pricingBasis" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors mb-4">
                     <option value="">-- Select pricing basis --</option>
@@ -263,8 +263,8 @@
 
                 <!-- Rate Type Selection -->
                 <div class="p-6 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 transition-colors">
-                  <label class="block text-sm font-semibold text-gray-700 mb-4">
-                    <i class="fas fa-tag text-purple-600 mr-2"></i>What's your rate type? *
+                  <label for="rateType" class="block text-sm font-semibold text-gray-700 mb-4 required-label manual-star">
+                    <i class="fas fa-tag text-purple-600 mr-2"></i>What's your rate type? <span class="required-star">*</span>
                   </label>
                   <select id="rateType" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
                     <option value="">-- Select rate type --</option>
@@ -278,7 +278,7 @@
 
                 <!-- Pricing Grid (Dynamic based on basis) -->
                 <div id="pricingByCategory" class="hidden">
-                  <label class="block text-sm font-semibold text-gray-700 mb-4">
+                  <label class="block text-sm font-semibold text-gray-700 mb-4 required-label">
                     <i class="fas fa-coins text-yellow-600 mr-2"></i>Set your prices
                   </label>
                   <div id="pricingGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -301,8 +301,8 @@
 
               <!-- Store Logo -->
               <div>
-                <label for="store_logo" class="block text-sm font-semibold text-gray-700 mb-3">
-                  <i class="fas fa-image text-purple-600 mr-2"></i>Store Logo *
+                <label for="store_logo" class="block text-sm font-semibold text-gray-700 mb-3 required-label manual-star">
+                  <i class="fas fa-image text-purple-600 mr-2"></i>Store Logo <span class="required-star">*</span>
                 </label>
                 <div class="border-2 border-dashed border-purple-300 rounded-lg p-4 sm:p-8 hover:border-purple-500 hover:bg-purple-50 transition-all text-center cursor-pointer" onclick="document.getElementById('store_logo').click()">
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
@@ -321,8 +321,8 @@
 
               <!-- Government ID -->
               <div>
-                <label for="government_id" class="block text-sm font-semibold text-gray-700 mb-3">
-                  <i class="fas fa-id-card text-purple-600 mr-2"></i>Government-Issued ID *
+                <label for="government_id" class="block text-sm font-semibold text-gray-700 mb-3 required-label manual-star">
+                  <i class="fas fa-id-card text-purple-600 mr-2"></i>Government-Issued ID <span class="required-star">*</span>
                 </label>
                 <div class="border-2 border-dashed border-purple-300 rounded-lg p-4 sm:p-8 hover:border-purple-500 hover:bg-purple-50 transition-all text-center cursor-pointer" onclick="document.getElementById('government_id').click()">
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
@@ -344,8 +344,8 @@
 
               <!-- Business Permit -->
               <div>
-                <label for="business_permit" class="block text-sm font-semibold text-gray-700 mb-3">
-                  <i class="fas fa-certificate text-purple-600 mr-2"></i>Business Permit / License *
+                <label for="business_permit" class="block text-sm font-semibold text-gray-700 mb-3 required-label manual-star">
+                  <i class="fas fa-certificate text-purple-600 mr-2"></i>Business Permit / License <span class="required-star">*</span>
                 </label>
                 <div class="border-2 border-dashed border-purple-300 rounded-lg p-4 sm:p-8 hover:border-purple-500 hover:bg-purple-50 transition-all text-center cursor-pointer" onclick="document.getElementById('business_permit').click()">
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
@@ -367,8 +367,8 @@
 
               <!-- Facility Photos -->
               <div>
-                <label for="facility_photos" class="block text-sm font-semibold text-gray-700 mb-3">
-                  <i class="fas fa-images text-purple-600 mr-2"></i>Facility Photos (3-5 photos) *
+                <label for="facility_photos" class="block text-sm font-semibold text-gray-700 mb-3 required-label manual-star">
+                  <i class="fas fa-images text-purple-600 mr-2"></i>Facility Photos (3-5 photos) <span class="required-star">*</span>
                 </label>
                 <div class="border-2 border-dashed border-purple-300 rounded-lg p-4 sm:p-8 hover:border-purple-500 hover:bg-purple-50 transition-all text-center cursor-pointer" onclick="document.getElementById('facility_photos').click()">
                   <i class="fas fa-cloud-upload-alt text-3xl sm:text-4xl text-purple-400 mb-3 block"></i>
@@ -408,7 +408,7 @@
               <div id="customHoursSection" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Opening Time -->
                 <div>
-                  <label for="opening_time" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="opening_time" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-sun text-yellow-600 mr-2"></i>Opening Time
                   </label>
                   {{ form.opening_time(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", type="time") }}
@@ -416,7 +416,7 @@
 
                 <!-- Closing Time -->
                 <div>
-                  <label for="closing_time" class="block text-sm font-semibold text-gray-700 mb-2">
+                  <label for="closing_time" class="block text-sm font-semibold text-gray-700 mb-2 required-label">
                     <i class="fas fa-moon text-blue-600 mr-2"></i>Closing Time
                   </label>
                   {{ form.closing_time(class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors", type="time") }}
@@ -425,7 +425,7 @@
 
               <!-- Operating Days -->
               <div id="operatingDaysSection">
-                <label class="block text-sm font-semibold text-gray-700 mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-4 required-label">
                   <i class="fas fa-calendar text-purple-600 mr-2"></i>Operating Days
                 </label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
@@ -509,7 +509,7 @@
               <!-- Agreement Checkbox -->
               <div class="flex items-start space-x-4 sm:space-x-5 md:space-x-6 p-4 sm:p-5 bg-blue-50 border-2 border-blue-200 rounded-lg">
                 <input type="checkbox" id="agree_terms" name="agree_terms" class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 mt-0.5 sm:mt-1 cursor-pointer flex-shrink-0" required onchange="updateFormValidation()">
-                <label for="agree_terms" class="text-gray-900 font-semibold cursor-pointer flex-1 text-sm sm:text-base mt-0.5">
+                <label for="agree_terms" class="text-gray-900 font-semibold cursor-pointer flex-1 text-sm sm:text-base mt-0.5 required-label">
                   I agree to the PetSona Merchant Terms & Conditions and understand my responsibilities
                 </label>
               </div>
@@ -648,6 +648,27 @@
 
   .requirement-indicator i {
     transition: color 0.3s ease;
+  }
+
+  /* Required field styling */
+  .required-label:not(.manual-star)::after {
+    content: "*";
+    color: #dc2626;
+    font-weight: 800;
+    margin-left: 0.15rem;
+  }
+
+  .required-label,
+  .manual-star {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .required-star {
+    color: #dc2626;
+    font-weight: 800;
+    margin-left: 0.15rem;
   }
 
   /* Live Validation Styles */

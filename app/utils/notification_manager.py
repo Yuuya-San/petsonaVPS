@@ -439,7 +439,7 @@ class NotificationManager:
             badge_type='info',
             badge_text='New Booking',
             cta_text="View Booking",
-            cta_link=NotificationManager.get_frontend_url('/bookings')
+            cta_link=NotificationManager.get_frontend_url('/user/bookings')
         )
         return notif
     
@@ -466,7 +466,7 @@ class NotificationManager:
             badge_type='success',
             badge_text='Booking Confirmed',
             cta_text="View Booking",
-            cta_link=NotificationManager.get_frontend_url('/bookings')
+            cta_link=NotificationManager.get_frontend_url('/user/bookings')
         )
         return notif
     
@@ -522,7 +522,7 @@ class NotificationManager:
             badge_type='success',
             badge_text='Completed',
             cta_text="Leave a Review",
-            cta_link=NotificationManager.get_frontend_url('/bookings')
+            cta_link=NotificationManager.get_frontend_url('/user/bookings')
         )
         return notif
     
@@ -549,7 +549,7 @@ class NotificationManager:
             badge_type='info',
             badge_text='New Booking',
             cta_text="Review Booking",
-            cta_link=NotificationManager.get_frontend_url('/merchant/bookings')
+            cta_link=NotificationManager.get_frontend_url('/merchant/bookings-list')
         )
         return notif
     
@@ -626,7 +626,7 @@ class NotificationManager:
             badge_type='success',
             badge_text='Welcome',
             cta_text="Explore Services",
-            cta_link=NotificationManager.get_frontend_url('/services')
+            cta_link=NotificationManager.get_frontend_url('/user/nearby-services')
         )
         return notif
     
@@ -727,6 +727,66 @@ class NotificationManager:
             badge_text='Cancelled'
         )
         return notif
+
+    @staticmethod
+    def notify_booking_auto_cancelled_customer(user_id, booking_number, merchant_name, related_booking_id=None):
+        """Notify user when a pending booking is auto-cancelled by the system"""
+        title = "Booking Automatically Cancelled"
+        message = (
+            f"Your booking {booking_number} with {merchant_name} was automatically cancelled because "
+            "the scheduled appointment date and time have already passed."
+        )
+        notif = NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='booking_cancelled',
+            link=NotificationManager.get_frontend_url('/user/bookings'),
+            related_id=related_booking_id,
+            related_type='booking'
+        )
+        NotificationManager.send_notification_email(
+            user_id=user_id,
+            subject="Booking Automatically Cancelled - Petsona",
+            greeting="Hi, {{first_name}} {{last_name}}!",
+            message=message,
+            badge_type='warning',
+            badge_text='Auto Cancelled',
+            cta_link=NotificationManager.get_frontend_url('/user/bookings'),
+            cta_text='View Bookings',
+            additional_info="If you believe this cancellation was in error, please contact the merchant directly to reschedule."
+        )
+        return notif
+
+    @staticmethod
+    def notify_booking_auto_cancelled_merchant(user_id, booking_number, customer_name, related_booking_id=None):
+        """Notify merchant when a pending booking is auto-cancelled by the system"""
+        title = "Booking Automatically Cancelled"
+        message = (
+            f"Booking {booking_number} from {customer_name} was automatically cancelled "
+            "because the scheduled appointment date and time have already passed. The slot is now available."
+        )
+        notif = NotificationManager.create_and_emit(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type='booking_cancelled',
+            link=NotificationManager.get_frontend_url('/merchant/bookings-list'),
+            related_id=related_booking_id,
+            related_type='booking'
+        )
+        NotificationManager.send_notification_email(
+            user_id=user_id,
+            subject="Booking Automatically Cancelled - Petsona",
+            greeting="Hi, {{first_name}} {{last_name}}!",
+            message=message,
+            badge_type='info',
+            badge_text='Auto Cancelled',
+            cta_link=NotificationManager.get_frontend_url('/merchant/bookings-list'),
+            cta_text='View Bookings',
+            additional_info="This booking was automatically cancelled by the system after the appointment date and time elapsed."
+        )
+        return notif
     
     @staticmethod
     def notify_new_message(user_id, sender_name):
@@ -749,7 +809,7 @@ class NotificationManager:
             badge_type='info',
             badge_text='New Message',
             cta_text="View Message",
-            cta_link=NotificationManager.get_frontend_url('/messages')
+            cta_link=NotificationManager.get_frontend_url('/messages/inbox')
         )
         return notif
     
@@ -957,7 +1017,7 @@ class NotificationManager:
             badge_type='success',
             badge_text=f'{rating}-Star Review',
             cta_text="View Review",
-            cta_link=NotificationManager.get_frontend_url('/merchant/reviews')
+            cta_link=NotificationManager.get_frontend_url('/merchant/dashboard')
         )
         return notif
     
@@ -983,7 +1043,7 @@ class NotificationManager:
             badge_type='info',
             badge_text='Review Response',
             cta_text="View Response",
-            cta_link=NotificationManager.get_frontend_url('/bookings')
+            cta_link=NotificationManager.get_frontend_url('/user/bookings')
         )
         return notif
     
@@ -1026,7 +1086,7 @@ class NotificationManager:
             title=title,
             message=message,
             notification_type='security_alert',
-            link='/admin/audit-logs',
+            link=NotificationManager.get_frontend_url('/admin/audit_logs'),
             related_type='security_alert'
         )
         NotificationManager.send_notification_email(
@@ -1037,7 +1097,7 @@ class NotificationManager:
             badge_type='danger',
             badge_text='ALERT',
             cta_text="Review Audit Logs",
-            cta_link=NotificationManager.get_frontend_url('/admin/audit-logs'),
+            cta_link=NotificationManager.get_frontend_url('/admin/audit_logs'),
             is_security_alert=True
         )
         return notif
@@ -1052,7 +1112,7 @@ class NotificationManager:
             title=title,
             message=message,
             notification_type='security_alert',
-            link='/admin/audit-logs',
+            link=NotificationManager.get_frontend_url('/admin/audit_logs'),
             related_type='security_event'
         )
         NotificationManager.send_notification_email(
@@ -1063,7 +1123,7 @@ class NotificationManager:
             badge_type='warning',
             badge_text='ALERT',
             cta_text="Review Audit Logs",
-            cta_link=NotificationManager.get_frontend_url('/admin/audit-logs'),
+            cta_link=NotificationManager.get_frontend_url('/admin/audit_logs'),
             is_security_alert=True
         )
         return notif
@@ -1081,7 +1141,7 @@ class NotificationManager:
                 title=alert_title,
                 message=alert_message,
                 notification_type='security_alert',
-                link='/admin/audit-logs'
+                link=NotificationManager.get_frontend_url('/admin/audit_logs')
             )
             # Send email notification
             badge_type = 'danger' if severity == 'high' else 'warning'
@@ -1093,7 +1153,7 @@ class NotificationManager:
                 badge_type=badge_type,
                 badge_text='CRITICAL ALERT',
                 cta_text="Review Audit Logs",
-                cta_link=NotificationManager.get_frontend_url('/admin/audit-logs'),
+                cta_link=NotificationManager.get_frontend_url('/admin/audit_logs'),
                 is_security_alert=True
             )
             notifications.append(notif)

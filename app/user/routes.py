@@ -1648,6 +1648,39 @@ def my_bookings():
     status_filter = request.args.get('status', 'all')
     search = request.args.get('search', '', type=str).strip()
     
+    # Auto-cancel pending bookings whose appointment date/time have already passed
+    try:
+        expired_pending_bookings = Booking.query.filter_by(
+            user_id=current_user.id,
+            status='pending',
+            deleted_at=None
+        ).all()
+        auto_cancelled_bookings = []
+
+        for pending_booking in expired_pending_bookings:
+            if pending_booking.auto_cancel_if_expired():
+                auto_cancelled_bookings.append(pending_booking)
+
+        if auto_cancelled_bookings:
+            db.session.commit()
+            for pending_booking in auto_cancelled_bookings:
+                NotificationManager.notify_booking_auto_cancelled_customer(
+                    user_id=current_user.id,
+                    booking_number=pending_booking.booking_number,
+                    merchant_name=(pending_booking.merchant.business_name if pending_booking.merchant else 'the merchant'),
+                    related_booking_id=pending_booking.id
+                )
+                if pending_booking.merchant and pending_booking.merchant.user_id:
+                    NotificationManager.notify_booking_auto_cancelled_merchant(
+                        user_id=pending_booking.merchant.user_id,
+                        booking_number=pending_booking.booking_number,
+                        customer_name=(pending_booking.customer_name or current_user.email),
+                        related_booking_id=pending_booking.id
+                    )
+    except Exception as e:
+        logger.error(f"Failed to auto-cancel expired pending bookings: {str(e)}", exc_info=True)
+        db.session.rollback()
+
     query = Booking.query.filter_by(user_id=current_user.id, deleted_at=None)
     
     # Apply search filter if specified - search across booking number and merchant name
@@ -1708,6 +1741,27 @@ def booking_details(booking_id):
     if not booking:
         flash('Booking not found.', 'danger')
         return redirect(url_for('user.my_bookings'))
+
+    if booking.auto_cancel_if_expired():
+        try:
+            db.session.commit()
+            NotificationManager.notify_booking_auto_cancelled_customer(
+                user_id=current_user.id,
+                booking_number=booking.booking_number,
+                merchant_name=(booking.merchant.business_name if booking.merchant else 'the merchant'),
+                related_booking_id=booking.id
+            )
+            if booking.merchant and booking.merchant.user_id:
+                NotificationManager.notify_booking_auto_cancelled_merchant(
+                    user_id=booking.merchant.user_id,
+                    booking_number=booking.booking_number,
+                    customer_name=(booking.customer_name or current_user.email),
+                    related_booking_id=booking.id
+                )
+            flash('This booking was automatically cancelled because the appointment date and time have already passed.', 'warning')
+        except Exception as e:
+            logger.error(f"Failed to auto-cancel booking {booking.id} on detail view: {str(e)}", exc_info=True)
+            db.session.rollback()
     
     return render_template('user/booking_details.html', booking=booking)
 
@@ -1760,7 +1814,7 @@ def cancel_booking(booking_id):
     
     if not booking.can_be_cancelled:
         flash('This booking cannot be cancelled.', 'danger')
-        return redirect(url_for('user.booking_details', booking_id=booking_id))
+        return redirect(url_for('user.my_bookings'))
     
     try:
         logger.info(f"\n{'='*60}")

@@ -117,6 +117,31 @@
   box-shadow: none !important;
 }
 
+/* Password toggle button */
+.toggle-password {
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  cursor: pointer;
+  color: #36064D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+.toggle-password:hover {
+  color: #4f46e5;
+  transform: scale(1.1);
+}
+
+.toggle-password:focus {
+  outline: none;
+  color: #6366f1;
+}
+
 /* Force remove all input borders */
 .input-group input,
 .input-group textarea,
@@ -126,6 +151,16 @@
   outline: none !important;
   box-shadow: none !important;
   background: transparent !important;
+  flex: 1;
+}
+
+.input-status {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1rem;
 }
 
 /* Prevent browser autofill weird styling */
@@ -226,9 +261,10 @@
   gap: 0.15rem;
   padding: 0.4rem;
   margin: 0.2rem 0;
-  background: rgba(99, 102, 241, 0.08);
+  background: #ffffff;
   border-radius: 6px;
-  border-left: 2px solid rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.08);
 }
 
 .requirement {
@@ -236,14 +272,20 @@
   align-items: center;
   gap: 0.3rem;
   font-size: 0.65rem;
-  color: #6B7280;
+  color: #111827;
   line-height: 1;
+  transition: all 0.2s ease;
 }
 
 .requirement i {
   font-size: 0.55rem;
   color: #ff6b6b;
   flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.requirement.met {
+  color: #51cf66;
 }
 
 .requirement.met i {
@@ -1136,6 +1178,112 @@ function isValidPassword(password) {
     /[!@#$%^&*(),.?"{}|<>\[\]\\/~`_+=:;-]/.test(password);
 }
 
+// PASSWORD REQUIREMENTS LIVE VALIDATION
+function updatePasswordRequirements(password) {
+  const requirements = {
+    'req-length': password.length >= 8,
+    'req-uppercase': /[A-Z]/.test(password),
+    'req-lowercase': /[a-z]/.test(password),
+    'req-number': /[0-9]/.test(password),
+    'req-special': /[!@#$%^&*(),.?"{}|<>\[\]\\/~`_+=:;-]/.test(password)
+  };
+
+  Object.entries(requirements).forEach(([id, isMet]) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const icon = element.querySelector('i');
+      if (isMet) {
+        element.classList.add('met');
+        if (icon) {
+          icon.className = 'fas fa-check-circle';
+        }
+      } else {
+        element.classList.remove('met');
+        if (icon) {
+          icon.className = 'fas fa-times-circle';
+        }
+      }
+    }
+  });
+
+  updatePasswordStrengthMeter(password);
+}
+
+// PASSWORD STRENGTH METER
+function updatePasswordStrengthMeter(password) {
+  const strengthBar = document.getElementById('strength-bar');
+  const strengthText = document.getElementById('strength-text');
+  
+  if (!strengthBar || !strengthText) return;
+
+  let strength = 0;
+  const requirements = [];
+
+  if (password.length >= 8) strength++;
+  if (password.length >= 12) strength++;
+  if (password.length >= 16) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[a-z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[!@#$%^&*(),.?"{}|<>\[\]\\/~`_+=:;-]/.test(password)) strength++;
+
+  const strengthLevels = [
+    { min: 0, max: 2, label: 'Weak', color: '#ff6b6b', width: '20%' },
+    { min: 3, max: 4, label: 'Fair', color: '#ffa500', width: '50%' },
+    { min: 5, max: 5, label: 'Good', color: '#74d9ff', width: '75%' },
+    { min: 6, max: 7, label: 'Strong', color: '#51cf66', width: '100%' }
+  ];
+
+  const level = strengthLevels.find(l => strength >= l.min && strength <= l.max);
+  
+  if (level) {
+    strengthBar.style.width = level.width;
+    strengthBar.style.backgroundColor = level.color;
+    strengthText.textContent = `Strength: ${level.label}`;
+    strengthText.style.color = level.color;
+  }
+}
+
+// PASSWORD CONFIRMATION MATCH CHECK
+function updatePasswordMatchStatus() {
+  const password2Status = document.getElementById('password2-status');
+  
+  if (!password2Input || !password2Input.value) {
+    if (password2Status) {
+      password2Status.innerHTML = '';
+    }
+    return;
+  }
+
+  const matches = passwordInput.value === password2Input.value;
+  
+  if (password2Status) {
+    if (matches) {
+      password2Status.innerHTML = '<i class="fas fa-check-circle" style="color: #51cf66;"></i>';
+    } else {
+      password2Status.innerHTML = '<i class="fas fa-times-circle" style="color: #ff6b6b;"></i>';
+    }
+  }
+}
+
+// PASSWORD VISIBILITY TOGGLE
+function setupPasswordToggle(inputId, toggleId) {
+  const input = document.getElementById(inputId);
+  const toggle = document.getElementById(toggleId);
+  
+  if (!toggle || !input) return;
+  
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    const icon = toggle.querySelector('i');
+    if (icon) {
+      icon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+    }
+  });
+}
+
 function validatePersonalSection() {
   const firstNameValid = firstNameInput && isValidName(firstNameInput.value);
   const lastNameValid = lastNameInput && isValidName(lastNameInput.value);
@@ -1160,6 +1308,13 @@ validatePersonalSection();
 
 document.addEventListener('DOMContentLoaded', function() {
   validatePersonalSection();
+  // Initial state for password requirements
+  if (passwordInput) {
+    updatePasswordRequirements(passwordInput.value);
+  }
+  // Setup password visibility toggles
+  setupPasswordToggle('password', 'toggle-password');
+  setupPasswordToggle('password2', 'toggle-password2');
 });
 
 document.getElementById('to-password-section').onclick = () => {
@@ -1177,23 +1332,32 @@ document.getElementById('back-to-personal-info').onclick = () => {
 // Handle terms agreement checkbox
 function updateSubmitButtonState() {
   const isTermsChecked = agreeTermsCheckbox && agreeTermsCheckbox.checked;
-  const passwordsValid = passwordInput && password2Input &&
+  const passwordsMatch = passwordInput && password2Input &&
     passwordInput.value &&
     password2Input.value &&
-    isValidPassword(passwordInput.value) &&
     passwordInput.value === password2Input.value;
+  const passwordsValid = passwordInput && isValidPassword(passwordInput.value);
 
-  setSubmitDisabled(!(isTermsChecked && passwordsValid));
+  setSubmitDisabled(!(isTermsChecked && passwordsValid && passwordsMatch));
 }
 
 if (passwordInput) {
-  passwordInput.addEventListener('input', updateSubmitButtonState);
+  passwordInput.addEventListener('input', () => {
+    updatePasswordRequirements(passwordInput.value);
+    updatePasswordMatchStatus();
+    updateSubmitButtonState();
+  });
   passwordInput.addEventListener('change', updateSubmitButtonState);
 }
+
 if (password2Input) {
-  password2Input.addEventListener('input', updateSubmitButtonState);
+  password2Input.addEventListener('input', () => {
+    updatePasswordMatchStatus();
+    updateSubmitButtonState();
+  });
   password2Input.addEventListener('change', updateSubmitButtonState);
 }
+
 if (agreeTermsCheckbox) {
   agreeTermsCheckbox.addEventListener('change', updateSubmitButtonState);
 }

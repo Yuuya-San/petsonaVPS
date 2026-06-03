@@ -3337,6 +3337,20 @@
     return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
   }
 
+  function showGlobalLoader() {
+    const loader = document.getElementById('loader-overlay');
+    if (!loader) return;
+    loader.classList.add('active');
+    document.body.classList.add('modal-open');
+  }
+
+  function hideGlobalLoader() {
+    const loader = document.getElementById('loader-overlay');
+    if (!loader) return;
+    loader.classList.remove('active');
+    document.body.classList.remove('modal-open');
+  }
+
   function showDetailsModal(button) {
     const bookingId = button.dataset.bookingId;
     const bookingNumber = button.dataset.bookingNumber;
@@ -3460,6 +3474,7 @@
       form.appendChild(input);
       
       document.body.appendChild(form);
+      showGlobalLoader();
       form.submit();
     }
   }
@@ -3490,6 +3505,7 @@
       form.appendChild(csrfInput);
       
       document.body.appendChild(form);
+      showGlobalLoader();
       form.submit();
     }
   }
@@ -3528,6 +3544,7 @@
       return;
     }
 
+    showGlobalLoader();
     const submitBtn = document.querySelector('#appealModal .btn-primary');
     const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
@@ -3552,12 +3569,14 @@
         location.reload();
       } else {
         
+        hideGlobalLoader();
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
       }
     })
     .catch(error => {
       
+      hideGlobalLoader();
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalText;
     });
@@ -4131,6 +4150,12 @@
         }
       });
     }
+
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', function() {
+        showGlobalLoader();
+      });
+    });
   });
 
   // ========== REVIEW FUNCTIONS ==========
@@ -4345,6 +4370,7 @@
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
       submitBtn.disabled = true;
     }
+    showGlobalLoader();
     
     // Submit review
     fetch('/user/booking/' + bookingId + '/review', {
@@ -4371,6 +4397,7 @@
         closeReviewModal();
         location.reload();
       } else {
+        hideGlobalLoader();
         showFlashMessage('Error submitting review: ' + (data.error || 'Unknown error'), 'error');
         const buttonToRestore = document.querySelector('#reviewModal .btn-primary') || document.querySelector('#reviewModal .modal-footer button:last-child');
         if (buttonToRestore) {
@@ -4380,7 +4407,7 @@
       }
     })
     .catch(error => {
-      
+      hideGlobalLoader();
       
       const buttonToRestore = document.querySelector('#reviewModal .btn-primary') || document.querySelector('#reviewModal .modal-footer button:last-child');
       if (buttonToRestore) {

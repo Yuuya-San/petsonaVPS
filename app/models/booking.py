@@ -122,26 +122,55 @@ class Booking(db.Model):
     @property
     def is_upcoming(self):
         """Check if appointment is scheduled for the future"""
+        appt_dt = self.get_appointment_datetime()
+        return self.is_confirmed and appt_dt and appt_dt > get_ph_datetime()
+
+    def get_appointment_datetime(self):
+        """Get the full appointment datetime in Philippine timezone"""
+        if not self.appointment_date:
+            return None
+
         appt_dt = self.appointment_date
         if appt_dt.tzinfo is None:
             appt_dt = appt_dt.replace(tzinfo=PH_TZ)
-        return self.is_confirmed and appt_dt > get_ph_datetime()
+
+        if self.appointment_time:
+            try:
+                hour, minute = map(int, self.appointment_time.split(':'))
+                appt_dt = appt_dt.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            except Exception:
+                pass
+
+        return appt_dt
 
     @property
     def is_past(self):
-        """Check if appointment date has passed"""
-        appt_dt = self.appointment_date
-        if appt_dt.tzinfo is None:
-            appt_dt = appt_dt.replace(tzinfo=PH_TZ)
-        return get_ph_datetime() > appt_dt
+        """Check if appointment date and time have already passed"""
+        appt_dt = self.get_appointment_datetime()
+        return bool(appt_dt and get_ph_datetime() > appt_dt)
 
     @property
     def can_be_cancelled(self):
         """Check if booking can still be cancelled"""
-        appt_dt = self.appointment_date
-        if appt_dt.tzinfo is None:
-            appt_dt = appt_dt.replace(tzinfo=PH_TZ)
-        return not self.is_cancelled and not self.is_completed and get_ph_datetime() < appt_dt
+        if self.is_cancelled or self.is_completed:
+            return False
+
+        if self.status == 'pending':
+            return not self.is_past
+
+        appt_dt = self.get_appointment_datetime()
+        if not appt_dt:
+            return False
+        return get_ph_datetime() < appt_dt
+
+    def auto_cancel_if_expired(self):
+        """Automatically cancel pending bookings whose appointment date/time has already passed"""
+        if self.status != 'pending' or not self.is_past:
+            return False
+
+        self.status = 'cancelled'
+        self.updated_at = get_utc_now()
+        return True
 
     @property
     def total_pets_count(self):
